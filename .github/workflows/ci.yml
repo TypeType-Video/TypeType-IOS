@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+  workflow_dispatch:
+
+jobs:
+  ios-build:
+    runs-on: macos-15
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install XcodeGen
+        run: brew list xcodegen >/dev/null 2>&1 || brew install xcodegen
+
+      - name: Toolchain versions
+        run: |
+          xcodebuild -version
+          xcodegen --version
+
+      - name: Generate project
+        run: xcodegen generate
+
+      - name: Build app (iOS Simulator)
+        run: |
+          xcodebuild \
+            -project TypeTypeIOS.xcodeproj \
+            -scheme TypeTypeIOS \
+            -configuration Debug \
+            -destination "generic/platform=iOS Simulator" \
+            CODE_SIGNING_ALLOWED=NO \
+            build
