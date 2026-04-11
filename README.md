@@ -42,5 +42,6 @@ If the entered URL has no path, the app normalizes it to `/api`.
 - Home tab loads trending feed from server (`/trending?service=0`)
 - Search tab with paginated server search (`/search`)
 - Watch screen backed by stream details endpoint (`/streams`)
+- Library tab with history and playlists views
 - Settings tab can switch server and sign out
 - Admin tab lists users with role/suspension/reset-token actions

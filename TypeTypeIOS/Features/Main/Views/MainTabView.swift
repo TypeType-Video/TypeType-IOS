@@ -19,6 +19,11 @@ struct MainTabView: View {
           Label("Search", systemImage: "magnifyingglass")
         }
 
+      LibraryView(coordinator: coordinator)
+        .tabItem {
+          Label("Library", systemImage: "books.vertical")
+        }
+
       SettingsPlaceholderView(coordinator: coordinator)
         .tabItem {
           Label("Settings", systemImage: "gearshape")
