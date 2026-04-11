@@ -14,13 +14,18 @@ struct MainTabView: View {
           Label("Home", systemImage: "house")
         }
 
+      SearchView(coordinator: coordinator)
+        .tabItem {
+          Label("Search", systemImage: "magnifyingglass")
+        }
+
       SettingsPlaceholderView(coordinator: coordinator)
         .tabItem {
           Label("Settings", systemImage: "gearshape")
         }
 
       if isAdmin {
-        AdminPlaceholderView()
+        AdminUsersView(coordinator: coordinator)
           .tabItem {
             Label("Admin", systemImage: "person.3")
           }
