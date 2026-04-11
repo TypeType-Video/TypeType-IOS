@@ -24,7 +24,7 @@ struct MainTabView: View {
           Label("Library", systemImage: "books.vertical")
         }
 
-      SettingsPlaceholderView(coordinator: coordinator)
+      SettingsView(coordinator: coordinator)
         .tabItem {
           Label("Settings", systemImage: "gearshape")
         }

@@ -44,5 +44,5 @@ If the entered URL has no path, the app normalizes it to `/api`.
 - Watch screen backed by stream details endpoint (`/streams`)
 - Watch actions for favorite, watch later, and subscription
 - Library tab with history and playlists views
-- Settings tab can switch server and sign out
+- Settings tab loads/saves server-backed user settings
 - Admin tab lists users with role/suspension/reset-token actions
