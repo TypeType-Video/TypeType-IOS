@@ -15,10 +15,18 @@ struct SearchView: View {
   private var statusSection: some View {
     if let suggestion = viewModel.suggestion, !suggestion.isEmpty {
       let label = viewModel.isCorrected ? "Showing results for" : "Did you mean"
-      Text("\(label) \(suggestion)")
+      HStack {
+        Text("\(label) \(suggestion)")
+          .font(.caption)
+          .foregroundStyle(.secondary)
+        Spacer()
+        Button("Use") {
+          viewModel.query = suggestion
+          Task { await viewModel.performSearch(serviceID: 0) }
+        }
         .font(.caption)
-        .foregroundStyle(.secondary)
-        .padding(.horizontal)
+      }
+      .padding(.horizontal)
     }
     if let errorMessage = viewModel.errorMessage {
       Text(errorMessage)
