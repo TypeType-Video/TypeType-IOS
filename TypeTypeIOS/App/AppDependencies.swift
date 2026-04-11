@@ -9,6 +9,7 @@ final class AppDependencies {
   let homeFeedService: HomeFeedServiceProtocol
   let searchService: SearchServiceProtocol
   let watchService: WatchServiceProtocol
+  let watchActionsService: WatchActionsServiceProtocol
   let adminService: AdminServiceProtocol
   let libraryService: LibraryServiceProtocol
 
@@ -21,6 +22,7 @@ final class AppDependencies {
     homeFeedService: HomeFeedServiceProtocol,
     searchService: SearchServiceProtocol,
     watchService: WatchServiceProtocol,
+    watchActionsService: WatchActionsServiceProtocol,
     adminService: AdminServiceProtocol,
     libraryService: LibraryServiceProtocol
   ) {
@@ -32,6 +34,7 @@ final class AppDependencies {
     self.homeFeedService = homeFeedService
     self.searchService = searchService
     self.watchService = watchService
+    self.watchActionsService = watchActionsService
     self.adminService = adminService
     self.libraryService = libraryService
   }
@@ -52,6 +55,7 @@ final class AppDependencies {
     let homeFeedService = HomeFeedService(apiClient: client)
     let searchService = SearchService(apiClient: client)
     let watchService = WatchService(apiClient: client)
+    let watchActionsService = WatchActionsService(apiClient: client)
     let adminService = AdminService(apiClient: client)
     let libraryService = LibraryService(apiClient: client)
     return AppDependencies(
@@ -63,6 +67,7 @@ final class AppDependencies {
       homeFeedService: homeFeedService,
       searchService: searchService,
       watchService: watchService,
+      watchActionsService: watchActionsService,
       adminService: adminService,
       libraryService: libraryService
     )

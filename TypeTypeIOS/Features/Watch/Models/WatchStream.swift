@@ -4,6 +4,7 @@ struct WatchStream: Decodable {
   let title: String
   let uploaderName: String
   let uploaderUrl: String
+  let uploaderAvatarUrl: String
   let thumbnailUrl: String
   let description: String
   let duration: Int64

@@ -3,10 +3,18 @@ import SwiftUI
 struct WatchView: View {
   let videoURL: String
   @StateObject private var viewModel: WatchViewModel
+  @StateObject private var actionsViewModel: WatchActionsViewModel
 
-  init(videoURL: String, watchService: WatchServiceProtocol) {
+  init(
+    videoURL: String,
+    watchService: WatchServiceProtocol,
+    watchActionsService: WatchActionsServiceProtocol
+  ) {
     self.videoURL = videoURL
     _viewModel = StateObject(wrappedValue: WatchViewModel(videoURL: videoURL, watchService: watchService))
+    _actionsViewModel = StateObject(
+      wrappedValue: WatchActionsViewModel(videoURL: videoURL, service: watchActionsService)
+    )
   }
 
   private func formatDuration(_ total: Int64) -> String {
@@ -19,6 +27,42 @@ struct WatchView: View {
     if views >= 1_000_000 { return String(format: "%.1fM", Double(views) / 1_000_000.0) }
     if views >= 1_000 { return String(format: "%.1fK", Double(views) / 1_000.0) }
     return "\(views)"
+  }
+
+  @ViewBuilder
+  private var actionBar: some View {
+    HStack {
+      Button {
+        Task { await actionsViewModel.toggleFavorite() }
+      } label: {
+        Label(
+          actionsViewModel.isFavorite ? "Favorited" : "Favorite",
+          systemImage: actionsViewModel.isFavorite ? "heart.fill" : "heart"
+        )
+      }
+      .buttonStyle(.bordered)
+
+      Button {
+        Task { await actionsViewModel.toggleWatchLater() }
+      } label: {
+        Label(
+          actionsViewModel.isWatchLater ? "Saved" : "Watch Later",
+          systemImage: actionsViewModel.isWatchLater ? "clock.fill" : "clock"
+        )
+      }
+      .buttonStyle(.bordered)
+
+      Button {
+        Task { await actionsViewModel.toggleSubscription() }
+      } label: {
+        Label(
+          actionsViewModel.isSubscribed ? "Subscribed" : "Subscribe",
+          systemImage: actionsViewModel.isSubscribed ? "bell.fill" : "bell"
+        )
+      }
+      .buttonStyle(.borderedProminent)
+    }
+    .disabled(actionsViewModel.isMutating || actionsViewModel.isLoading)
   }
 
   @ViewBuilder
@@ -63,6 +107,14 @@ struct WatchView: View {
           .font(.caption)
           .foregroundStyle(.secondary)
 
+          actionBar
+
+          if let message = actionsViewModel.message {
+            Text(message)
+              .font(.caption)
+              .foregroundStyle(.secondary)
+          }
+
           if stream.requiresMembership {
             Label("Member-only content", systemImage: "person.2.badge.key")
               .font(.caption)
@@ -87,6 +139,10 @@ struct WatchView: View {
           }
         }
         .padding()
+      }
+      .task(id: stream.title) {
+        actionsViewModel.prepare(stream: stream)
+        await actionsViewModel.refresh()
       }
     }
   }
