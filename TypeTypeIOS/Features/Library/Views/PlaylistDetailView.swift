@@ -4,12 +4,19 @@ struct PlaylistDetailView: View {
   let playlistID: String
   let libraryService: LibraryServiceProtocol
   let watchService: WatchServiceProtocol
+  let watchActionsService: WatchActionsServiceProtocol
   @StateObject private var viewModel: PlaylistDetailViewModel
 
-  init(playlistID: String, libraryService: LibraryServiceProtocol, watchService: WatchServiceProtocol) {
+  init(
+    playlistID: String,
+    libraryService: LibraryServiceProtocol,
+    watchService: WatchServiceProtocol,
+    watchActionsService: WatchActionsServiceProtocol
+  ) {
     self.playlistID = playlistID
     self.libraryService = libraryService
     self.watchService = watchService
+    self.watchActionsService = watchActionsService
     _viewModel = StateObject(
       wrappedValue: PlaylistDetailViewModel(playlistID: playlistID, service: libraryService)
     )
@@ -34,7 +41,11 @@ struct PlaylistDetailView: View {
           }
           ForEach(playlist.videos) { video in
             NavigationLink {
-              WatchView(videoURL: video.url, watchService: watchService)
+              WatchView(
+                videoURL: video.url,
+                watchService: watchService,
+                watchActionsService: watchActionsService
+              )
             } label: {
               PlaylistVideoRowView(item: video)
             }

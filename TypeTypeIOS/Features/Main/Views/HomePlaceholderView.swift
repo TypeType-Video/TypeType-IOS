@@ -44,7 +44,11 @@ struct HomePlaceholderView: View {
     } else {
       List(viewModel.videos) { video in
         NavigationLink {
-          WatchView(videoURL: video.url, watchService: coordinator.dependencies.watchService)
+          WatchView(
+            videoURL: video.url,
+            watchService: coordinator.dependencies.watchService,
+            watchActionsService: coordinator.dependencies.watchActionsService
+          )
         } label: {
           HomeVideoRowView(video: video)
         }

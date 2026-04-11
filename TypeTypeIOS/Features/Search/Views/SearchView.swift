@@ -64,7 +64,11 @@ struct SearchView: View {
           List {
             ForEach(viewModel.items) { item in
               NavigationLink {
-                WatchView(videoURL: item.url, watchService: coordinator.dependencies.watchService)
+                WatchView(
+                  videoURL: item.url,
+                  watchService: coordinator.dependencies.watchService,
+                  watchActionsService: coordinator.dependencies.watchActionsService
+                )
               } label: {
                 HomeVideoRowView(video: item)
               }

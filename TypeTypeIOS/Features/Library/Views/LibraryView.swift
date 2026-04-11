@@ -35,7 +35,11 @@ struct LibraryView: View {
       } else {
         List(viewModel.history) { item in
           NavigationLink {
-            WatchView(videoURL: item.url, watchService: coordinator.dependencies.watchService)
+            WatchView(
+              videoURL: item.url,
+              watchService: coordinator.dependencies.watchService,
+              watchActionsService: coordinator.dependencies.watchActionsService
+            )
           } label: {
             LibraryHistoryRowView(item: item)
           }
@@ -52,7 +56,8 @@ struct LibraryView: View {
             PlaylistDetailView(
               playlistID: playlist.id,
               libraryService: coordinator.dependencies.libraryService,
-              watchService: coordinator.dependencies.watchService
+              watchService: coordinator.dependencies.watchService,
+              watchActionsService: coordinator.dependencies.watchActionsService
             )
           } label: {
             LibraryPlaylistRowView(playlist: playlist)
