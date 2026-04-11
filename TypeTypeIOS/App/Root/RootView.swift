@@ -19,5 +19,8 @@ struct RootView: View {
     }
     .padding()
     .animation(TypeTypeMotion.quickEase, value: coordinator.state)
+    .task(id: coordinator.selectedServer?.id) {
+      await coordinator.verifySelectedSession()
+    }
   }
 }

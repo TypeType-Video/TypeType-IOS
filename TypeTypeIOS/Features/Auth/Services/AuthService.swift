@@ -4,6 +4,7 @@ protocol AuthServiceProtocol {
   func login(email: String, password: String) async throws -> AuthSessionResult
   func register(name: String, email: String, password: String) async throws -> AuthSessionResult
   func refresh(using token: String) async throws -> String
+  func restoreSession(snapshot: SessionSnapshot, token: String) async throws -> AuthSessionResult
 }
 
 final class AuthService: AuthServiceProtocol {
@@ -30,6 +31,18 @@ final class AuthService: AuthServiceProtocol {
   func refresh(using token: String) async throws -> String {
     let payload = RefreshPayload(token: token)
     return try await requestToken(path: "/auth/refresh", payload: payload)
+  }
+
+  func restoreSession(snapshot: SessionSnapshot, token: String) async throws -> AuthSessionResult {
+    do {
+      let me = try await fetchMe(token: token)
+      return AuthSessionResult(userID: me.id, email: snapshot.userEmail, role: me.role, token: token)
+    } catch let error as NetworkError {
+      guard case .statusCode(401, _) = error else { throw error }
+      let refreshed = try await refresh(using: token)
+      let me = try await fetchMe(token: refreshed)
+      return AuthSessionResult(userID: me.id, email: snapshot.userEmail, role: me.role, token: refreshed)
+    }
   }
 
   private func requestToken<T: Encodable>(path: String, payload: T) async throws -> String {

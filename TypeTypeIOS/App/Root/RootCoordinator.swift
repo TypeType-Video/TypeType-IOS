@@ -93,6 +93,34 @@ final class RootCoordinator: ObservableObject {
     state = selectedServer == nil ? .serverSetup : .auth
   }
 
+  func verifySelectedSession() async {
+    guard let serverID = selectedServer?.id else {
+      state = .serverSetup
+      return
+    }
+    guard let snapshot = dependencies.sessionStore.session(forServerID: serverID) else {
+      currentSession = nil
+      state = .auth
+      return
+    }
+    guard let token = dependencies.sessionStore.accessToken(forServerID: serverID) else {
+      dependencies.sessionStore.clearSession(forServerID: serverID)
+      currentSession = nil
+      state = .auth
+      return
+    }
+
+    do {
+      let result = try await dependencies.authService.restoreSession(snapshot: snapshot, token: token)
+      guard selectedServer?.id == serverID else { return }
+      completeAuthentication(result)
+    } catch {
+      dependencies.sessionStore.clearSession(forServerID: serverID)
+      currentSession = nil
+      state = .auth
+    }
+  }
+
   private func updateStateForCurrentContext() {
     guard let selectedServer else {
       state = .serverSetup
