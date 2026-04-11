@@ -10,6 +10,7 @@ final class AppDependencies {
   let searchService: SearchServiceProtocol
   let watchService: WatchServiceProtocol
   let adminService: AdminServiceProtocol
+  let libraryService: LibraryServiceProtocol
 
   init(
     keychainService: KeychainService,
@@ -20,7 +21,8 @@ final class AppDependencies {
     homeFeedService: HomeFeedServiceProtocol,
     searchService: SearchServiceProtocol,
     watchService: WatchServiceProtocol,
-    adminService: AdminServiceProtocol
+    adminService: AdminServiceProtocol,
+    libraryService: LibraryServiceProtocol
   ) {
     self.keychainService = keychainService
     self.serverStore = serverStore
@@ -31,6 +33,7 @@ final class AppDependencies {
     self.searchService = searchService
     self.watchService = watchService
     self.adminService = adminService
+    self.libraryService = libraryService
   }
 
   static let live: AppDependencies = {
@@ -50,6 +53,7 @@ final class AppDependencies {
     let searchService = SearchService(apiClient: client)
     let watchService = WatchService(apiClient: client)
     let adminService = AdminService(apiClient: client)
+    let libraryService = LibraryService(apiClient: client)
     return AppDependencies(
       keychainService: keychain,
       serverStore: serverStore,
@@ -59,7 +63,8 @@ final class AppDependencies {
       homeFeedService: homeFeedService,
       searchService: searchService,
       watchService: watchService,
-      adminService: adminService
+      adminService: adminService,
+      libraryService: libraryService
     )
   }()
 }
