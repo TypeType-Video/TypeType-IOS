@@ -1,0 +1,24 @@
+name: TypeTypeIOS
+options:
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: 5.10
+targets:
+  TypeTypeIOS:
+    type: application
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - TypeTypeIOS
+    info:
+      path: TypeTypeIOS/Info.plist
+      properties:
+        CFBundleDisplayName: TypeType
+        UILaunchScreen: {}
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.typetype.ios
+        PRODUCT_NAME: TypeTypeIOS
