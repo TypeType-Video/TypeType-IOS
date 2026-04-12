@@ -86,6 +86,9 @@ struct SettingsView: View {
             "Recommendation personalization",
             isOn: $viewModel.draft.recommendationPersonalizationEnabled
           )
+          NavigationLink("Recommendation profile") {
+            RecommendationOnboardingView(coordinator: coordinator, mode: .settings)
+          }
         }
 
         statusMessages
