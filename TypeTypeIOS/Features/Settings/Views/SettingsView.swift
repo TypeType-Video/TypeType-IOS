@@ -50,6 +50,12 @@ struct SettingsView: View {
             NavigationLink("Reset Password") {
               ResetPasswordView(service: coordinator.dependencies.resetPasswordService)
             }
+            NavigationLink("Import from YouTube") {
+              YoutubeImportView(service: coordinator.dependencies.youtubeImportService)
+            }
+            NavigationLink("Import from PipePipe") {
+              PipePipeImportView(service: coordinator.dependencies.pipePipeImportService)
+            }
           }
         }
 
