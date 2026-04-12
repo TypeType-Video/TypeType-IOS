@@ -11,6 +11,10 @@ struct WatchContentView: View {
   let relatedVideos: [HomeVideoItem]
   let coordinator: RootCoordinator
   let comments: [WatchComment]
+  let commentsDisabled: Bool
+  let repliesFor: (String) -> [WatchComment]
+  let isLoadingRepliesFor: (String) -> Bool
+  let canLoadMoreRepliesFor: (String, String?) -> Bool
   let isLoadingComments: Bool
   let canLoadMoreComments: Bool
   let isSavingProgress: Bool
@@ -18,6 +22,7 @@ struct WatchContentView: View {
   let onPause: () -> Void
   let onEnded: () -> Void
   let onPlayerError: (String) -> Void
+  let onLoadReplies: (WatchComment) -> Void
   let onLoadMoreComments: () -> Void
 
   var body: some View {
@@ -67,6 +72,12 @@ struct WatchContentView: View {
 
         WatchCommentsSection(
           comments: comments,
+          commentsDisabled: commentsDisabled,
+          videoURL: videoURL,
+          repliesFor: repliesFor,
+          isLoadingRepliesFor: isLoadingRepliesFor,
+          canLoadMoreRepliesFor: canLoadMoreRepliesFor,
+          onLoadReplies: onLoadReplies,
           isLoading: isLoadingComments,
           canLoadMore: canLoadMoreComments,
           onLoadMore: onLoadMoreComments

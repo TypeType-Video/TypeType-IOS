@@ -1,4 +1,3 @@
-import Combine
 import Foundation
 
 @MainActor
@@ -9,14 +8,18 @@ final class WatchViewModel: ObservableObject {
   @Published private(set) var resumePositionMs: Int64 = 0
   @Published private(set) var isSavingProgress: Bool = false
   @Published private(set) var isLoadingComments: Bool = false
+  @Published private(set) var commentsDisabled: Bool = false
   @Published private(set) var canLoadMoreComments: Bool = true
   @Published private(set) var isLoading: Bool = false
   @Published var errorMessage: String?
 
-  private let videoURL: String
-  private let watchService: WatchServiceProtocol
+  fileprivate let videoURL: String
+  fileprivate let watchService: WatchServiceProtocol
   private let progressService: WatchProgressServiceProtocol
   private var commentsNextPage: String?
+  fileprivate var repliesByParentID: [String: [WatchComment]] = [:]
+  fileprivate var repliesNextPageByParentID: [String: String?] = [:]
+  fileprivate var repliesLoadingParentIDs: Set<String> = []
 
   private var latestPositionMs: Int64 = 0
   private var didCompletePlayback: Bool = false
@@ -42,7 +45,11 @@ final class WatchViewModel: ObservableObject {
       relatedVideos = loadedStream.relatedStreams
       comments = []
       commentsNextPage = nil
+      commentsDisabled = false
       canLoadMoreComments = true
+      repliesByParentID = [:]
+      repliesNextPageByParentID = [:]
+      repliesLoadingParentIDs = []
 
       let savedProgress = try await progressService.progress(for: videoURL)?.position ?? 0
       let serverStartMs = loadedStream.startPosition * 1_000
@@ -79,6 +86,7 @@ final class WatchViewModel: ObservableObject {
     do {
       let page = try await watchService.comments(for: videoURL, nextPage: commentsNextPage)
       comments += page.comments
+      commentsDisabled = page.commentsDisabled
       commentsNextPage = page.nextPage
       canLoadMoreComments = page.nextPage != nil
       isLoadingComments = false

@@ -75,6 +75,10 @@ struct WatchView: View {
         watchActionsService: watchActionsService,
         relatedVideos: viewModel.relatedVideos,
         comments: viewModel.comments,
+        commentsDisabled: viewModel.commentsDisabled,
+        repliesFor: viewModel.replies(for:),
+        isLoadingRepliesFor: viewModel.isLoadingReplies(for:),
+        canLoadMoreRepliesFor: viewModel.canLoadMoreReplies(for:initialRepliesPage:),
         isLoadingComments: viewModel.isLoadingComments,
         canLoadMoreComments: viewModel.canLoadMoreComments,
         isSavingProgress: viewModel.isSavingProgress,
@@ -85,6 +89,9 @@ struct WatchView: View {
         onEnded: viewModel.markCompleted,
         onPlayerError: { message in
           viewModel.errorMessage = message
+        },
+        onLoadReplies: { comment in
+          Task { await viewModel.loadReplies(for: comment) }
         },
         onLoadMoreComments: {
           Task { await viewModel.loadMoreComments() }
