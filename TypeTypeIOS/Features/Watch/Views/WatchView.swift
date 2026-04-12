@@ -2,6 +2,7 @@ import SwiftUI
 
 struct WatchView: View {
   let videoURL: String
+  let coordinator: RootCoordinator
   private let watchService: WatchServiceProtocol
   private let watchProgressService: WatchProgressServiceProtocol
   private let watchActionsService: WatchActionsServiceProtocol
@@ -11,10 +12,12 @@ struct WatchView: View {
 
   init(
     videoURL: String,
+    coordinator: RootCoordinator,
     watchService: WatchServiceProtocol,
     watchProgressService: WatchProgressServiceProtocol,
     watchActionsService: WatchActionsServiceProtocol
   ) {
+    self.coordinator = coordinator
     self.videoURL = videoURL
     self.watchService = watchService
     self.watchProgressService = watchProgressService
@@ -28,19 +31,6 @@ struct WatchView: View {
     )
     _actionsViewModel = StateObject(
       wrappedValue: WatchActionsViewModel(videoURL: videoURL, service: watchActionsService)
-    )
-  }
-
-  init(
-    videoURL: String,
-    watchService: WatchServiceProtocol,
-    watchActionsService: WatchActionsServiceProtocol
-  ) {
-    self.init(
-      videoURL: videoURL,
-      watchService: watchService,
-      watchProgressService: NoopWatchProgressService(),
-      watchActionsService: watchActionsService
     )
   }
 
@@ -79,6 +69,7 @@ struct WatchView: View {
         videoURL: videoURL,
         resumePositionMs: viewModel.resumePositionMs,
         actionsViewModel: actionsViewModel,
+        coordinator: coordinator,
         watchService: watchService,
         watchProgressService: watchProgressService,
         watchActionsService: watchActionsService,
@@ -101,9 +92,4 @@ struct WatchView: View {
       )
     }
   }
-}
-
-private struct NoopWatchProgressService: WatchProgressServiceProtocol {
-  func progress(for videoURL: String) async throws -> WatchProgress? { nil }
-  func saveProgress(videoURL: String, position: Int64) async throws {}
 }

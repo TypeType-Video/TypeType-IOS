@@ -26,15 +26,27 @@ struct NotificationsView: View {
         } else {
           List {
             ForEach(viewModel.items) { item in
-              NavigationLink {
-                WatchView(
-                  videoURL: item.video.url,
-                  watchService: coordinator.dependencies.watchService,
-                  watchProgressService: coordinator.dependencies.watchProgressService,
-                  watchActionsService: coordinator.dependencies.watchActionsService
-                )
-              } label: {
-                NotificationRowView(item: item)
+              VStack(alignment: .leading, spacing: 4) {
+                NavigationLink {
+                  WatchView(
+                    videoURL: item.video.url,
+                    coordinator: coordinator,
+                    watchService: coordinator.dependencies.watchService,
+                    watchProgressService: coordinator.dependencies.watchProgressService,
+                    watchActionsService: coordinator.dependencies.watchActionsService
+                  )
+                } label: {
+                  NotificationRowView(item: item)
+                }
+
+                NavigationLink {
+                  ChannelView(channelURL: item.channelUrl, coordinator: coordinator)
+                } label: {
+                  Text("Open channel: \(item.channelName)")
+                    .font(.caption)
+                    .foregroundStyle(TypeTypeColor.accent)
+                }
+                .buttonStyle(.plain)
               }
             }
 

@@ -9,6 +9,7 @@ struct WatchContentView: View {
   let watchProgressService: WatchProgressServiceProtocol
   let watchActionsService: WatchActionsServiceProtocol
   let relatedVideos: [HomeVideoItem]
+  let coordinator: RootCoordinator
   let comments: [WatchComment]
   let isLoadingComments: Bool
   let canLoadMoreComments: Bool
@@ -73,10 +74,18 @@ struct WatchContentView: View {
 
         WatchRelatedSection(
           related: relatedVideos,
+          coordinator: coordinator,
           watchService: watchService,
           watchProgressService: watchProgressService,
           watchActionsService: watchActionsService
         )
+
+        NavigationLink {
+          ChannelView(channelURL: stream.uploaderUrl, coordinator: coordinator)
+        } label: {
+          Label("Open Channel", systemImage: "person.crop.square")
+        }
+        .buttonStyle(.bordered)
 
         if isSavingProgress {
           HStack(spacing: 6) {

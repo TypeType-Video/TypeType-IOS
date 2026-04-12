@@ -2,6 +2,7 @@ import SwiftUI
 
 struct WatchRelatedSection: View {
   let related: [HomeVideoItem]
+  let coordinator: RootCoordinator
   let watchService: WatchServiceProtocol
   let watchProgressService: WatchProgressServiceProtocol
   let watchActionsService: WatchActionsServiceProtocol
@@ -20,6 +21,7 @@ struct WatchRelatedSection: View {
           NavigationLink {
             WatchView(
               videoURL: video.url,
+              coordinator: coordinator,
               watchService: watchService,
               watchProgressService: watchProgressService,
               watchActionsService: watchActionsService
