@@ -8,15 +8,19 @@ final class WatchActionsViewModel: ObservableObject {
   @Published private(set) var isSubscribed: Bool = false
   @Published private(set) var isLoading: Bool = false
   @Published private(set) var isMutating: Bool = false
+  @Published private(set) var playlists: [PlaylistSummary] = []
+  @Published private(set) var playlistIDsContainingVideo: Set<String> = []
   @Published var message: String?
 
   private let videoURL: String
   private let service: WatchActionsServiceProtocol
+  private let libraryService: LibraryServiceProtocol
   private var stream: WatchStream?
 
-  init(videoURL: String, service: WatchActionsServiceProtocol) {
+  init(videoURL: String, service: WatchActionsServiceProtocol, libraryService: LibraryServiceProtocol) {
     self.videoURL = videoURL
     self.service = service
+    self.libraryService = libraryService
   }
 
   func prepare(stream: WatchStream) {
@@ -31,6 +35,20 @@ final class WatchActionsViewModel: ObservableObject {
       isFavorite = state.isFavorite
       isWatchLater = state.isWatchLater
       isSubscribed = state.isSubscribed
+      do {
+        let fetchedPlaylists = try await libraryService.playlists()
+        playlists = fetchedPlaylists
+        playlistIDsContainingVideo = Set(
+          fetchedPlaylists
+            .filter { playlist in
+              playlist.videos.contains(where: { $0.url == videoURL })
+            }
+            .map(\.id)
+        )
+      } catch {
+        playlists = []
+        playlistIDsContainingVideo = []
+      }
       isLoading = false
     } catch {
       isLoading = false
@@ -94,6 +112,56 @@ final class WatchActionsViewModel: ObservableObject {
       isMutating = false
     } catch {
       message = "Unable to update subscription"
+      isMutating = false
+    }
+  }
+
+  func togglePlaylist(playlistID: String) async {
+    guard !isMutating else { return }
+    guard let stream else { return }
+    isMutating = true
+    do {
+      if playlistIDsContainingVideo.contains(playlistID) {
+        try await libraryService.removeVideo(from: playlistID, videoURL: videoURL)
+        playlistIDsContainingVideo.remove(playlistID)
+        message = "Removed from playlist"
+      } else {
+        let payload = PlaylistVideoCreatePayload(
+          url: videoURL,
+          title: stream.title,
+          thumbnail: stream.thumbnailUrl,
+          duration: stream.duration
+        )
+        _ = try await libraryService.addVideo(to: playlistID, video: payload)
+        playlistIDsContainingVideo.insert(playlistID)
+        message = "Saved to playlist"
+      }
+      isMutating = false
+    } catch {
+      message = "Unable to update playlist"
+      isMutating = false
+    }
+  }
+
+  func createPlaylistAndAdd() async {
+    guard !isMutating else { return }
+    guard let stream else { return }
+    isMutating = true
+    do {
+      let created = try await libraryService.createPlaylist(name: "Favorites", description: "")
+      let payload = PlaylistVideoCreatePayload(
+        url: videoURL,
+        title: stream.title,
+        thumbnail: stream.thumbnailUrl,
+        duration: stream.duration
+      )
+      _ = try await libraryService.addVideo(to: created.id, video: payload)
+      playlists.insert(created, at: 0)
+      playlistIDsContainingVideo.insert(created.id)
+      message = "Saved to \(created.name)"
+      isMutating = false
+    } catch {
+      message = "Unable to create playlist"
       isMutating = false
     }
   }

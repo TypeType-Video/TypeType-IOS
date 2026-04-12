@@ -33,7 +33,11 @@ struct WatchView: View {
       )
     )
     _actionsViewModel = StateObject(
-      wrappedValue: WatchActionsViewModel(videoURL: videoURL, service: watchActionsService)
+      wrappedValue: WatchActionsViewModel(
+        videoURL: videoURL,
+        service: watchActionsService,
+        libraryService: coordinator.dependencies.libraryService
+      )
     )
   }
 

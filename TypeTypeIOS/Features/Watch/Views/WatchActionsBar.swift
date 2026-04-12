@@ -48,6 +48,26 @@ struct WatchActionsBar: View {
           Label("Less like this", systemImage: "hand.thumbsdown")
         }
         .buttonStyle(.bordered)
+
+        Menu {
+          ForEach(actionsViewModel.playlists) { playlist in
+            Button {
+              Task { await actionsViewModel.togglePlaylist(playlistID: playlist.id) }
+            } label: {
+              if actionsViewModel.playlistIDsContainingVideo.contains(playlist.id) {
+                Label(playlist.name, systemImage: "checkmark")
+              } else {
+                Text(playlist.name)
+              }
+            }
+          }
+          Button("Create + Save") {
+            Task { await actionsViewModel.createPlaylistAndAdd() }
+          }
+        } label: {
+          Label("Save", systemImage: "text.badge.plus")
+        }
+        .buttonStyle(.bordered)
       }
     }
     .disabled(actionsViewModel.isMutating || actionsViewModel.isLoading)
