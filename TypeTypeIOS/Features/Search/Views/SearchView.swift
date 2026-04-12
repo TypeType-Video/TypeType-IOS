@@ -11,14 +11,24 @@ struct SearchView: View {
     )
   }
 
+  private var trimmedQuery: String {
+    viewModel.query.trimmingCharacters(in: .whitespacesAndNewlines)
+  }
+
   @ViewBuilder
   private var statusSection: some View {
     if let suggestion = viewModel.suggestion, !suggestion.isEmpty {
       let label = viewModel.isCorrected ? "Showing results for" : "Did you mean"
       HStack {
-        Text("\(label) \(suggestion)")
+        Text(label)
           .font(.caption)
           .foregroundStyle(.secondary)
+        Text(suggestion)
+          .font(.caption.weight(.semibold))
+          .padding(.horizontal, 8)
+          .padding(.vertical, 3)
+          .background(TypeTypeColor.card)
+          .clipShape(Capsule())
         Spacer()
         Button("Use") {
           viewModel.query = suggestion
@@ -40,23 +50,35 @@ struct SearchView: View {
     NavigationStack {
       VStack(spacing: 10) {
         HStack(spacing: 8) {
-          TextField("Search videos", text: $viewModel.query)
-            .textInputAutocapitalization(.never)
-            .autocorrectionDisabled()
-            .submitLabel(.search)
-            .onSubmit {
-              Task { await viewModel.performSearch(serviceID: 0) }
+          HStack(spacing: 6) {
+            Image(systemName: "magnifyingglass")
+              .foregroundStyle(.secondary)
+            TextField("Search videos", text: $viewModel.query)
+              .textInputAutocapitalization(.never)
+              .autocorrectionDisabled()
+              .submitLabel(.search)
+              .onSubmit {
+                Task { await viewModel.performSearch(serviceID: 0) }
+              }
+            if !trimmedQuery.isEmpty {
+              Button {
+                viewModel.query = ""
+              } label: {
+                Image(systemName: "xmark.circle.fill")
+                  .foregroundStyle(.secondary)
+              }
             }
-            .padding(.horizontal, 12)
-            .frame(height: 36)
-            .background(Color.secondary.opacity(0.16))
-            .clipShape(RoundedRectangle(cornerRadius: 8))
+          }
+          .padding(.horizontal, 12)
+          .frame(height: 38)
+          .background(TypeTypeColor.card)
+          .clipShape(RoundedRectangle(cornerRadius: 10))
 
-          Button(viewModel.isLoading ? "..." : "Go") {
+          Button(viewModel.isLoading ? "..." : "Search") {
             Task { await viewModel.performSearch(serviceID: 0) }
           }
           .buttonStyle(.borderedProminent)
-          .disabled(viewModel.query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+          .disabled(trimmedQuery.isEmpty)
         }
         .padding(.horizontal)
 
@@ -66,7 +88,11 @@ struct SearchView: View {
           ProgressView("Searching...")
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
         } else if viewModel.items.isEmpty {
-          ContentUnavailableView("Search TypeType", systemImage: "magnifyingglass")
+          ContentUnavailableView(
+            trimmedQuery.isEmpty ? "Search TypeType" : "No results for \"\(trimmedQuery)\"",
+            systemImage: "magnifyingglass",
+            description: trimmedQuery.isEmpty ? nil : Text("Try another keyword or remove filters.")
+          )
             .frame(maxHeight: .infinity)
         } else {
           List {
@@ -82,10 +108,18 @@ struct SearchView: View {
               }
             }
             if viewModel.canLoadMore {
-              Button(viewModel.isLoadingMore ? "Loading..." : "Load more") {
-                Task { await viewModel.loadMore(serviceID: 0) }
+              HStack {
+                if viewModel.isLoadingMore {
+                  ProgressView()
+                  Text("Loading more...")
+                } else {
+                  Button("Load more") {
+                    Task { await viewModel.loadMore(serviceID: 0) }
+                  }
+                  .buttonStyle(.borderless)
+                }
               }
-              .disabled(viewModel.isLoadingMore)
+              .frame(maxWidth: .infinity, alignment: .center)
             }
           }
           .listStyle(.plain)

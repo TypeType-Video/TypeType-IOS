@@ -28,43 +28,43 @@ struct WatchView: View {
     if views >= 1_000 { return String(format: "%.1fK", Double(views) / 1_000.0) }
     return "\(views)"
   }
-
   @ViewBuilder
   private var actionBar: some View {
-    HStack {
-      Button {
-        Task { await actionsViewModel.toggleFavorite() }
-      } label: {
-        Label(
-          actionsViewModel.isFavorite ? "Favorited" : "Favorite",
-          systemImage: actionsViewModel.isFavorite ? "heart.fill" : "heart"
-        )
-      }
-      .buttonStyle(.bordered)
+    ScrollView(.horizontal, showsIndicators: false) {
+      HStack {
+        Button {
+          Task { await actionsViewModel.toggleFavorite() }
+        } label: {
+          Label(
+            actionsViewModel.isFavorite ? "Favorited" : "Favorite",
+            systemImage: actionsViewModel.isFavorite ? "heart.fill" : "heart"
+          )
+        }
+        .buttonStyle(.bordered)
 
-      Button {
-        Task { await actionsViewModel.toggleWatchLater() }
-      } label: {
-        Label(
-          actionsViewModel.isWatchLater ? "Saved" : "Watch Later",
-          systemImage: actionsViewModel.isWatchLater ? "clock.fill" : "clock"
-        )
-      }
-      .buttonStyle(.bordered)
+        Button {
+          Task { await actionsViewModel.toggleWatchLater() }
+        } label: {
+          Label(
+            actionsViewModel.isWatchLater ? "Saved" : "Watch Later",
+            systemImage: actionsViewModel.isWatchLater ? "clock.fill" : "clock"
+          )
+        }
+        .buttonStyle(.bordered)
 
-      Button {
-        Task { await actionsViewModel.toggleSubscription() }
-      } label: {
-        Label(
-          actionsViewModel.isSubscribed ? "Subscribed" : "Subscribe",
-          systemImage: actionsViewModel.isSubscribed ? "bell.fill" : "bell"
-        )
+        Button {
+          Task { await actionsViewModel.toggleSubscription() }
+        } label: {
+          Label(
+            actionsViewModel.isSubscribed ? "Subscribed" : "Subscribe",
+            systemImage: actionsViewModel.isSubscribed ? "bell.fill" : "bell"
+          )
+        }
+        .buttonStyle(.borderedProminent)
       }
-      .buttonStyle(.borderedProminent)
     }
     .disabled(actionsViewModel.isMutating || actionsViewModel.isLoading)
   }
-
   @ViewBuilder
   private var content: some View {
     if viewModel.isLoading && viewModel.stream == nil {
@@ -106,6 +106,18 @@ struct WatchView: View {
           }
           .font(.caption)
           .foregroundStyle(.secondary)
+
+          HStack(spacing: 8) {
+            Text(stream.streamType.uppercased())
+            if stream.isShortFormContent {
+              Text("SHORT")
+            }
+          }
+          .font(.caption2.weight(.semibold))
+          .padding(.horizontal, 8)
+          .padding(.vertical, 4)
+          .background(TypeTypeColor.card)
+          .clipShape(Capsule())
 
           actionBar
 

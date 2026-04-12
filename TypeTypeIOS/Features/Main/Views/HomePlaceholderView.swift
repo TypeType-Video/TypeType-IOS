@@ -13,20 +13,36 @@ struct HomePlaceholderView: View {
 
   @ViewBuilder
   private var header: some View {
-    VStack(alignment: .leading, spacing: 4) {
-      if let server = coordinator.selectedServer {
-        Text(server.name)
-          .font(.headline)
-        Text(server.baseURLString)
-          .font(.caption)
-          .foregroundStyle(.secondary)
+    ZStack(alignment: .bottomLeading) {
+      RoundedRectangle(cornerRadius: 16)
+        .fill(
+          LinearGradient(
+            colors: [TypeTypeColor.accent.opacity(0.95), TypeTypeColor.accent.opacity(0.6)],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+          )
+        )
+
+      VStack(alignment: .leading, spacing: 6) {
+        if let server = coordinator.selectedServer {
+          Text(server.name)
+            .font(.headline.weight(.semibold))
+            .foregroundStyle(.white)
+          Text(server.baseURLString)
+            .font(.caption)
+            .foregroundStyle(.white.opacity(0.8))
+            .lineLimit(1)
+        }
+        if let session = coordinator.currentSession {
+          Text("Signed in as \(session.userEmail)")
+            .font(.footnote)
+            .foregroundStyle(.white.opacity(0.92))
+        }
       }
-      if let session = coordinator.currentSession {
-        Text("Signed in as \(session.userEmail)")
-          .font(.footnote)
-          .foregroundStyle(.secondary)
-      }
+      .padding(14)
     }
+    .frame(maxWidth: .infinity)
+    .frame(height: 104)
     .padding(.horizontal)
   }
 
@@ -41,6 +57,12 @@ struct HomePlaceholderView: View {
         systemImage: "exclamationmark.triangle",
         description: Text(errorMessage)
       )
+    } else if viewModel.videos.isEmpty {
+      ContentUnavailableView(
+        "No videos available",
+        systemImage: "play.rectangle.on.rectangle",
+        description: Text("Pull to refresh or try another server.")
+      )
     } else {
       List(viewModel.videos) { video in
         NavigationLink {
@@ -54,6 +76,8 @@ struct HomePlaceholderView: View {
         }
       }
       .listStyle(.plain)
+      .scrollContentBackground(.hidden)
+      .background(TypeTypeColor.background)
       .refreshable {
         await viewModel.reload(serviceID: 0)
       }
