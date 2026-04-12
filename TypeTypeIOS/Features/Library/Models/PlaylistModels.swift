@@ -16,3 +16,15 @@ struct PlaylistSummary: Decodable, Identifiable {
   let videos: [PlaylistVideoEntry]
   let createdAt: Int64
 }
+
+struct PlaylistUpdatePayload: Encodable {
+  let name: String
+  let description: String
+}
+
+struct PlaylistVideoCreatePayload: Encodable {
+  let url: String
+  let title: String
+  let thumbnail: String
+  let duration: Int64
+}

@@ -15,6 +15,7 @@ final class LibraryViewModel: ObservableObject {
   @Published private(set) var playlists: [PlaylistSummary] = []
   @Published private(set) var isLoadingHistory: Bool = false
   @Published private(set) var isLoadingPlaylists: Bool = false
+  @Published private(set) var isMutatingPlaylists: Bool = false
   @Published var errorMessage: String?
 
   private let service: LibraryServiceProtocol
@@ -64,6 +65,42 @@ final class LibraryViewModel: ObservableObject {
     } catch {
       errorMessage = "Unable to load playlists."
       isLoadingPlaylists = false
+    }
+  }
+
+  func createPlaylist(name: String, description: String) async {
+    let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard !trimmed.isEmpty else { return }
+    guard !isMutatingPlaylists else { return }
+    isMutatingPlaylists = true
+    errorMessage = nil
+    do {
+      let created = try await service.createPlaylist(name: trimmed, description: description)
+      playlists.insert(created, at: 0)
+      isMutatingPlaylists = false
+    } catch let error as LocalizedError {
+      errorMessage = error.errorDescription ?? "Unable to create playlist."
+      isMutatingPlaylists = false
+    } catch {
+      errorMessage = "Unable to create playlist."
+      isMutatingPlaylists = false
+    }
+  }
+
+  func deletePlaylist(_ playlist: PlaylistSummary) async {
+    guard !isMutatingPlaylists else { return }
+    isMutatingPlaylists = true
+    errorMessage = nil
+    do {
+      try await service.deletePlaylist(id: playlist.id)
+      playlists.removeAll(where: { $0.id == playlist.id })
+      isMutatingPlaylists = false
+    } catch let error as LocalizedError {
+      errorMessage = error.errorDescription ?? "Unable to delete playlist."
+      isMutatingPlaylists = false
+    } catch {
+      errorMessage = "Unable to delete playlist."
+      isMutatingPlaylists = false
     }
   }
 }
