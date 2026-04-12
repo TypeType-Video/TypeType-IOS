@@ -25,6 +25,11 @@ struct MainTabView: View {
           Label("Alerts", systemImage: "bell")
         }
 
+      ShortsView(coordinator: coordinator)
+        .tabItem {
+          Label("Shorts", systemImage: "play.tv")
+        }
+
       LibraryView(coordinator: coordinator)
         .tabItem {
           Label("Library", systemImage: "books.vertical")

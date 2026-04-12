@@ -2,6 +2,7 @@ import SwiftUI
 
 struct PlaylistDetailView: View {
   let playlistID: String
+  let coordinator: RootCoordinator
   let libraryService: LibraryServiceProtocol
   let watchService: WatchServiceProtocol
   let watchProgressService: WatchProgressServiceProtocol
@@ -10,12 +11,14 @@ struct PlaylistDetailView: View {
 
   init(
     playlistID: String,
+    coordinator: RootCoordinator,
     libraryService: LibraryServiceProtocol,
     watchService: WatchServiceProtocol,
     watchProgressService: WatchProgressServiceProtocol,
     watchActionsService: WatchActionsServiceProtocol
   ) {
     self.playlistID = playlistID
+    self.coordinator = coordinator
     self.libraryService = libraryService
     self.watchService = watchService
     self.watchProgressService = watchProgressService
@@ -46,6 +49,7 @@ struct PlaylistDetailView: View {
             NavigationLink {
               WatchView(
                 videoURL: video.url,
+                coordinator: coordinator,
                 watchService: watchService,
                 watchProgressService: watchProgressService,
                 watchActionsService: watchActionsService

@@ -37,6 +37,7 @@ struct LibraryView: View {
           NavigationLink {
             WatchView(
               videoURL: item.url,
+              coordinator: coordinator,
               watchService: coordinator.dependencies.watchService,
               watchProgressService: coordinator.dependencies.watchProgressService,
               watchActionsService: coordinator.dependencies.watchActionsService
@@ -56,6 +57,7 @@ struct LibraryView: View {
           NavigationLink {
             PlaylistDetailView(
               playlistID: playlist.id,
+              coordinator: coordinator,
               libraryService: coordinator.dependencies.libraryService,
               watchService: coordinator.dependencies.watchService,
               watchProgressService: coordinator.dependencies.watchProgressService,

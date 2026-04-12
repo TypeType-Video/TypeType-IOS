@@ -100,6 +100,7 @@ struct SearchView: View {
               NavigationLink {
                 WatchView(
                   videoURL: item.url,
+                  coordinator: coordinator,
                   watchService: coordinator.dependencies.watchService,
                   watchProgressService: coordinator.dependencies.watchProgressService,
                   watchActionsService: coordinator.dependencies.watchActionsService

@@ -68,6 +68,7 @@ struct SubscriptionsView: View {
           NavigationLink {
             WatchView(
               videoURL: video.url,
+              coordinator: coordinator,
               watchService: coordinator.dependencies.watchService,
               watchProgressService: coordinator.dependencies.watchProgressService,
               watchActionsService: coordinator.dependencies.watchActionsService

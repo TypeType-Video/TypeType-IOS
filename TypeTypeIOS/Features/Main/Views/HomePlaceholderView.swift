@@ -28,6 +28,7 @@ struct HomePlaceholderView: View {
               NavigationLink {
                 WatchView(
                   videoURL: item.url,
+                  coordinator: coordinator,
                   watchService: coordinator.dependencies.watchService,
                   watchProgressService: coordinator.dependencies.watchProgressService,
                   watchActionsService: coordinator.dependencies.watchActionsService
@@ -108,6 +109,7 @@ struct HomePlaceholderView: View {
           NavigationLink {
             WatchView(
               videoURL: video.url,
+              coordinator: coordinator,
               watchService: coordinator.dependencies.watchService,
               watchProgressService: coordinator.dependencies.watchProgressService,
               watchActionsService: coordinator.dependencies.watchActionsService
