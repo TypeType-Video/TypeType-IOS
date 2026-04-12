@@ -17,6 +17,8 @@ final class AppDependencies {
   let adminService: AdminServiceProtocol
   let libraryService: LibraryServiceProtocol
   let userSettingsService: UserSettingsServiceProtocol
+  let pipePipeImportService: PipePipeImportServiceProtocol
+  let youtubeImportService: YoutubeImportServiceProtocol
 
   init(
     keychainService: KeychainService,
@@ -34,7 +36,9 @@ final class AppDependencies {
     watchActionsService: WatchActionsServiceProtocol,
     adminService: AdminServiceProtocol,
     libraryService: LibraryServiceProtocol,
-    userSettingsService: UserSettingsServiceProtocol
+    userSettingsService: UserSettingsServiceProtocol,
+    pipePipeImportService: PipePipeImportServiceProtocol,
+    youtubeImportService: YoutubeImportServiceProtocol
   ) {
     self.keychainService = keychainService
     self.serverStore = serverStore
@@ -52,6 +56,8 @@ final class AppDependencies {
     self.adminService = adminService
     self.libraryService = libraryService
     self.userSettingsService = userSettingsService
+    self.pipePipeImportService = pipePipeImportService
+    self.youtubeImportService = youtubeImportService
   }
 
   static let live: AppDependencies = {
@@ -84,6 +90,8 @@ final class AppDependencies {
     let adminService = AdminService(apiClient: client)
     let libraryService = LibraryService(apiClient: client)
     let userSettingsService = UserSettingsService(apiClient: client)
+    let pipePipeImportService = PipePipeImportService(apiClient: client)
+    let youtubeImportService = YoutubeImportService(apiClient: client)
     return AppDependencies(
       keychainService: keychain,
       serverStore: serverStore,
@@ -100,7 +108,9 @@ final class AppDependencies {
       watchActionsService: watchActionsService,
       adminService: adminService,
       libraryService: libraryService,
-      userSettingsService: userSettingsService
+      userSettingsService: userSettingsService,
+      pipePipeImportService: pipePipeImportService,
+      youtubeImportService: youtubeImportService
     )
   }()
 }
