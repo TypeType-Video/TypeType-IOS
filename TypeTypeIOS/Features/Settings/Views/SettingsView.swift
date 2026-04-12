@@ -92,6 +92,9 @@ struct SettingsView: View {
           NavigationLink("Recommendation profile") {
             RecommendationOnboardingView(coordinator: coordinator, mode: .settings)
           }
+          NavigationLink("Blocked channels/videos") {
+            BlockedSettingsView(service: coordinator.dependencies.blockedService)
+          }
         }
 
         statusMessages

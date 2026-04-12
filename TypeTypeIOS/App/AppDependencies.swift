@@ -20,6 +20,7 @@ final class AppDependencies {
   let adminService: AdminServiceProtocol
   let libraryService: LibraryServiceProtocol
   let userSettingsService: UserSettingsServiceProtocol
+  let blockedService: BlockedServiceProtocol
   let recommendationOnboardingService: RecommendationOnboardingServiceProtocol
   let recommendationFeedbackService: RecommendationFeedbackServiceProtocol
   let pipePipeImportService: PipePipeImportServiceProtocol
@@ -45,6 +46,7 @@ final class AppDependencies {
     adminService: AdminServiceProtocol,
     libraryService: LibraryServiceProtocol,
     userSettingsService: UserSettingsServiceProtocol,
+    blockedService: BlockedServiceProtocol,
     recommendationOnboardingService: RecommendationOnboardingServiceProtocol,
     recommendationFeedbackService: RecommendationFeedbackServiceProtocol,
     pipePipeImportService: PipePipeImportServiceProtocol,
@@ -69,6 +71,7 @@ final class AppDependencies {
     self.adminService = adminService
     self.libraryService = libraryService
     self.userSettingsService = userSettingsService
+    self.blockedService = blockedService
     self.recommendationOnboardingService = recommendationOnboardingService
     self.recommendationFeedbackService = recommendationFeedbackService
     self.pipePipeImportService = pipePipeImportService
@@ -108,6 +111,7 @@ final class AppDependencies {
     let adminService = AdminService(apiClient: client)
     let libraryService = LibraryService(apiClient: client)
     let userSettingsService = UserSettingsService(apiClient: client)
+    let blockedService = BlockedService(apiClient: client)
     let recommendationOnboardingService = RecommendationOnboardingService(apiClient: client)
     let recommendationFeedbackService = RecommendationFeedbackService(apiClient: client)
     recommendationFeedbackService.setEnabled(RecommendationTrackingPreferenceStore.get())
@@ -133,6 +137,7 @@ final class AppDependencies {
       adminService: adminService,
       libraryService: libraryService,
       userSettingsService: userSettingsService,
+      blockedService: blockedService,
       recommendationOnboardingService: recommendationOnboardingService,
       recommendationFeedbackService: recommendationFeedbackService,
       pipePipeImportService: pipePipeImportService,
