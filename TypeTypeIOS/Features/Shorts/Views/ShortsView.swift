@@ -20,34 +20,41 @@ struct ShortsView: View {
         } else if viewModel.items.isEmpty {
           ContentUnavailableView("No shorts yet", systemImage: "play.tv", description: Text("Try again in a moment."))
         } else {
-          List {
-            ForEach(viewModel.items) { item in
-              NavigationLink {
-                WatchView(
-                  videoURL: item.url,
-                  coordinator: coordinator,
-                  watchService: coordinator.dependencies.watchService,
-                  watchProgressService: coordinator.dependencies.watchProgressService,
-                  watchActionsService: coordinator.dependencies.watchActionsService
-                )
-              } label: {
+          TabView(selection: $viewModel.activeIndex) {
+            ForEach(Array(viewModel.items.enumerated()), id: \.element.id) { pair in
+              let index = pair.offset
+              let item = pair.element
+              VStack(spacing: 8) {
                 HomeVideoRowView(video: item)
-              }
-            }
-            if viewModel.canLoadMore {
-              if viewModel.isLoadingMore {
-                ProgressView().frame(maxWidth: .infinity)
-              } else {
-                Button("Load more") {
-                  Task { await viewModel.loadMore(serviceID: 0) }
+                NavigationLink {
+                  WatchView(
+                    videoURL: item.url,
+                    coordinator: coordinator,
+                    watchService: coordinator.dependencies.watchService,
+                    watchProgressService: coordinator.dependencies.watchProgressService,
+                    watchActionsService: coordinator.dependencies.watchActionsService
+                  )
+                } label: {
+                  Label("Open short", systemImage: "play.circle.fill")
                 }
-                .frame(maxWidth: .infinity)
+                .buttonStyle(.borderedProminent)
+
+                if viewModel.canLoadMore,
+                  index >= max(0, viewModel.items.count - 3),
+                  !viewModel.isLoadingMore {
+                  Button("Load more") {
+                    Task { await viewModel.loadMore(serviceID: 0) }
+                  }
+                  .buttonStyle(.bordered)
+                }
               }
+              .padding()
+              .tag(index)
             }
           }
-          .listStyle(.plain)
-          .refreshable {
-            await viewModel.loadInitial(serviceID: 0)
+          .tabViewStyle(.page(indexDisplayMode: .always))
+          .onChange(of: viewModel.activeIndex) { _, newIndex in
+            viewModel.prefetchIfNeeded(activeIndex: newIndex, serviceID: 0)
           }
         }
       }

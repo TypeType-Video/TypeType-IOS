@@ -3,6 +3,7 @@ import Foundation
 @MainActor
 final class ShortsViewModel: ObservableObject {
   @Published private(set) var items: [HomeVideoItem] = []
+  @Published var activeIndex: Int = 0
   @Published private(set) var isLoading: Bool = false
   @Published private(set) var isLoadingMore: Bool = false
   @Published private(set) var canLoadMore: Bool = true
@@ -23,6 +24,7 @@ final class ShortsViewModel: ObservableObject {
     errorMessage = nil
     nextCursor = nil
     subscriptionPage = 0
+    activeIndex = 0
     do {
       let recommendations = try await service.recommendations(serviceID: serviceID, cursor: nil, limit: 20)
       items = recommendations.items.filter(\.isShortFormContent)
@@ -71,6 +73,12 @@ final class ShortsViewModel: ObservableObject {
     } catch {
       isLoadingMore = false
     }
+  }
+
+  func prefetchIfNeeded(activeIndex: Int, serviceID: Int) {
+    let threshold = max(0, items.count - 3)
+    guard activeIndex >= threshold else { return }
+    Task { await loadMore(serviceID: serviceID) }
   }
 
   private func loadFallback(serviceID: Int) async throws {

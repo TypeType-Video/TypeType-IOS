@@ -9,7 +9,11 @@ struct ChannelView: View {
     self.channelURL = channelURL
     self.coordinator = coordinator
     _viewModel = StateObject(
-      wrappedValue: ChannelViewModel(url: channelURL, service: coordinator.dependencies.channelService)
+      wrappedValue: ChannelViewModel(
+        url: channelURL,
+        channelService: coordinator.dependencies.channelService,
+        subscriptionsService: coordinator.dependencies.subscriptionsService
+      )
     )
   }
 
@@ -26,6 +30,13 @@ struct ChannelView: View {
             ChannelHeaderView(page: page)
               .listRowInsets(EdgeInsets())
               .listRowBackground(Color.clear)
+
+            Button(viewModel.isSubscribed ? "Subscribed" : "Subscribe") {
+              Task { await viewModel.toggleSubscription() }
+            }
+            .buttonStyle(viewModel.isSubscribed ? .bordered : .borderedProminent)
+            .disabled(viewModel.isMutatingSubscription)
+            .listRowBackground(Color.clear)
           }
 
           ForEach(viewModel.videos) { video in

@@ -3,7 +3,13 @@ import Foundation
 protocol SubscriptionsServiceProtocol {
   func channels() async throws -> [SubscriptionChannel]
   func feed(page: Int, limit: Int) async throws -> SubscriptionsFeedPage
-  func deleteChannel(_ channelURL: String) async throws
+  func setSubscription(channelURL: String, name: String, avatarURL: String, enabled: Bool) async throws
+}
+
+private struct SubscriptionCreatePayload: Encodable {
+  let channelUrl: String
+  let name: String
+  let avatarUrl: String
 }
 
 final class SubscriptionsService: SubscriptionsServiceProtocol {
@@ -31,12 +37,25 @@ final class SubscriptionsService: SubscriptionsServiceProtocol {
     return try await apiClient.request(endpoint, as: SubscriptionsFeedPage.self)
   }
 
-  func deleteChannel(_ channelURL: String) async throws {
-    let endpoint = APIEndpoint(
-      path: "/subscriptions/\(encoded(channelURL))",
-      method: .delete,
-      requiresAuth: true
-    )
+  func setSubscription(channelURL: String, name: String, avatarURL: String, enabled: Bool) async throws {
+    let endpoint: APIEndpoint
+    if enabled {
+      endpoint = APIEndpoint(
+        path: "/subscriptions",
+        method: .post,
+        headers: ["Content-Type": "application/json"],
+        body: try APIEndpoint.jsonBody(
+          SubscriptionCreatePayload(channelUrl: channelURL, name: name, avatarUrl: avatarURL)
+        ),
+        requiresAuth: true
+      )
+    } else {
+      endpoint = APIEndpoint(
+        path: "/subscriptions/\(encoded(channelURL))",
+        method: .delete,
+        requiresAuth: true
+      )
+    }
     try await apiClient.request(endpoint)
   }
 
