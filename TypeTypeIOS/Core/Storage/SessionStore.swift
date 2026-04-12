@@ -20,6 +20,20 @@ final class SessionStore {
     return accessToken(for: snapshot)
   }
 
+  func updateAccessToken(_ accessToken: String, forServerID serverID: String) -> Bool {
+    guard let snapshot = session(forServerID: serverID) else { return false }
+    let refreshedSnapshot = SessionSnapshot(
+      serverID: snapshot.serverID,
+      userID: snapshot.userID,
+      userEmail: snapshot.userEmail,
+      role: snapshot.role
+    )
+    var snapshots = registry()
+    snapshots[serverID] = refreshedSnapshot
+    persistRegistry(snapshots)
+    return keychain.set(accessToken, for: tokenAccount(for: refreshedSnapshot))
+  }
+
   func hasActiveSession(serverID: String) -> Bool {
     accessToken(forServerID: serverID) != nil
   }

@@ -1,10 +1,14 @@
 import Foundation
 
 final class URLSessionAPIClient: APIClient {
+  typealias TokenRefreshHandler = (String) async throws -> String?
+
   private let serverURLProvider: () -> URL?
   private let accessTokenProvider: () -> String?
   private let session: URLSession
   private let decoder = JSONDecoder()
+  private let tokenRefreshGate = TokenRefreshGate()
+  private var tokenRefreshHandler: TokenRefreshHandler?
 
   init(
     serverURLProvider: @escaping () -> URL?,
@@ -14,6 +18,10 @@ final class URLSessionAPIClient: APIClient {
     self.serverURLProvider = serverURLProvider
     self.accessTokenProvider = accessTokenProvider
     self.session = session
+  }
+
+  func setTokenRefreshHandler(_ handler: @escaping TokenRefreshHandler) {
+    tokenRefreshHandler = handler
   }
 
   func request<T: Decodable>(_ endpoint: APIEndpoint, as type: T.Type) async throws -> T {
@@ -32,6 +40,17 @@ final class URLSessionAPIClient: APIClient {
   private func send(_ endpoint: APIEndpoint) async throws -> Data {
     let request = try makeURLRequest(endpoint)
     do {
+      return try await execute(request)
+    } catch let error as NetworkError {
+      guard case .statusCode(401, _) = error else { throw error }
+      guard endpoint.requiresAuth else { throw error }
+      guard let retryRequest = await makeRetryRequest(from: request) else { throw error }
+      return try await execute(retryRequest)
+    }
+  }
+
+  private func execute(_ request: URLRequest) async throws -> Data {
+    do {
       let (data, response) = try await session.data(for: request)
       guard let http = response as? HTTPURLResponse else {
         throw NetworkError.invalidResponse
@@ -45,6 +64,18 @@ final class URLSessionAPIClient: APIClient {
     } catch {
       throw NetworkError.transport
     }
+  }
+
+  private func makeRetryRequest(from request: URLRequest) async -> URLRequest? {
+    guard let tokenRefreshHandler else { return nil }
+    guard let staleToken = bearerToken(from: request) ?? accessTokenProvider() else { return nil }
+    guard let refreshedToken = await tokenRefreshGate.refresh(
+      staleToken: staleToken,
+      using: tokenRefreshHandler
+    ) else { return nil }
+    var retryRequest = request
+    retryRequest.setValue("Bearer \(refreshedToken)", forHTTPHeaderField: "Authorization")
+    return retryRequest
   }
 
   private func makeURLRequest(_ endpoint: APIEndpoint) throws -> URLRequest {
@@ -89,5 +120,33 @@ final class URLSessionAPIClient: APIClient {
     }
     let text = String(data: data, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines)
     return text?.isEmpty == true ? nil : text
+  }
+
+  private func bearerToken(from request: URLRequest) -> String? {
+    guard let header = request.value(forHTTPHeaderField: "Authorization") else { return nil }
+    let prefix = "Bearer "
+    guard header.hasPrefix(prefix) else { return nil }
+    let token = String(header.dropFirst(prefix.count))
+    return token.isEmpty ? nil : token
+  }
+}
+
+private actor TokenRefreshGate {
+  private var inFlight: Task<String?, Never>?
+
+  func refresh(
+    staleToken: String,
+    using handler: @escaping URLSessionAPIClient.TokenRefreshHandler
+  ) async -> String? {
+    if let inFlight {
+      return await inFlight.value
+    }
+    let task = Task<String?, Never> {
+      try? await handler(staleToken)
+    }
+    inFlight = task
+    let token = await task.value
+    inFlight = nil
+    return token
   }
 }

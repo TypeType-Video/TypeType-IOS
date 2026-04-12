@@ -55,6 +55,12 @@ final class AppDependencies {
       }
     )
     let authService = AuthService(apiClient: client)
+    client.setTokenRefreshHandler { staleToken in
+      let refreshedToken = try await authService.refresh(using: staleToken)
+      guard let selectedID = serverStore.selectedServerID() else { return nil }
+      let didStore = sessionStore.updateAccessToken(refreshedToken, forServerID: selectedID)
+      return didStore ? refreshedToken : nil
+    }
     let homeFeedService = HomeFeedService(apiClient: client)
     let searchService = SearchService(apiClient: client)
     let watchService = WatchService(apiClient: client)
