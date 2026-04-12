@@ -10,11 +10,15 @@ final class ShortsViewModel: ObservableObject {
   @Published var errorMessage: String?
 
   private let service: ShortsServiceProtocol
+  private let blockedService: BlockedServiceProtocol
   private var nextCursor: String?
   private var subscriptionPage: Int = 0
+  private var blockedChannels: Set<String> = []
+  private var blockedVideos: Set<String> = []
 
-  init(service: ShortsServiceProtocol) {
+  init(service: ShortsServiceProtocol, blockedService: BlockedServiceProtocol) {
     self.service = service
+    self.blockedService = blockedService
   }
 
   func loadInitial(serviceID: Int) async {
@@ -25,9 +29,11 @@ final class ShortsViewModel: ObservableObject {
     nextCursor = nil
     subscriptionPage = 0
     activeIndex = 0
+    await loadBlocked()
     do {
       let recommendations = try await service.recommendations(serviceID: serviceID, cursor: nil, limit: 20)
-      items = recommendations.items.filter(\.isShortFormContent)
+      let candidate = recommendations.items.filter(\.isShortFormContent)
+      items = await applyBlockedFilter(candidate)
       nextCursor = recommendations.nextCursor
       canLoadMore = recommendations.hasMore
       if items.isEmpty {
@@ -55,7 +61,8 @@ final class ShortsViewModel: ObservableObject {
     do {
       if let nextCursor {
         let recommendations = try await service.recommendations(serviceID: serviceID, cursor: nextCursor, limit: 20)
-        items += recommendations.items.filter(\.isShortFormContent)
+        let filtered = await applyBlockedFilter(recommendations.items.filter(\.isShortFormContent))
+        items += filtered
         self.nextCursor = recommendations.nextCursor
         canLoadMore = recommendations.hasMore
       } else {
@@ -66,7 +73,8 @@ final class ShortsViewModel: ObservableObject {
           serviceID: serviceID,
           blended: true
         )
-        items += fallback.videos.filter(\.isShortFormContent)
+        let filtered = await applyBlockedFilter(fallback.videos.filter(\.isShortFormContent))
+        items += filtered
         canLoadMore = fallback.nextPage != nil
       }
       isLoadingMore = false
@@ -83,9 +91,31 @@ final class ShortsViewModel: ObservableObject {
 
   private func loadFallback(serviceID: Int) async throws {
     let fallback = try await service.subscriptionShorts(page: 0, limit: 20, serviceID: serviceID, blended: true)
-    items = fallback.videos.filter(\.isShortFormContent)
+    items = await applyBlockedFilter(fallback.videos.filter(\.isShortFormContent))
     canLoadMore = fallback.nextPage != nil
     nextCursor = nil
     subscriptionPage = 0
+  }
+
+  private func applyBlockedFilter(_ videos: [HomeVideoItem]) async -> [HomeVideoItem] {
+    BlockedFilter.apply(
+      to: videos,
+      blockedChannels: blockedChannels,
+      blockedVideos: blockedVideos
+    )
+  }
+
+  private func loadBlocked() async {
+    do {
+      async let blockedChannelsReq = blockedService.channels()
+      async let blockedVideosReq = blockedService.videos()
+      let channels = try await blockedChannelsReq
+      let videos = try await blockedVideosReq
+      blockedChannels = Set(channels.map(\.url))
+      blockedVideos = Set(videos.map(\.url))
+    } catch {
+      blockedChannels = []
+      blockedVideos = []
+    }
   }
 }

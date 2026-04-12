@@ -11,15 +11,20 @@ final class HomeFeedViewModel: ObservableObject {
 
   private let homeService: HomeFeedServiceProtocol
   private let libraryService: LibraryServiceProtocol
+  private let blockedService: BlockedServiceProtocol
   private let sessionProvider: () -> SessionSnapshot?
+  private var blockedChannels: Set<String> = []
+  private var blockedVideos: Set<String> = []
 
   init(
     homeService: HomeFeedServiceProtocol,
     libraryService: LibraryServiceProtocol,
+    blockedService: BlockedServiceProtocol,
     sessionProvider: @escaping () -> SessionSnapshot?
   ) {
     self.homeService = homeService
     self.libraryService = libraryService
+    self.blockedService = blockedService
     self.sessionProvider = sessionProvider
   }
 
@@ -32,18 +37,31 @@ final class HomeFeedViewModel: ObservableObject {
     isLoading = true
     errorMessage = nil
     do {
+      await loadBlocked()
+      var fetchedVideos: [HomeVideoItem]
       if sessionProvider() != nil {
         do {
-          videos = try await homeService.recommendations(serviceID: serviceID, limit: 30)
+          fetchedVideos = try await homeService.recommendations(serviceID: serviceID, limit: 30)
           sourceLabel = "Recommended"
         } catch {
-          videos = try await homeService.trending(serviceID: serviceID)
+          fetchedVideos = try await homeService.trending(serviceID: serviceID)
           sourceLabel = "Trending"
         }
       } else {
-        videos = try await homeService.trending(serviceID: serviceID)
+        fetchedVideos = try await homeService.trending(serviceID: serviceID)
         sourceLabel = "Trending"
       }
+
+      if sessionProvider() != nil {
+        videos = BlockedFilter.apply(
+          to: fetchedVideos,
+          blockedChannels: blockedChannels,
+          blockedVideos: blockedVideos
+        )
+      } else {
+        videos = fetchedVideos
+      }
+
       do {
         let historyItems = try await libraryService.history(limit: 40, offset: 0)
         continueWatching = historyItems
@@ -60,6 +78,20 @@ final class HomeFeedViewModel: ObservableObject {
     } catch {
       errorMessage = "Unable to load feed."
       isLoading = false
+    }
+  }
+
+  private func loadBlocked() async {
+    do {
+      async let blockedChannelsReq = blockedService.channels()
+      async let blockedVideosReq = blockedService.videos()
+      let channels = try await blockedChannelsReq
+      let videos = try await blockedVideosReq
+      blockedChannels = Set(channels.map(\.url))
+      blockedVideos = Set(videos.map(\.url))
+    } catch {
+      blockedChannels = []
+      blockedVideos = []
     }
   }
 }

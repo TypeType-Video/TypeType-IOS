@@ -8,7 +8,10 @@ struct ShortsView: View {
   init(coordinator: RootCoordinator) {
     self.coordinator = coordinator
     _viewModel = StateObject(
-      wrappedValue: ShortsViewModel(service: coordinator.dependencies.shortsService)
+      wrappedValue: ShortsViewModel(
+        service: coordinator.dependencies.shortsService,
+        blockedService: coordinator.dependencies.blockedService
+      )
     )
   }
 

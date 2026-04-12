@@ -11,6 +11,7 @@ struct HomePlaceholderView: View {
       wrappedValue: HomeFeedViewModel(
         homeService: coordinator.dependencies.homeFeedService,
         libraryService: coordinator.dependencies.libraryService,
+        blockedService: coordinator.dependencies.blockedService,
         sessionProvider: { coordinator.currentSession }
       )
     )
