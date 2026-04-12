@@ -8,7 +8,9 @@ final class AppDependencies {
   let authService: AuthServiceProtocol
   let homeFeedService: HomeFeedServiceProtocol
   let searchService: SearchServiceProtocol
+  let subscriptionsService: SubscriptionsServiceProtocol
   let watchService: WatchServiceProtocol
+  let watchProgressService: WatchProgressServiceProtocol
   let watchActionsService: WatchActionsServiceProtocol
   let adminService: AdminServiceProtocol
   let libraryService: LibraryServiceProtocol
@@ -22,7 +24,9 @@ final class AppDependencies {
     authService: AuthServiceProtocol,
     homeFeedService: HomeFeedServiceProtocol,
     searchService: SearchServiceProtocol,
+    subscriptionsService: SubscriptionsServiceProtocol,
     watchService: WatchServiceProtocol,
+    watchProgressService: WatchProgressServiceProtocol,
     watchActionsService: WatchActionsServiceProtocol,
     adminService: AdminServiceProtocol,
     libraryService: LibraryServiceProtocol,
@@ -35,7 +39,9 @@ final class AppDependencies {
     self.authService = authService
     self.homeFeedService = homeFeedService
     self.searchService = searchService
+    self.subscriptionsService = subscriptionsService
     self.watchService = watchService
+    self.watchProgressService = watchProgressService
     self.watchActionsService = watchActionsService
     self.adminService = adminService
     self.libraryService = libraryService
@@ -63,7 +69,9 @@ final class AppDependencies {
     }
     let homeFeedService = HomeFeedService(apiClient: client)
     let searchService = SearchService(apiClient: client)
+    let subscriptionsService = SubscriptionsService(apiClient: client)
     let watchService = WatchService(apiClient: client)
+    let watchProgressService = WatchProgressService(apiClient: client)
     let watchActionsService = WatchActionsService(apiClient: client)
     let adminService = AdminService(apiClient: client)
     let libraryService = LibraryService(apiClient: client)
@@ -76,7 +84,9 @@ final class AppDependencies {
       authService: authService,
       homeFeedService: homeFeedService,
       searchService: searchService,
+      subscriptionsService: subscriptionsService,
       watchService: watchService,
+      watchProgressService: watchProgressService,
       watchActionsService: watchActionsService,
       adminService: adminService,
       libraryService: libraryService,
