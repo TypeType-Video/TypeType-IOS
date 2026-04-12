@@ -2,7 +2,6 @@ import SwiftUI
 
 struct YoutubeImportView: View {
   @StateObject private var viewModel: YoutubeImportViewModel
-  @State private var archivePath: String = ""
 
   init(service: YoutubeImportServiceProtocol) {
     _viewModel = StateObject(wrappedValue: YoutubeImportViewModel(service: service))
@@ -13,14 +12,49 @@ struct YoutubeImportView: View {
       ImportAssetBanner(title: "YouTube Takeout import", imageName: "import-cooking-chef.gif")
 
       Section("YouTube Takeout zip") {
-        TextField("Absolute file path", text: $archivePath)
-          .textInputAutocapitalization(.never)
-          .autocorrectionDisabled()
-        Button(viewModel.isBusy ? "Processing..." : "Start import") {
-          let url = URL(fileURLWithPath: archivePath)
-          Task { await viewModel.startImport(archiveURL: url) }
+        ZipPickerButton(
+          title: "Add ZIP file(s)",
+          disabled: viewModel.isBusy,
+          allowsMultipleSelection: true
+        ) { urls in
+          let archives = urls.compactMap { try? ImportArchiveAccess.prepare(url: $0) }
+          viewModel.enqueue(archives)
         }
-        .disabled(viewModel.isBusy || archivePath.isEmpty)
+
+        if viewModel.hasQueue {
+          Text("Queue: \(viewModel.queueCount) file(s)")
+            .font(.caption)
+            .foregroundStyle(.secondary)
+          ForEach(viewModel.queue) { archive in
+            HStack {
+              Text(archive.name)
+                .font(.caption)
+                .lineLimit(1)
+              Spacer()
+              Button(role: .destructive) {
+                viewModel.removeFromQueue(archive.id)
+              } label: {
+                Image(systemName: "trash")
+              }
+              .disabled(viewModel.isBusy)
+            }
+          }
+          Button("Clear queue", role: .destructive) {
+            viewModel.clearQueue()
+          }
+          .disabled(viewModel.isBusy)
+        }
+
+        if let activeFileName = viewModel.activeFileName, viewModel.isBusy {
+          Text("Processing: \(activeFileName)")
+            .font(.caption)
+            .foregroundStyle(.secondary)
+        }
+
+        Button(viewModel.isBusy ? "Processing..." : "Start import") {
+          Task { await viewModel.startQueuedImport() }
+        }
+        .disabled(viewModel.isBusy || !viewModel.hasQueue)
       }
 
       if let job = viewModel.job {

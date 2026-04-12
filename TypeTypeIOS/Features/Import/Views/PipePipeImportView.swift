@@ -2,7 +2,6 @@ import SwiftUI
 
 struct PipePipeImportView: View {
   @StateObject private var viewModel: PipePipeImportViewModel
-  @State private var archivePath: String = ""
 
   init(service: PipePipeImportServiceProtocol) {
     _viewModel = StateObject(wrappedValue: PipePipeImportViewModel(service: service))
@@ -13,14 +12,31 @@ struct PipePipeImportView: View {
       ImportAssetBanner(title: "PipePipe migration", imageName: "import-dudu-cooking.gif")
 
       Section("PipePipe backup zip") {
-        TextField("Absolute file path", text: $archivePath)
-          .textInputAutocapitalization(.never)
-          .autocorrectionDisabled()
-        Button(viewModel.isImporting ? "Importing..." : "Start import") {
-          let url = URL(fileURLWithPath: archivePath)
-          Task { await viewModel.importArchive(fileURL: url) }
+        ZipPickerButton(
+          title: "Choose ZIP",
+          disabled: viewModel.isImporting,
+          allowsMultipleSelection: false
+        ) { urls in
+          guard let first = urls.first else { return }
+          if let archive = try? ImportArchiveAccess.prepare(url: first) {
+            viewModel.setArchive(archive)
+          }
         }
-        .disabled(viewModel.isImporting || archivePath.isEmpty)
+
+        if let selectedArchiveName = viewModel.selectedArchiveName {
+          Text("Selected: \(selectedArchiveName)")
+            .font(.caption)
+            .foregroundStyle(.secondary)
+          Button("Remove file", role: .destructive) {
+            viewModel.clearArchive()
+          }
+          .disabled(viewModel.isImporting)
+        }
+
+        Button(viewModel.isImporting ? "Importing..." : "Start import") {
+          Task { await viewModel.importSelectedArchive() }
+        }
+        .disabled(viewModel.isImporting || viewModel.selectedArchiveName == nil)
       }
 
       if let summary = viewModel.summary {
