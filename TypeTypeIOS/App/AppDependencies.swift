@@ -11,6 +11,7 @@ final class AppDependencies {
   let homeFeedService: HomeFeedServiceProtocol
   let searchService: SearchServiceProtocol
   let subscriptionsService: SubscriptionsServiceProtocol
+  let notificationsService: NotificationsServiceProtocol
   let watchService: WatchServiceProtocol
   let watchProgressService: WatchProgressServiceProtocol
   let watchActionsService: WatchActionsServiceProtocol
@@ -31,6 +32,7 @@ final class AppDependencies {
     homeFeedService: HomeFeedServiceProtocol,
     searchService: SearchServiceProtocol,
     subscriptionsService: SubscriptionsServiceProtocol,
+    notificationsService: NotificationsServiceProtocol,
     watchService: WatchServiceProtocol,
     watchProgressService: WatchProgressServiceProtocol,
     watchActionsService: WatchActionsServiceProtocol,
@@ -50,6 +52,7 @@ final class AppDependencies {
     self.homeFeedService = homeFeedService
     self.searchService = searchService
     self.subscriptionsService = subscriptionsService
+    self.notificationsService = notificationsService
     self.watchService = watchService
     self.watchProgressService = watchProgressService
     self.watchActionsService = watchActionsService
@@ -84,6 +87,7 @@ final class AppDependencies {
     let homeFeedService = HomeFeedService(apiClient: client)
     let searchService = SearchService(apiClient: client)
     let subscriptionsService = SubscriptionsService(apiClient: client)
+    let notificationsService = NotificationsService(apiClient: client)
     let watchService = WatchService(apiClient: client)
     let watchProgressService = WatchProgressService(apiClient: client)
     let watchActionsService = WatchActionsService(apiClient: client)
@@ -103,6 +107,7 @@ final class AppDependencies {
       homeFeedService: homeFeedService,
       searchService: searchService,
       subscriptionsService: subscriptionsService,
+      notificationsService: notificationsService,
       watchService: watchService,
       watchProgressService: watchProgressService,
       watchActionsService: watchActionsService,

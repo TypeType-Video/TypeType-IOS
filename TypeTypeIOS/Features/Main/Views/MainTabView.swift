@@ -20,6 +20,11 @@ struct MainTabView: View {
           Label("Subs", systemImage: "dot.radiowaves.left.and.right")
         }
 
+      NotificationsView(coordinator: coordinator)
+        .tabItem {
+          Label("Alerts", systemImage: "bell")
+        }
+
       LibraryView(coordinator: coordinator)
         .tabItem {
           Label("Library", systemImage: "books.vertical")
