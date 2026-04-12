@@ -7,7 +7,10 @@ struct SettingsView: View {
   init(coordinator: RootCoordinator) {
     self.coordinator = coordinator
     _viewModel = StateObject(
-      wrappedValue: SettingsViewModel(service: coordinator.dependencies.userSettingsService)
+      wrappedValue: SettingsViewModel(
+        service: coordinator.dependencies.userSettingsService,
+        recommendationFeedbackService: coordinator.dependencies.recommendationFeedbackService
+      )
     )
   }
 

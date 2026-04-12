@@ -1,6 +1,7 @@
 import Foundation
 
 protocol RecommendationFeedbackServiceProtocol {
+  func setEnabled(_ enabled: Bool)
   func sendEvent(
     type: RecommendationEventType,
     videoURL: String?,
@@ -64,9 +65,24 @@ actor RecommendationEventDeduper {
 final class RecommendationFeedbackService: RecommendationFeedbackServiceProtocol {
   private let apiClient: APIClient
   private let deduper = RecommendationEventDeduper()
+  private let lock = NSLock()
+  private var enabled: Bool = true
 
   init(apiClient: APIClient) {
     self.apiClient = apiClient
+  }
+
+  func setEnabled(_ enabled: Bool) {
+    lock.lock()
+    self.enabled = enabled
+    lock.unlock()
+  }
+
+  private func isEnabled() -> Bool {
+    lock.lock()
+    let value = enabled
+    lock.unlock()
+    return value
   }
 
   func sendEvent(
@@ -77,6 +93,7 @@ final class RecommendationFeedbackService: RecommendationFeedbackServiceProtocol
     watchRatio: Double?,
     watchDurationMs: Int64?
   ) async {
+    guard isEnabled() else { return }
     if type != .watch {
       let key = "\(type.rawValue):\(videoURL ?? "")"
       let shouldSend = await deduper.shouldSendEvent(key: key)
@@ -112,6 +129,7 @@ final class RecommendationFeedbackService: RecommendationFeedbackServiceProtocol
   }
 
   private func sendFeedback(type: String, videoURL: String?, uploaderURL: String?) async {
+    guard isEnabled() else { return }
     let key = "\(type):\(videoURL ?? ""):\(uploaderURL ?? "")"
     let shouldSend = await deduper.shouldSendFeedback(key: key)
     guard shouldSend else { return }

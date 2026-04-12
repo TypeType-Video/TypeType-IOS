@@ -10,9 +10,14 @@ final class SettingsViewModel: ObservableObject {
   @Published var infoMessage: String?
 
   private let service: UserSettingsServiceProtocol
+  private let recommendationFeedbackService: RecommendationFeedbackServiceProtocol
 
-  init(service: UserSettingsServiceProtocol) {
+  init(
+    service: UserSettingsServiceProtocol,
+    recommendationFeedbackService: RecommendationFeedbackServiceProtocol
+  ) {
     self.service = service
+    self.recommendationFeedbackService = recommendationFeedbackService
   }
 
   func load() async {
@@ -21,6 +26,9 @@ final class SettingsViewModel: ObservableObject {
     errorMessage = nil
     do {
       draft = try await service.get()
+      DefaultServiceStore.set(draft.defaultService)
+      RecommendationTrackingPreferenceStore.set(draft.recommendationPersonalizationEnabled)
+      recommendationFeedbackService.setEnabled(draft.recommendationPersonalizationEnabled)
       isLoading = false
     } catch let error as LocalizedError {
       errorMessage = error.errorDescription ?? "Unable to load settings."
@@ -38,6 +46,9 @@ final class SettingsViewModel: ObservableObject {
     infoMessage = nil
     do {
       draft = try await service.update(draft)
+      DefaultServiceStore.set(draft.defaultService)
+      RecommendationTrackingPreferenceStore.set(draft.recommendationPersonalizationEnabled)
+      recommendationFeedbackService.setEnabled(draft.recommendationPersonalizationEnabled)
       infoMessage = "Settings saved"
       isSaving = false
     } catch let error as LocalizedError {

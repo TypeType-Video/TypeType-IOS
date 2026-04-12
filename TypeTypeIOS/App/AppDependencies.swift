@@ -110,6 +110,7 @@ final class AppDependencies {
     let userSettingsService = UserSettingsService(apiClient: client)
     let recommendationOnboardingService = RecommendationOnboardingService(apiClient: client)
     let recommendationFeedbackService = RecommendationFeedbackService(apiClient: client)
+    recommendationFeedbackService.setEnabled(RecommendationTrackingPreferenceStore.get())
     let pipePipeImportService = PipePipeImportService(apiClient: client)
     let youtubeImportService = YoutubeImportService(apiClient: client)
     return AppDependencies(
