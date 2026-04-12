@@ -8,12 +8,15 @@ struct SearchView: View {
   init(coordinator: RootCoordinator) {
     self.coordinator = coordinator
     _viewModel = StateObject(
-      wrappedValue: SearchViewModel(searchService: coordinator.dependencies.searchService)
+      wrappedValue: SearchViewModel(
+        searchService: coordinator.dependencies.searchService,
+        blockedService: coordinator.dependencies.blockedService
+      )
     )
   }
 
   private var trimmedQuery: String {
-    viewModel.query.trimmingCharacters(in: .whitespacesAndNewlines)
+    viewModel.inputQuery.trimmingCharacters(in: .whitespacesAndNewlines)
   }
 
   private func loadDefaultServiceID() async {
@@ -42,7 +45,7 @@ struct SearchView: View {
           .clipShape(Capsule())
         Spacer()
         Button("Use") {
-          viewModel.query = suggestion
+          viewModel.applySuggestion(suggestion)
           Task { await viewModel.performSearch(serviceID: serviceID) }
         }
         .font(.caption)
@@ -64,16 +67,21 @@ struct SearchView: View {
           HStack(spacing: 6) {
             Image(systemName: "magnifyingglass")
               .foregroundStyle(.secondary)
-            TextField("Search videos", text: $viewModel.query)
+            TextField("Search videos", text: $viewModel.inputQuery)
               .textInputAutocapitalization(.never)
               .autocorrectionDisabled()
               .submitLabel(.search)
+              .onChange(of: viewModel.inputQuery) { _, _ in
+                viewModel.refreshSearchInput(serviceID: serviceID)
+              }
               .onSubmit {
                 Task { await viewModel.performSearch(serviceID: serviceID) }
               }
             if !trimmedQuery.isEmpty {
               Button {
+                viewModel.inputQuery = ""
                 viewModel.query = ""
+                viewModel.clearSuggestions()
               } label: {
                 Image(systemName: "xmark.circle.fill")
                   .foregroundStyle(.secondary)
@@ -92,6 +100,68 @@ struct SearchView: View {
           .disabled(trimmedQuery.isEmpty)
         }
         .padding(.horizontal)
+
+        if !viewModel.suggestions.isEmpty {
+          ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 6) {
+              ForEach(viewModel.suggestions, id: \.self) { value in
+                Button {
+                  viewModel.applySuggestion(value)
+                  Task { await viewModel.performSearch(serviceID: serviceID) }
+                } label: {
+                  Text(value)
+                    .font(.caption)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 6)
+                    .background(TypeTypeColor.card)
+                    .clipShape(Capsule())
+                }
+                .buttonStyle(.plain)
+              }
+            }
+            .padding(.horizontal)
+          }
+        }
+
+        if trimmedQuery.isEmpty {
+          if viewModel.isLoadingHistory {
+            ProgressView("Loading recent searches...")
+              .frame(maxWidth: .infinity, alignment: .leading)
+              .padding(.horizontal)
+          } else if !viewModel.history.isEmpty {
+            VStack(alignment: .leading, spacing: 8) {
+              HStack {
+                Text("Recent searches")
+                  .font(.caption.weight(.semibold))
+                  .foregroundStyle(.secondary)
+                Spacer()
+                Button("Clear") {
+                  Task { await viewModel.clearHistory() }
+                }
+                .font(.caption)
+              }
+              .padding(.horizontal)
+
+              ForEach(viewModel.history) { item in
+                Button {
+                  viewModel.applySuggestion(item.term)
+                  Task { await viewModel.performSearch(serviceID: serviceID) }
+                } label: {
+                  HStack(spacing: 8) {
+                    Image(systemName: "clock.arrow.circlepath")
+                      .foregroundStyle(.secondary)
+                    Text(item.term)
+                      .lineLimit(1)
+                    Spacer()
+                  }
+                  .padding(.horizontal)
+                }
+                .buttonStyle(.plain)
+              }
+              Divider()
+            }
+          }
+        }
 
         statusSection
 
@@ -142,6 +212,7 @@ struct SearchView: View {
     }
     .task(id: coordinator.selectedServer?.id) {
       await loadDefaultServiceID()
+      await viewModel.loadHistory()
     }
   }
 }
