@@ -3,6 +3,7 @@ import SwiftUI
 struct LibraryView: View {
   @ObservedObject var coordinator: RootCoordinator
   @StateObject private var viewModel: LibraryViewModel
+  @State private var showCreatePlaylistSheet: Bool = false
 
   init(coordinator: RootCoordinator) {
     self.coordinator = coordinator
@@ -53,18 +54,27 @@ struct LibraryView: View {
         ProgressView("Loading playlists...")
           .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
       } else {
-        List(viewModel.playlists) { playlist in
-          NavigationLink {
-            PlaylistDetailView(
-              playlistID: playlist.id,
-              coordinator: coordinator,
-              libraryService: coordinator.dependencies.libraryService,
-              watchService: coordinator.dependencies.watchService,
-              watchProgressService: coordinator.dependencies.watchProgressService,
-              watchActionsService: coordinator.dependencies.watchActionsService
-            )
-          } label: {
-            LibraryPlaylistRowView(playlist: playlist)
+        List {
+          ForEach(viewModel.playlists) { playlist in
+            NavigationLink {
+              PlaylistDetailView(
+                playlistID: playlist.id,
+                coordinator: coordinator,
+                libraryService: coordinator.dependencies.libraryService,
+                watchService: coordinator.dependencies.watchService,
+                watchProgressService: coordinator.dependencies.watchProgressService,
+                watchActionsService: coordinator.dependencies.watchActionsService
+              )
+            } label: {
+              LibraryPlaylistRowView(playlist: playlist)
+            }
+            .swipeActions(edge: .trailing) {
+              Button(role: .destructive) {
+                Task { await viewModel.deletePlaylist(playlist) }
+              } label: {
+                Label("Delete", systemImage: "trash")
+              }
+            }
           }
         }
         .listStyle(.plain)
@@ -80,11 +90,25 @@ struct LibraryView: View {
       .navigationTitle("Library")
       .toolbar {
         ToolbarItem(placement: .topBarTrailing) {
-          Button {
-            Task { await viewModel.refreshCurrent() }
-          } label: {
-            Image(systemName: "arrow.clockwise")
+          HStack(spacing: 12) {
+            if viewModel.mode == .playlists {
+              Button {
+                showCreatePlaylistSheet = true
+              } label: {
+                Image(systemName: "plus")
+              }
+            }
+            Button {
+              Task { await viewModel.refreshCurrent() }
+            } label: {
+              Image(systemName: "arrow.clockwise")
+            }
           }
+        }
+      }
+      .sheet(isPresented: $showCreatePlaylistSheet) {
+        CreatePlaylistSheet { name, description in
+          Task { await viewModel.createPlaylist(name: name, description: description) }
         }
       }
     }

@@ -7,6 +7,7 @@ struct PlaylistDetailView: View {
   let watchService: WatchServiceProtocol
   let watchProgressService: WatchProgressServiceProtocol
   let watchActionsService: WatchActionsServiceProtocol
+  @Environment(\.dismiss) private var dismiss
   @StateObject private var viewModel: PlaylistDetailViewModel
 
   init(
@@ -40,6 +41,22 @@ struct PlaylistDetailView: View {
         )
       } else if let playlist = viewModel.playlist {
         List {
+          Section("Details") {
+            TextField("Name", text: $viewModel.editedName)
+            TextField("Description", text: $viewModel.editedDescription, axis: .vertical)
+              .lineLimit(2...5)
+            Button(viewModel.isMutating ? "Saving..." : "Save details") {
+              Task { await viewModel.saveDetails() }
+            }
+            .disabled(viewModel.isMutating)
+          }
+
+          if let infoMessage = viewModel.infoMessage {
+            Text(infoMessage)
+              .font(.footnote)
+              .foregroundStyle(.secondary)
+          }
+
           if !playlist.description.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             Text(playlist.description)
               .font(.footnote)
@@ -57,9 +74,30 @@ struct PlaylistDetailView: View {
             } label: {
               PlaylistVideoRowView(item: video)
             }
+            .swipeActions(edge: .trailing) {
+              Button(role: .destructive) {
+                Task { await viewModel.remove(video: video) }
+              } label: {
+                Label("Remove", systemImage: "trash")
+              }
+            }
           }
         }
         .listStyle(.plain)
+        .toolbar {
+          ToolbarItem(placement: .topBarTrailing) {
+            Button(role: .destructive) {
+              Task {
+                await viewModel.deletePlaylist()
+                if viewModel.currentPlaylistID == nil {
+                  dismiss()
+                }
+              }
+            } label: {
+              Image(systemName: "trash")
+            }
+          }
+        }
       }
     }
     .navigationTitle("Playlist")
