@@ -38,6 +38,7 @@ struct LibraryView: View {
             WatchView(
               videoURL: item.url,
               watchService: coordinator.dependencies.watchService,
+              watchProgressService: coordinator.dependencies.watchProgressService,
               watchActionsService: coordinator.dependencies.watchActionsService
             )
           } label: {
@@ -57,6 +58,7 @@ struct LibraryView: View {
               playlistID: playlist.id,
               libraryService: coordinator.dependencies.libraryService,
               watchService: coordinator.dependencies.watchService,
+              watchProgressService: coordinator.dependencies.watchProgressService,
               watchActionsService: coordinator.dependencies.watchActionsService
             )
           } label: {

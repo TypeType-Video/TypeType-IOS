@@ -101,6 +101,7 @@ struct SearchView: View {
                 WatchView(
                   videoURL: item.url,
                   watchService: coordinator.dependencies.watchService,
+                  watchProgressService: coordinator.dependencies.watchProgressService,
                   watchActionsService: coordinator.dependencies.watchActionsService
                 )
               } label: {

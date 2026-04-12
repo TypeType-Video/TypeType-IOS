@@ -4,6 +4,7 @@ struct PlaylistDetailView: View {
   let playlistID: String
   let libraryService: LibraryServiceProtocol
   let watchService: WatchServiceProtocol
+  let watchProgressService: WatchProgressServiceProtocol
   let watchActionsService: WatchActionsServiceProtocol
   @StateObject private var viewModel: PlaylistDetailViewModel
 
@@ -11,11 +12,13 @@ struct PlaylistDetailView: View {
     playlistID: String,
     libraryService: LibraryServiceProtocol,
     watchService: WatchServiceProtocol,
+    watchProgressService: WatchProgressServiceProtocol,
     watchActionsService: WatchActionsServiceProtocol
   ) {
     self.playlistID = playlistID
     self.libraryService = libraryService
     self.watchService = watchService
+    self.watchProgressService = watchProgressService
     self.watchActionsService = watchActionsService
     _viewModel = StateObject(
       wrappedValue: PlaylistDetailViewModel(playlistID: playlistID, service: libraryService)
@@ -44,6 +47,7 @@ struct PlaylistDetailView: View {
               WatchView(
                 videoURL: video.url,
                 watchService: watchService,
+                watchProgressService: watchProgressService,
                 watchActionsService: watchActionsService
               )
             } label: {
