@@ -44,6 +44,12 @@ struct SettingsView: View {
           Section("Session") {
             LabeledContent("Email", value: session.userEmail)
             LabeledContent("Role", value: session.role)
+            NavigationLink("Edit Profile") {
+              ProfileView(coordinator: coordinator)
+            }
+            NavigationLink("Reset Password") {
+              ResetPasswordView(service: coordinator.dependencies.resetPasswordService)
+            }
           }
         }
 

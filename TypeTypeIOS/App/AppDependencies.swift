@@ -6,6 +6,8 @@ final class AppDependencies {
   let sessionStore: SessionStore
   let serverProbeService: ServerProbeServiceProtocol
   let authService: AuthServiceProtocol
+  let resetPasswordService: ResetPasswordServiceProtocol
+  let profileService: ProfileServiceProtocol
   let homeFeedService: HomeFeedServiceProtocol
   let searchService: SearchServiceProtocol
   let subscriptionsService: SubscriptionsServiceProtocol
@@ -22,6 +24,8 @@ final class AppDependencies {
     sessionStore: SessionStore,
     serverProbeService: ServerProbeServiceProtocol,
     authService: AuthServiceProtocol,
+    resetPasswordService: ResetPasswordServiceProtocol,
+    profileService: ProfileServiceProtocol,
     homeFeedService: HomeFeedServiceProtocol,
     searchService: SearchServiceProtocol,
     subscriptionsService: SubscriptionsServiceProtocol,
@@ -37,6 +41,8 @@ final class AppDependencies {
     self.sessionStore = sessionStore
     self.serverProbeService = serverProbeService
     self.authService = authService
+    self.resetPasswordService = resetPasswordService
+    self.profileService = profileService
     self.homeFeedService = homeFeedService
     self.searchService = searchService
     self.subscriptionsService = subscriptionsService
@@ -61,6 +67,8 @@ final class AppDependencies {
       }
     )
     let authService = AuthService(apiClient: client)
+    let resetPasswordService = ResetPasswordService(apiClient: client)
+    let profileService = ProfileService(apiClient: client)
     client.setTokenRefreshHandler { staleToken in
       let refreshedToken = try await authService.refresh(using: staleToken)
       guard let selectedID = serverStore.selectedServerID() else { return nil }
@@ -82,6 +90,8 @@ final class AppDependencies {
       sessionStore: sessionStore,
       serverProbeService: probeService,
       authService: authService,
+      resetPasswordService: resetPasswordService,
+      profileService: profileService,
       homeFeedService: homeFeedService,
       searchService: searchService,
       subscriptionsService: subscriptionsService,
