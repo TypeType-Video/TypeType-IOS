@@ -22,3 +22,21 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: dev.typetype.ios
         PRODUCT_NAME: TypeTypeIOS
+
+  TypeTypeIOSTests:
+    type: bundle.unit-test
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - TypeTypeIOSTests
+    dependencies:
+      - target: TypeTypeIOS
+
+schemes:
+  TypeTypeIOS:
+    build:
+      targets:
+        TypeTypeIOS: all
+    test:
+      targets:
+        - TypeTypeIOSTests
