@@ -3,12 +3,23 @@ import SwiftUI
 struct ShortsView: View {
   @ObservedObject var coordinator: RootCoordinator
   @StateObject private var viewModel: ShortsViewModel
+  @State private var serviceID: Int = DefaultServiceStore.get()
 
   init(coordinator: RootCoordinator) {
     self.coordinator = coordinator
     _viewModel = StateObject(
       wrappedValue: ShortsViewModel(service: coordinator.dependencies.shortsService)
     )
+  }
+
+  private func loadDefaultServiceID() async {
+    do {
+      let settings = try await coordinator.dependencies.userSettingsService.get()
+      serviceID = settings.defaultService
+      DefaultServiceStore.set(settings.defaultService)
+    } catch {
+      serviceID = DefaultServiceStore.get()
+    }
   }
 
   var body: some View {
@@ -44,7 +55,7 @@ struct ShortsView: View {
                   index >= max(0, viewModel.items.count - 3),
                   !viewModel.isLoadingMore {
                   Button("Load more") {
-                    Task { await viewModel.loadMore(serviceID: 0) }
+                    Task { await viewModel.loadMore(serviceID: serviceID) }
                   }
                   .buttonStyle(.bordered)
                 }
@@ -76,14 +87,19 @@ struct ShortsView: View {
           }
           .tabViewStyle(.page(indexDisplayMode: .always))
           .onChange(of: viewModel.activeIndex) { _, newIndex in
-            viewModel.prefetchIfNeeded(activeIndex: newIndex, serviceID: 0)
+            viewModel.prefetchIfNeeded(activeIndex: newIndex, serviceID: serviceID)
           }
         }
       }
       .navigationTitle("Shorts")
     }
     .task {
-      await viewModel.loadInitial(serviceID: 0)
+      await loadDefaultServiceID()
+      await viewModel.loadInitial(serviceID: serviceID)
+    }
+    .task(id: coordinator.selectedServer?.id) {
+      await loadDefaultServiceID()
+      await viewModel.loadInitial(serviceID: serviceID)
     }
   }
 }

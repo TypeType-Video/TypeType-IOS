@@ -3,15 +3,28 @@ import SwiftUI
 struct HomePlaceholderView: View {
   @ObservedObject var coordinator: RootCoordinator
   @StateObject private var viewModel: HomeFeedViewModel
+  @State private var serviceID: Int = DefaultServiceStore.get()
 
   init(coordinator: RootCoordinator) {
     self.coordinator = coordinator
     _viewModel = StateObject(
       wrappedValue: HomeFeedViewModel(
         homeService: coordinator.dependencies.homeFeedService,
-        libraryService: coordinator.dependencies.libraryService
+        libraryService: coordinator.dependencies.libraryService,
+        sessionProvider: { coordinator.currentSession }
       )
     )
+  }
+
+  private func refreshFeed() async {
+    do {
+      let settings = try await coordinator.dependencies.userSettingsService.get()
+      serviceID = settings.defaultService
+      DefaultServiceStore.set(settings.defaultService)
+    } catch {
+      serviceID = DefaultServiceStore.get()
+    }
+    await viewModel.reload(serviceID: serviceID)
   }
 
   @ViewBuilder
@@ -123,7 +136,7 @@ struct HomePlaceholderView: View {
       .scrollContentBackground(.hidden)
       .background(TypeTypeColor.background)
       .refreshable {
-        await viewModel.reload(serviceID: 0)
+        await refreshFeed()
       }
     }
   }
@@ -132,12 +145,18 @@ struct HomePlaceholderView: View {
     NavigationStack {
       VStack(alignment: .leading, spacing: 10) {
         header
+        HStack {
+          Text(viewModel.sourceLabel)
+            .font(.caption.weight(.semibold))
+            .foregroundStyle(.secondary)
+        }
+        .padding(.horizontal)
         content
       }
       .navigationTitle("Home")
     }
     .task(id: coordinator.selectedServer?.id) {
-      await viewModel.reload(serviceID: 0)
+      await refreshFeed()
     }
   }
 }

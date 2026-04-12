@@ -7,13 +7,20 @@ final class HomeFeedViewModel: ObservableObject {
   @Published private(set) var continueWatching: [ContinueWatchingItem] = []
   @Published private(set) var isLoading: Bool = false
   @Published var errorMessage: String?
+  @Published private(set) var sourceLabel: String = "Trending"
 
   private let homeService: HomeFeedServiceProtocol
   private let libraryService: LibraryServiceProtocol
+  private let sessionProvider: () -> SessionSnapshot?
 
-  init(homeService: HomeFeedServiceProtocol, libraryService: LibraryServiceProtocol) {
+  init(
+    homeService: HomeFeedServiceProtocol,
+    libraryService: LibraryServiceProtocol,
+    sessionProvider: @escaping () -> SessionSnapshot?
+  ) {
     self.homeService = homeService
     self.libraryService = libraryService
+    self.sessionProvider = sessionProvider
   }
 
   func loadIfNeeded(serviceID: Int = 0) async {
@@ -25,7 +32,18 @@ final class HomeFeedViewModel: ObservableObject {
     isLoading = true
     errorMessage = nil
     do {
-      videos = try await homeService.trending(serviceID: serviceID)
+      if sessionProvider() != nil {
+        do {
+          videos = try await homeService.recommendations(serviceID: serviceID, limit: 30)
+          sourceLabel = "Recommended"
+        } catch {
+          videos = try await homeService.trending(serviceID: serviceID)
+          sourceLabel = "Trending"
+        }
+      } else {
+        videos = try await homeService.trending(serviceID: serviceID)
+        sourceLabel = "Trending"
+      }
       do {
         let historyItems = try await libraryService.history(limit: 40, offset: 0)
         continueWatching = historyItems

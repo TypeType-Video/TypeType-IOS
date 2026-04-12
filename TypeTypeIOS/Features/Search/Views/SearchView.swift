@@ -3,6 +3,7 @@ import SwiftUI
 struct SearchView: View {
   @ObservedObject var coordinator: RootCoordinator
   @StateObject private var viewModel: SearchViewModel
+  @State private var serviceID: Int = DefaultServiceStore.get()
 
   init(coordinator: RootCoordinator) {
     self.coordinator = coordinator
@@ -13,6 +14,16 @@ struct SearchView: View {
 
   private var trimmedQuery: String {
     viewModel.query.trimmingCharacters(in: .whitespacesAndNewlines)
+  }
+
+  private func loadDefaultServiceID() async {
+    do {
+      let settings = try await coordinator.dependencies.userSettingsService.get()
+      serviceID = settings.defaultService
+      DefaultServiceStore.set(settings.defaultService)
+    } catch {
+      serviceID = DefaultServiceStore.get()
+    }
   }
 
   @ViewBuilder
@@ -32,7 +43,7 @@ struct SearchView: View {
         Spacer()
         Button("Use") {
           viewModel.query = suggestion
-          Task { await viewModel.performSearch(serviceID: 0) }
+          Task { await viewModel.performSearch(serviceID: serviceID) }
         }
         .font(.caption)
       }
@@ -58,7 +69,7 @@ struct SearchView: View {
               .autocorrectionDisabled()
               .submitLabel(.search)
               .onSubmit {
-                Task { await viewModel.performSearch(serviceID: 0) }
+                Task { await viewModel.performSearch(serviceID: serviceID) }
               }
             if !trimmedQuery.isEmpty {
               Button {
@@ -75,7 +86,7 @@ struct SearchView: View {
           .clipShape(RoundedRectangle(cornerRadius: 10))
 
           Button(viewModel.isLoading ? "..." : "Search") {
-            Task { await viewModel.performSearch(serviceID: 0) }
+            Task { await viewModel.performSearch(serviceID: serviceID) }
           }
           .buttonStyle(.borderedProminent)
           .disabled(trimmedQuery.isEmpty)
@@ -116,7 +127,7 @@ struct SearchView: View {
                   Text("Loading more...")
                 } else {
                   Button("Load more") {
-                    Task { await viewModel.loadMore(serviceID: 0) }
+                    Task { await viewModel.loadMore(serviceID: serviceID) }
                   }
                   .buttonStyle(.borderless)
                 }
@@ -128,6 +139,9 @@ struct SearchView: View {
         }
       }
       .navigationTitle("Search")
+    }
+    .task(id: coordinator.selectedServer?.id) {
+      await loadDefaultServiceID()
     }
   }
 }
