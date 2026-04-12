@@ -20,6 +20,8 @@ final class AppDependencies {
   let adminService: AdminServiceProtocol
   let libraryService: LibraryServiceProtocol
   let userSettingsService: UserSettingsServiceProtocol
+  let recommendationOnboardingService: RecommendationOnboardingServiceProtocol
+  let recommendationFeedbackService: RecommendationFeedbackServiceProtocol
   let pipePipeImportService: PipePipeImportServiceProtocol
   let youtubeImportService: YoutubeImportServiceProtocol
 
@@ -43,6 +45,8 @@ final class AppDependencies {
     adminService: AdminServiceProtocol,
     libraryService: LibraryServiceProtocol,
     userSettingsService: UserSettingsServiceProtocol,
+    recommendationOnboardingService: RecommendationOnboardingServiceProtocol,
+    recommendationFeedbackService: RecommendationFeedbackServiceProtocol,
     pipePipeImportService: PipePipeImportServiceProtocol,
     youtubeImportService: YoutubeImportServiceProtocol
   ) {
@@ -65,6 +69,8 @@ final class AppDependencies {
     self.adminService = adminService
     self.libraryService = libraryService
     self.userSettingsService = userSettingsService
+    self.recommendationOnboardingService = recommendationOnboardingService
+    self.recommendationFeedbackService = recommendationFeedbackService
     self.pipePipeImportService = pipePipeImportService
     self.youtubeImportService = youtubeImportService
   }
@@ -102,6 +108,8 @@ final class AppDependencies {
     let adminService = AdminService(apiClient: client)
     let libraryService = LibraryService(apiClient: client)
     let userSettingsService = UserSettingsService(apiClient: client)
+    let recommendationOnboardingService = RecommendationOnboardingService(apiClient: client)
+    let recommendationFeedbackService = RecommendationFeedbackService(apiClient: client)
     let pipePipeImportService = PipePipeImportService(apiClient: client)
     let youtubeImportService = YoutubeImportService(apiClient: client)
     return AppDependencies(
@@ -124,6 +132,8 @@ final class AppDependencies {
       adminService: adminService,
       libraryService: libraryService,
       userSettingsService: userSettingsService,
+      recommendationOnboardingService: recommendationOnboardingService,
+      recommendationFeedbackService: recommendationFeedbackService,
       pipePipeImportService: pipePipeImportService,
       youtubeImportService: youtubeImportService
     )
