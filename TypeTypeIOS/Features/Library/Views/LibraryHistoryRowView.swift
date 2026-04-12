@@ -18,6 +18,19 @@ struct LibraryHistoryRowView: View {
       }
       .frame(width: 120, height: 68)
       .clipShape(RoundedRectangle(cornerRadius: 8))
+      .overlay(alignment: .bottom) {
+        GeometryReader { proxy in
+          RoundedRectangle(cornerRadius: 1)
+            .fill(TypeTypeColor.accent)
+            .frame(
+              width: item.duration > 0
+                ? proxy.size.width * max(0, min(1, Double(item.progress) / Double(item.duration)))
+                : 0,
+              height: 3
+            )
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
+        }
+      }
 
       VStack(alignment: .leading, spacing: 4) {
         Text(item.title)

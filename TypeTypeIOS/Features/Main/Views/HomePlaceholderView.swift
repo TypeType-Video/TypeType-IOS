@@ -7,8 +7,42 @@ struct HomePlaceholderView: View {
   init(coordinator: RootCoordinator) {
     self.coordinator = coordinator
     _viewModel = StateObject(
-      wrappedValue: HomeFeedViewModel(service: coordinator.dependencies.homeFeedService)
+      wrappedValue: HomeFeedViewModel(
+        homeService: coordinator.dependencies.homeFeedService,
+        libraryService: coordinator.dependencies.libraryService
+      )
     )
+  }
+
+  @ViewBuilder
+  private var continueWatchingSection: some View {
+    if !viewModel.continueWatching.isEmpty {
+      VStack(alignment: .leading, spacing: 8) {
+        Text("Continue Watching")
+          .font(.headline)
+          .padding(.horizontal)
+
+        ScrollView(.horizontal, showsIndicators: false) {
+          HStack(spacing: 10) {
+            ForEach(viewModel.continueWatching) { item in
+              NavigationLink {
+                WatchView(
+                  videoURL: item.url,
+                  watchService: coordinator.dependencies.watchService,
+                  watchProgressService: coordinator.dependencies.watchProgressService,
+                  watchActionsService: coordinator.dependencies.watchActionsService
+                )
+              } label: {
+                ContinueWatchingCardView(item: item)
+              }
+              .buttonStyle(.plain)
+            }
+          }
+          .padding(.horizontal)
+        }
+      }
+      .padding(.top, 2)
+    }
   }
 
   @ViewBuilder
@@ -64,15 +98,23 @@ struct HomePlaceholderView: View {
         description: Text("Pull to refresh or try another server.")
       )
     } else {
-      List(viewModel.videos) { video in
-        NavigationLink {
-          WatchView(
-            videoURL: video.url,
-            watchService: coordinator.dependencies.watchService,
-            watchActionsService: coordinator.dependencies.watchActionsService
-          )
-        } label: {
-          HomeVideoRowView(video: video)
+      List {
+        continueWatchingSection
+          .listRowSeparator(.hidden)
+          .listRowInsets(EdgeInsets())
+          .listRowBackground(Color.clear)
+
+        ForEach(viewModel.videos) { video in
+          NavigationLink {
+            WatchView(
+              videoURL: video.url,
+              watchService: coordinator.dependencies.watchService,
+              watchProgressService: coordinator.dependencies.watchProgressService,
+              watchActionsService: coordinator.dependencies.watchActionsService
+            )
+          } label: {
+            HomeVideoRowView(video: video)
+          }
         }
       }
       .listStyle(.plain)
