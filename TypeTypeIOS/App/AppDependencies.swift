@@ -12,6 +12,8 @@ final class AppDependencies {
   let searchService: SearchServiceProtocol
   let subscriptionsService: SubscriptionsServiceProtocol
   let notificationsService: NotificationsServiceProtocol
+  let channelService: ChannelServiceProtocol
+  let shortsService: ShortsServiceProtocol
   let watchService: WatchServiceProtocol
   let watchProgressService: WatchProgressServiceProtocol
   let watchActionsService: WatchActionsServiceProtocol
@@ -33,6 +35,8 @@ final class AppDependencies {
     searchService: SearchServiceProtocol,
     subscriptionsService: SubscriptionsServiceProtocol,
     notificationsService: NotificationsServiceProtocol,
+    channelService: ChannelServiceProtocol,
+    shortsService: ShortsServiceProtocol,
     watchService: WatchServiceProtocol,
     watchProgressService: WatchProgressServiceProtocol,
     watchActionsService: WatchActionsServiceProtocol,
@@ -53,6 +57,8 @@ final class AppDependencies {
     self.searchService = searchService
     self.subscriptionsService = subscriptionsService
     self.notificationsService = notificationsService
+    self.channelService = channelService
+    self.shortsService = shortsService
     self.watchService = watchService
     self.watchProgressService = watchProgressService
     self.watchActionsService = watchActionsService
@@ -88,6 +94,8 @@ final class AppDependencies {
     let searchService = SearchService(apiClient: client)
     let subscriptionsService = SubscriptionsService(apiClient: client)
     let notificationsService = NotificationsService(apiClient: client)
+    let channelService = ChannelService(apiClient: client)
+    let shortsService = ShortsService(apiClient: client)
     let watchService = WatchService(apiClient: client)
     let watchProgressService = WatchProgressService(apiClient: client)
     let watchActionsService = WatchActionsService(apiClient: client)
@@ -108,6 +116,8 @@ final class AppDependencies {
       searchService: searchService,
       subscriptionsService: subscriptionsService,
       notificationsService: notificationsService,
+      channelService: channelService,
+      shortsService: shortsService,
       watchService: watchService,
       watchProgressService: watchProgressService,
       watchActionsService: watchActionsService,
