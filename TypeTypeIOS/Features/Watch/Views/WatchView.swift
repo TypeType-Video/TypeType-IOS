@@ -6,6 +6,7 @@ struct WatchView: View {
   private let watchService: WatchServiceProtocol
   private let watchProgressService: WatchProgressServiceProtocol
   private let watchActionsService: WatchActionsServiceProtocol
+  private let recommendationFeedbackService: RecommendationFeedbackServiceProtocol
   @StateObject private var viewModel: WatchViewModel
   @StateObject private var actionsViewModel: WatchActionsViewModel
   @Environment(\.scenePhase) private var scenePhase
@@ -15,13 +16,15 @@ struct WatchView: View {
     coordinator: RootCoordinator,
     watchService: WatchServiceProtocol,
     watchProgressService: WatchProgressServiceProtocol,
-    watchActionsService: WatchActionsServiceProtocol
+    watchActionsService: WatchActionsServiceProtocol,
+    recommendationFeedbackService: RecommendationFeedbackServiceProtocol? = nil
   ) {
     self.coordinator = coordinator
     self.videoURL = videoURL
     self.watchService = watchService
     self.watchProgressService = watchProgressService
     self.watchActionsService = watchActionsService
+    self.recommendationFeedbackService = recommendationFeedbackService ?? coordinator.dependencies.recommendationFeedbackService
     _viewModel = StateObject(
       wrappedValue: WatchViewModel(
         videoURL: videoURL,
@@ -73,6 +76,7 @@ struct WatchView: View {
         watchService: watchService,
         watchProgressService: watchProgressService,
         watchActionsService: watchActionsService,
+        recommendationFeedbackService: recommendationFeedbackService,
         relatedVideos: viewModel.relatedVideos,
         comments: viewModel.comments,
         commentsDisabled: viewModel.commentsDisabled,

@@ -32,7 +32,8 @@ struct ShortsView: View {
                     coordinator: coordinator,
                     watchService: coordinator.dependencies.watchService,
                     watchProgressService: coordinator.dependencies.watchProgressService,
-                    watchActionsService: coordinator.dependencies.watchActionsService
+                    watchActionsService: coordinator.dependencies.watchActionsService,
+                    recommendationFeedbackService: coordinator.dependencies.recommendationFeedbackService
                   )
                 } label: {
                   Label("Open short", systemImage: "play.circle.fill")
@@ -47,9 +48,30 @@ struct ShortsView: View {
                   }
                   .buttonStyle(.bordered)
                 }
+
+                Button("Not interested") {
+                  Task {
+                    await coordinator.dependencies.recommendationFeedbackService.sendFeedback(
+                      type: .notInterested,
+                      videoURL: item.url,
+                      uploaderURL: item.uploaderUrl
+                    )
+                  }
+                }
+                .buttonStyle(.bordered)
               }
               .padding()
               .tag(index)
+              .task {
+                await coordinator.dependencies.recommendationFeedbackService.sendEvent(
+                  type: .impression,
+                  videoURL: item.url,
+                  uploaderURL: item.uploaderUrl,
+                  title: item.title,
+                  watchRatio: nil,
+                  watchDurationMs: nil
+                )
+              }
             }
           }
           .tabViewStyle(.page(indexDisplayMode: .always))

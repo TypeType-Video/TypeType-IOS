@@ -2,6 +2,12 @@ import SwiftUI
 
 struct WatchActionsBar: View {
   @ObservedObject var actionsViewModel: WatchActionsViewModel
+  let onNotInterested: () -> Void
+
+  init(actionsViewModel: WatchActionsViewModel, onNotInterested: @escaping () -> Void = {}) {
+    self.actionsViewModel = actionsViewModel
+    self.onNotInterested = onNotInterested
+  }
 
   var body: some View {
     ScrollView(.horizontal, showsIndicators: false) {
@@ -35,6 +41,13 @@ struct WatchActionsBar: View {
           )
         }
         .buttonStyle(.borderedProminent)
+
+        Button {
+          onNotInterested()
+        } label: {
+          Label("Less like this", systemImage: "hand.thumbsdown")
+        }
+        .buttonStyle(.bordered)
       }
     }
     .disabled(actionsViewModel.isMutating || actionsViewModel.isLoading)

@@ -92,7 +92,12 @@ final class SubscriptionsViewModel: ObservableObject {
 
   func remove(channel: SubscriptionChannel) async {
     do {
-      try await service.deleteChannel(channel.channelUrl)
+      try await service.setSubscription(
+        channelURL: channel.channelUrl,
+        name: channel.name,
+        avatarURL: channel.avatarUrl,
+        enabled: false
+      )
       channels.removeAll(where: { $0.channelUrl == channel.channelUrl })
     } catch {
       errorMessage = "Unable to unsubscribe right now."
