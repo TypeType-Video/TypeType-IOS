@@ -90,6 +90,20 @@ struct WatchContentView: View {
           }
         }
 
+        if actionsViewModel.hasChannel {
+          Button("Less from this channel") {
+            Task {
+              await recommendationFeedbackService.sendFeedback(
+                type: .lessFromChannel,
+                videoURL: videoURL,
+                uploaderURL: stream.uploaderUrl
+              )
+              actionsViewModel.message = "We will show less from this channel"
+            }
+          }
+          .buttonStyle(.bordered)
+        }
+
         if let message = actionsViewModel.message {
           Text(message)
             .font(.caption)

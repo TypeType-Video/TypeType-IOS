@@ -49,6 +49,28 @@ struct WatchActionsBar: View {
         }
         .buttonStyle(.bordered)
 
+        if actionsViewModel.hasChannel {
+          Button {
+            Task { await actionsViewModel.toggleChannelBlocked() }
+          } label: {
+            Label(
+              actionsViewModel.isChannelBlocked ? "Unblock channel" : "Block channel",
+              systemImage: actionsViewModel.isChannelBlocked ? "person.crop.circle.badge.checkmark" : "person.crop.circle.badge.xmark"
+            )
+          }
+          .buttonStyle(.bordered)
+        }
+
+        Button {
+          Task { await actionsViewModel.toggleVideoBlocked() }
+        } label: {
+          Label(
+            actionsViewModel.isVideoBlocked ? "Unblock video" : "Block video",
+            systemImage: actionsViewModel.isVideoBlocked ? "video.badge.checkmark" : "video.slash"
+          )
+        }
+        .buttonStyle(.bordered)
+
         Menu {
           ForEach(actionsViewModel.playlists) { playlist in
             Button {

@@ -10,17 +10,26 @@ final class WatchActionsViewModel: ObservableObject {
   @Published private(set) var isMutating: Bool = false
   @Published private(set) var playlists: [PlaylistSummary] = []
   @Published private(set) var playlistIDsContainingVideo: Set<String> = []
+  @Published private(set) var isVideoBlocked: Bool = false
+  @Published private(set) var isChannelBlocked: Bool = false
   @Published var message: String?
 
   private let videoURL: String
   private let service: WatchActionsServiceProtocol
   private let libraryService: LibraryServiceProtocol
+  private let blockedService: BlockedServiceProtocol
   private var stream: WatchStream?
 
-  init(videoURL: String, service: WatchActionsServiceProtocol, libraryService: LibraryServiceProtocol) {
+  init(
+    videoURL: String,
+    service: WatchActionsServiceProtocol,
+    libraryService: LibraryServiceProtocol,
+    blockedService: BlockedServiceProtocol
+  ) {
     self.videoURL = videoURL
     self.service = service
     self.libraryService = libraryService
+    self.blockedService = blockedService
   }
 
   func prepare(stream: WatchStream) {
@@ -49,11 +58,29 @@ final class WatchActionsViewModel: ObservableObject {
         playlists = []
         playlistIDsContainingVideo = []
       }
+
+      do {
+        async let blockedVideosReq = blockedService.videos()
+        async let blockedChannelsReq = blockedService.channels()
+        let blockedVideos = try await blockedVideosReq
+        let blockedChannels = try await blockedChannelsReq
+        isVideoBlocked = blockedVideos.contains(where: { $0.url == videoURL })
+        isChannelBlocked = blockedChannels.contains(where: { $0.url == stream.uploaderUrl })
+      } catch {
+        isVideoBlocked = false
+        isChannelBlocked = false
+      }
+
       isLoading = false
     } catch {
       isLoading = false
       message = "Unable to sync actions."
     }
+  }
+
+  var hasChannel: Bool {
+    guard let stream else { return false }
+    return !stream.uploaderUrl.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
   }
 
   func toggleFavorite() async {
@@ -162,6 +189,52 @@ final class WatchActionsViewModel: ObservableObject {
       isMutating = false
     } catch {
       message = "Unable to create playlist"
+      isMutating = false
+    }
+  }
+
+  func toggleVideoBlocked() async {
+    guard !isMutating else { return }
+    isMutating = true
+    do {
+      if isVideoBlocked {
+        try await blockedService.removeVideo(url: videoURL)
+        isVideoBlocked = false
+        message = "Video unblocked"
+      } else {
+        try await blockedService.addVideo(url: videoURL)
+        isVideoBlocked = true
+        message = "Video blocked"
+      }
+      isMutating = false
+    } catch {
+      message = "Unable to update blocked video"
+      isMutating = false
+    }
+  }
+
+  func toggleChannelBlocked() async {
+    guard !isMutating else { return }
+    guard let stream else { return }
+    guard !stream.uploaderUrl.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+    isMutating = true
+    do {
+      if isChannelBlocked {
+        try await blockedService.removeChannel(url: stream.uploaderUrl)
+        isChannelBlocked = false
+        message = "Channel unblocked"
+      } else {
+        try await blockedService.addChannel(
+          url: stream.uploaderUrl,
+          name: stream.uploaderName,
+          thumbnailUrl: stream.uploaderAvatarUrl
+        )
+        isChannelBlocked = true
+        message = "Channel blocked"
+      }
+      isMutating = false
+    } catch {
+      message = "Unable to update blocked channel"
       isMutating = false
     }
   }

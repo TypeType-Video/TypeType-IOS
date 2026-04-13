@@ -39,7 +39,8 @@ struct WatchView: View {
       wrappedValue: WatchActionsViewModel(
         videoURL: videoURL,
         service: watchActionsService,
-        libraryService: coordinator.dependencies.libraryService
+        libraryService: coordinator.dependencies.libraryService,
+        blockedService: coordinator.dependencies.blockedService
       )
     )
   }
