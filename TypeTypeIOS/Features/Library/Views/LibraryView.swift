@@ -34,17 +34,51 @@ struct LibraryView: View {
         ProgressView("Loading history...")
           .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
       } else {
-        List(viewModel.history) { item in
-          NavigationLink {
-            WatchView(
-              videoURL: item.url,
-              coordinator: coordinator,
-              watchService: coordinator.dependencies.watchService,
-              watchProgressService: coordinator.dependencies.watchProgressService,
-              watchActionsService: coordinator.dependencies.watchActionsService
-            )
-          } label: {
-            LibraryHistoryRowView(item: item)
+        List {
+          Section("Filters") {
+            TextField("Search history", text: $viewModel.historyQuery)
+              .textInputAutocapitalization(.never)
+              .autocorrectionDisabled()
+            DatePicker("From", selection: $viewModel.historyFromDate, displayedComponents: [.date])
+            DatePicker("To", selection: $viewModel.historyToDate, displayedComponents: [.date])
+            Button("Apply filters") {
+              Task { await viewModel.loadHistory() }
+            }
+          }
+
+          Section {
+            Button("Clear all history", role: .destructive) {
+              Task { await viewModel.clearHistory() }
+            }
+            .disabled(viewModel.isMutatingHistory || viewModel.history.isEmpty)
+
+            Button("Unsubscribe all channels", role: .destructive) {
+              Task {
+                await viewModel.unsubscribeAllChannels(using: coordinator.dependencies.subscriptionsService)
+              }
+            }
+            .disabled(viewModel.isMutatingHistory)
+          }
+
+          ForEach(viewModel.history) { item in
+            NavigationLink {
+              WatchView(
+                videoURL: item.url,
+                coordinator: coordinator,
+                watchService: coordinator.dependencies.watchService,
+                watchProgressService: coordinator.dependencies.watchProgressService,
+                watchActionsService: coordinator.dependencies.watchActionsService
+              )
+            } label: {
+              LibraryHistoryRowView(item: item)
+            }
+            .swipeActions(edge: .trailing) {
+              Button(role: .destructive) {
+                Task { await viewModel.deleteHistoryEntry(item) }
+              } label: {
+                Label("Delete", systemImage: "trash")
+              }
+            }
           }
         }
         .listStyle(.plain)

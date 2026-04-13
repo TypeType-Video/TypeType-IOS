@@ -16,6 +16,10 @@ final class LibraryViewModel: ObservableObject {
   @Published private(set) var isLoadingHistory: Bool = false
   @Published private(set) var isLoadingPlaylists: Bool = false
   @Published private(set) var isMutatingPlaylists: Bool = false
+  @Published private(set) var isMutatingHistory: Bool = false
+  @Published var historyQuery: String = ""
+  @Published var historyFromDate: Date = Calendar.current.date(byAdding: .month, value: -1, to: .now) ?? .now
+  @Published var historyToDate: Date = .now
   @Published var errorMessage: String?
 
   private let service: LibraryServiceProtocol
@@ -42,7 +46,18 @@ final class LibraryViewModel: ObservableObject {
     isLoadingHistory = true
     errorMessage = nil
     do {
-      history = try await service.history(limit: 80, offset: 0)
+      let query = historyQuery.trimmingCharacters(in: .whitespacesAndNewlines)
+      let start = min(historyFromDate, historyToDate)
+      let end = max(historyFromDate, historyToDate)
+      let from = Int64(start.timeIntervalSince1970 * 1_000)
+      let to = Int64(end.timeIntervalSince1970 * 1_000)
+      history = try await service.history(
+        query: query.isEmpty ? nil : query,
+        from: from,
+        to: to,
+        limit: 80,
+        offset: 0
+      )
       isLoadingHistory = false
     } catch let error as LocalizedError {
       errorMessage = error.errorDescription ?? "Unable to load history."
@@ -101,6 +116,64 @@ final class LibraryViewModel: ObservableObject {
     } catch {
       errorMessage = "Unable to delete playlist."
       isMutatingPlaylists = false
+    }
+  }
+
+  func deleteHistoryEntry(_ item: HistoryEntry) async {
+    guard !isMutatingHistory else { return }
+    isMutatingHistory = true
+    errorMessage = nil
+    do {
+      try await service.deleteHistoryEntry(id: item.id)
+      history.removeAll(where: { $0.id == item.id })
+      isMutatingHistory = false
+    } catch let error as LocalizedError {
+      errorMessage = error.errorDescription ?? "Unable to remove history item."
+      isMutatingHistory = false
+    } catch {
+      errorMessage = "Unable to remove history item."
+      isMutatingHistory = false
+    }
+  }
+
+  func clearHistory() async {
+    guard !isMutatingHistory else { return }
+    isMutatingHistory = true
+    errorMessage = nil
+    do {
+      try await service.clearHistory()
+      history = []
+      isMutatingHistory = false
+    } catch let error as LocalizedError {
+      errorMessage = error.errorDescription ?? "Unable to clear history."
+      isMutatingHistory = false
+    } catch {
+      errorMessage = "Unable to clear history."
+      isMutatingHistory = false
+    }
+  }
+
+  func unsubscribeAllChannels(using service: SubscriptionsServiceProtocol) async {
+    guard !isMutatingHistory else { return }
+    isMutatingHistory = true
+    errorMessage = nil
+    do {
+      let channels = try await service.channels()
+      for channel in channels {
+        try await service.setSubscription(
+          channelURL: channel.channelUrl,
+          name: channel.name,
+          avatarURL: channel.avatarUrl,
+          enabled: false
+        )
+      }
+      isMutatingHistory = false
+    } catch let error as LocalizedError {
+      errorMessage = error.errorDescription ?? "Unable to unsubscribe all channels."
+      isMutatingHistory = false
+    } catch {
+      errorMessage = "Unable to unsubscribe all channels."
+      isMutatingHistory = false
     }
   }
 }
