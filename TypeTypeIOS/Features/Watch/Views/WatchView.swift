@@ -6,9 +6,11 @@ struct WatchView: View {
   private let watchService: WatchServiceProtocol
   private let watchProgressService: WatchProgressServiceProtocol
   private let watchActionsService: WatchActionsServiceProtocol
+  private let userSettingsService: UserSettingsServiceProtocol
   private let recommendationFeedbackService: RecommendationFeedbackServiceProtocol
   @StateObject private var viewModel: WatchViewModel
   @StateObject private var actionsViewModel: WatchActionsViewModel
+  @State private var playbackPreferences: WatchPlaybackPreferences = .default
   @Environment(\.scenePhase) private var scenePhase
 
   init(
@@ -24,6 +26,7 @@ struct WatchView: View {
     self.watchService = watchService
     self.watchProgressService = watchProgressService
     self.watchActionsService = watchActionsService
+    self.userSettingsService = coordinator.dependencies.userSettingsService
     self.recommendationFeedbackService = recommendationFeedbackService ?? coordinator.dependencies.recommendationFeedbackService
     _viewModel = StateObject(
       wrappedValue: WatchViewModel(
@@ -46,6 +49,22 @@ struct WatchView: View {
       .navigationTitle("Watch")
       .navigationBarTitleDisplayMode(.inline)
       .task {
+        await viewModel.load()
+        await viewModel.loadInitialComments()
+        do {
+          let settings = try await userSettingsService.get()
+          playbackPreferences = WatchPlaybackPreferences(settings: settings)
+        } catch {
+          playbackPreferences = .default
+        }
+      }
+      .refreshable {
+        do {
+          let settings = try await userSettingsService.get()
+          playbackPreferences = WatchPlaybackPreferences(settings: settings)
+        } catch {
+          playbackPreferences = .default
+        }
         await viewModel.load()
         await viewModel.loadInitialComments()
       }
@@ -80,6 +99,7 @@ struct WatchView: View {
         watchService: watchService,
         watchProgressService: watchProgressService,
         watchActionsService: watchActionsService,
+        playbackPreferences: playbackPreferences,
         recommendationFeedbackService: recommendationFeedbackService,
         relatedVideos: viewModel.relatedVideos,
         comments: viewModel.comments,

@@ -8,6 +8,7 @@ struct WatchContentView: View {
   let watchService: WatchServiceProtocol
   let watchProgressService: WatchProgressServiceProtocol
   let watchActionsService: WatchActionsServiceProtocol
+  let playbackPreferences: WatchPlaybackPreferences
   let recommendationFeedbackService: RecommendationFeedbackServiceProtocol
   let relatedVideos: [HomeVideoItem]
   let coordinator: RootCoordinator
@@ -33,6 +34,7 @@ struct WatchContentView: View {
         WatchPlayerView(
           stream: stream,
           initialPositionMs: resumePositionMs,
+          playbackPreferences: playbackPreferences,
           onTimeUpdate: { positionMs in
             latestObservedPositionMs = max(0, positionMs)
             onTimeUpdate(positionMs)

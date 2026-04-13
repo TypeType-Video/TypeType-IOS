@@ -5,6 +5,7 @@ import SwiftUI
 struct WatchPlayerView: View {
   let stream: WatchStream
   let initialPositionMs: Int64
+  let playbackPreferences: WatchPlaybackPreferences
   let onTimeUpdate: (Int64) -> Void
   let onPause: () -> Void
   let onEnded: () -> Void
@@ -33,6 +34,7 @@ struct WatchPlayerView: View {
       controller.configure(
         stream: stream,
         initialPositionMs: initialPositionMs,
+        playbackPreferences: playbackPreferences,
         onTimeUpdate: onTimeUpdate,
         onPause: onPause,
         onEnded: onEnded,
@@ -63,6 +65,7 @@ private final class WatchPlayerController: ObservableObject {
   func configure(
     stream: WatchStream,
     initialPositionMs: Int64,
+    playbackPreferences: WatchPlaybackPreferences,
     onTimeUpdate: @escaping (Int64) -> Void,
     onPause: @escaping () -> Void,
     onEnded: @escaping () -> Void,
@@ -74,7 +77,10 @@ private final class WatchPlayerController: ObservableObject {
     self.onEnded = onEnded
     self.onError = onError
 
-    guard let url = stream.playbackURL else {
+    guard let url = WatchPlaybackSelection.selectVideoURL(
+      for: stream,
+      defaultQuality: playbackPreferences.defaultQuality
+    ) else {
       onError("No playable stream URL found.")
       return
     }
@@ -82,6 +88,8 @@ private final class WatchPlayerController: ObservableObject {
     let item = AVPlayerItem(url: url)
     let player = AVPlayer(playerItem: item)
     player.automaticallyWaitsToMinimizeStalling = true
+    player.volume = playbackPreferences.volume
+    player.isMuted = playbackPreferences.muted
     self.player = player
 
     itemObservation = item.observe(\.status, options: [.new]) { [weak self] observedItem, _ in
@@ -89,6 +97,30 @@ private final class WatchPlayerController: ObservableObject {
       Task { @MainActor in
         if observedItem.status == .failed {
           self.onError?("Playback failed for this stream.")
+          return
+        }
+        if observedItem.status == .readyToPlay {
+          if let subtitles = observedItem.asset.mediaSelectionGroup(forMediaCharacteristic: .legible) {
+            let preferredSubtitle = WatchPlaybackSelection.preferredSubtitleOption(
+              from: subtitles,
+              subtitlesEnabled: playbackPreferences.subtitlesEnabled,
+              defaultSubtitleLanguage: playbackPreferences.defaultSubtitleLanguage
+            )
+            observedItem.select(preferredSubtitle, in: subtitles)
+          }
+
+          if let audio = observedItem.asset.mediaSelectionGroup(forMediaCharacteristic: .audible),
+            let preferredAudio = WatchPlaybackSelection.preferredAudioOption(
+              from: audio,
+              defaultAudioLanguage: playbackPreferences.defaultAudioLanguage,
+              preferOriginalLanguage: playbackPreferences.preferOriginalLanguage
+            ) {
+            observedItem.select(preferredAudio, in: audio)
+          }
+
+          if playbackPreferences.autoplay {
+            player.play()
+          }
         }
       }
     }
