@@ -6,18 +6,19 @@ struct WatchRelatedSection: View {
   let watchService: WatchServiceProtocol
   let watchProgressService: WatchProgressServiceProtocol
   let watchActionsService: WatchActionsServiceProtocol
+  @State private var filteredRelated: [HomeVideoItem] = []
 
   var body: some View {
     VStack(alignment: .leading, spacing: 8) {
       Text("Related")
         .font(.headline)
 
-      if related.isEmpty {
+      if filteredRelated.isEmpty {
         Text("No related videos")
           .font(.footnote)
           .foregroundStyle(.secondary)
       } else {
-        ForEach(related.prefix(6)) { video in
+        ForEach(filteredRelated.prefix(6)) { video in
           NavigationLink {
             WatchView(
               videoURL: video.url,
@@ -31,6 +32,21 @@ struct WatchRelatedSection: View {
           }
           .buttonStyle(.plain)
         }
+      }
+    }
+    .task(id: related.map(\.id).joined(separator: ":")) {
+      do {
+        async let blockedChannelsReq = coordinator.dependencies.blockedService.channels()
+        async let blockedVideosReq = coordinator.dependencies.blockedService.videos()
+        let blockedChannels = try await blockedChannelsReq
+        let blockedVideos = try await blockedVideosReq
+        filteredRelated = BlockedFilter.apply(
+          to: related,
+          blockedChannels: Set(blockedChannels.map(\.url)),
+          blockedVideos: Set(blockedVideos.map(\.url))
+        )
+      } catch {
+        filteredRelated = related
       }
     }
   }

@@ -12,7 +12,8 @@ struct ChannelView: View {
       wrappedValue: ChannelViewModel(
         url: channelURL,
         channelService: coordinator.dependencies.channelService,
-        subscriptionsService: coordinator.dependencies.subscriptionsService
+        subscriptionsService: coordinator.dependencies.subscriptionsService,
+        blockedService: coordinator.dependencies.blockedService
       )
     )
   }

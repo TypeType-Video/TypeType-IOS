@@ -7,7 +7,10 @@ struct SubscriptionsView: View {
   init(coordinator: RootCoordinator) {
     self.coordinator = coordinator
     _viewModel = StateObject(
-      wrappedValue: SubscriptionsViewModel(service: coordinator.dependencies.subscriptionsService)
+      wrappedValue: SubscriptionsViewModel(
+        service: coordinator.dependencies.subscriptionsService,
+        blockedService: coordinator.dependencies.blockedService
+      )
     )
   }
 

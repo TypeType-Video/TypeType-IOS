@@ -18,10 +18,14 @@ final class SubscriptionsViewModel: ObservableObject {
   @Published var errorMessage: String?
 
   private let service: SubscriptionsServiceProtocol
+  private let blockedService: BlockedServiceProtocol
   private var feedPage: Int = 0
+  private var blockedChannels: Set<String> = []
+  private var blockedVideos: Set<String> = []
 
-  init(service: SubscriptionsServiceProtocol) {
+  init(service: SubscriptionsServiceProtocol, blockedService: BlockedServiceProtocol) {
     self.service = service
+    self.blockedService = blockedService
   }
 
   func loadInitial() async {
@@ -46,8 +50,13 @@ final class SubscriptionsViewModel: ObservableObject {
     isLoadingFeed = true
     errorMessage = nil
     do {
+      await loadBlocked()
       let firstPage = try await service.feed(page: 0, limit: 30)
-      feedVideos = firstPage.videos
+      feedVideos = BlockedFilter.apply(
+        to: firstPage.videos,
+        blockedChannels: blockedChannels,
+        blockedVideos: blockedVideos
+      )
       feedPage = 1
       canLoadMoreFeed = firstPage.nextPage != nil
       isLoadingFeed = false
@@ -66,7 +75,11 @@ final class SubscriptionsViewModel: ObservableObject {
     isLoadingMoreFeed = true
     do {
       let page = try await service.feed(page: feedPage, limit: 30)
-      feedVideos += page.videos
+      feedVideos += BlockedFilter.apply(
+        to: page.videos,
+        blockedChannels: blockedChannels,
+        blockedVideos: blockedVideos
+      )
       feedPage += 1
       canLoadMoreFeed = page.nextPage != nil
       isLoadingMoreFeed = false
@@ -79,6 +92,7 @@ final class SubscriptionsViewModel: ObservableObject {
     isLoadingChannels = true
     errorMessage = nil
     do {
+      await loadBlocked()
       channels = try await service.channels()
       isLoadingChannels = false
     } catch let error as LocalizedError {
@@ -101,6 +115,20 @@ final class SubscriptionsViewModel: ObservableObject {
       channels.removeAll(where: { $0.channelUrl == channel.channelUrl })
     } catch {
       errorMessage = "Unable to unsubscribe right now."
+    }
+  }
+
+  private func loadBlocked() async {
+    do {
+      async let blockedChannelsReq = blockedService.channels()
+      async let blockedVideosReq = blockedService.videos()
+      let channels = try await blockedChannelsReq
+      let videos = try await blockedVideosReq
+      blockedChannels = Set(channels.map(\.url))
+      blockedVideos = Set(videos.map(\.url))
+    } catch {
+      blockedChannels = []
+      blockedVideos = []
     }
   }
 }

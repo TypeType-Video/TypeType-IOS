@@ -212,6 +212,7 @@ struct SearchView: View {
     }
     .task(id: coordinator.selectedServer?.id) {
       await loadDefaultServiceID()
+      await viewModel.loadBlocked()
       await viewModel.loadHistory()
     }
   }

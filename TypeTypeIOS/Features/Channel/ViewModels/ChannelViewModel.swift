@@ -14,16 +14,21 @@ final class ChannelViewModel: ObservableObject {
   private let url: String
   private let channelService: ChannelServiceProtocol
   private let subscriptionsService: SubscriptionsServiceProtocol
+  private let blockedService: BlockedServiceProtocol
   private var nextPage: String?
+  private var blockedChannels: Set<String> = []
+  private var blockedVideos: Set<String> = []
 
   init(
     url: String,
     channelService: ChannelServiceProtocol,
-    subscriptionsService: SubscriptionsServiceProtocol
+    subscriptionsService: SubscriptionsServiceProtocol,
+    blockedService: BlockedServiceProtocol
   ) {
     self.url = url
     self.channelService = channelService
     self.subscriptionsService = subscriptionsService
+    self.blockedService = blockedService
   }
 
   func load() async {
@@ -31,6 +36,7 @@ final class ChannelViewModel: ObservableObject {
     isLoading = true
     errorMessage = nil
     do {
+      await loadBlocked()
       async let channelResult = channelService.channel(url: url, nextPage: nil)
       async let channels = subscriptionsService.channels()
 
@@ -38,7 +44,11 @@ final class ChannelViewModel: ObservableObject {
       let subscriptions = try await channels
 
       page = result
-      videos = result.videos
+      videos = BlockedFilter.apply(
+        to: result.videos,
+        blockedChannels: blockedChannels,
+        blockedVideos: blockedVideos
+      )
       nextPage = result.nextPage
       canLoadMore = result.nextPage != nil
       isSubscribed = subscriptions.contains(where: { $0.channelUrl == url })
@@ -59,7 +69,11 @@ final class ChannelViewModel: ObservableObject {
     isLoadingMore = true
     do {
       let result = try await channelService.channel(url: url, nextPage: nextPage)
-      videos += result.videos
+      videos += BlockedFilter.apply(
+        to: result.videos,
+        blockedChannels: blockedChannels,
+        blockedVideos: blockedVideos
+      )
       self.nextPage = result.nextPage
       canLoadMore = result.nextPage != nil
       isLoadingMore = false
@@ -85,6 +99,20 @@ final class ChannelViewModel: ObservableObject {
     } catch {
       errorMessage = "Unable to update subscription."
       isMutatingSubscription = false
+    }
+  }
+
+  private func loadBlocked() async {
+    do {
+      async let blockedChannelsReq = blockedService.channels()
+      async let blockedVideosReq = blockedService.videos()
+      let channels = try await blockedChannelsReq
+      let videos = try await blockedVideosReq
+      blockedChannels = Set(channels.map(\.url))
+      blockedVideos = Set(videos.map(\.url))
+    } catch {
+      blockedChannels = []
+      blockedVideos = []
     }
   }
 }
