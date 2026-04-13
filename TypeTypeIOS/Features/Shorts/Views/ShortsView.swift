@@ -4,6 +4,7 @@ struct ShortsView: View {
   @ObservedObject var coordinator: RootCoordinator
   @StateObject private var viewModel: ShortsViewModel
   @State private var serviceID: Int = DefaultServiceStore.get()
+  @State private var lastVisibleVideoURL: String?
 
   init(coordinator: RootCoordinator) {
     self.coordinator = coordinator
@@ -70,9 +71,26 @@ struct ShortsView: View {
                       videoURL: item.url,
                       uploaderURL: item.uploaderUrl
                     )
+                    lastVisibleVideoURL = nil
+                    viewModel.hideCurrent(index: index)
                   }
                 }
                 .buttonStyle(.bordered)
+
+                if !item.uploaderUrl.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                  Button("Less from channel") {
+                    Task {
+                      await coordinator.dependencies.recommendationFeedbackService.sendFeedback(
+                        type: .lessFromChannel,
+                        videoURL: item.url,
+                        uploaderURL: item.uploaderUrl
+                      )
+                      lastVisibleVideoURL = nil
+                      viewModel.hideCurrent(index: index)
+                    }
+                  }
+                  .buttonStyle(.bordered)
+                }
               }
               .padding()
               .tag(index)
@@ -85,24 +103,46 @@ struct ShortsView: View {
                   watchRatio: nil,
                   watchDurationMs: nil
                 )
+                lastVisibleVideoURL = item.url
               }
             }
           }
           .tabViewStyle(.page(indexDisplayMode: .always))
           .onChange(of: viewModel.activeIndex) { _, newIndex in
+            if let previous = lastVisibleVideoURL,
+              let previousItem = viewModel.items.first(where: { $0.url == previous }) {
+              Task {
+                await coordinator.dependencies.recommendationFeedbackService.sendEvent(
+                  type: .shortSkip,
+                  videoURL: previousItem.url,
+                  uploaderURL: previousItem.uploaderUrl,
+                  title: previousItem.title,
+                  watchRatio: nil,
+                  watchDurationMs: nil
+                )
+              }
+            }
+            if viewModel.items.indices.contains(newIndex) {
+              lastVisibleVideoURL = viewModel.items[newIndex].url
+            }
             viewModel.prefetchIfNeeded(activeIndex: newIndex, serviceID: serviceID)
           }
         }
       }
       .navigationTitle("Shorts")
+      .onDisappear {
+        lastVisibleVideoURL = nil
+      }
     }
     .task {
       RecommendationContextStore.set(intent: "shorts")
+      await coordinator.dependencies.recommendationFeedbackService.resetEventDeduper()
       await loadDefaultServiceID()
       await viewModel.loadInitial(serviceID: serviceID)
     }
     .task(id: coordinator.selectedServer?.id) {
       RecommendationContextStore.set(intent: "shorts")
+      await coordinator.dependencies.recommendationFeedbackService.resetEventDeduper()
       await loadDefaultServiceID()
       await viewModel.loadInitial(serviceID: serviceID)
     }

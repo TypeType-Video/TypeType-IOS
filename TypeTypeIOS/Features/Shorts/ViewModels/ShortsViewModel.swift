@@ -8,6 +8,7 @@ final class ShortsViewModel: ObservableObject {
   @Published private(set) var isLoadingMore: Bool = false
   @Published private(set) var canLoadMore: Bool = true
   @Published var errorMessage: String?
+  @Published private(set) var hiddenVideoURLs: Set<String> = []
 
   private let service: ShortsServiceProtocol
   private let blockedService: BlockedServiceProtocol
@@ -87,6 +88,18 @@ final class ShortsViewModel: ObservableObject {
     let threshold = max(0, items.count - 3)
     guard activeIndex >= threshold else { return }
     Task { await loadMore(serviceID: serviceID) }
+  }
+
+  func hideCurrent(index: Int) {
+    guard items.indices.contains(index) else { return }
+    let video = items[index]
+    hiddenVideoURLs.insert(video.url)
+    items.remove(at: index)
+    if items.isEmpty {
+      activeIndex = 0
+      return
+    }
+    activeIndex = min(index, items.count - 1)
   }
 
   private func loadFallback(serviceID: Int) async throws {

@@ -177,6 +177,7 @@ struct HomePlaceholderView: View {
     }
     .task(id: coordinator.selectedServer?.id) {
       RecommendationContextStore.set(intent: "home")
+      await coordinator.dependencies.recommendationFeedbackService.resetEventDeduper()
       await refreshFeed()
     }
   }

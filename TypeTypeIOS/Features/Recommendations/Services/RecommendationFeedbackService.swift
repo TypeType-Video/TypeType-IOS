@@ -2,6 +2,7 @@ import Foundation
 
 protocol RecommendationFeedbackServiceProtocol {
   func setEnabled(_ enabled: Bool)
+  func resetEventDeduper() async
   func sendEvent(
     type: RecommendationEventType,
     videoURL: String?,
@@ -59,6 +60,10 @@ actor RecommendationEventDeduper {
     if sentFeedback.contains(key) { return false }
     sentFeedback.insert(key)
     return true
+  }
+
+  func clearEvents() {
+    sentEvents.removeAll()
   }
 }
 
@@ -126,6 +131,10 @@ final class RecommendationFeedbackService: RecommendationFeedbackServiceProtocol
     } catch {
       return
     }
+  }
+
+  func resetEventDeduper() async {
+    await deduper.clearEvents()
   }
 
   private func sendFeedback(type: String, videoURL: String?, uploaderURL: String?) async {
