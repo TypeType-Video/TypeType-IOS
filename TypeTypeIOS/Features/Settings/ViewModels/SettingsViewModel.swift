@@ -27,6 +27,7 @@ final class SettingsViewModel: ObservableObject {
     do {
       draft = try await service.get()
       DefaultServiceStore.set(draft.defaultService)
+      RecommendationContextStore.set(serviceID: draft.defaultService)
       RecommendationTrackingPreferenceStore.set(draft.recommendationPersonalizationEnabled)
       recommendationFeedbackService.setEnabled(draft.recommendationPersonalizationEnabled)
       isLoading = false
@@ -47,6 +48,7 @@ final class SettingsViewModel: ObservableObject {
     do {
       draft = try await service.update(draft)
       DefaultServiceStore.set(draft.defaultService)
+      RecommendationContextStore.set(serviceID: draft.defaultService)
       RecommendationTrackingPreferenceStore.set(draft.recommendationPersonalizationEnabled)
       recommendationFeedbackService.setEnabled(draft.recommendationPersonalizationEnabled)
       infoMessage = "Settings saved"

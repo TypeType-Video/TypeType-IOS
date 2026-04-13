@@ -97,10 +97,12 @@ struct ShortsView: View {
       .navigationTitle("Shorts")
     }
     .task {
+      RecommendationContextStore.set(intent: "shorts")
       await loadDefaultServiceID()
       await viewModel.loadInitial(serviceID: serviceID)
     }
     .task(id: coordinator.selectedServer?.id) {
+      RecommendationContextStore.set(intent: "shorts")
       await loadDefaultServiceID()
       await viewModel.loadInitial(serviceID: serviceID)
     }

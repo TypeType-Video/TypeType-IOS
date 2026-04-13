@@ -103,8 +103,8 @@ final class RecommendationFeedbackService: RecommendationFeedbackServiceProtocol
     guard let body = try? APIEndpoint.jsonBody(
       RecommendationEventRequest(
         eventType: type.rawValue,
-        serviceId: 0,
-        intent: "auto",
+        serviceId: RecommendationContextStore.serviceID(),
+        intent: RecommendationContextStore.intent(),
         videoUrl: videoURL,
         uploaderUrl: uploaderURL,
         title: title,
