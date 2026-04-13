@@ -22,8 +22,10 @@ struct HomePlaceholderView: View {
       let settings = try await coordinator.dependencies.userSettingsService.get()
       serviceID = settings.defaultService
       DefaultServiceStore.set(settings.defaultService)
+      RecommendationContextStore.set(serviceID: settings.defaultService)
     } catch {
       serviceID = DefaultServiceStore.get()
+      RecommendationContextStore.set(serviceID: serviceID)
     }
     await viewModel.reload(serviceID: serviceID)
   }
@@ -132,6 +134,23 @@ struct HomePlaceholderView: View {
             HomeVideoRowView(video: video)
           }
         }
+
+        if viewModel.canLoadMore {
+          if viewModel.isLoadingMore {
+            HStack {
+              ProgressView()
+              Text("Loading more...")
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+            }
+            .frame(maxWidth: .infinity, alignment: .center)
+          } else {
+            Button("Load more") {
+              Task { await viewModel.loadMore(serviceID: serviceID) }
+            }
+            .frame(maxWidth: .infinity, alignment: .center)
+          }
+        }
       }
       .listStyle(.plain)
       .scrollContentBackground(.hidden)
@@ -157,6 +176,7 @@ struct HomePlaceholderView: View {
       .navigationTitle("Home")
     }
     .task(id: coordinator.selectedServer?.id) {
+      RecommendationContextStore.set(intent: "home")
       await refreshFeed()
     }
   }
