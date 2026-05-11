@@ -1,4 +1,5 @@
 <div align="center">
+  <img src="https://raw.githubusercontent.com/Priveetee/TypeType/main/assets/banner.svg" alt="TypeType" width="100%">
   <h1>TypeType-IOS</h1>
   <p>Native SwiftUI client for TypeType.</p>
 </div>
