@@ -16,7 +16,9 @@ enum MockAppConfiguration {
   static var isEnabled: Bool {
 #if DEBUG
 #if targetEnvironment(simulator)
-    !CommandLine.arguments.contains("--typetype-live-ui")
+    CommandLine.arguments.contains { argument in
+      argument.hasPrefix("--typetype-demo-")
+    }
 #else
     false
 #endif

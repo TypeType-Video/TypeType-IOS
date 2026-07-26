@@ -11,6 +11,7 @@ targets:
     deploymentTarget: "17.0"
     sources:
       - TypeTypeIOS/App
+      - TypeTypeIOS/Core
       - TypeTypeIOS/DesignSystem
       - TypeTypeIOS/Features
       - TypeTypeIOS/MockData
@@ -19,6 +20,13 @@ targets:
       path: TypeTypeIOS/Info.plist
       properties:
         CFBundleDisplayName: TypeType
+        NSLocalNetworkUsageDescription: TypeType connects to self-hosted instances on your local network.
+        NSAppTransportSecurity:
+          NSAllowsLocalNetworking: true
+        CFBundleURLTypes:
+          - CFBundleURLName: dev.typetype.ios.oidc
+            CFBundleURLSchemes:
+              - typetype
         UILaunchScreen: {}
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait

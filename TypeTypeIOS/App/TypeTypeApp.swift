@@ -4,10 +4,14 @@ import SwiftUI
 struct TypeTypeApp: App {
   var body: some Scene {
     WindowGroup {
-      TypeTypeDemoAppView(
-        initialAuthMode: MockAppConfiguration.initialAuthMode,
-        launchDestination: MockAppConfiguration.launchDestination
-      )
+      if MockAppConfiguration.isEnabled {
+        TypeTypeDemoAppView(
+          initialAuthMode: MockAppConfiguration.initialAuthMode,
+          launchDestination: MockAppConfiguration.launchDestination
+        )
+      } else {
+        TypeTypeLiveAppView()
+      }
     }
   }
 }

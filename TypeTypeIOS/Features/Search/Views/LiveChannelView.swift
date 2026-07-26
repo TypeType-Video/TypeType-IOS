@@ -1,0 +1,71 @@
+import SwiftUI
+
+struct LiveChannelView: View {
+  let dependencies: AppDependencies
+  @StateObject var viewModel: LiveChannelViewModel
+  @State var selectedVideo: LiveVideoItem?
+  @State var selectedPlaylist: LivePlaylistResult?
+  @State var selectedPodcast: LivePodcastItem?
+
+  init(
+    channelURL: String,
+    dependencies: AppDependencies
+  ) {
+    self.dependencies = dependencies
+    _viewModel = StateObject(
+      wrappedValue: LiveChannelViewModel(
+        channelURL: channelURL,
+        channelService: dependencies.channelService,
+        subscriptionsService: dependencies.subscriptionsService
+      )
+    )
+  }
+
+  var body: some View {
+    content
+      .modifier(LiveChannelSearchModifier(viewModel: viewModel))
+      .navigationTitle(viewModel.channel?.name ?? "Channel")
+      .navigationBarTitleDisplayMode(.inline)
+      .task {
+        await viewModel.loadIfNeeded()
+      }
+      .navigationDestination(item: $selectedVideo) { video in
+        LiveVideoMetadataView(
+          video: video,
+          dependencies: dependencies
+        )
+      }
+      .navigationDestination(item: $selectedPlaylist) { playlist in
+        LivePublicPlaylistView(
+          playlist: playlist,
+          dependencies: dependencies
+        )
+      }
+      .navigationDestination(item: $selectedPodcast) { podcast in
+        LivePodcastEpisodesView(
+          podcast: podcast,
+          dependencies: dependencies
+        )
+      }
+      .alert(
+        "Subscription unavailable",
+        isPresented: subscriptionErrorBinding
+      ) {
+        Button("OK", role: .cancel) {}
+      } message: {
+        Text(viewModel.subscriptionError ?? "")
+      }
+      .accessibilityIdentifier("live.channel.screen")
+  }
+
+  private var subscriptionErrorBinding: Binding<Bool> {
+    Binding(
+      get: { viewModel.subscriptionError != nil },
+      set: { presented in
+        if !presented {
+          viewModel.subscriptionError = nil
+        }
+      }
+    )
+  }
+}

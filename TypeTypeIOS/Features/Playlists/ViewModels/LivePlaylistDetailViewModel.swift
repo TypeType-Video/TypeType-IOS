@@ -1,0 +1,134 @@
+import Foundation
+
+@MainActor
+final class LivePlaylistDetailViewModel: ObservableObject {
+  enum State: Equatable {
+    case idle
+    case loading
+    case loaded
+    case failed(String)
+  }
+
+  enum Sort: String, CaseIterable, Identifiable {
+    case manual
+    case addedNewest
+    case addedOldest
+    case title
+
+    var id: String { rawValue }
+
+    var title: String {
+      switch self {
+      case .manual: return "Manual"
+      case .addedNewest: return "Recently added"
+      case .addedOldest: return "Oldest added"
+      case .title: return "Title"
+      }
+    }
+  }
+
+  @Published private(set) var state = State.idle
+  @Published private(set) var playlist: LivePlaylist?
+  @Published var sort = Sort.manual
+  @Published private(set) var errorMessage: String?
+
+  private let id: String
+  private let service: LivePlaylistsServiceProtocol
+
+  init(id: String, service: LivePlaylistsServiceProtocol) {
+    self.id = id
+    self.service = service
+  }
+
+  var videos: [LivePlaylistVideo] {
+    guard let playlist else { return [] }
+    switch sort {
+    case .manual:
+      return playlist.videos.sorted { $0.position < $1.position }
+    case .addedNewest:
+      return playlist.videos.sorted { $0.addedAt > $1.addedAt }
+    case .addedOldest:
+      return playlist.videos.sorted { $0.addedAt < $1.addedAt }
+    case .title:
+      return playlist.videos.sorted {
+        $0.title.localizedCaseInsensitiveCompare($1.title)
+          == .orderedAscending
+      }
+    }
+  }
+
+  func prepare() async {
+    guard state == .idle else { return }
+    await reload()
+  }
+
+  func reload() async {
+    state = .loading
+    do {
+      playlist = try await service.playlist(id: id)
+      state = .loaded
+    } catch is CancellationError {
+      return
+    } catch {
+      state = .failed(message(for: error))
+    }
+  }
+
+  func rename(name: String, description: String) async -> Bool {
+    do {
+      try await service.update(
+        id: id,
+        name: name,
+        description: description
+      )
+      await reload()
+      return true
+    } catch {
+      errorMessage = message(for: error)
+      return false
+    }
+  }
+
+  func delete() async -> Bool {
+    do {
+      try await service.delete(id: id)
+      return true
+    } catch {
+      errorMessage = message(for: error)
+      return false
+    }
+  }
+
+  func remove(_ video: LivePlaylistVideo) async {
+    do {
+      try await service.removeVideo(id: id, videoURL: video.url)
+      await reload()
+    } catch {
+      errorMessage = message(for: error)
+    }
+  }
+
+  func move(from source: IndexSet, to destination: Int) async {
+    guard sort == .manual else { return }
+    var reordered = videos
+    reordered.move(fromOffsets: source, toOffset: destination)
+    do {
+      try await service.reorder(
+        id: id,
+        videoURLs: reordered.map(\.url)
+      )
+      await reload()
+    } catch {
+      errorMessage = message(for: error)
+    }
+  }
+
+  func dismissError() {
+    errorMessage = nil
+  }
+
+  private func message(for error: Error) -> String {
+    (error as? LocalizedError)?.errorDescription
+      ?? "The playlist could not be updated."
+  }
+}
