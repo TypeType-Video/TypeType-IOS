@@ -2,7 +2,6 @@ import AVKit
 import SwiftUI
 
 struct DemoWatchPlayerView: View {
-  @Environment(\.verticalSizeClass) private var verticalSizeClass
   @EnvironmentObject var session: DemoSessionStore
   @ObservedObject var controller: DemoPlayerController
   let video: DemoVideo
@@ -12,6 +11,7 @@ struct DemoWatchPlayerView: View {
   let onAutoplayPlay: () -> Void
   let onAutoplayCancel: () -> Void
   @State private var presentsPlayerOptions = false
+  @State private var optionsOpenedDuringPlayback = false
 
   var body: some View {
     playerSurface
@@ -21,6 +21,11 @@ struct DemoWatchPlayerView: View {
           controller: controller,
           audioOnly: $audioOnly
         )
+        .onAppear {
+          if optionsOpenedDuringPlayback {
+            controller.player.play()
+          }
+        }
       }
   }
 
@@ -63,7 +68,7 @@ struct DemoWatchPlayerView: View {
         .padding(24)
       }
 
-      if verticalSizeClass != .compact && autoplayTarget == nil {
+      if autoplayTarget == nil {
         playerOptionsButton
       }
 
@@ -80,21 +85,22 @@ struct DemoWatchPlayerView: View {
 
   private var playerOptionsButton: some View {
     Button {
+      optionsOpenedDuringPlayback =
+        controller.player.timeControlStatus == .playing
       presentsPlayerOptions = true
     } label: {
-      Label("Player", systemImage: "slider.horizontal.3")
-        .font(.caption.weight(.semibold))
-        .padding(.horizontal, 11)
-        .frame(minHeight: 38)
-        .background(.black.opacity(0.58), in: Capsule())
+      Image(systemName: "slider.horizontal.3")
+        .font(.body.weight(.semibold))
+        .frame(width: 38, height: 38)
+        .background(.black.opacity(0.58), in: Circle())
         .overlay {
-          Capsule()
+          Circle()
             .stroke(.white.opacity(0.22), lineWidth: 0.5)
         }
     }
     .buttonStyle(.plain)
     .foregroundStyle(.white)
-    .contentShape(Capsule())
+    .contentShape(Circle())
     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
     .padding(10)
     .accessibilityLabel("Player options")

@@ -119,7 +119,7 @@ final class PlayerUITests: XCTestCase {
     )
   }
 
-  func testPlayerOptionsShortcutIsPortraitOnly() {
+  func testPlayerOptionsShortcutWorksInInlineLayouts() {
     let device = XCUIDevice.shared
     device.orientation = .portrait
     defer { device.orientation = .portrait }
@@ -136,19 +136,55 @@ final class PlayerUITests: XCTestCase {
     portraitScreenshot.lifetime = .keepAlways
     add(portraitScreenshot)
     shortcut.tap()
-    XCTAssertTrue(
-      app.descendants(matching: .any)["demo.player.options"]
-        .waitForExistence(timeout: 3)
+    let optionsPanel = app.descendants(matching: .any)["demo.player.options"]
+    XCTAssertTrue(optionsPanel.waitForExistence(timeout: 3))
+    XCTAssertGreaterThan(
+      optionsPanel.frame.width,
+      app.frame.width * 0.6,
+      "Player options must use a centered sheet, not a narrow popover"
+    )
+    XCTAssertEqual(
+      optionsPanel.frame.midX,
+      app.frame.midX,
+      accuracy: app.frame.width * 0.06
+    )
+    let optionsScreenshot = XCTAttachment(screenshot: app.screenshot())
+    optionsScreenshot.name = "Player options while playback continues"
+    optionsScreenshot.lifetime = .keepAlways
+    add(optionsScreenshot)
+    let status = app.descendants(matching: .any)["demo.player.status"]
+    let keepsPlaying = XCTNSPredicateExpectation(
+      predicate: NSPredicate(format: "label CONTAINS %@", "Playing"),
+      object: status
+    )
+    XCTAssertEqual(
+      XCTWaiter.wait(for: [keepsPlaying], timeout: 3),
+      .completed
     )
     app.buttons["Done"].tap()
 
     device.orientation = .landscapeLeft
-    let hiddenInLandscape = XCTNSPredicateExpectation(
-      predicate: NSPredicate(format: "exists == false"),
-      object: shortcut
+    XCTAssertTrue(shortcut.waitForExistence(timeout: 3))
+    Thread.sleep(forTimeInterval: 1.5)
+    let landscapeScreenshot = XCTAttachment(screenshot: app.screenshot())
+    landscapeScreenshot.name = "Landscape inline player shortcut"
+    landscapeScreenshot.lifetime = .keepAlways
+    add(landscapeScreenshot)
+
+    shortcut.tap()
+    XCTAssertTrue(optionsPanel.waitForExistence(timeout: 3))
+    let landscapeOptionsScreenshot = XCTAttachment(
+      screenshot: app.screenshot()
+    )
+    landscapeOptionsScreenshot.name = "Landscape player options"
+    landscapeOptionsScreenshot.lifetime = .keepAlways
+    add(landscapeOptionsScreenshot)
+    let landscapePlayback = XCTNSPredicateExpectation(
+      predicate: NSPredicate(format: "label CONTAINS %@", "Playing"),
+      object: status
     )
     XCTAssertEqual(
-      XCTWaiter.wait(for: [hiddenInLandscape], timeout: 3),
+      XCTWaiter.wait(for: [landscapePlayback], timeout: 3),
       .completed
     )
   }

@@ -30,10 +30,10 @@ struct DemoWatchView: View {
             onAutoplayPlay: playAutoplayTarget,
             onAutoplayCancel: cancelAutoplay
           )
-            .id("demo.watch.player.top")
-            .clipShape(playerShape)
-            .contentShape(playerShape)
-            .padding(.horizontal, playerHorizontalPadding)
+          .id("demo.watch.player.top")
+          .clipShape(playerShape)
+          .contentShape(playerShape)
+          .padding(.horizontal, playerHorizontalPadding)
 
           if session.preferences.sponsorBlock {
             DemoSponsorBlockOverlay(
