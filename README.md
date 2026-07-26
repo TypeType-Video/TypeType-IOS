@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://raw.githubusercontent.com/Priveetee/TypeType/main/assets/banner.svg" alt="TypeType" width="100%">
+  <img src="https://raw.githubusercontent.com/TypeType-Video/TypeType/main/assets/banner.svg" alt="TypeType" width="100%">
   <h1>TypeType-IOS</h1>
   <p>Native SwiftUI client for TypeType.</p>
 </div>
@@ -13,18 +13,23 @@
 
 </div>
 
-TypeType-IOS is the native iOS client for TypeType, a self-hosted, privacy-respecting video platform.
+TypeType-IOS is the native SwiftUI interface prototype for TypeType, a
+self-hosted, privacy-respecting video platform.
 
-The app talks to TypeType-Server over HTTP only. It does not bundle extraction logic or a default server URL.
+The current application is fully interactive and runs entirely on deterministic
+mock data. It does not require a backend, an account, or a configured server.
 
 ## What this is
 
-A SwiftUI application with a feature-first architecture for browsing, searching, watching, and managing TypeType user data from iPhone or iPad.
+A SwiftUI application with a feature-first architecture for browsing,
+searching, watching, and managing representative TypeType data on iPhone and
+iPad.
 
 The project uses XcodeGen to generate the Xcode project from `project.yml`.
 
 ## What this is not
 
+- Not a production backend client yet.
 - Not a standalone YouTube client.
 - Not a WebView wrapper around the TypeType web app.
 - Not the backend source tree or Android client.
@@ -32,12 +37,14 @@ The project uses XcodeGen to generate the Xcode project from `project.yml`.
 
 ## Current scope
 
-- Multi-server setup and active server selection.
-- Server create, edit, delete, and connectivity probe flows.
-- Boot, server setup, auth, and main app state routing.
-- Login, register, refresh, startup session restore, and Keychain-backed access tokens.
-- Trending, search, stream details, history, playlists, settings, and admin user screens.
-- Watch actions for favorites, watch later, and subscriptions.
+- Local sign-in, registration, password reset, and OIDC presentation flows.
+- Home, search, subscriptions, history, playlists, profile, and administration.
+- Native playback, mini-player, audio-only presentation, queue, captions,
+  SponsorBlock controls, chapters, comments, and related videos.
+- Local mutations for favorites, watch later, playlists, downloads, settings,
+  moderation, and appearance.
+- Public TypeType, PipePipe, YouTube, BiliBili, and NicoNico visual assets.
+- Bundled Big Buck Bunny media for repeatable playback demonstrations.
 
 ## Stack
 
@@ -46,29 +53,21 @@ The project uses XcodeGen to generate the Xcode project from `project.yml`.
 | Language | Swift 5.10 |
 | Platform | iOS 17+ |
 | UI | SwiftUI |
-| Concurrency | async/await |
-| Networking | URLSession |
-| Auth storage | Keychain |
-| Local storage | UserDefaults |
-| Logging | os.Logger |
+| Playback | AVKit |
+| Data | In-memory mock stores |
 | Project generation | XcodeGen |
-| CI | GitHub Actions on macOS |
 
 ## Project structure
 
 | Path | Purpose |
 |---|---|
-| `TypeTypeIOS/App` | App entry, root routing, dependency container |
-| `TypeTypeIOS/Core` | Networking, auth, storage, logging, config |
+| `TypeTypeIOS/App` | App entry, launch routing, and root composition |
 | `TypeTypeIOS/DesignSystem` | Theme tokens and reusable UI primitives |
-| `TypeTypeIOS/Features` | Feature modules, views, view models, models, and services |
-| `TypeTypeIOSTests` | Unit tests |
-
-## Server configuration
-
-On first launch, the app asks for the server URL and stores it locally.
-
-If the entered URL has no path, the app normalizes it to `/api`.
+| `TypeTypeIOS/Features` | Feature-first screens and feature-local models |
+| `TypeTypeIOS/MockData` | Shared deterministic state and local mutations |
+| `TypeTypeIOS/Resources` | Asset catalogs and bundled demonstration media |
+| `TypeTypeIOSTests` | Unit tests mirroring application domains |
+| `TypeTypeIOSUITests` | End-to-end UI tests grouped by feature |
 
 ## Development
 
@@ -79,24 +78,23 @@ xcodegen generate
 open TypeTypeIOS.xcodeproj
 ```
 
-Run the CI-equivalent checks from macOS:
+Run the full local test suite from macOS:
 
 ```bash
 xcodebuild \
   -project TypeTypeIOS.xcodeproj \
   -scheme TypeTypeIOS \
   -configuration Debug \
-  -destination "generic/platform=iOS Simulator" \
-  CODE_SIGNING_ALLOWED=NO \
+  -destination "platform=iOS Simulator,name=iPhone 17 Pro" \
   test
 ```
 
 ## Related projects
 
-- [TypeType](https://github.com/Priveetee/TypeType) is the deployment stack.
-- [TypeType web](https://github.com/Priveetee/TypeType) is the browser client.
-- [TypeType-Server](https://github.com/Priveetee/TypeType-Server) is the Kotlin API backend.
-- [TypeType-Android](https://github.com/Priveetee/TypeType-Android) is the native Android client.
+- [TypeType](https://github.com/TypeType-Video/TypeType) is the deployment stack.
+- [TypeType web](https://github.com/TypeType-Video/TypeType) is the browser client.
+- [TypeType-Server](https://github.com/TypeType-Video/TypeType-Server) is the Kotlin API backend.
+- [TypeType-Android](https://github.com/TypeType-Video/TypeType-Android) is the native Android client.
 
 ## License
 
