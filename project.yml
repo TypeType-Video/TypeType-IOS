@@ -10,16 +10,31 @@ targets:
     platform: iOS
     deploymentTarget: "17.0"
     sources:
-      - TypeTypeIOS
+      - TypeTypeIOS/App/TypeTypeApp.swift
+      - TypeTypeIOS/App/Development/UIDemoConfiguration.swift
+      - TypeTypeIOS/Features/UIDemo
+      - TypeTypeIOS/Resources
     info:
       path: TypeTypeIOS/Info.plist
       properties:
         CFBundleDisplayName: TypeType
         UILaunchScreen: {}
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        UISupportedInterfaceOrientations~ipad:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationPortraitUpsideDown
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        UIBackgroundModes:
+          - audio
         UIApplicationSceneManifest:
           UIApplicationSupportsMultipleScenes: false
     settings:
       base:
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         PRODUCT_BUNDLE_IDENTIFIER: dev.typetype.ios
         PRODUCT_NAME: TypeTypeIOS
 
@@ -28,9 +43,24 @@ targets:
     platform: iOS
     deploymentTarget: "17.0"
     sources:
-      - TypeTypeIOSTests
+      - TypeTypeIOSTests/Features/UIDemo
     dependencies:
       - target: TypeTypeIOS
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: true
+
+  TypeTypeIOSUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - TypeTypeIOSUITests
+    dependencies:
+      - target: TypeTypeIOS
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: true
 
 schemes:
   TypeTypeIOS:
@@ -40,3 +70,4 @@ schemes:
     test:
       targets:
         - TypeTypeIOSTests
+        - TypeTypeIOSUITests
