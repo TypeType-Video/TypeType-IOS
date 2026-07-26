@@ -1,6 +1,6 @@
 import XCTest
 
-final class UIDemoMoreTests: XCTestCase {
+final class MoreUITests: XCTestCase {
   func testMoreOpensPlaybackPreferences() {
     let app = XCUIApplication()
     app.launchArguments = ["--typetype-demo-home"]

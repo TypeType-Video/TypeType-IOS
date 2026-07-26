@@ -1,6 +1,6 @@
 import XCTest
 
-final class UIDemoExtendedParityTests: XCTestCase {
+final class ExtendedParityUITests: XCTestCase {
   private var app: XCUIApplication!
 
   override func setUp() {

@@ -1,6 +1,6 @@
 import XCTest
 
-final class UIDemoSubscriptionsTests: XCTestCase {
+final class SubscriptionsUITests: XCTestCase {
   func testSubscriptionsSwitchesBetweenVideosAndChannels() {
     let app = XCUIApplication()
     app.launchArguments = ["--typetype-demo-home"]

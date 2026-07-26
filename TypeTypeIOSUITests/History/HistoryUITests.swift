@@ -1,6 +1,6 @@
 import XCTest
 
-final class UIDemoHistoryTests: XCTestCase {
+final class HistoryUITests: XCTestCase {
   func testHistorySearchesMockEntriesLocally() {
     let app = XCUIApplication()
     app.launchArguments = ["--typetype-demo-home"]

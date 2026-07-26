@@ -1,6 +1,6 @@
 import XCTest
 
-final class UIDemoFunctionalFlowsTests: XCTestCase {
+final class FunctionalFlowsUITests: XCTestCase {
   private var app: XCUIApplication!
 
   override func setUp() {

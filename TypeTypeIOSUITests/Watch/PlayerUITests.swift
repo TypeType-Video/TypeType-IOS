@@ -1,6 +1,6 @@
 import XCTest
 
-final class UIDemoPlayerTests: XCTestCase {
+final class PlayerUITests: XCTestCase {
   func testBigBuckBunnyStartsPlayingWithoutBackend() {
     let app = XCUIApplication()
     app.launchArguments = ["--typetype-demo-player"]

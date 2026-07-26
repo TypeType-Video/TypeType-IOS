@@ -1,6 +1,6 @@
 import XCTest
 
-final class UIDemoPlayerExperienceTests: XCTestCase {
+final class PlayerExperienceUITests: XCTestCase {
   func testNativeControlsAudioOnlyAndChannelNavigation() {
     let app = XCUIApplication()
     app.launchArguments = ["--typetype-demo-player"]

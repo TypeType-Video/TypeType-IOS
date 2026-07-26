@@ -1,6 +1,6 @@
 import XCTest
 
-final class UIDemoSearchTests: XCTestCase {
+final class SearchUITests: XCTestCase {
   func testSearchFindsVideosChannelsAndPlaylistsLocally() {
     let app = XCUIApplication()
     app.launchArguments = ["--typetype-demo-search"]

@@ -1,6 +1,6 @@
 import XCTest
 
-final class UIDemoPlayerInteractionTests: XCTestCase {
+final class PlayerInteractionUITests: XCTestCase {
   func testCommentsLoadIncrementallyWhileScrolling() {
     let app = XCUIApplication()
     app.launchArguments = ["--typetype-demo-player"]

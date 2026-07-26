@@ -1,6 +1,6 @@
 import XCTest
 
-final class UIDemoHomeTests: XCTestCase {
+final class HomeUITests: XCTestCase {
   func testHomePresentsMockCatalogAndNativeTabs() {
     let app = XCUIApplication()
     app.launchArguments = ["--typetype-demo-home"]

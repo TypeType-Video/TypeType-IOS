@@ -1,6 +1,6 @@
 import XCTest
 
-final class UIDemoAuthTests: XCTestCase {
+final class AuthUITests: XCTestCase {
   private var app: XCUIApplication!
 
   override func setUp() {

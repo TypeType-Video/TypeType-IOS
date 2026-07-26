@@ -1,6 +1,6 @@
 import XCTest
 
-final class UIDemoPlaylistsTests: XCTestCase {
+final class PlaylistsUITests: XCTestCase {
   func testCreatesPlaylistLocally() {
     let app = XCUIApplication()
     app.launchArguments = ["--typetype-demo-home"]

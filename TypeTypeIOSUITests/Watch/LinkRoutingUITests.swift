@@ -1,6 +1,6 @@
 import XCTest
 
-final class UIDemoLinkRoutingTests: XCTestCase {
+final class LinkRoutingUITests: XCTestCase {
   func testCommentTimecodeSeeksInsideThePlayer() {
     let app = launchPlayer()
     let comments = app.descendants(matching: .any)["demo.watch.comments"]
