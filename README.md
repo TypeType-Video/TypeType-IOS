@@ -1,98 +1,88 @@
 <div align="center">
   <img src="https://raw.githubusercontent.com/TypeType-Video/TypeType/main/assets/banner.svg" alt="TypeType" width="100%">
-  <h1>TypeType-IOS</h1>
-  <p>Native SwiftUI client for TypeType.</p>
+  <h1>TypeType iOS</h1>
+  <p>A native TypeType experience for iPhone and iPad.</p>
 </div>
 
-<div align="center">
+TypeType iOS brings
+[TypeType](https://github.com/TypeType-Video/TypeType) to Apple devices with a
+SwiftUI interface, native navigation, AVKit playback, Picture in Picture, and
+an experience designed independently for iPhone and iPad. The application
+connects to a TypeType-Server instance; extraction, synchronization, and
+authoritative user data remain server-side.
 
-[![Platform](https://img.shields.io/badge/platform-iOS-000000)](https://developer.apple.com/ios/)
-[![Language](https://img.shields.io/badge/language-Swift-f05138)](https://www.swift.org)
-[![Project](https://img.shields.io/badge/project-XcodeGen-147efb)](https://github.com/yonaskolb/XcodeGen)
-[![License](https://img.shields.io/badge/license-MPL--2.0-orange.svg)](LICENSE)
+## iPhone
 
-</div>
+| Home | Search | Playlists | Watch |
+| --- | --- | --- | --- |
+| ![TypeType home on iPhone](assets/screenshots/iphone-home.png) | ![TypeType search on iPhone](assets/screenshots/iphone-search.png) | ![TypeType playlists on iPhone](assets/screenshots/iphone-playlists.png) | ![TypeType watch page on iPhone](assets/screenshots/iphone-player.png) |
 
-TypeType-IOS is the native SwiftUI interface prototype for TypeType, a
-self-hosted, privacy-respecting video platform. It targets iPhone and iPad on
-iOS 17 or later.
+## iPad
 
-The current application is fully interactive and runs entirely on deterministic
-mock data. It does not require a backend, an account, or a configured server.
+| Home | Watch |
+| --- | --- |
+| ![TypeType home on iPad](assets/screenshots/ipad-home.png) | ![TypeType watch page on iPad](assets/screenshots/ipad-player.png) |
 
-## What this is
+The screenshots come directly from the current application. They use its
+deterministic UI-regression catalog so visual changes remain reproducible.
 
-A SwiftUI application with a feature-first architecture for browsing,
-searching, watching, and managing representative TypeType data on iPhone and
-iPad.
+## Native experience
 
-The project uses XcodeGen to generate the Xcode project from `project.yml`.
+- One adaptive SwiftUI interface for iPhone and iPad
+- Server setup, sign-in, registration, password reset, OIDC, and persistent sessions
+- Home, multi-service search, channels, podcasts, subscriptions, history, and playlists
+- Native AVKit playback, Picture in Picture, mini-player, and audio-only mode
+- Queue, captions, chapters, SponsorBlock controls, comments, and related videos
+- Profile, imports, downloads, notifications, content controls, settings, and administration
+- Dark and light appearances with Dynamic Type and VoiceOver-friendly controls
 
-## What this is not
-
-- Not a production backend client yet.
-- Not a standalone YouTube client.
-- Not a WebView wrapper around the TypeType web app.
-- Not the backend source tree or Android client.
-- Not affiliated with YouTube, Piped, Invidious, NewPipe, or any upstream video platform.
-
-## Current scope
-
-- Local sign-in, registration, password reset, and OIDC presentation flows.
-- Home, search, subscriptions, history, playlists, profile, and administration.
-- Native AVKit playback with audible device media, full-screen controls,
-  Picture in Picture, mini-player, audio-only presentation, queue, captions,
-  SponsorBlock controls, chapters, comments, and related videos.
-- Local mutations for favorites, watch later, playlists, downloads, settings,
-  moderation, and appearance.
-- Public TypeType, PipePipe, YouTube, BiliBili, and NicoNico visual assets.
-- Bundled Big Buck Bunny media for repeatable playback demonstrations.
+> [!NOTE]
+> The normal application uses the
+> [TypeType-Server](https://github.com/TypeType-Video/TypeType-Server) API for
+> authentication, discovery, account data, mutations, settings, imports,
+> downloads, notifications, and administration. Live stream resolution and
+> playback are the remaining separate integration phase. The deterministic
+> catalog is opt-in and restricted to debug simulator UI tests.
 
 ## Stack
 
-| Role | Tool |
-|---|---|
+| Area | Technology |
+| --- | --- |
 | Language | Swift 5.10 |
 | Platform | iOS 17+ |
-| UI | SwiftUI |
+| Interface | SwiftUI |
 | Playback | AVKit |
-| Data | In-memory mock stores |
+| Networking | URLSession |
+| Persistence | Keychain and UserDefaults |
 | Project generation | XcodeGen |
+| Tests | XCTest and XCUITest |
 
-## Project structure
+## API contract
 
-| Path | Purpose |
-|---|---|
-| `TypeTypeIOS/App` | App entry, launch routing, and root composition |
-| `TypeTypeIOS/DesignSystem` | Theme tokens and reusable UI primitives |
-| `TypeTypeIOS/Features` | Feature-first screens and feature-local models |
-| `TypeTypeIOS/MockData` | Shared deterministic state and local mutations |
-| `TypeTypeIOS/Resources` | Asset catalogs and bundled demonstration media |
-| `TypeTypeIOSTests` | Unit tests mirroring application domains |
-| `TypeTypeIOSUITests` | End-to-end UI tests grouped by feature |
+The client communicates with TypeType-Server over HTTP. Documented endpoints
+follow the server
+[OpenAPI specification](https://github.com/TypeType-Video/TypeType-Server/blob/dev/openapi.yaml);
+integration work is also checked against the current server routes while that
+published contract grows. No extraction engine or backend implementation is
+embedded in the application.
 
 ## Development
 
 Requirements:
 
-- macOS with a current Xcode release and an iOS 17 or newer SDK.
-- [XcodeGen](https://github.com/yonaskolb/XcodeGen).
+- macOS with a current Xcode release and an iOS 17 or newer SDK
+- [XcodeGen](https://github.com/yonaskolb/XcodeGen)
 
-Generate the Xcode project:
+Generate and open the project:
 
-```bash
+```sh
 xcodegen generate
 open TypeTypeIOS.xcodeproj
 ```
 
-To run on an iPhone or iPad, select the `TypeTypeIOS` target in Xcode, choose
-your Apple development team and a unique bundle identifier, select the
-connected device, then press Run. The repository does not contain signing
-certificates, provisioning profiles, or Apple account credentials.
+Run the complete test suite:
 
-Run the full local test suite from macOS:
-
-```bash
+```sh
 xcodebuild \
   -project TypeTypeIOS.xcodeproj \
   -scheme TypeTypeIOS \
@@ -101,19 +91,54 @@ xcodebuild \
   test
 ```
 
-The physical-device demo movie contains H.264 video and AAC audio. Automated
-simulator runs use a silent copy of the same movie for deterministic playback
-tests.
+Live backend checks are isolated from the deterministic interface suite:
 
-## Related projects
+```sh
+xcodebuild \
+  -project TypeTypeIOS.xcodeproj \
+  -scheme TypeTypeIOSLive \
+  -destination "platform=iOS Simulator,name=iPhone 17" \
+  test
+```
 
-- [TypeType](https://github.com/TypeType-Video/TypeType) is the deployment stack.
-- [TypeType-Frontend](https://github.com/TypeType-Video/TypeType-Frontend) is
-  the browser client.
-- [TypeType-Server](https://github.com/TypeType-Video/TypeType-Server) is the
-  Kotlin API backend.
-- [TypeType-Android](https://github.com/TypeType-Video/TypeType-Android) is the
-  native Android client.
+Running either application scheme normally starts the server-connected
+application. The `TypeTypeIOSLive` scheme additionally exposes the opt-in live
+XCUITest suite. Deterministic interface tests enable their catalog explicitly
+with debug-only `--typetype-demo-*` launch arguments.
+
+For a physical device, select the `TypeTypeIOS` target, configure your Apple
+development team and bundle identifier, then choose the connected iPhone or
+iPad. Signing certificates, provisioning profiles, accounts, instance URLs,
+and credentials are not stored in this repository.
+
+## Project structure
+
+| Path | Contents |
+| --- | --- |
+| `TypeTypeIOS/App` | Application entry point and root composition |
+| `TypeTypeIOS/Core` | Networking, authentication, storage, logging, and configuration |
+| `TypeTypeIOS/DesignSystem` | Theme tokens and reusable native components |
+| `TypeTypeIOS/Features` | Feature-first screens, models, services, and state |
+| `TypeTypeIOS/MockData` | Debug-only deterministic UI-regression catalog |
+| `TypeTypeIOS/Resources` | Asset catalogs and bundled playback fixture |
+| `TypeTypeIOSTests` | Unit and integration tests |
+| `TypeTypeIOSUITests` | Deterministic iPhone and iPad interface regression tests |
+| `TypeTypeIOSLiveUITests` | Opt-in end-to-end checks against TypeType-Server |
+
+## TypeType ecosystem
+
+| Repository | Responsibility |
+| --- | --- |
+| [TypeType](https://github.com/TypeType-Video/TypeType) | Stack, installation, releases, coordination, and issues |
+| [TypeType-Frontend](https://github.com/TypeType-Video/TypeType-Frontend) | React browser client |
+| [TypeType-Server](https://github.com/TypeType-Video/TypeType-Server) | Kotlin API, extraction, and private user data |
+| [TypeType-Player](https://github.com/TypeType-Video/TypeType-Player) | Browser MSE and SABR playback package |
+| [TypeType-Android](https://github.com/TypeType-Video/TypeType-Android) | Native Android client |
+| [Docs-TypeType](https://github.com/TypeType-Video/Docs-TypeType) | User and self-hosting documentation |
+
+Development changes target `dev`. `main` represents the stable release line.
+Bug reports and feature requests belong in the
+[central issue tracker](https://github.com/TypeType-Video/TypeType/issues).
 
 ## Media and trademarks
 
@@ -123,12 +148,12 @@ licensed under [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/). The
 copy in this repository is encoded for offline application playback.
 
 Third-party names, logos, and trademarks remain the property of their
-respective owners. Their inclusion in the mock interface does not place them
-under the Mozilla Public License.
+respective owners. Their inclusion in the interface does not place them under
+the Mozilla Public License.
 
 ## License
 
-TypeType-IOS source code is licensed under the
+TypeType iOS source code is licensed under the
 [Mozilla Public License 2.0](LICENSE).
 
 Copyright © 2026 Priveetee and TypeType contributors.
