@@ -14,7 +14,8 @@
 </div>
 
 TypeType-IOS is the native SwiftUI interface prototype for TypeType, a
-self-hosted, privacy-respecting video platform.
+self-hosted, privacy-respecting video platform. It targets iPhone and iPad on
+iOS 17 or later.
 
 The current application is fully interactive and runs entirely on deterministic
 mock data. It does not require a backend, an account, or a configured server.
@@ -39,7 +40,8 @@ The project uses XcodeGen to generate the Xcode project from `project.yml`.
 
 - Local sign-in, registration, password reset, and OIDC presentation flows.
 - Home, search, subscriptions, history, playlists, profile, and administration.
-- Native playback, mini-player, audio-only presentation, queue, captions,
+- Native AVKit playback with audible device media, full-screen controls,
+  Picture in Picture, mini-player, audio-only presentation, queue, captions,
   SponsorBlock controls, chapters, comments, and related videos.
 - Local mutations for favorites, watch later, playlists, downloads, settings,
   moderation, and appearance.
@@ -71,12 +73,22 @@ The project uses XcodeGen to generate the Xcode project from `project.yml`.
 
 ## Development
 
+Requirements:
+
+- macOS with a current Xcode release and an iOS 17 or newer SDK.
+- [XcodeGen](https://github.com/yonaskolb/XcodeGen).
+
 Generate the Xcode project:
 
 ```bash
 xcodegen generate
 open TypeTypeIOS.xcodeproj
 ```
+
+To run on an iPhone or iPad, select the `TypeTypeIOS` target in Xcode, choose
+your Apple development team and a unique bundle identifier, select the
+connected device, then press Run. The repository does not contain signing
+certificates, provisioning profiles, or Apple account credentials.
 
 Run the full local test suite from macOS:
 
@@ -85,17 +97,37 @@ xcodebuild \
   -project TypeTypeIOS.xcodeproj \
   -scheme TypeTypeIOS \
   -configuration Debug \
-  -destination "platform=iOS Simulator,name=iPhone 17 Pro" \
+  -destination "platform=iOS Simulator,name=iPhone 17" \
   test
 ```
+
+The physical-device demo movie contains H.264 video and AAC audio. Automated
+simulator runs use a silent copy of the same movie for deterministic playback
+tests.
 
 ## Related projects
 
 - [TypeType](https://github.com/TypeType-Video/TypeType) is the deployment stack.
-- [TypeType web](https://github.com/TypeType-Video/TypeType) is the browser client.
-- [TypeType-Server](https://github.com/TypeType-Video/TypeType-Server) is the Kotlin API backend.
-- [TypeType-Android](https://github.com/TypeType-Video/TypeType-Android) is the native Android client.
+- [TypeType-Frontend](https://github.com/TypeType-Video/TypeType-Frontend) is
+  the browser client.
+- [TypeType-Server](https://github.com/TypeType-Video/TypeType-Server) is the
+  Kotlin API backend.
+- [TypeType-Android](https://github.com/TypeType-Video/TypeType-Android) is the
+  native Android client.
+
+## Media and trademarks
+
+The bundled demonstration movie is
+[Big Buck Bunny](https://peach.blender.org/), © 2008 Blender Foundation,
+licensed under [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/). The
+copy in this repository is encoded for offline application playback.
+
+Third-party names, logos, and trademarks remain the property of their
+respective owners. Their inclusion in the mock interface does not place them
+under the future source-code license of this project.
 
 ## License
 
-No license file is currently present in this repository.
+No source-code license has been selected yet. Until a `LICENSE` file is added,
+normal copyright rules apply and this repository must not be treated as
+open-source licensed.
