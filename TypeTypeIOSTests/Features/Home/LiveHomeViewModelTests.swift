@@ -1,0 +1,250 @@
+import XCTest
+@testable import TypeTypeIOS
+
+@MainActor
+final class LiveHomeViewModelTests: XCTestCase {
+  func testInitialLoadFiltersShortsAndDuplicateURLs() async {
+    let first = LiveVideoItemFixture.make()
+    let duplicate = LiveVideoItemFixture.make(id: "duplicate")
+    let short = LiveVideoItemFixture.make(
+      id: "short",
+      url: "https://www.youtube.com/shorts/short",
+      isShort: true
+    )
+    let service = HomeFeedStub(
+      results: [
+        .success(
+          HomeRecommendationsPage(
+            items: [first, duplicate, short],
+            nextCursor: "page-2",
+            hasMore: true
+          )
+        ),
+      ]
+    )
+    let viewModel = LiveHomeViewModel(
+      service: service,
+      historyService: HomeHistoryStub(),
+      settingsService: HomeSettingsStub(),
+      serviceSelection: makeSelection(supported: [0, 5])
+    )
+
+    await viewModel.loadIfNeeded()
+
+    XCTAssertEqual(viewModel.state, .loaded)
+    XCTAssertEqual(viewModel.videos.map(\.id), ["video-1"])
+    XCTAssertTrue(viewModel.canLoadMore)
+    XCTAssertEqual(service.calls.first?.serviceID, 0)
+    XCTAssertEqual(service.calls.first?.intent, "auto")
+    XCTAssertEqual(service.calls.first?.limit, 12)
+  }
+
+  func testPaginationUsesCursorAndDeduplicates() async {
+    let first = LiveVideoItemFixture.make()
+    let second = LiveVideoItemFixture.make(
+      id: "video-2",
+      url: "https://www.youtube.com/watch?v=video-2"
+    )
+    let service = HomeFeedStub(
+      results: [
+        .success(
+          HomeRecommendationsPage(
+            items: [first],
+            nextCursor: "page-2",
+            hasMore: true
+          )
+        ),
+        .success(
+          HomeRecommendationsPage(
+            items: [first, second],
+            nextCursor: nil,
+            hasMore: false
+          )
+        ),
+      ]
+    )
+    let viewModel = LiveHomeViewModel(
+      service: service,
+      historyService: HomeHistoryStub(),
+      settingsService: HomeSettingsStub(),
+      serviceSelection: makeSelection(supported: [0])
+    )
+
+    await viewModel.reload()
+    await viewModel.loadMore()
+
+    XCTAssertEqual(viewModel.videos.map(\.id), ["video-1", "video-2"])
+    XCTAssertEqual(service.calls.last?.cursor, "page-2")
+    XCTAssertFalse(viewModel.canLoadMore)
+  }
+
+  func testChangingServiceClearsAndReloadsFeed() async {
+    let youtube = LiveVideoItemFixture.make(id: "youtube")
+    let bilibili = LiveVideoItemFixture.make(
+      id: "bilibili",
+      url: "https://www.bilibili.com/video/BV1test"
+    )
+    let service = HomeFeedStub(
+      results: [
+        .success(
+          HomeRecommendationsPage(
+            items: [youtube],
+            nextCursor: nil,
+            hasMore: false
+          )
+        ),
+        .success(
+          HomeRecommendationsPage(
+            items: [bilibili],
+            nextCursor: nil,
+            hasMore: false
+          )
+        ),
+      ]
+    )
+    let viewModel = LiveHomeViewModel(
+      service: service,
+      historyService: HomeHistoryStub(),
+      settingsService: HomeSettingsStub(),
+      serviceSelection: makeSelection(supported: [0, 5])
+    )
+
+    await viewModel.reload()
+    await viewModel.selectService(5)
+
+    XCTAssertEqual(viewModel.selectedServiceID, 5)
+    XCTAssertEqual(viewModel.videos.map(\.id), ["bilibili"])
+    XCTAssertEqual(service.calls.last?.serviceID, 5)
+  }
+
+  func testEmptyAndFailureAreExplicitStates() async {
+    let service = HomeFeedStub(
+      results: [
+        .success(
+          HomeRecommendationsPage(
+            items: [],
+            nextCursor: nil,
+            hasMore: false
+          )
+        ),
+        .failure(HomeViewModelTestError.unavailable),
+      ]
+    )
+    let viewModel = LiveHomeViewModel(
+      service: service,
+      historyService: HomeHistoryStub(),
+      settingsService: HomeSettingsStub(),
+      serviceSelection: makeSelection(supported: [])
+    )
+
+    await viewModel.reload()
+    XCTAssertEqual(viewModel.state, .empty)
+    XCTAssertEqual(viewModel.services.map(\.id), [0])
+
+    await viewModel.reload()
+    guard case .failed = viewModel.state else {
+      return XCTFail("Expected an explicit failure state.")
+    }
+  }
+
+  private func makeSelection(
+    supported serviceIDs: [Int]
+  ) -> LiveServiceSelection {
+    let selection = LiveServiceSelection(
+      settingsService: HomeSettingsStub(),
+      defaults: UserDefaults(
+        suiteName: "LiveHomeViewModelTests.\(UUID().uuidString)"
+      )!
+    )
+    selection.configure(supportedServiceIDs: serviceIDs)
+    return selection
+  }
+}
+
+private final class HomeHistoryStub: LiveHistoryServiceProtocol {
+  func history(
+    query: String?,
+    from: Int64?,
+    to: Int64?,
+    limit: Int,
+    offset: Int
+  ) async throws -> [LiveHistoryItem] {
+    []
+  }
+
+  func add(
+    video: LiveVideoItem,
+    progress: Int64
+  ) async throws -> LiveHistoryItem {
+    LiveHistoryItem(id: video.url, url: video.url, title: video.title)
+  }
+
+  func remove(id: String) async throws {}
+  func clear() async throws {}
+}
+
+private final class HomeSettingsStub: LiveSettingsServiceProtocol {
+  private var value = LiveSettings()
+
+  func settings() async throws -> LiveSettings {
+    value
+  }
+
+  func update(_ settings: LiveSettings) async throws -> LiveSettings {
+    value = settings
+    return value
+  }
+}
+
+private final class HomeFeedStub: HomeFeedServiceProtocol {
+  struct Call {
+    let serviceID: Int
+    let intent: String
+    let limit: Int
+    let cursor: String?
+  }
+
+  private let lock = NSLock()
+  private var results: [
+    Result<HomeRecommendationsPage, Error>
+  ]
+  private var recordedCalls: [Call] = []
+
+  init(results: [Result<HomeRecommendationsPage, Error>]) {
+    self.results = results
+  }
+
+  var calls: [Call] {
+    lock.withLock { recordedCalls }
+  }
+
+  func recommendations(
+    serviceID: Int,
+    intent: String,
+    limit: Int,
+    cursor: String?
+  ) async throws -> HomeRecommendationsPage {
+    try lock.withLock {
+      recordedCalls.append(
+        Call(
+          serviceID: serviceID,
+          intent: intent,
+          limit: limit,
+          cursor: cursor
+        )
+      )
+      guard !results.isEmpty else {
+        throw HomeViewModelTestError.unavailable
+      }
+      return try results.removeFirst().get()
+    }
+  }
+}
+
+private enum HomeViewModelTestError: LocalizedError {
+  case unavailable
+
+  var errorDescription: String? {
+    "Recommendations are unavailable."
+  }
+}

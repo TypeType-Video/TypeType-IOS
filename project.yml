@@ -71,6 +71,18 @@ targets:
       base:
         GENERATE_INFOPLIST_FILE: true
 
+  TypeTypeIOSLiveUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - TypeTypeIOSLiveUITests
+    dependencies:
+      - target: TypeTypeIOS
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: true
+
 schemes:
   TypeTypeIOS:
     build:
@@ -80,3 +92,15 @@ schemes:
       targets:
         - TypeTypeIOSTests
         - TypeTypeIOSUITests
+
+  TypeTypeIOSLive:
+    build:
+      targets:
+        TypeTypeIOS: all
+    run:
+      config: Debug
+      commandLineArguments:
+        "--typetype-live-ui": true
+    test:
+      targets:
+        - TypeTypeIOSLiveUITests
