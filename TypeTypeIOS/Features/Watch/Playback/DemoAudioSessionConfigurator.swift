@@ -1,17 +1,9 @@
 import AVFoundation
 
 enum DemoAudioSessionConfigurator {
-  static func configure(backgroundAudio enabled: Bool) throws {
+  static func configure(backgroundAudio _: Bool) throws {
     let audioSession = AVAudioSession.sharedInstance()
-    if enabled {
-      try audioSession.setCategory(.playback, mode: .moviePlayback)
-    } else {
-      try audioSession.setCategory(
-        .ambient,
-        mode: .default,
-        options: [.mixWithOthers]
-      )
-    }
+    try audioSession.setCategory(.playback, mode: .moviePlayback)
     try audioSession.setActive(true)
   }
 }

@@ -168,6 +168,23 @@ final class DemoSessionStoreTests: XCTestCase {
     player.pause()
   }
 
+  func testPhysicalDeviceDemoMovieIncludesAudio() async throws {
+    let url = try XCTUnwrap(
+      Bundle.main.url(
+        forResource: "BigBuckBunnyDemo",
+        withExtension: "mp4"
+      )
+    )
+    let asset = AVURLAsset(url: url)
+
+    let audioTracks = try await asset.loadTracks(withMediaType: .audio)
+
+    XCTAssertFalse(
+      audioTracks.isEmpty,
+      "The physical-device demo movie must include an audio track."
+    )
+  }
+
   func testPublicPlaylistRestoreRestoresSavedMembership() throws {
     let store = DemoSessionStore()
     let playlist = try XCTUnwrap(
