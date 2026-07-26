@@ -9,7 +9,7 @@
 [![Platform](https://img.shields.io/badge/platform-iOS-000000)](https://developer.apple.com/ios/)
 [![Language](https://img.shields.io/badge/language-Swift-f05138)](https://www.swift.org)
 [![Project](https://img.shields.io/badge/project-XcodeGen-147efb)](https://github.com/yonaskolb/XcodeGen)
-[![License](https://img.shields.io/badge/license-not%20declared-lightgrey)](#license)
+[![License](https://img.shields.io/badge/license-MPL--2.0-orange.svg)](LICENSE)
 
 </div>
 
@@ -124,10 +124,14 @@ copy in this repository is encoded for offline application playback.
 
 Third-party names, logos, and trademarks remain the property of their
 respective owners. Their inclusion in the mock interface does not place them
-under the future source-code license of this project.
+under the Mozilla Public License.
 
 ## License
 
-No source-code license has been selected yet. Until a `LICENSE` file is added,
-normal copyright rules apply and this repository must not be treated as
-open-source licensed.
+TypeType-IOS source code is licensed under the
+[Mozilla Public License 2.0](LICENSE).
+
+Copyright © 2026 Priveetee and TypeType contributors.
+
+The MPL-2.0 does not grant rights to third-party media, names, logos, or
+trademarks. Those remain subject to their respective licenses and rights.
