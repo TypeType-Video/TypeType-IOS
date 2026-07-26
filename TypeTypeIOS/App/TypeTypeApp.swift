@@ -5,8 +5,8 @@ struct TypeTypeApp: App {
   var body: some Scene {
     WindowGroup {
       TypeTypeDemoAppView(
-        initialAuthMode: UIDemoConfiguration.initialAuthMode,
-        launchDestination: UIDemoConfiguration.launchDestination
+        initialAuthMode: MockAppConfiguration.initialAuthMode,
+        launchDestination: MockAppConfiguration.launchDestination
       )
     }
   }

@@ -10,9 +10,10 @@ targets:
     platform: iOS
     deploymentTarget: "17.0"
     sources:
-      - TypeTypeIOS/App/TypeTypeApp.swift
-      - TypeTypeIOS/App/Development/UIDemoConfiguration.swift
-      - TypeTypeIOS/Features/UIDemo
+      - TypeTypeIOS/App
+      - TypeTypeIOS/DesignSystem
+      - TypeTypeIOS/Features
+      - TypeTypeIOS/MockData
       - TypeTypeIOS/Resources
     info:
       path: TypeTypeIOS/Info.plist
@@ -43,7 +44,7 @@ targets:
     platform: iOS
     deploymentTarget: "17.0"
     sources:
-      - TypeTypeIOSTests/Features/UIDemo
+      - TypeTypeIOSTests
     dependencies:
       - target: TypeTypeIOS
     settings:

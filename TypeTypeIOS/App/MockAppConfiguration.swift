@@ -12,7 +12,7 @@ enum DemoLaunchDestination: Equatable {
   case more
 }
 
-enum UIDemoConfiguration {
+enum MockAppConfiguration {
   static var isEnabled: Bool {
 #if DEBUG
 #if targetEnvironment(simulator)
