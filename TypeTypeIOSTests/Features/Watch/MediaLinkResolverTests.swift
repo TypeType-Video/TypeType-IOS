@@ -25,6 +25,51 @@ final class MediaLinkResolverTests: XCTestCase {
     )
   }
 
+  func testLiveVideoLinksResolveInsideTypeType() throws {
+    for value in [
+      "https://www.youtube.com/watch?v=YE7VzlLtp-4",
+      "https://www.nicovideo.jp/watch/sm9",
+      "https://www.bilibili.com/video/BV1xx411c7mD",
+    ] {
+      let url = try XCTUnwrap(URL(string: value))
+      guard case let .video(video) = LiveMediaLinkResolver.destination(
+        for: url
+      ) else {
+        return XCTFail("\(value) should resolve as an internal video.")
+      }
+      XCTAssertEqual(video.url, value)
+    }
+  }
+
+  func testLiveChannelAndPlaylistLinksResolveInsideTypeType() throws {
+    let channelURL = try XCTUnwrap(
+      URL(string: "https://www.youtube.com/@BlenderOfficial")
+    )
+    guard case let .channel(channel) = LiveMediaLinkResolver.destination(
+      for: channelURL
+    ) else {
+      return XCTFail("The channel should resolve inside TypeType.")
+    }
+    XCTAssertEqual(channel, channelURL.absoluteString)
+
+    let playlistURL = try XCTUnwrap(
+      URL(string: "https://www.youtube.com/playlist?list=PL123")
+    )
+    guard case let .playlist(playlist) = LiveMediaLinkResolver.destination(
+      for: playlistURL
+    ) else {
+      return XCTFail("The playlist should resolve inside TypeType.")
+    }
+    XCTAssertEqual(playlist.url, playlistURL.absoluteString)
+  }
+
+  func testLiveUnrelatedWebsiteRemainsExternal() throws {
+    let url = try XCTUnwrap(
+      URL(string: "https://peach.blender.org/")
+    )
+    XCTAssertNil(LiveMediaLinkResolver.destination(for: url))
+  }
+
   func testRichTextCreatesSeekAndWebLinks() {
     let text =
       "Compare 1:44 with https://www.youtube.com/watch?v=YE7VzlLtp-4"
