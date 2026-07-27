@@ -10,6 +10,7 @@ final class ExtendedParityUITests: XCTestCase {
   }
 
   func testOpenIDFlowAuthorizesEntirelyLocally() {
+    app.launchArguments = ["--typetype-demo-auth"]
     app.launch()
 
     let lightAppearance = app.buttons["Use light appearance"]

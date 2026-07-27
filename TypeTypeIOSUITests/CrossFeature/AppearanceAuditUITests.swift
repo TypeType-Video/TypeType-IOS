@@ -19,6 +19,7 @@ final class AppearanceAuditUITests: XCTestCase {
   }
 
   func testAuthenticationSupportsDarkAndLightAppearance() {
+    app.launchArguments = ["--typetype-demo-auth"]
     app.launch()
     XCTAssertTrue(
       app.textFields["Email or username"].waitForExistence(timeout: 3)

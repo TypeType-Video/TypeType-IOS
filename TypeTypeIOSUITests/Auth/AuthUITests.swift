@@ -10,6 +10,7 @@ final class AuthUITests: XCTestCase {
   }
 
   func testSignInCompletesWithoutBackend() {
+    app.launchArguments = ["--typetype-demo-auth"]
     app.launch()
 
     let email = app.textFields["Email or username"]
@@ -47,6 +48,7 @@ final class AuthUITests: XCTestCase {
   }
 
   func testResetPasswordCompletesWithoutNetwork() {
+    app.launchArguments = ["--typetype-demo-auth"]
     app.launch()
 
     let reset = app.buttons["Reset password"]

@@ -183,6 +183,7 @@ final class ParityMutationsUITests: XCTestCase {
   }
 
   func testLandingPreferenceOpensWatchLaterAfterSignIn() {
+    app.launchArguments = ["--typetype-demo-auth"]
     app.launch()
     signIn()
     let more = app.tabBars.buttons["More"]
