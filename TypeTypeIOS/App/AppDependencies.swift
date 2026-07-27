@@ -30,6 +30,7 @@ final class AppDependencies {
   let bugReportsService: LiveBugReportsServiceProtocol
   let importService: LiveImportServiceProtocol
   let youtubeSessionService: LiveYouTubeSessionServiceProtocol
+  let playbackService: LivePlaybackServiceProtocol?
 
   init(
     serverStore: ServerStore,
@@ -60,7 +61,8 @@ final class AppDependencies {
     contentControlsService: LiveContentControlsServiceProtocol,
     bugReportsService: LiveBugReportsServiceProtocol,
     importService: LiveImportServiceProtocol,
-    youtubeSessionService: LiveYouTubeSessionServiceProtocol
+    youtubeSessionService: LiveYouTubeSessionServiceProtocol,
+    playbackService: LivePlaybackServiceProtocol? = nil
   ) {
     self.serverStore = serverStore
     self.sessionStore = sessionStore
@@ -91,6 +93,7 @@ final class AppDependencies {
     self.bugReportsService = bugReportsService
     self.importService = importService
     self.youtubeSessionService = youtubeSessionService
+    self.playbackService = playbackService
   }
 
   @MainActor
@@ -179,7 +182,13 @@ final class AppDependencies {
       contentControlsService: LiveContentControlsService(apiClient: client),
       bugReportsService: LiveBugReportsService(apiClient: client),
       importService: LiveImportService(apiClient: client),
-      youtubeSessionService: LiveYouTubeSessionService(apiClient: client)
+      youtubeSessionService: LiveYouTubeSessionService(apiClient: client),
+      playbackService: LivePlaybackService(
+        apiClient: client,
+        serverURLProvider: {
+          serverStore.selectedServer()?.baseURL
+        }
+      )
     )
   }
 }
