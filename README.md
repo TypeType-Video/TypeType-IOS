@@ -32,6 +32,8 @@ deterministic UI-regression catalog so visual changes remain reproducible.
 - Server setup, sign-in, registration, password reset, OIDC, and persistent sessions
 - Home, multi-service search, channels, podcasts, subscriptions, history, and playlists
 - Native AVKit playback, Picture in Picture, mini-player, and audio-only mode
+- YouTube SABR playback through TypeType-Server with selectable H.264 quality
+  and AAC audio tracks
 - Queue, captions, chapters, SponsorBlock controls, comments, and related videos
 - Profile, imports, downloads, notifications, content controls, settings, and administration
 - Dark and light appearances with Dynamic Type and VoiceOver-friendly controls
@@ -39,10 +41,11 @@ deterministic UI-regression catalog so visual changes remain reproducible.
 > [!NOTE]
 > The normal application uses the
 > [TypeType-Server](https://github.com/TypeType-Video/TypeType-Server) API for
-> authentication, discovery, account data, mutations, settings, imports,
-> downloads, notifications, and administration. Live stream resolution and
-> playback are the remaining separate integration phase. The deterministic
-> catalog is opt-in and restricted to debug simulator UI tests.
+> authentication, discovery, playback, account data, mutations, settings,
+> imports, downloads, notifications, and administration. YouTube playback
+> consumes the server's SABR-backed fragmented MP4 sessions through native
+> AVKit; the iOS application does not embed an extraction engine. The
+> deterministic catalog is opt-in and restricted to debug simulator UI tests.
 
 ## Stack
 
