@@ -267,7 +267,7 @@ final class LivePlaybackService: LivePlaybackServiceProtocol {
   private func serverEndpoint(for assetURL: URL) throws -> APIEndpoint {
     guard assetURL.scheme == Self.authenticatedScheme,
       let serverURL = serverURLProvider(),
-      var components = URLComponents(
+      let components = URLComponents(
         url: assetURL,
         resolvingAgainstBaseURL: false
       )

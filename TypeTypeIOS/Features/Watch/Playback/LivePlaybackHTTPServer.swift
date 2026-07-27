@@ -617,7 +617,7 @@ final class LivePlaybackHTTPServer: @unchecked Sendable {
   }
 
   private func remove(_ connection: NWConnection) {
-    lock.withLock {
+    _ = lock.withLock {
       connections.removeValue(forKey: ObjectIdentifier(connection))
     }
   }
