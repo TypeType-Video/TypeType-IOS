@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct DemoExternalLinkAlertModifier: ViewModifier {
+struct ExternalLinkAlertModifier: ViewModifier {
   @Environment(\.openURL) private var openURL
   @Binding var pendingURL: URL?
 
@@ -30,7 +30,7 @@ struct DemoExternalLinkAlertModifier: ViewModifier {
 }
 
 extension View {
-  func demoExternalLinkAlert(pendingURL: Binding<URL?>) -> some View {
-    modifier(DemoExternalLinkAlertModifier(pendingURL: pendingURL))
+  func externalLinkAlert(pendingURL: Binding<URL?>) -> some View {
+    modifier(ExternalLinkAlertModifier(pendingURL: pendingURL))
   }
 }

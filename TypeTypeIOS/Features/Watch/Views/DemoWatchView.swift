@@ -91,7 +91,7 @@ struct DemoWatchView: View {
       }
     }
     .background(DemoTheme.background)
-    .demoExternalLinkAlert(pendingURL: $pendingExternalURL)
+    .externalLinkAlert(pendingURL: $pendingExternalURL)
     .preferredColorScheme(session.preferences.colorScheme)
     .navigationTitle("Watch")
     .navigationBarTitleDisplayMode(.inline)

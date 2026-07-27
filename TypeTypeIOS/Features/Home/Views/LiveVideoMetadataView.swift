@@ -7,6 +7,8 @@ struct LiveVideoMetadataView: View {
   @StateObject private var playerController: LivePlayerController
   @State private var selectedChannelURL: String?
   @State private var selectedRelatedVideo: LiveVideoItem?
+  @State private var selectedPublicPlaylist: LivePlaylistResult?
+  @State private var pendingExternalURL: URL?
 
   init(video: LiveVideoItem, dependencies: AppDependencies) {
     self.video = video
@@ -25,7 +27,7 @@ struct LiveVideoMetadataView: View {
       VStack(alignment: .leading, spacing: 18) {
         LivePlayerView(
           controller: playerController,
-          posterURL: branding.thumbnailURL
+          posterURL: posterURL
         )
 
         VStack(alignment: .leading, spacing: 10) {
@@ -34,17 +36,17 @@ struct LiveVideoMetadataView: View {
             .textSelection(.enabled)
 
           Button {
-            selectedChannelURL = video.uploaderURL
+            selectedChannelURL = resolvedVideo.uploaderURL
           } label: {
             HStack(spacing: 8) {
-              LiveRemoteImage(url: video.uploaderAvatar)
+              LiveRemoteImage(url: resolvedVideo.uploaderAvatar)
                 .frame(width: 40, height: 40)
                 .clipShape(Circle())
               VStack(alignment: .leading, spacing: 2) {
                 HStack(spacing: 4) {
-                  Text(video.uploaderName)
+                  Text(resolvedVideo.uploaderName)
                     .font(.subheadline.weight(.semibold))
-                  if video.uploaderVerified {
+                  if resolvedVideo.uploaderVerified {
                     Image(systemName: "checkmark.seal.fill")
                       .font(.caption)
                       .foregroundStyle(DemoTheme.accent)
@@ -62,21 +64,27 @@ struct LiveVideoMetadataView: View {
             }
           }
           .buttonStyle(.plain)
-          .disabled(video.uploaderURL.isEmpty)
+          .disabled(resolvedVideo.uploaderURL.isEmpty)
 
           if let description = playbackDescription,
             !description.isEmpty {
-            Text(description)
-              .font(.body)
+            InteractiveText(
+              text: description,
+              font: .body,
+              lineLimit: nil,
+              onSeekTimestamp: playerController.seek,
+              onOpenURL: routeLink
+            )
               .foregroundStyle(.secondary)
               .textSelection(.enabled)
           }
         }
 
         LiveVideoLibraryActionsView(
-          video: video,
+          video: resolvedVideo,
           dependencies: dependencies
         )
+        .id(libraryActionsIdentity)
 
         if let stream = playerController.stream,
           !stream.chapters.isEmpty {
@@ -126,9 +134,11 @@ struct LiveVideoMetadataView: View {
         }
 
         LiveCommentsSectionView(
-          videoURL: video.url,
+          videoURL: resolvedVideo.url,
           dependencies: dependencies,
-          onChannel: { selectedChannelURL = $0 }
+          onChannel: { selectedChannelURL = $0 },
+          onSeekTimestamp: playerController.seek,
+          onOpenURL: routeLink
         )
       }
       .padding(16)
@@ -152,22 +162,33 @@ struct LiveVideoMetadataView: View {
         dependencies: dependencies
       )
     }
+    .navigationDestination(
+      item: $selectedPublicPlaylist
+    ) { playlist in
+      LivePublicPlaylistView(
+        playlist: playlist,
+        dependencies: dependencies
+      )
+    }
+    .externalLinkAlert(pendingURL: $pendingExternalURL)
     .accessibilityIdentifier("live.video.metadata")
-    .task { await deArrowStore.prepare(video) }
+    .task(id: libraryActionsIdentity) {
+      await deArrowStore.prepare(resolvedVideo)
+    }
     .task { await playerController.loadIfNeeded() }
     .onDisappear { playerController.flushHistory() }
   }
 
   private var metadata: String {
     var values = [
-      LiveVideoMetadataFormatter.views(video.viewCount),
-      LiveVideoMetadataFormatter.publication(video),
+      LiveVideoMetadataFormatter.views(resolvedVideo.viewCount),
+      LiveVideoMetadataFormatter.publication(resolvedVideo),
     ]
-    if video.isLive {
+    if resolvedVideo.isLive {
       values.insert("Live", at: 0)
     } else {
       values.insert(
-        LiveVideoMetadataFormatter.duration(video.duration),
+        LiveVideoMetadataFormatter.duration(resolvedVideo.duration),
         at: 0
       )
     }
@@ -183,5 +204,73 @@ struct LiveVideoMetadataView: View {
       .trimmingCharacters(in: .whitespacesAndNewlines)
     if let full, !full.isEmpty { return full }
     return video.shortDescription
+  }
+
+  private var posterURL: URL? {
+    guard let value = playerController.stream?.thumbnailURL,
+      let url = URL(string: value)
+    else {
+      return branding.thumbnailURL
+    }
+    return url
+  }
+
+  private var resolvedVideo: LiveVideoItem {
+    guard let stream = playerController.stream else { return video }
+    return LiveVideoItem(
+      id: stream.id.isEmpty ? video.id : stream.id,
+      title: stream.title.isEmpty ? video.title : stream.title,
+      url: video.url,
+      thumbnailURL: stream.thumbnailURL.isEmpty
+        ? video.thumbnailURL
+        : stream.thumbnailURL,
+      uploaderName: stream.uploaderName.isEmpty
+        ? video.uploaderName
+        : stream.uploaderName,
+      uploaderURL: stream.uploaderURL.isEmpty
+        ? video.uploaderURL
+        : stream.uploaderURL,
+      uploaderAvatarURL: stream.uploaderAvatarURL.isEmpty
+        ? video.uploaderAvatarURL
+        : stream.uploaderAvatarURL,
+      duration: stream.duration > 0 ? stream.duration : video.duration,
+      viewCount: stream.viewCount > 0
+        ? stream.viewCount
+        : video.viewCount,
+      uploadDate: video.uploadDate,
+      uploaded: video.uploaded,
+      streamType: video.streamType.isEmpty
+        ? "VIDEO_STREAM"
+        : video.streamType,
+      isShortFormContent: false,
+      uploaderVerified: video.uploaderVerified,
+      shortDescription: playbackDescription,
+      publishedAt: video.publishedAt,
+      isLive: stream.isLive,
+      isPostLive: stream.isPostLive,
+      isLiveContent: stream.isLiveContent,
+      requiresMembership: video.requiresMembership
+    )
+  }
+
+  private var libraryActionsIdentity: String {
+    [
+      resolvedVideo.canonicalID,
+      resolvedVideo.title,
+      resolvedVideo.uploaderName,
+    ].joined(separator: ":")
+  }
+
+  private func routeLink(_ url: URL) {
+    switch LiveMediaLinkResolver.destination(for: url) {
+    case let .video(linkedVideo):
+      selectedRelatedVideo = linkedVideo
+    case let .channel(channelURL):
+      selectedChannelURL = channelURL
+    case let .playlist(playlist):
+      selectedPublicPlaylist = playlist
+    case nil:
+      pendingExternalURL = url
+    }
   }
 }

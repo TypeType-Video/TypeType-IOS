@@ -4,17 +4,23 @@ struct LiveCommentsSectionView: View {
   let videoURL: String
   let dependencies: AppDependencies
   let onChannel: (String) -> Void
+  let onSeekTimestamp: (Double) -> Void
+  let onOpenURL: (URL) -> Void
 
   @StateObject private var viewModel: LiveCommentsViewModel
 
   init(
     videoURL: String,
     dependencies: AppDependencies,
-    onChannel: @escaping (String) -> Void
+    onChannel: @escaping (String) -> Void,
+    onSeekTimestamp: @escaping (Double) -> Void,
+    onOpenURL: @escaping (URL) -> Void
   ) {
     self.videoURL = videoURL
     self.dependencies = dependencies
     self.onChannel = onChannel
+    self.onSeekTimestamp = onSeekTimestamp
+    self.onOpenURL = onOpenURL
     _viewModel = StateObject(
       wrappedValue: LiveCommentsViewModel(
         videoURL: videoURL,
@@ -85,7 +91,9 @@ struct LiveCommentsSectionView: View {
               comment: comment,
               videoURL: videoURL,
               service: dependencies.commentsService,
-              onChannel: onChannel
+              onChannel: onChannel,
+              onSeekTimestamp: onSeekTimestamp,
+              onOpenURL: onOpenURL
             )
             Divider()
           }
@@ -144,6 +152,8 @@ private struct LiveCommentRow: View {
   let videoURL: String
   let service: LiveCommentsServiceProtocol
   let onChannel: (String) -> Void
+  let onSeekTimestamp: (Double) -> Void
+  let onOpenURL: (URL) -> Void
 
   @State private var replies: [LiveCommentItem] = []
   @State private var nextRepliesPage: String?
@@ -160,8 +170,13 @@ private struct LiveCommentRow: View {
       VStack(alignment: .leading, spacing: 7) {
         authorLine
 
-        Text(comment.text)
-          .font(.body)
+        InteractiveText(
+          text: comment.text,
+          font: .body,
+          lineLimit: nil,
+          onSeekTimestamp: onSeekTimestamp,
+          onOpenURL: onOpenURL
+        )
           .foregroundStyle(.primary)
           .textSelection(.enabled)
 
@@ -267,7 +282,9 @@ private struct LiveCommentRow: View {
       ForEach(replies) { reply in
         LiveCommentReplyRow(
           comment: reply,
-          onChannel: onChannel
+          onChannel: onChannel,
+          onSeekTimestamp: onSeekTimestamp,
+          onOpenURL: onOpenURL
         )
       }
       if nextRepliesPage?.isEmpty == false {
@@ -314,6 +331,8 @@ private struct LiveCommentRow: View {
 private struct LiveCommentReplyRow: View {
   let comment: LiveCommentItem
   let onChannel: (String) -> Void
+  let onSeekTimestamp: (Double) -> Void
+  let onOpenURL: (URL) -> Void
 
   var body: some View {
     HStack(alignment: .top, spacing: 9) {
@@ -331,8 +350,13 @@ private struct LiveCommentReplyRow: View {
         }
         .buttonStyle(.plain)
         .disabled(comment.authorURL.isEmpty)
-        Text(comment.text)
-          .font(.subheadline)
+        InteractiveText(
+          text: comment.text,
+          font: .subheadline,
+          lineLimit: nil,
+          onSeekTimestamp: onSeekTimestamp,
+          onOpenURL: onOpenURL
+        )
           .foregroundStyle(.primary)
           .textSelection(.enabled)
       }

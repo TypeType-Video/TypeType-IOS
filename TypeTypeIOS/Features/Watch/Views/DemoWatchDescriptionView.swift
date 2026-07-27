@@ -30,7 +30,7 @@ struct DemoWatchDescriptionView: View {
       }
       .buttonStyle(.plain)
 
-      DemoInteractiveText(
+      InteractiveText(
         text: description,
         font: .subheadline,
         lineLimit: isExpanded ? nil : 3,

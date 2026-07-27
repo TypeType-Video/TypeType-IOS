@@ -82,7 +82,7 @@ struct DemoWatchCommentRow: View {
 
   private var message: some View {
     VStack(alignment: .leading, spacing: 5) {
-      DemoInteractiveText(
+      InteractiveText(
         text: comment.message,
         font: .subheadline,
         lineLimit: isExpanded ? nil : 5,

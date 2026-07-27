@@ -56,7 +56,7 @@ struct DemoWatchCommentReplies: View {
       VStack(alignment: .leading, spacing: 3) {
         Text(author)
           .font(.caption.weight(.semibold))
-        DemoInteractiveText(
+        InteractiveText(
           text: message,
           font: .caption,
           lineLimit: nil,

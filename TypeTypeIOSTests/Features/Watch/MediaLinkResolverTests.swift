@@ -1,7 +1,7 @@
 import XCTest
 @testable import TypeTypeIOS
 
-final class DemoMediaLinkResolverTests: XCTestCase {
+final class MediaLinkResolverTests: XCTestCase {
   func testSupportedVideoServicesResolveInsideTypeType() {
     let links = [
       DemoWatchLinkCatalog.youtube,
@@ -28,13 +28,13 @@ final class DemoMediaLinkResolverTests: XCTestCase {
   func testRichTextCreatesSeekAndWebLinks() {
     let text =
       "Compare 1:44 with https://www.youtube.com/watch?v=YE7VzlLtp-4"
-    let attributed = DemoRichTextParser.attributed(text)
+    let attributed = RichTextParser.attributed(text)
     let links = attributed.runs.compactMap(\.link)
 
     XCTAssertEqual(links.count, 2)
     let seek = links.first { $0.scheme == "typetype" }
     XCTAssertEqual(
-      seek.flatMap(DemoRichTextParser.seekSeconds(from:)),
+      seek.flatMap(RichTextParser.seekSeconds(from:)),
       104
     )
     XCTAssertTrue(
@@ -43,11 +43,11 @@ final class DemoMediaLinkResolverTests: XCTestCase {
   }
 
   func testHourTimestampIsConvertedToSeconds() {
-    let attributed = DemoRichTextParser.attributed("Resume at 1:02:03")
+    let attributed = RichTextParser.attributed("Resume at 1:02:03")
     let seek = attributed.runs.compactMap(\.link).first
 
     XCTAssertEqual(
-      seek.flatMap(DemoRichTextParser.seekSeconds(from:)),
+      seek.flatMap(RichTextParser.seekSeconds(from:)),
       3_723
     )
   }

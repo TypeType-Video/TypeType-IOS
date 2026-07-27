@@ -48,7 +48,7 @@ struct DemoAboutView: View {
     }
     .navigationTitle("About TypeType")
     .navigationBarTitleDisplayMode(.inline)
-    .demoExternalLinkAlert(pendingURL: $pendingURL)
+    .externalLinkAlert(pendingURL: $pendingURL)
     .accessibilityIdentifier("demo.about.screen")
   }
 

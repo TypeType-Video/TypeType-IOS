@@ -1,7 +1,7 @@
 import Foundation
 import SwiftUI
 
-struct DemoInteractiveText: View {
+struct InteractiveText: View {
   let text: String
   let font: Font
   let lineLimit: Int?
@@ -9,14 +9,14 @@ struct DemoInteractiveText: View {
   let onOpenURL: (URL) -> Void
 
   var body: some View {
-    Text(DemoRichTextParser.attributed(text))
+    Text(RichTextParser.attributed(text))
       .font(font)
       .lineLimit(lineLimit)
       .fixedSize(horizontal: false, vertical: true)
       .environment(
         \.openURL,
         OpenURLAction { url in
-          if let seconds = DemoRichTextParser.seekSeconds(from: url) {
+          if let seconds = RichTextParser.seekSeconds(from: url) {
             onSeekTimestamp(seconds)
           } else {
             onOpenURL(url)
@@ -27,7 +27,7 @@ struct DemoInteractiveText: View {
   }
 }
 
-enum DemoRichTextParser {
+enum RichTextParser {
   private struct Token {
     let range: NSRange
     let url: URL
