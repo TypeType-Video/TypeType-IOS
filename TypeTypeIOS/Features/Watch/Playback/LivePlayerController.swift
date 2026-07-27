@@ -28,6 +28,7 @@ final class LivePlayerController: ObservableObject {
   private let service: LivePlaybackServiceProtocol?
   private let settingsService: LiveSettingsServiceProtocol
   private let historyService: LiveHistoryServiceProtocol
+  private let playbackSessionReporter: LivePlaybackSessionReporter
   private var settings = LiveSettings()
   private var loadTask: Task<Void, Never>?
   private var playbackServer: LivePlaybackHTTPServer?
@@ -38,6 +39,7 @@ final class LivePlayerController: ObservableObject {
   private var didLoad = false
   private var pendingSeek: TimeInterval?
   private var lastHistoryProgress: Int64 = -1
+  private var playbackSessionProgressTask: Task<Void, Never>?
   private var handledSponsorSegments: Set<String> = []
   private var sponsorMutedUntil: TimeInterval?
 
@@ -46,12 +48,20 @@ final class LivePlayerController: ObservableObject {
     service = dependencies.playbackService
     settingsService = dependencies.settingsService
     historyService = dependencies.historyService
+    playbackSessionReporter = LivePlaybackSessionReporter(
+      service: dependencies.sessionActivityService
+    )
     player.automaticallyWaitsToMinimizeStalling = true
     installPeriodicObserver()
   }
 
   deinit {
+    playbackSessionProgressTask?.cancel()
     playbackServer?.stop()
+    let reporter = playbackSessionReporter
+    Task { @MainActor in
+      reporter.stop()
+    }
   }
 
   var availableVideoSources: [LivePlaybackVideoSource] {
@@ -120,7 +130,13 @@ final class LivePlayerController: ObservableObject {
       to: CMTime(seconds: bounded, preferredTimescale: 600),
       toleranceBefore: .zero,
       toleranceAfter: .zero
-    )
+    ) { [weak self] _ in
+      Task { @MainActor [weak self] in
+        guard let self else { return }
+        position = max(player.currentTime().seconds, 0)
+        reportPlaybackSessionProgress()
+      }
+    }
   }
 
   func selectVideoItag(_ itag: Int?) {
@@ -151,6 +167,7 @@ final class LivePlayerController: ObservableObject {
 
   func flushHistory() {
     recordHistoryIfNeeded(force: true)
+    reportPlaybackSessionProgress()
   }
 
   private func load() async {
@@ -191,6 +208,7 @@ final class LivePlayerController: ObservableObject {
       return
     } catch {
       state = .failed(Self.message(for: error))
+      stopPlaybackSession()
     }
   }
 
@@ -215,6 +233,7 @@ final class LivePlayerController: ObservableObject {
         )
       } catch {
         state = .failed(Self.message(for: error))
+        stopPlaybackSession()
       }
     }
   }
@@ -285,8 +304,11 @@ final class LivePlayerController: ObservableObject {
       queue: .main
     ) { [weak self] _ in
       Task { @MainActor [weak self] in
-        self?.state = .paused
-        self?.recordHistoryIfNeeded(force: true)
+        guard let self else { return }
+        state = .paused
+        recordHistoryIfNeeded(force: true)
+        reportPlaybackSessionProgress()
+        stopPlaybackSession()
       }
     }
     itemObservation = item.observe(
@@ -332,6 +354,7 @@ final class LivePlayerController: ObservableObject {
           state = .failed(
             DemoPlaybackErrorFormatter.message(for: item.error)
           )
+          stopPlaybackSession()
         @unknown default:
           state = .failed("The player reported an unknown state.")
         }
@@ -345,11 +368,15 @@ final class LivePlayerController: ObservableObject {
         guard let self else { return }
         switch player.timeControlStatus {
         case .paused:
-          if state == .playing { state = .paused }
+          if state == .playing {
+            state = .paused
+            reportPlaybackSessionProgress()
+          }
         case .waitingToPlayAtSpecifiedRate:
           state = .loading
         case .playing:
           state = .playing
+          startPlaybackSessionIfNeeded()
         @unknown default:
           break
         }
@@ -446,12 +473,90 @@ final class LivePlayerController: ObservableObject {
       return
     }
     lastHistoryProgress = progress
-    Task { [historyService, video] in
+    let historyVideo = video.resolving(with: stream)
+    Task { [historyService, historyVideo] in
       _ = try? await historyService.add(
-        video: video,
+        video: historyVideo,
         progress: progress
       )
     }
+  }
+
+  private func startPlaybackSessionIfNeeded() {
+    guard let snapshot = playbackActivitySnapshot else { return }
+    playbackSessionReporter.startIfNeeded(snapshot)
+    startPlaybackSessionProgressLoop()
+  }
+
+  private func reportPlaybackSessionProgress() {
+    guard let snapshot = playbackActivitySnapshot else { return }
+    if state == .playing {
+      playbackSessionReporter.startIfNeeded(snapshot)
+    }
+    playbackSessionReporter.progress(snapshot)
+  }
+
+  private func startPlaybackSessionProgressLoop() {
+    guard playbackSessionProgressTask == nil else { return }
+    playbackSessionProgressTask = Task { @MainActor [weak self] in
+      while !Task.isCancelled {
+        do {
+          try await Task.sleep(for: .seconds(15))
+        } catch {
+          return
+        }
+        guard let self else { return }
+        reportPlaybackSessionProgress()
+      }
+    }
+  }
+
+  private func stopPlaybackSession() {
+    playbackSessionProgressTask?.cancel()
+    playbackSessionProgressTask = nil
+    playbackSessionReporter.stop()
+  }
+
+  private var playbackActivitySnapshot:
+    LivePlaybackActivitySnapshot? {
+    let resolvedVideo = video.resolving(with: stream)
+    guard let stream,
+      !stream.isLive,
+      !stream.isLiveContent,
+      !resolvedVideo.url.isEmpty,
+      !resolvedVideo.title.trimmingCharacters(
+        in: .whitespacesAndNewlines
+      ).isEmpty
+    else {
+      return nil
+    }
+    let resolvedDuration = duration.isFinite && duration > 0
+      ? duration
+      : TimeInterval(resolvedVideo.duration)
+    return LivePlaybackActivitySnapshot(
+      videoURL: resolvedVideo.url,
+      title: resolvedVideo.title,
+      thumbnailURL: resolvedVideo.thumbnailURL.isEmpty
+        ? nil
+        : resolvedVideo.thumbnailURL,
+      channelName: resolvedVideo.uploaderName.isEmpty
+        ? nil
+        : resolvedVideo.uploaderName,
+      positionMilliseconds: Self.milliseconds(position),
+      durationMilliseconds: resolvedDuration > 0
+        ? Self.milliseconds(resolvedDuration)
+        : nil,
+      isPaused: player.timeControlStatus == .paused
+    )
+  }
+
+  private static func milliseconds(
+    _ seconds: TimeInterval
+  ) -> Int64 {
+    guard seconds.isFinite, seconds > 0 else { return 0 }
+    return Int64(
+      min(seconds * 1_000, Double(Int64.max)).rounded(.down)
+    )
   }
 
   private static func message(for error: Error) -> String {

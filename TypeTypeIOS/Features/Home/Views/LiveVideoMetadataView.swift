@@ -216,41 +216,7 @@ struct LiveVideoMetadataView: View {
   }
 
   private var resolvedVideo: LiveVideoItem {
-    guard let stream = playerController.stream else { return video }
-    return LiveVideoItem(
-      id: stream.id.isEmpty ? video.id : stream.id,
-      title: stream.title.isEmpty ? video.title : stream.title,
-      url: video.url,
-      thumbnailURL: stream.thumbnailURL.isEmpty
-        ? video.thumbnailURL
-        : stream.thumbnailURL,
-      uploaderName: stream.uploaderName.isEmpty
-        ? video.uploaderName
-        : stream.uploaderName,
-      uploaderURL: stream.uploaderURL.isEmpty
-        ? video.uploaderURL
-        : stream.uploaderURL,
-      uploaderAvatarURL: stream.uploaderAvatarURL.isEmpty
-        ? video.uploaderAvatarURL
-        : stream.uploaderAvatarURL,
-      duration: stream.duration > 0 ? stream.duration : video.duration,
-      viewCount: stream.viewCount > 0
-        ? stream.viewCount
-        : video.viewCount,
-      uploadDate: video.uploadDate,
-      uploaded: video.uploaded,
-      streamType: video.streamType.isEmpty
-        ? "VIDEO_STREAM"
-        : video.streamType,
-      isShortFormContent: false,
-      uploaderVerified: video.uploaderVerified,
-      shortDescription: playbackDescription,
-      publishedAt: video.publishedAt,
-      isLive: stream.isLive,
-      isPostLive: stream.isPostLive,
-      isLiveContent: stream.isLiveContent,
-      requiresMembership: video.requiresMembership
-    )
+    video.resolving(with: playerController.stream)
   }
 
   private var libraryActionsIdentity: String {

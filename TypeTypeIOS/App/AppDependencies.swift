@@ -175,7 +175,15 @@ final class AppDependencies {
         service: notificationsService
       ),
       sessionActivityService: LiveSessionActivityService(
-        apiClient: client
+        apiClient: client,
+        canReport: {
+          guard let serverID = serverStore.selectedServerID(),
+            let session = sessionStore.session(forServerID: serverID)
+          else {
+            return false
+          }
+          return !session.userID.hasPrefix("guest:")
+        }
       ),
       adminService: LiveAdminService(apiClient: client),
       adminAccessService: LiveAdminAccessService(apiClient: client),
