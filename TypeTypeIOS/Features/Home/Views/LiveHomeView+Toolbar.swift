@@ -29,6 +29,9 @@ extension LiveHomeView {
                 Text(service.name)
               }
             }
+            .accessibilityIdentifier(
+              "live.home.service.\(service.id)"
+            )
           }
         } label: {
           serviceLabel
@@ -47,9 +50,7 @@ extension LiveHomeView {
   @ToolbarContentBuilder
   var searchToolbar: some ToolbarContent {
     ToolbarItem(placement: .topBarTrailing) {
-      Button {
-        presentsSearch = true
-      } label: {
+      Button(action: onPresentSearch) {
         Image(systemName: "magnifyingglass")
       }
       .accessibilityLabel("Search")

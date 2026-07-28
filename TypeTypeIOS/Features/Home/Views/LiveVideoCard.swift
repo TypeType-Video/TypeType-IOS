@@ -24,6 +24,7 @@ struct LiveVideoCard: View {
         thumbnail
       }
       .buttonStyle(.plain)
+      .accessibilityIdentifier("live.home.video.card.\(video.id)")
 
       HStack(alignment: .top, spacing: 10) {
         channelAvatar
@@ -32,7 +33,6 @@ struct LiveVideoCard: View {
     }
     .task { await deArrowStore.prepare(video) }
     .contentShape(Rectangle())
-    .accessibilityIdentifier("live.home.video.card")
   }
 
   private var thumbnail: some View {
