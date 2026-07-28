@@ -1,0 +1,101 @@
+import AVFoundation
+import Foundation
+
+extension LivePlayerController {
+  func installPeriodicObserver() {
+    timeObserver = player.addPeriodicTimeObserver(
+      forInterval: CMTime(seconds: 1, preferredTimescale: 2),
+      queue: .main
+    ) { [weak self] time in
+      Task { @MainActor [weak self] in
+        try? await Task.sleep(for: .milliseconds(100))
+        guard let self else { return }
+        let seconds = time.seconds
+        guard seconds.isFinite else { return }
+        let currentPosition = min(
+          playbackTimeOffset + max(seconds, 0),
+          max(duration, 0)
+        )
+        if abs(position - currentPosition) >= 0.05 {
+          position = currentPosition
+        }
+        playbackServer?.updatePlayerTime(currentPosition)
+        updateSponsorBlock(at: currentPosition)
+        recordHistoryIfNeeded(force: false)
+      }
+    }
+  }
+
+  private func updateSponsorBlock(at seconds: TimeInterval) {
+    if let sponsorMutedRange {
+      if !sponsorMutedRange.contains(seconds) {
+        player.isMuted = settings.muted
+        self.sponsorMutedRange = nil
+      } else {
+        return
+      }
+    }
+    guard let stream,
+      let window = activeSponsorBlockWindow(at: seconds),
+      !handledSponsorSegments.contains(window.id),
+      LiveSponsorBlockPolicy.shouldAutoSkip(
+        window,
+        settings: settings,
+        streamCategory: stream.category
+      )
+    else {
+      return
+    }
+    handledSponsorSegments.insert(window.id)
+    if settings.sponsorBlockMuteInsteadOfSkip {
+      player.isMuted = true
+      sponsorMutedRange = window.start..<window.end
+    } else {
+      seek(to: window.end)
+    }
+  }
+
+  func activeSponsorBlockWindow(
+    at seconds: TimeInterval
+  ) -> LiveSponsorBlockWindow? {
+    visibleSponsorBlockWindows.first {
+      seconds >= $0.start && seconds < $0.end
+    }
+  }
+
+  var visibleSponsorBlockWindows: [LiveSponsorBlockWindow] {
+    guard let stream else { return [] }
+    return LiveSponsorBlockPolicy.visibleWindows(
+      segments: stream.sponsorBlockSegments,
+      settings: settings,
+      duration: TimeInterval(stream.duration)
+    )
+  }
+
+  func recordHistoryIfNeeded(force: Bool) {
+    guard !settings.disableWatchHistory, position > 0 else { return }
+    let progress = Int64(position.rounded(.down))
+    let progressMS = Int64((position * 1_000).rounded())
+    guard force || lastHistoryProgress < 0
+      || progress - lastHistoryProgress >= 15
+    else {
+      return
+    }
+    lastHistoryProgress = progress
+    let historyVideo = video.resolving(with: stream)
+    let recordsEvent = !didRecordHistoryEvent
+    didRecordHistoryEvent = true
+    Task { [historyService, historyVideo] in
+      if recordsEvent {
+        _ = try? await historyService.add(
+          video: historyVideo,
+          progress: progress
+        )
+      }
+      try? await historyService.updateProgress(
+        videoURL: historyVideo.url,
+        positionMS: progressMS
+      )
+    }
+  }
+}

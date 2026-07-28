@@ -1,0 +1,78 @@
+import Foundation
+
+extension LivePlayerController {
+  var sponsorBlockChapters: [LivePlaybackChapter] {
+    guard sponsorBlockShowChapters else { return [] }
+    return visibleSponsorBlockWindows.map { window in
+      LivePlaybackChapter(
+        title: LiveSponsorBlockPolicy.title(
+          for: window.segment.category
+        ),
+        startTimeSeconds: Int(window.start.rounded(.down)),
+        channelName: "SponsorBlock",
+        url: nil,
+        previewURL: nil
+      )
+    }
+  }
+
+  func canManuallySkipSponsorBlock(
+    _ window: LiveSponsorBlockWindow
+  ) -> Bool {
+    guard let stream else { return false }
+    return sponsorBlockMuteInsteadOfSkip
+      || !LiveSponsorBlockPolicy.shouldAutoSkip(
+        window,
+        settings: settings,
+        streamCategory: stream.category
+      )
+  }
+
+  func setSponsorBlockShowCurrentSegment(_ enabled: Bool) {
+    sponsorBlockShowCurrentSegment = enabled
+    updateSponsorBlockSettings {
+      $0.sponsorBlockShowCurrentSegment = enabled
+    }
+  }
+
+  func setSponsorBlockShowChapters(_ enabled: Bool) {
+    sponsorBlockShowChapters = enabled
+    updateSponsorBlockSettings {
+      $0.sponsorBlockShowChapters = enabled
+    }
+  }
+
+  func setSponsorBlockShowFullVideoLabels(_ enabled: Bool) {
+    sponsorBlockShowFullVideoLabels = enabled
+    handledSponsorSegments.removeAll()
+    updateSponsorBlockSettings {
+      $0.sponsorBlockShowFullVideoLabels = enabled
+    }
+  }
+
+  func setSponsorBlockManualSkipOnFullVideo(_ enabled: Bool) {
+    sponsorBlockManualSkipOnFullVideo = enabled
+    handledSponsorSegments.removeAll()
+    updateSponsorBlockSettings {
+      $0.sponsorBlockManualSkipOnFullVideo = enabled
+    }
+  }
+
+  func setSponsorBlockMusicOnly(_ enabled: Bool) {
+    sponsorBlockSkipNonMusicOnlyOnMusicVideos = enabled
+    handledSponsorSegments.removeAll()
+    updateSponsorBlockSettings {
+      $0.sponsorBlockSkipNonMusicOnlyOnMusicVideos = enabled
+    }
+  }
+
+  private func updateSponsorBlockSettings(
+    _ mutation: (inout LiveSettings) -> Void
+  ) {
+    mutation(&settings)
+    let value = settings
+    Task { [settingsService] in
+      _ = try? await settingsService.update(value)
+    }
+  }
+}
