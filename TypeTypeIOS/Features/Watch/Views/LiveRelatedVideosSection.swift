@@ -3,6 +3,7 @@ import SwiftUI
 struct LiveRelatedVideosSection: View {
   let videos: [LiveVideoItem]
   let deArrowStore: LiveDeArrowStore
+  let dependencies: AppDependencies
   let onSelect: (LiveVideoItem) -> Void
   @State private var visibleCount = 6
 
@@ -23,16 +24,19 @@ struct LiveRelatedVideosSection: View {
               )
             }
             .buttonStyle(.plain)
-            .onAppear {
+            .liveVideoQuickActions(
+              video: video,
+              dependencies: dependencies
+            )
+            .task(id: video.canonicalID) {
+              await Task.yield()
+              guard !Task.isCancelled else { return }
               loadMoreIfNeeded(after: video)
             }
           }
         }
       }
       .accessibilityIdentifier("live.player.related")
-      .onChange(of: videos.map(\.canonicalID)) {
-        visibleCount = min(6, videos.count)
-      }
     }
   }
 

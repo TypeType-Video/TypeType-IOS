@@ -2,14 +2,19 @@ import SwiftUI
 
 struct LivePlayerView: View {
   @ObservedObject var controller: LivePlayerController
+  @ObservedObject var coordinator: LivePlaybackCoordinator
   let posterURL: URL?
+  @Binding var cinemaMode: Bool
   @State private var showsOptions = false
 
   var body: some View {
     ZStack {
       Color.black
 
-      DemoPlayerLayerView(player: controller.player)
+      LivePlayerLayerView(
+        player: controller.player,
+        controller: controller
+      )
         .accessibilityIdentifier("live.player.surface")
 
       if controller.audioOnly {
@@ -28,6 +33,7 @@ struct LivePlayerView: View {
       }
 
       statusOverlay
+      playbackStatusAccessibilityElement
 
       Button {
         showsOptions = true
@@ -53,13 +59,28 @@ struct LivePlayerView: View {
     }
     .aspectRatio(16 / 9, contentMode: .fit)
     .clipShape(
-      RoundedRectangle(cornerRadius: 16, style: .continuous)
+      RoundedRectangle(
+        cornerRadius: cinemaMode ? 0 : 16,
+        style: .continuous
+      )
     )
-    .accessibilityIdentifier("live.player.container")
-    .accessibilityValue(controller.accessibilityStatus)
     .sheet(isPresented: $showsOptions) {
-      LivePlayerOptionsSheet(controller: controller)
+      LivePlayerOptionsSheet(
+        controller: controller,
+        coordinator: coordinator,
+        cinemaMode: $cinemaMode
+      )
     }
+  }
+
+  private var playbackStatusAccessibilityElement: some View {
+    Color.clear
+      .frame(width: 1, height: 1)
+      .allowsHitTesting(false)
+      .accessibilityElement(children: .ignore)
+      .accessibilityLabel("Playback status")
+      .accessibilityIdentifier("live.player.container")
+      .accessibilityValue(controller.accessibilityStatus)
   }
 
   @ViewBuilder
@@ -90,95 +111,5 @@ struct LivePlayerView: View {
     case .ready, .playing, .paused:
       EmptyView()
     }
-  }
-}
-
-private struct LivePlayerOptionsSheet: View {
-  @ObservedObject var controller: LivePlayerController
-  @Environment(\.dismiss) private var dismiss
-
-  var body: some View {
-    NavigationStack {
-      Form {
-        Section("Playback") {
-          Toggle(
-            "Audio only",
-            isOn: Binding(
-              get: { controller.audioOnly },
-              set: controller.setAudioOnly
-            )
-          )
-
-          Picker(
-            "Speed",
-            selection: Binding(
-              get: { controller.playbackRate },
-              set: controller.setPlaybackRate
-            )
-          ) {
-            Text("0.5×").tag(Float(0.5))
-            Text("0.75×").tag(Float(0.75))
-            Text("Normal").tag(Float(1))
-            Text("1.25×").tag(Float(1.25))
-            Text("1.5×").tag(Float(1.5))
-            Text("2×").tag(Float(2))
-          }
-        }
-
-        if !controller.availableVideoSources.isEmpty {
-          Section("Quality") {
-            Picker(
-              "Video",
-              selection: Binding(
-                get: { controller.selectedVideoItag },
-                set: controller.selectVideoItag
-              )
-            ) {
-              Text("Automatic").tag(Int?.none)
-              ForEach(controller.availableVideoSources) { source in
-                Text(source.displayName).tag(Optional(source.itag))
-              }
-            }
-          }
-        }
-
-        if controller.availableAudioSources.count > 1 {
-          Section("Audio") {
-            Picker(
-              "Track",
-              selection: Binding(
-                get: { controller.selectedAudioTrackID },
-                set: controller.selectAudioTrack
-              )
-            ) {
-              Text("Default").tag(String?.none)
-              ForEach(controller.availableAudioSources) { source in
-                Text(source.displayName)
-                  .tag(source.audioTrackID)
-              }
-            }
-          }
-        }
-
-        Section {
-          LabeledContent("Transport", value: controller.transportLabel)
-          if controller.preparation?.subtitles.isEmpty == false {
-            Text(
-              "Subtitles are available from the native player menu."
-            )
-            .font(.footnote)
-            .foregroundStyle(.secondary)
-          }
-        }
-      }
-      .navigationTitle("Player")
-      .navigationBarTitleDisplayMode(.inline)
-      .toolbar {
-        ToolbarItem(placement: .confirmationAction) {
-          Button("Done") { dismiss() }
-        }
-      }
-    }
-    .presentationDetents([.medium, .large])
   }
 }
