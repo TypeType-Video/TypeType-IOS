@@ -2,14 +2,13 @@ import Foundation
 
 @MainActor
 final class LiveImportViewModel: ObservableObject {
-  @Published private(set) var isRunning = false
-  @Published private(set) var pipePipeResult: LivePipePipeRestoreResult?
-  @Published private(set) var youTubeJob: LiveYouTubeImportJob?
-  @Published private(set) var youTubePreview: LiveYouTubeImportPreview?
-  @Published private(set) var youTubeReport: LiveYouTubeImportReport?
-  @Published private(set) var errorMessage: String?
+  @Published var isRunning = false
+  @Published var pipePipeResult: LivePipePipeRestoreResult?
+  @Published var youTubeArchives: [LiveYouTubeImportArchive] = []
+  @Published var activeYouTubeArchiveID: UUID?
+  @Published var errorMessage: String?
 
-  private let service: LiveImportServiceProtocol
+  let service: LiveImportServiceProtocol
 
   init(service: LiveImportServiceProtocol) {
     self.service = service
@@ -26,33 +25,51 @@ final class LiveImportViewModel: ObservableObject {
     }
   }
 
-  func importYouTube(url: URL) async {
-    await run {
-      let file = try Self.read(url)
-      var job = try await service.createYouTubeImport(
-        data: file.data,
-        fileName: file.name
-      )
-      youTubeJob = job
-      youTubePreview = try await service.youTubePreview(id: job.jobID)
-      job = try await service.commitYouTube(
-        id: job.jobID,
-        options: LiveYouTubeImportCommit()
-      )
-      youTubeJob = job
-      while job.status == "pending" || job.status == "running" {
-        try Task.checkCancellation()
-        try await Task.sleep(for: .seconds(1))
-        job = try await service.youTubeJob(id: job.jobID)
-        youTubeJob = job
+  var canStartYouTubeQueue: Bool {
+    !isRunning && youTubeArchives.contains { archive in
+      switch archive.state {
+      case .queued, .failed:
+        return true
+      default:
+        return false
       }
-      guard job.status == "completed" else {
-        throw LiveImportError.failed(
-          job.error ?? "YouTube import failed."
-        )
-      }
-      youTubeReport = try await service.youTubeReport(id: job.jobID)
     }
+  }
+
+  var youTubeOverallProgress: Double {
+    guard !youTubeArchives.isEmpty else { return 0 }
+    let total = youTubeArchives.reduce(0) { $0 + $1.progress }
+    return Double(total) / Double(youTubeArchives.count * 100)
+  }
+
+  var completedYouTubeArchiveCount: Int {
+    youTubeArchives.filter {
+      if case .completed = $0.state { return true }
+      return false
+    }.count
+  }
+
+  func queueYouTube(urls: [URL]) {
+    guard !isRunning else { return }
+    var knownURLs = Set(
+      youTubeArchives.map { $0.url.standardizedFileURL }
+    )
+    let additions = urls
+      .filter { $0.pathExtension.lowercased() == "zip" }
+      .filter { knownURLs.insert($0.standardizedFileURL).inserted }
+      .map(LiveYouTubeImportArchive.init(url:))
+    youTubeArchives.append(contentsOf: additions)
+  }
+
+  func removeYouTubeArchive(id: UUID) {
+    guard !isRunning else { return }
+    youTubeArchives.removeAll { $0.id == id }
+  }
+
+  func clearYouTubeQueue() {
+    guard !isRunning else { return }
+    youTubeArchives.removeAll()
+    activeYouTubeArchiveID = nil
   }
 
   func dismissError() {
@@ -69,9 +86,13 @@ final class LiveImportViewModel: ObservableObject {
     } catch is CancellationError {
       return
     } catch {
-      errorMessage = (error as? LocalizedError)?.errorDescription
-        ?? "The import could not be completed."
+      errorMessage = Self.message(for: error)
     }
+  }
+
+  static func message(for error: Error) -> String {
+    (error as? LocalizedError)?.errorDescription
+      ?? "The import could not be completed."
   }
 
   nonisolated private static func read(
@@ -84,15 +105,5 @@ final class LiveImportViewModel: ObservableObject {
       }
     }
     return (try Data(contentsOf: url), url.lastPathComponent)
-  }
-}
-
-private enum LiveImportError: LocalizedError {
-  case failed(String)
-
-  var errorDescription: String? {
-    switch self {
-    case let .failed(message): return message
-    }
   }
 }

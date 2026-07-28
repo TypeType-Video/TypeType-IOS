@@ -7,7 +7,7 @@ protocol LiveImportServiceProtocol {
     timeMode: String
   ) async throws -> LivePipePipeRestoreResult
   func createYouTubeImport(
-    data: Data,
+    fileURL: URL,
     fileName: String
   ) async throws -> LiveYouTubeImportJob
   func youTubeJob(id: String) async throws -> LiveYouTubeImportJob
@@ -48,17 +48,35 @@ final class LiveImportService: LiveImportServiceProtocol {
   }
 
   func createYouTubeImport(
-    data: Data,
+    fileURL: URL,
     fileName: String
   ) async throws -> LiveYouTubeImportJob {
-    let form = MultipartFormData(
-      fieldName: "archive",
-      fileName: fileName,
-      mediaType: "application/zip",
-      data: data
-    )
-    return try await apiClient.request(
-      uploadEndpoint("/imports/youtube-takeout", form: form),
+    let form = try await Task.detached(priority: .userInitiated) {
+      let granted = fileURL.startAccessingSecurityScopedResource()
+      defer {
+        if granted {
+          fileURL.stopAccessingSecurityScopedResource()
+        }
+      }
+      return try MultipartFormFile(
+        sourceURL: fileURL,
+        fieldName: "archive",
+        fileName: fileName,
+        mediaType: "application/zip"
+      )
+    }.value
+    defer {
+      try? FileManager.default.removeItem(at: form.fileURL)
+    }
+    return try await apiClient.upload(
+      APIEndpoint(
+        path: "/imports/youtube-takeout",
+        method: .post,
+        headers: ["Content-Type": form.contentType],
+        requiresAuth: true,
+        timeoutInterval: 120
+      ),
+      from: form.fileURL,
       as: LiveYouTubeImportJob.self
     )
   }

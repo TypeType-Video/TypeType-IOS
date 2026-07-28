@@ -70,3 +70,32 @@ struct LiveYouTubeImportReport: Decodable, Equatable {
   let errors: [String]
   let finishedAt: Int64
 }
+
+struct LiveYouTubeImportArchive: Identifiable, Equatable {
+  enum State: Equatable {
+    case queued
+    case uploading
+    case previewing
+    case committing
+    case importing
+    case completed
+    case failed(String)
+  }
+
+  let id: UUID
+  let url: URL
+  let fileName: String
+  var state: State
+  var progress: Int
+  var job: LiveYouTubeImportJob?
+  var preview: LiveYouTubeImportPreview?
+  var report: LiveYouTubeImportReport?
+
+  init(url: URL) {
+    id = UUID()
+    self.url = url
+    fileName = url.lastPathComponent
+    state = .queued
+    progress = 0
+  }
+}
