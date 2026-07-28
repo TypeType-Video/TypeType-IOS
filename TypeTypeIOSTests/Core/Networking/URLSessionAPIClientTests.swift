@@ -128,6 +128,209 @@ final class URLSessionAPIClientTests: XCTestCase {
     }
   }
 
+  func testRetriesTransientReadFailureWithoutDuplicatingMutations()
+    async throws
+  {
+    let state = RequestCounter()
+    URLProtocolStub.register { request in
+      let attempt = state.increment()
+      if attempt == 1 {
+        throw URLError(.networkConnectionLost)
+      }
+      return try Self.response(
+        request: request,
+        status: 200,
+        body: #"{"value":"recovered"}"#
+      )
+    }
+    let client = makeClient(token: { nil })
+
+    let response = try await client.request(
+      APIEndpoint(path: "/recommendations", method: .get),
+      as: TestResponse.self
+    )
+
+    XCTAssertEqual(response.value, "recovered")
+    XCTAssertEqual(state.value, 2)
+
+    URLProtocolStub.register { _ in
+      _ = state.increment()
+      throw URLError(.networkConnectionLost)
+    }
+    do {
+      try await client.request(
+        APIEndpoint(path: "/history", method: .post)
+      )
+      XCTFail("The mutation should fail without being retried.")
+    } catch {
+      XCTAssertEqual(state.value, 3)
+    }
+  }
+
+  func testStreamsFileUploadAndRetriesWithRefreshedToken() async throws {
+    let directory = FileManager.default.temporaryDirectory
+      .appendingPathComponent(UUID().uuidString)
+    try FileManager.default.createDirectory(
+      at: directory,
+      withIntermediateDirectories: false
+    )
+    defer { try? FileManager.default.removeItem(at: directory) }
+    let fileURL = directory.appendingPathComponent("upload.multipart")
+    let expectedBody = Data("multipart-body".utf8)
+    try expectedBody.write(to: fileURL)
+
+    let state = UploadRequestState()
+    URLProtocolStub.register { request in
+      let authorization = request.value(
+        forHTTPHeaderField: "Authorization"
+      )
+      let body = try URLProtocolStub.bodyData(from: request)
+      state.record(authorization: authorization, body: body)
+      XCTAssertEqual(request.httpMethod, "POST")
+      XCTAssertEqual(
+        request.value(forHTTPHeaderField: "Content-Type"),
+        "multipart/form-data; boundary=test"
+      )
+      return try Self.response(
+        request: request,
+        status: authorization == "Bearer refreshed" ? 200 : 401,
+        body: authorization == "Bearer refreshed"
+          ? #"{"value":"ok"}"#
+          : #"{"error":"expired"}"#
+      )
+    }
+
+    let client = makeClient(token: { "expired" })
+    client.setTokenRefreshHandler { token in
+      XCTAssertEqual(token, "expired")
+      return "refreshed"
+    }
+    let response = try await client.upload(
+      APIEndpoint(
+        path: "/imports/youtube-takeout",
+        method: .post,
+        headers: [
+          "Content-Type": "multipart/form-data; boundary=test",
+        ],
+        requiresAuth: true
+      ),
+      from: fileURL,
+      as: TestResponse.self
+    )
+
+    XCTAssertEqual(response.value, "ok")
+    XCTAssertEqual(
+      state.authorizationHeaders,
+      ["Bearer expired", "Bearer refreshed"]
+    )
+    XCTAssertEqual(state.bodies, [expectedBody, expectedBody])
+  }
+
+  func testDownloadsAuthenticatedArtifactAndRetriesWithRefreshedToken()
+    async throws
+  {
+    let state = RequestState(token: "expired")
+    URLProtocolStub.register { request in
+      let authorization = request.value(
+        forHTTPHeaderField: "Authorization"
+      )
+      state.record(authorization)
+      return try Self.response(
+        request: request,
+        status: authorization == "Bearer refreshed" ? 200 : 401,
+        body: authorization == "Bearer refreshed"
+          ? "downloaded-media"
+          : #"{"error":"expired"}"#
+      )
+    }
+
+    let client = makeClient(token: state.readToken)
+    client.setTokenRefreshHandler { staleToken in
+      XCTAssertEqual(staleToken, "expired")
+      state.updateToken("refreshed")
+      return "refreshed"
+    }
+
+    let fileURL = try await client.download(
+      APIEndpoint(
+        path: "/downloader/jobs/job-1/artifact",
+        method: .get,
+        requiresAuth: true
+      )
+    )
+    defer { try? FileManager.default.removeItem(at: fileURL) }
+
+    XCTAssertEqual(
+      try Data(contentsOf: fileURL),
+      Data("downloaded-media".utf8)
+    )
+    XCTAssertEqual(
+      state.authorizationHeaders,
+      ["Bearer expired", "Bearer refreshed"]
+    )
+  }
+
+  func testRecordsSanitizedDiagnosticsWithRequestID() async {
+    let rootURL = FileManager.default.temporaryDirectory
+      .appendingPathComponent(UUID().uuidString, isDirectory: true)
+    defer { try? FileManager.default.removeItem(at: rootURL) }
+    let store = LiveDiagnosticsStore(rootURL: rootURL)
+    let scope = LiveDiagnosticScope(
+      serverID: "server-1",
+      accountID: "account-1"
+    )
+    URLProtocolStub.register { request in
+      guard let url = request.url,
+        let response = HTTPURLResponse(
+          url: url,
+          statusCode: 422,
+          httpVersion: nil,
+          headerFields: [
+            "Content-Type": "application/json",
+            "X-Request-Id": "request-test-123",
+          ]
+        )
+      else {
+        throw TestError.invalidResponse
+      }
+      return (response, Data(#"{"error":"invalid"}"#.utf8))
+    }
+    let client = URLSessionAPIClient(
+      serverURLProvider: {
+        URL(string: "https://example.test/api")
+      },
+      accessTokenProvider: { "token" },
+      session: Self.makeSession(),
+      diagnosticsStore: store,
+      diagnosticScopeProvider: { scope }
+    )
+
+    do {
+      try await client.request(
+        APIEndpoint(
+          path: "/history/private-video-id",
+          method: .delete,
+          queryItems: [
+            URLQueryItem(name: "secret", value: "never-store-me"),
+          ],
+          requiresAuth: true
+        )
+      )
+      XCTFail("Expected HTTP 422.")
+    } catch {
+      // The request failure is the event under test.
+    }
+
+    let entries = await store.entries(for: scope)
+    XCTAssertEqual(entries.count, 1)
+    XCTAssertEqual(entries.first?.method, "DELETE")
+    XCTAssertEqual(entries.first?.route, "/history/:id")
+    XCTAssertEqual(entries.first?.statusCode, 422)
+    XCTAssertEqual(entries.first?.requestID, "request-test-123")
+    XCTAssertFalse(entries.first?.route.contains("private-video-id") == true)
+    XCTAssertFalse(entries.first?.route.contains("never-store-me") == true)
+  }
+
   private func makeClient(
     token: @escaping () -> String?
   ) -> URLSessionAPIClient {
@@ -201,6 +404,43 @@ private final class RequestState {
   func record(_ header: String?) {
     lock.withLock {
       headers.append(header ?? "")
+    }
+  }
+}
+
+private final class UploadRequestState {
+  private let lock = NSLock()
+  private var headers: [String] = []
+  private var requestBodies: [Data] = []
+
+  var authorizationHeaders: [String] {
+    lock.withLock { headers }
+  }
+
+  var bodies: [Data] {
+    lock.withLock { requestBodies }
+  }
+
+  func record(authorization: String?, body: Data?) {
+    lock.withLock {
+      headers.append(authorization ?? "")
+      requestBodies.append(body ?? Data())
+    }
+  }
+}
+
+private final class RequestCounter {
+  private let lock = NSLock()
+  private var count = 0
+
+  var value: Int {
+    lock.withLock { count }
+  }
+
+  func increment() -> Int {
+    lock.withLock {
+      count += 1
+      return count
     }
   }
 }
