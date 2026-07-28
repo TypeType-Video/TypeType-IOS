@@ -1,0 +1,141 @@
+import SwiftUI
+
+struct LiveVideoMetadataContentView: View {
+  let video: LiveVideoItem
+  let dependencies: AppDependencies
+  @ObservedObject var deArrowStore: LiveDeArrowStore
+  @ObservedObject var playerController: LivePlayerController
+  @ObservedObject private var playbackCoordinator: LivePlaybackCoordinator
+  @State var selectedChannelURL: String?
+  @State var selectedRelatedVideo: LiveVideoItem?
+  @State var selectedPublicPlaylist: LivePlaylistResult?
+  @State var pendingExternalURL: URL?
+  @AppStorage("typetype.player.cinema-mode")
+  private var cinemaMode = true
+
+  init(
+    video: LiveVideoItem,
+    dependencies: AppDependencies,
+    playerController: LivePlayerController
+  ) {
+    self.video = video
+    self.dependencies = dependencies
+    deArrowStore = dependencies.deArrowStore
+    self.playerController = playerController
+    playbackCoordinator = dependencies.playbackCoordinator
+  }
+
+  var body: some View {
+    ScrollView {
+      VStack(alignment: .leading, spacing: 18) {
+        LivePlayerView(
+          controller: playerController,
+          coordinator: playbackCoordinator,
+          posterURL: posterURL,
+          cinemaMode: $cinemaMode
+        )
+        .padding(.horizontal, cinemaMode ? -16 : 0)
+
+        LiveVideoMetadataHeader(
+          video: resolvedVideo,
+          title: playerController.stream?.title ?? branding.title,
+          description: playbackDescription,
+          onChannel: {
+            selectedChannelURL = resolvedVideo.uploaderURL
+          },
+          onSeekTimestamp: playerController.seek,
+          onOpenURL: routeLink
+        )
+
+        LiveVideoEngagementView(
+          video: resolvedVideo,
+          stream: playerController.stream,
+          allowsSubscription: hasPersistentAccount,
+          service: dependencies.subscriptionsService
+        )
+        .id(engagementIdentity)
+
+        LiveVideoLibraryActionsView(
+          video: resolvedVideo,
+          dependencies: dependencies
+        )
+        .id(libraryActionsIdentity)
+
+        LiveVideoUtilityActionsView(
+          video: resolvedVideo,
+          dependencies: dependencies,
+          playerController: playerController
+        )
+        .id(resolvedVideo.canonicalID)
+
+        LivePlaybackQueueView(coordinator: playbackCoordinator)
+
+        if !displayedChapters.isEmpty {
+          LiveVideoChaptersView(
+            chapters: displayedChapters,
+            onSeek: playerController.seek
+          )
+        }
+
+        if let related = playerController.stream?.relatedStreams {
+          LiveRelatedVideosSection(
+            videos: related,
+            deArrowStore: deArrowStore,
+            dependencies: dependencies,
+            onSelect: { selectedRelatedVideo = $0 }
+          )
+        }
+
+        if !playerController.supportsBulletComments {
+          LiveCommentsSectionView(
+            videoURL: resolvedVideo.url,
+            dependencies: dependencies,
+            onChannel: { selectedChannelURL = $0 },
+            onSeekTimestamp: playerController.seek,
+            onOpenURL: routeLink
+          )
+        }
+      }
+      .padding(16)
+    }
+    .background(DemoTheme.background)
+    .navigationTitle("Video")
+    .navigationBarTitleDisplayMode(.inline)
+    .navigationDestination(
+      item: $selectedChannelURL
+    ) { channelURL in
+      LiveChannelView(
+        channelURL: channelURL,
+        dependencies: dependencies
+      )
+    }
+    .navigationDestination(
+      item: $selectedRelatedVideo
+    ) { relatedVideo in
+      LiveVideoMetadataView(
+        video: relatedVideo,
+        dependencies: dependencies
+      )
+    }
+    .navigationDestination(
+      item: $selectedPublicPlaylist
+    ) { playlist in
+      LivePublicPlaylistView(
+        playlist: playlist,
+        dependencies: dependencies
+      )
+    }
+    .externalLinkAlert(pendingURL: $pendingExternalURL)
+    .accessibilityIdentifier("live.video.metadata")
+    .task(id: libraryActionsIdentity) {
+      await deArrowStore.prepare(resolvedVideo)
+    }
+    .onDisappear { playerController.flushHistory() }
+  }
+
+  private var displayedChapters: [LivePlaybackChapter] {
+    let chapters = playerController.stream?.chapters ?? []
+    return (chapters + playerController.sponsorBlockChapters)
+      .sorted { $0.startTimeSeconds < $1.startTimeSeconds }
+  }
+}
