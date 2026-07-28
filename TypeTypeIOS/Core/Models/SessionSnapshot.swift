@@ -4,6 +4,7 @@ struct SessionSnapshot: Codable, Hashable {
   let serverID: String
   let userID: String
   let accountIdentifier: String?
+  let publicUsername: String?
   let role: String
   let updatedAt: Date
 
@@ -11,12 +12,14 @@ struct SessionSnapshot: Codable, Hashable {
     serverID: String,
     userID: String,
     accountIdentifier: String?,
+    publicUsername: String? = nil,
     role: String,
     updatedAt: Date = .now
   ) {
     self.serverID = serverID
     self.userID = userID
     self.accountIdentifier = accountIdentifier
+    self.publicUsername = publicUsername
     self.role = role
     self.updatedAt = updatedAt
   }
@@ -26,6 +29,7 @@ struct SessionSnapshot: Codable, Hashable {
     case userID
     case accountIdentifier
     case legacyUserEmail = "userEmail"
+    case publicUsername
     case role
     case updatedAt
   }
@@ -43,6 +47,10 @@ struct SessionSnapshot: Codable, Hashable {
         String.self,
         forKey: .legacyUserEmail
       )
+    publicUsername = try container.decodeIfPresent(
+      String.self,
+      forKey: .publicUsername
+    )
     role = try container.decode(String.self, forKey: .role)
     updatedAt = try container.decode(Date.self, forKey: .updatedAt)
   }
@@ -54,6 +62,10 @@ struct SessionSnapshot: Codable, Hashable {
     try container.encodeIfPresent(
       accountIdentifier,
       forKey: .accountIdentifier
+    )
+    try container.encodeIfPresent(
+      publicUsername,
+      forKey: .publicUsername
     )
     try container.encode(role, forKey: .role)
     try container.encode(updatedAt, forKey: .updatedAt)

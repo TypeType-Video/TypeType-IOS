@@ -54,10 +54,14 @@ final class ServerProbeService: ServerProbeServiceProtocol {
     guard let url = components.url else {
       throw ServerProbeError.invalidServerURL
     }
-    var request = URLRequest(url: url)
+    var request = URLRequest(
+      url: url,
+      cachePolicy: .reloadIgnoringLocalCacheData,
+      timeoutInterval: 10
+    )
     request.httpMethod = HTTPMethod.get.rawValue
-    request.timeoutInterval = 10
     request.setValue("application/json", forHTTPHeaderField: "Accept")
+    request.setValue("no-cache", forHTTPHeaderField: "Cache-Control")
 
     do {
       let (data, response) = try await session.data(for: request)

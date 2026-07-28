@@ -59,6 +59,63 @@ struct MultipartFormDataBuilder {
   }
 }
 
+struct MultipartFormFile {
+  let contentType: String
+  let fileURL: URL
+
+  init(
+    sourceURL: URL,
+    fieldName: String,
+    fileName: String,
+    mediaType: String
+  ) throws {
+    let boundary = "Boundary-\(UUID().uuidString)"
+    contentType = "multipart/form-data; boundary=\(boundary)"
+    fileURL = FileManager.default.temporaryDirectory
+      .appendingPathComponent("typetype-\(UUID().uuidString)")
+      .appendingPathExtension("multipart")
+
+    guard FileManager.default.createFile(
+      atPath: fileURL.path,
+      contents: nil
+    ) else {
+      throw MultipartFormDataError.cannotCreateFile
+    }
+
+    do {
+      let destination = try FileHandle(forWritingTo: fileURL)
+      defer { try? destination.close() }
+      try destination.write(
+        contentsOf: Data("--\(boundary)\r\n".utf8)
+      )
+      try destination.write(
+        contentsOf: Data(
+          (
+            "Content-Disposition: form-data; "
+              + "name=\"\(fieldName)\"; filename=\"\(fileName)\"\r\n"
+          ).utf8
+        )
+      )
+      try destination.write(
+        contentsOf: Data("Content-Type: \(mediaType)\r\n\r\n".utf8)
+      )
+
+      let source = try FileHandle(forReadingFrom: sourceURL)
+      defer { try? source.close() }
+      while let chunk = try source.read(upToCount: 1_048_576),
+        !chunk.isEmpty {
+        try destination.write(contentsOf: chunk)
+      }
+      try destination.write(
+        contentsOf: Data("\r\n--\(boundary)--\r\n".utf8)
+      )
+    } catch {
+      try? FileManager.default.removeItem(at: fileURL)
+      throw error
+    }
+  }
+}
+
 private extension Data {
   mutating func appendUTF8(_ value: String) throws {
     guard let encoded = value.data(using: .utf8) else {
@@ -70,4 +127,5 @@ private extension Data {
 
 private enum MultipartFormDataError: Error {
   case invalidUTF8
+  case cannotCreateFile
 }
