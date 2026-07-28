@@ -70,6 +70,117 @@ final class MediaLinkResolverTests: XCTestCase {
     XCTAssertNil(LiveMediaLinkResolver.destination(for: url))
   }
 
+  func testTypeTypeWatchAndShortsLinksResolveAsNormalVideos() throws {
+    let serverURL = try XCTUnwrap(
+      URL(string: "https://beta.typetype.video/api")
+    )
+    let links = [
+      (
+        "https://beta.typetype.video/watch?v=sm9",
+        "https://www.nicovideo.jp/watch/sm9"
+      ),
+      (
+        "https://beta.typetype.video/shorts?v=YE7VzlLtp-4",
+        "https://www.youtube.com/watch?v=YE7VzlLtp-4"
+      ),
+      (
+        "https://beta.typetype.video/watch?v=BV1xx411c7mD",
+        "https://www.bilibili.com/video/BV1xx411c7mD"
+      ),
+    ]
+
+    for (value, expectedSource) in links {
+      let url = try XCTUnwrap(URL(string: value))
+      guard case let .video(video) = LiveMediaLinkResolver.destination(
+        for: url,
+        serverURL: serverURL
+      ) else {
+        return XCTFail("\(value) should resolve as an internal video.")
+      }
+      XCTAssertEqual(video.url, expectedSource)
+      XCTAssertFalse(video.isShortFormContent)
+    }
+  }
+
+  func testTypeTypeChannelAndPlaylistLinksResolveInternally() throws {
+    let serverURL = try XCTUnwrap(
+      URL(string: "https://watch.typetype.video/api")
+    )
+    let channelURL = try XCTUnwrap(
+      URL(
+        string: "https://watch.typetype.video/channel?url=%40BlenderOfficial"
+      )
+    )
+    guard case let .channel(channel) = LiveMediaLinkResolver.destination(
+      for: channelURL,
+      serverURL: serverURL
+    ) else {
+      return XCTFail("The TypeType channel link should stay in-app.")
+    }
+    XCTAssertEqual(
+      channel,
+      "https://www.youtube.com/@BlenderOfficial"
+    )
+
+    let playlistURL = try XCTUnwrap(
+      URL(
+        string: "https://watch.typetype.video/playlist?list=PL123"
+      )
+    )
+    guard case let .playlist(playlist) =
+      LiveMediaLinkResolver.destination(
+        for: playlistURL,
+        serverURL: serverURL
+      )
+    else {
+      return XCTFail("The TypeType playlist link should stay in-app.")
+    }
+    XCTAssertEqual(
+      playlist.url,
+      "https://www.youtube.com/playlist?list=PL123"
+    )
+  }
+
+  func testCustomSchemeCanOpenProviderLinks() throws {
+    for (value, expectedSource) in [
+      (
+        "typetype://watch?v=sm9",
+        "https://www.nicovideo.jp/watch/sm9"
+      ),
+      (
+        "typetype://watch?v=YE7VzlLtp-4",
+        "https://www.youtube.com/watch?v=YE7VzlLtp-4"
+      ),
+      (
+        "typetype://watch?v=BV1xx411c7mD",
+        "https://www.bilibili.com/video/BV1xx411c7mD"
+      ),
+    ] {
+      let url = try XCTUnwrap(URL(string: value))
+      guard case let .video(video) = LiveMediaLinkResolver.destination(
+        for: url
+      ) else {
+        return XCTFail("\(value) should resolve inside TypeType.")
+      }
+      XCTAssertEqual(video.url, expectedSource)
+    }
+  }
+
+  func testAnotherTypeTypeOriginIsNotTrustedAsCurrentServer() throws {
+    let link = try XCTUnwrap(
+      URL(string: "https://other.example/watch?v=YE7VzlLtp-4")
+    )
+    let serverURL = try XCTUnwrap(
+      URL(string: "https://beta.typetype.video/api")
+    )
+    XCTAssertNil(
+      LiveMediaLinkResolver.destination(
+        for: link,
+        serverURL: serverURL
+      )
+    )
+  }
+
   func testRichTextCreatesSeekAndWebLinks() {
     let text =
       "Compare 1:44 with https://www.youtube.com/watch?v=YE7VzlLtp-4"
