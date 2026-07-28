@@ -7,6 +7,7 @@ struct LiveSearchView: View {
   @State var selectedVideoChannelURL: String?
   @State var selectedChannel: LiveChannelResult?
   @State var selectedPlaylist: LivePlaylistResult?
+  @FocusState private var searchIsFocused: Bool
   @Environment(\.dismissSearch) private var dismissSearch
   private let onClose: () -> Void
 
@@ -43,10 +44,11 @@ struct LiveSearchView: View {
           placement: .navigationBarDrawer(displayMode: .always),
           prompt: "Search videos, channels..."
         )
+        .trackingSearchFocus($searchIsFocused)
         .searchSuggestions {
           ForEach(viewModel.suggestions, id: \.self) { suggestion in
             Button {
-              dismissSearch()
+              closeSearchInput()
               Task { await viewModel.submit(suggestion) }
             } label: {
               Label(suggestion, systemImage: "magnifyingglass")
@@ -55,7 +57,7 @@ struct LiveSearchView: View {
           }
         }
         .onSubmit(of: .search) {
-          dismissSearch()
+          closeSearchInput()
           Task { await viewModel.submit() }
         }
         .onChange(of: viewModel.query) {
@@ -92,5 +94,23 @@ struct LiveSearchView: View {
       await viewModel.prepare()
     }
     .accessibilityIdentifier("live.search.screen")
+  }
+
+  private func closeSearchInput() {
+    searchIsFocused = false
+    dismissSearch()
+  }
+}
+
+private extension View {
+  @ViewBuilder
+  func trackingSearchFocus(
+    _ focus: FocusState<Bool>.Binding
+  ) -> some View {
+    if #available(iOS 18.0, *) {
+      searchFocused(focus)
+    } else {
+      self
+    }
   }
 }

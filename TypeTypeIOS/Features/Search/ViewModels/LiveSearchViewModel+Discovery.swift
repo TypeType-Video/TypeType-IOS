@@ -34,7 +34,7 @@ extension LiveSearchViewModel {
         let values = try await task.value
         guard query.trimmingCharacters(
           in: .whitespacesAndNewlines
-        ) == term else {
+        ) == term, submittedQuery != term else {
           return
         }
         suggestions = Array(values.prefix(8))
