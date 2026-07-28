@@ -14,49 +14,102 @@ final class LivePlayerController: ObservableObject {
 
   let player = AVPlayer()
 
-  @Published private(set) var state: State = .idle
-  @Published private(set) var stream: LivePlaybackStream?
-  @Published private(set) var preparation: LivePlaybackPreparation?
-  @Published private(set) var position: TimeInterval = 0
-  @Published private(set) var duration: TimeInterval = 0
+  @Published var state: State = .idle
+  @Published var stream: LivePlaybackStream?
+  @Published var preparation: LivePlaybackPreparation?
+  @Published var position: TimeInterval = 0
+  @Published var duration: TimeInterval = 0
   @Published var audioOnly = false
   @Published var selectedVideoItag: Int?
+  @Published var selectedVideoSourceID: String?
   @Published var selectedAudioTrackID: String?
+  @Published var selectedAudioSourceID: String?
   @Published var playbackRate: Float = 1
+  @Published var autoplayEnabled = true
+  @Published var loopsPlayback = false
+  @Published var subtitlesEnabled = false
+  @Published var selectedSubtitleLanguage = ""
+  @Published var sponsorBlockEnabled = true
+  @Published var sponsorBlockMode = LiveSponsorBlockMode.autoSkip.rawValue
+  @Published var sponsorBlockCategoryActions: [String: String] = [:]
+  @Published var sponsorBlockMinimumDuration = 0
+  @Published var sponsorBlockMuteInsteadOfSkip = false
+  @Published var sponsorBlockShowCurrentSegment = true
+  @Published var sponsorBlockShowChapters = false
+  @Published var sponsorBlockShowFullVideoLabels = true
+  @Published var sponsorBlockManualSkipOnFullVideo = true
+  @Published var sponsorBlockSkipNonMusicOnlyOnMusicVideos = false
+  @Published var muted = false
+  @Published var bulletCommentsEnabled = false
+  @Published var bulletCommentSpeed = 1.0
+  @Published var bulletCommentSize = 1.0
 
-  private let video: LiveVideoItem
-  private let service: LivePlaybackServiceProtocol?
-  private let settingsService: LiveSettingsServiceProtocol
-  private let historyService: LiveHistoryServiceProtocol
-  private let playbackSessionReporter: LivePlaybackSessionReporter
-  private var settings = LiveSettings()
-  private var loadTask: Task<Void, Never>?
-  private var playbackServer: LivePlaybackHTTPServer?
-  private var itemObservation: NSKeyValueObservation?
-  private var playbackObservation: NSKeyValueObservation?
-  private var endObservation: NSObjectProtocol?
-  private var timeObserver: Any?
-  private var didLoad = false
-  private var pendingSeek: TimeInterval?
-  private var lastHistoryProgress: Int64 = -1
-  private var playbackSessionProgressTask: Task<Void, Never>?
-  private var handledSponsorSegments: Set<String> = []
-  private var sponsorMutedUntil: TimeInterval?
+  var onPlaybackEnded: (() -> Void)?
+  var onMetadataResolved: ((LiveVideoItem) -> Void)?
 
-  init(video: LiveVideoItem, dependencies: AppDependencies) {
+  let video: LiveVideoItem
+  let initialAutoplay: Bool
+  let service: LivePlaybackServiceProtocol?
+  let settingsService: LiveSettingsServiceProtocol
+  let historyService: LiveHistoryServiceProtocol
+  let playbackSessionReporter: LivePlaybackSessionReporter
+  let bulletCommentStore = LiveBulletCommentStore()
+  var settings = LiveSettings()
+  var loadTask: Task<Void, Never>?
+  var seekTask: Task<Void, Never>?
+  var playbackServer: LivePlaybackHTTPServer?
+  var itemObservation: NSKeyValueObservation?
+  var playbackObservation: NSKeyValueObservation?
+  var endObservation: NSObjectProtocol?
+  var timeObserver: Any?
+  var didLoad = false
+  var pendingSeek: TimeInterval?
+  var playbackTimeOffset: TimeInterval = 0
+  var lastHistoryProgress: Int64 = -1
+  var didRecordHistoryEvent = false
+  var playbackSessionProgressTask: Task<Void, Never>?
+  var presentationResumeTask: Task<Void, Never>?
+  var bulletCommentsTask: Task<Void, Never>?
+  var bulletCommentsLoadGeneration = 0
+  var bulletCommentStateRevision = 0
+  var handledSponsorSegments: Set<String> = []
+  var sponsorMutedRange: Range<TimeInterval>?
+
+  init(
+    video: LiveVideoItem,
+    dependencies: AppDependencies,
+    autoplay: Bool = true
+  ) {
     self.video = video
+    initialAutoplay = autoplay
     service = dependencies.playbackService
     settingsService = dependencies.settingsService
     historyService = dependencies.historyService
     playbackSessionReporter = LivePlaybackSessionReporter(
       service: dependencies.sessionActivityService
     )
+    let defaults = UserDefaults.standard
+    bulletCommentsEnabled = defaults.object(
+      forKey: Self.bulletCommentsEnabledKey
+    ) == nil
+      ? true
+      : defaults.bool(forKey: Self.bulletCommentsEnabledKey)
+    let storedSpeed = defaults.object(
+      forKey: Self.bulletCommentSpeedKey
+    ) == nil ? 1 : defaults.double(forKey: Self.bulletCommentSpeedKey)
+    bulletCommentSpeed = min(max(storedSpeed, 0.5), 2)
+    let storedSize = defaults.object(
+      forKey: Self.bulletCommentSizeKey
+    ) == nil ? 1 : defaults.double(forKey: Self.bulletCommentSizeKey)
+    bulletCommentSize = min(max(storedSize, 0.5), 2)
     player.automaticallyWaitsToMinimizeStalling = true
     installPeriodicObserver()
   }
 
   deinit {
     playbackSessionProgressTask?.cancel()
+    presentationResumeTask?.cancel()
+    bulletCommentsTask?.cancel()
     playbackServer?.stop()
     let reporter = playbackSessionReporter
     Task { @MainActor in
@@ -66,8 +119,17 @@ final class LivePlayerController: ObservableObject {
 
   var availableVideoSources: [LivePlaybackVideoSource] {
     guard let stream else { return [] }
-    return stream.allVideoSources
-      .filter { $0.isSABR && $0.isAppleH264 }
+    let sabr = stream.allVideoSources.filter {
+      $0.isSABR && $0.isAppleH264
+    }
+    let compatible = sabr.isEmpty
+      ? stream.allVideoSources.filter {
+        !$0.isSABR && $0.isAppleProviderVideo
+      }
+      : sabr
+    var seen: Set<String> = []
+    return compatible
+      .filter { seen.insert($0.selectionID).inserted }
       .sorted {
         if $0.height != $1.height { return $0.height < $1.height }
         return ($0.bitrate ?? 0) < ($1.bitrate ?? 0)
@@ -76,17 +138,29 @@ final class LivePlayerController: ObservableObject {
 
   var availableAudioSources: [LivePlaybackAudioSource] {
     guard let stream else { return [] }
-    var seen: Set<String> = []
-    return stream.audioStreams.filter {
+    let sabr = stream.audioStreams.filter {
       $0.isSABR && $0.isAppleAAC
-        && seen.insert($0.id).inserted
+    }
+    let compatible = sabr.isEmpty
+      ? stream.audioStreams.filter {
+        !$0.isSABR && $0.isAppleProviderAudio
+      }
+      : sabr
+    var seen: Set<String> = []
+    return compatible.filter {
+      seen.insert($0.id).inserted
     }
   }
 
   var transportLabel: String {
     guard let preparation else { return "Preparing playback" }
     if preparation.isSABR {
-      return "SABR · \(preparation.video?.displayName ?? "audio")"
+      return preparation.audioOnly
+        ? "SABR · audio"
+        : "SABR · \(preparation.video?.displayName ?? "automatic")"
+    }
+    if preparation.providerPlayback != nil {
+      return "Native · \(preparation.video?.displayName ?? "automatic")"
     }
     return "Native media"
   }
@@ -102,464 +176,15 @@ final class LivePlayerController: ObservableObject {
     }
   }
 
-  func loadIfNeeded() async {
-    guard !didLoad else { return }
-    didLoad = true
-    await load()
+  var bulletComments: [LiveBulletComment] {
+    bulletCommentStore.state.comments
   }
 
-  func retry() {
-    loadTask?.cancel()
-    didLoad = true
-    loadTask = Task { [weak self] in
-      await self?.load()
-    }
+  var bulletCommentsLoading: Bool {
+    bulletCommentStore.state.isLoading
   }
 
-  func togglePlayback() {
-    if player.timeControlStatus == .playing {
-      player.pause()
-    } else {
-      player.playImmediately(atRate: playbackRate)
-    }
-  }
-
-  func seek(to seconds: TimeInterval) {
-    let bounded = min(max(seconds, 0), max(duration, 0))
-    player.seek(
-      to: CMTime(seconds: bounded, preferredTimescale: 600),
-      toleranceBefore: .zero,
-      toleranceAfter: .zero
-    ) { [weak self] _ in
-      Task { @MainActor [weak self] in
-        guard let self else { return }
-        position = max(player.currentTime().seconds, 0)
-        reportPlaybackSessionProgress()
-      }
-    }
-  }
-
-  func selectVideoItag(_ itag: Int?) {
-    guard selectedVideoItag != itag else { return }
-    selectedVideoItag = itag
-    restartAtCurrentPosition()
-  }
-
-  func selectAudioTrack(_ trackID: String?) {
-    guard selectedAudioTrackID != trackID else { return }
-    selectedAudioTrackID = trackID
-    restartAtCurrentPosition()
-  }
-
-  func setAudioOnly(_ enabled: Bool) {
-    guard audioOnly != enabled else { return }
-    audioOnly = enabled
-    restartAtCurrentPosition()
-  }
-
-  func setPlaybackRate(_ rate: Float) {
-    playbackRate = min(max(rate, 0.25), 2)
-    player.defaultRate = playbackRate
-    if player.timeControlStatus == .playing {
-      player.rate = playbackRate
-    }
-  }
-
-  func flushHistory() {
-    recordHistoryIfNeeded(force: true)
-    reportPlaybackSessionProgress()
-  }
-
-  private func load() async {
-    guard let service else {
-      state = .failed(
-        LivePlaybackFailure.unavailableService.localizedDescription
-      )
-      return
-    }
-    state = .loading
-    handledSponsorSegments.removeAll()
-    sponsorMutedUntil = nil
-    do {
-      async let settingsRequest = settingsService.settings()
-      async let streamRequest = service.stream(for: video.url)
-      settings = (try? await settingsRequest) ?? LiveSettings()
-      let loadedStream = try await streamRequest
-      guard !Task.isCancelled else { return }
-      stream = loadedStream
-      audioOnly = false
-      selectedVideoItag = nil
-      selectedAudioTrackID = settings.defaultAudioLanguage.isEmpty
-        ? nil
-        : loadedStream.audioStreams.first(where: {
-          $0.audioLocale?.lowercased().hasPrefix(
-            settings.defaultAudioLanguage.lowercased()
-          ) == true
-        })?.audioTrackID
-      try await install(
-        service.prepare(
-          stream: loadedStream,
-          preferences: preferences
-        ),
-        autoplay: true,
-        seekOverride: nil
-      )
-    } catch is CancellationError {
-      return
-    } catch {
-      state = .failed(Self.message(for: error))
-      stopPlaybackSession()
-    }
-  }
-
-  private func restartAtCurrentPosition() {
-    guard let service, let stream else { return }
-    let restartTime = position
-    let wasPlaying = player.timeControlStatus == .playing
-    state = .loading
-    loadTask?.cancel()
-    loadTask = Task { [weak self] in
-      guard let self else { return }
-      do {
-        let preparation = try service.prepare(
-          stream: stream,
-          preferences: preferences
-        )
-        guard !Task.isCancelled else { return }
-        try await install(
-          preparation,
-          autoplay: wasPlaying,
-          seekOverride: restartTime
-        )
-      } catch {
-        state = .failed(Self.message(for: error))
-        stopPlaybackSession()
-      }
-    }
-  }
-
-  private var preferences: LivePlaybackPreferences {
-    LivePlaybackPreferences(
-      quality: settings.defaultQuality,
-      videoItag: selectedVideoItag,
-      audioTrackID: selectedAudioTrackID,
-      audioOnly: audioOnly
-    )
-  }
-
-  private func install(
-    _ preparation: LivePlaybackPreparation,
-    autoplay: Bool,
-    seekOverride: TimeInterval?
-  ) async throws {
-    player.pause()
-    playbackServer?.stop()
-    playbackServer = nil
-    self.preparation = preparation
-    duration = TimeInterval(preparation.stream.duration)
-    pendingSeek = {
-      let requested = seekOverride ?? preparation.resumeTime
-      guard duration > 0, requested < duration - 5 else { return 0 }
-      return max(requested, 0)
-    }()
-
-    let assetURL: URL
-    if preparation.usesAuthenticatedLoader,
-      let service {
-      let server = LivePlaybackHTTPServer(
-        service: service,
-        preparation: preparation,
-        preferredSubtitleLanguage: settings.defaultSubtitleLanguage
-      )
-      assetURL = try await server.start()
-      playbackServer = server
-    } else {
-      assetURL = preparation.assetURL
-    }
-    let asset = AVURLAsset(url: assetURL)
-    let item = AVPlayerItem(asset: asset)
-    item.preferredForwardBufferDuration = 20
-    observe(item, autoplay: autoplay)
-    player.replaceCurrentItem(with: item)
-    player.defaultRate = playbackRate
-    do {
-      try DemoAudioSessionConfigurator.configure(
-        backgroundAudio: true
-      )
-    } catch {
-      state = .failed("The audio session could not be configured.")
-    }
-  }
-
-  private func observe(
-    _ item: AVPlayerItem,
-    autoplay: Bool
-  ) {
-    if let endObservation {
-      NotificationCenter.default.removeObserver(endObservation)
-    }
-    endObservation = NotificationCenter.default.addObserver(
-      forName: .AVPlayerItemDidPlayToEndTime,
-      object: item,
-      queue: .main
-    ) { [weak self] _ in
-      Task { @MainActor [weak self] in
-        guard let self else { return }
-        state = .paused
-        recordHistoryIfNeeded(force: true)
-        reportPlaybackSessionProgress()
-        stopPlaybackSession()
-      }
-    }
-    itemObservation = item.observe(
-      \.status,
-      options: [.initial, .new]
-    ) { [weak self] item, _ in
-      Task { @MainActor [weak self] in
-        guard let self, player.currentItem === item else { return }
-        switch item.status {
-        case .unknown:
-          state = .loading
-        case .readyToPlay:
-          duration = item.duration.seconds.isFinite
-            ? item.duration.seconds
-            : TimeInterval(preparation?.stream.duration ?? 0)
-          configureSubtitles(for: item)
-          let target = pendingSeek ?? 0
-          pendingSeek = nil
-          if target > 0 {
-            player.seek(
-              to: CMTime(
-                seconds: target,
-                preferredTimescale: 600
-              ),
-              toleranceBefore: .zero,
-              toleranceAfter: .zero
-            ) { [weak self] _ in
-              Task { @MainActor [weak self] in
-                guard let self else { return }
-                if autoplay {
-                  player.playImmediately(atRate: playbackRate)
-                } else {
-                  state = .ready
-                }
-              }
-            }
-          } else if autoplay {
-            player.playImmediately(atRate: playbackRate)
-          } else {
-            state = .ready
-          }
-        case .failed:
-          state = .failed(
-            DemoPlaybackErrorFormatter.message(for: item.error)
-          )
-          stopPlaybackSession()
-        @unknown default:
-          state = .failed("The player reported an unknown state.")
-        }
-      }
-    }
-    playbackObservation = player.observe(
-      \.timeControlStatus,
-      options: [.new]
-    ) { [weak self] player, _ in
-      Task { @MainActor [weak self] in
-        guard let self else { return }
-        switch player.timeControlStatus {
-        case .paused:
-          if state == .playing {
-            state = .paused
-            reportPlaybackSessionProgress()
-          }
-        case .waitingToPlayAtSpecifiedRate:
-          state = .loading
-        case .playing:
-          state = .playing
-          startPlaybackSessionIfNeeded()
-        @unknown default:
-          break
-        }
-      }
-    }
-  }
-
-  private func configureSubtitles(for item: AVPlayerItem) {
-    let enablesSubtitles = settings.subtitlesEnabled
-    let language = settings.defaultSubtitleLanguage
-    Task { [weak self, weak item] in
-      guard let self, let item else { return }
-      guard let group = try? await item.asset.loadMediaSelectionGroup(
-        for: .legible
-      ) else {
-        return
-      }
-      guard player.currentItem === item else { return }
-      if !enablesSubtitles {
-        item.select(nil, in: group)
-        return
-      }
-      let option = group.options.first(where: { option in
-        guard !language.isEmpty else { return false }
-        return option.extendedLanguageTag?.lowercased().hasPrefix(
-          language.lowercased()
-        ) == true
-      }) ?? group.defaultOption ?? group.options.first
-      item.select(option, in: group)
-    }
-  }
-
-  private func installPeriodicObserver() {
-    timeObserver = player.addPeriodicTimeObserver(
-      forInterval: CMTime(seconds: 1, preferredTimescale: 2),
-      queue: .main
-    ) { [weak self] time in
-      Task { @MainActor [weak self] in
-        guard let self else { return }
-        let seconds = time.seconds
-        guard seconds.isFinite else { return }
-        position = max(seconds, 0)
-        updateSponsorBlock(at: position)
-        recordHistoryIfNeeded(force: false)
-      }
-    }
-  }
-
-  private func updateSponsorBlock(at seconds: TimeInterval) {
-    guard let segments = stream?.sponsorBlockSegments,
-      settings.sponsorBlockMode == LiveSponsorBlockMode.autoSkip.rawValue
-    else {
-      return
-    }
-    if let sponsorMutedUntil {
-      if seconds >= sponsorMutedUntil {
-        player.isMuted = settings.muted
-        self.sponsorMutedUntil = nil
-      }
-      return
-    }
-    let milliseconds = seconds * 1_000
-    guard let segment = segments.first(where: {
-      milliseconds >= $0.startTime
-        && milliseconds < $0.endTime
-        && !handledSponsorSegments.contains($0.id)
-    }) else {
-      return
-    }
-    handledSponsorSegments.insert(segment.id)
-    let action = settings.sponsorBlockCategoryActions[segment.category]
-      ?? segment.action
-    guard action == "auto_skip" else { return }
-    let duration = segment.endTime - segment.startTime
-    guard duration > 0,
-      duration < Double(stream?.duration ?? 0) * 900
-    else {
-      return
-    }
-    if settings.sponsorBlockMuteInsteadOfSkip {
-      player.isMuted = true
-      sponsorMutedUntil = segment.endTime / 1_000
-    } else {
-      seek(to: segment.endTime / 1_000)
-    }
-  }
-
-  private func recordHistoryIfNeeded(force: Bool) {
-    guard !settings.disableWatchHistory, position > 0 else { return }
-    let progress = Int64(position.rounded(.down))
-    guard force || lastHistoryProgress < 0
-      || progress - lastHistoryProgress >= 15
-    else {
-      return
-    }
-    lastHistoryProgress = progress
-    let historyVideo = video.resolving(with: stream)
-    Task { [historyService, historyVideo] in
-      _ = try? await historyService.add(
-        video: historyVideo,
-        progress: progress
-      )
-    }
-  }
-
-  private func startPlaybackSessionIfNeeded() {
-    guard let snapshot = playbackActivitySnapshot else { return }
-    playbackSessionReporter.startIfNeeded(snapshot)
-    startPlaybackSessionProgressLoop()
-  }
-
-  private func reportPlaybackSessionProgress() {
-    guard let snapshot = playbackActivitySnapshot else { return }
-    if state == .playing {
-      playbackSessionReporter.startIfNeeded(snapshot)
-    }
-    playbackSessionReporter.progress(snapshot)
-  }
-
-  private func startPlaybackSessionProgressLoop() {
-    guard playbackSessionProgressTask == nil else { return }
-    playbackSessionProgressTask = Task { @MainActor [weak self] in
-      while !Task.isCancelled {
-        do {
-          try await Task.sleep(for: .seconds(15))
-        } catch {
-          return
-        }
-        guard let self else { return }
-        reportPlaybackSessionProgress()
-      }
-    }
-  }
-
-  private func stopPlaybackSession() {
-    playbackSessionProgressTask?.cancel()
-    playbackSessionProgressTask = nil
-    playbackSessionReporter.stop()
-  }
-
-  private var playbackActivitySnapshot:
-    LivePlaybackActivitySnapshot? {
-    let resolvedVideo = video.resolving(with: stream)
-    guard let stream,
-      !stream.isLive,
-      !stream.isLiveContent,
-      !resolvedVideo.url.isEmpty,
-      !resolvedVideo.title.trimmingCharacters(
-        in: .whitespacesAndNewlines
-      ).isEmpty
-    else {
-      return nil
-    }
-    let resolvedDuration = duration.isFinite && duration > 0
-      ? duration
-      : TimeInterval(resolvedVideo.duration)
-    return LivePlaybackActivitySnapshot(
-      videoURL: resolvedVideo.url,
-      title: resolvedVideo.title,
-      thumbnailURL: resolvedVideo.thumbnailURL.isEmpty
-        ? nil
-        : resolvedVideo.thumbnailURL,
-      channelName: resolvedVideo.uploaderName.isEmpty
-        ? nil
-        : resolvedVideo.uploaderName,
-      positionMilliseconds: Self.milliseconds(position),
-      durationMilliseconds: resolvedDuration > 0
-        ? Self.milliseconds(resolvedDuration)
-        : nil,
-      isPaused: player.timeControlStatus == .paused
-    )
-  }
-
-  private static func milliseconds(
-    _ seconds: TimeInterval
-  ) -> Int64 {
-    guard seconds.isFinite, seconds > 0 else { return 0 }
-    return Int64(
-      min(seconds * 1_000, Double(Int64.max)).rounded(.down)
-    )
-  }
-
-  private static func message(for error: Error) -> String {
+  static func message(for error: Error) -> String {
     (error as? LocalizedError)?.errorDescription
       ?? "Playback could not be prepared."
   }
