@@ -189,6 +189,11 @@ final class ParityMutationsUITests: XCTestCase {
     let more = app.tabBars.buttons["More"]
     XCTAssertTrue(more.waitForExistence(timeout: 3))
     more.tap()
+    let moreScreen = app.descendants(matching: .any)["demo.more.screen"]
+    if !moreScreen.waitForExistence(timeout: 2) {
+      more.tap()
+    }
+    XCTAssertTrue(moreScreen.waitForExistence(timeout: 4))
 
     let discovery = app.staticTexts["Discovery & services"]
     reveal(discovery)

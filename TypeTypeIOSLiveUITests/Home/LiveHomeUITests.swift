@@ -514,6 +514,29 @@ final class LiveHomeUITests: XCTestCase {
     )
     capture(app, named: "Live downloads · Local audio playback")
     app.terminate()
+
+    server.stop()
+    app.launchArguments = ["--typetype-live-ui"]
+    app.launch()
+    XCTAssertTrue(
+      app.descendants(matching: .any)["live.connectivity.banner"]
+        .waitForExistence(timeout: 15)
+    )
+    element(in: app, labelled: "Downloads").tap()
+    XCTAssertTrue(
+      element(in: app, labelled: "Ready offline")
+        .waitForExistence(timeout: 5)
+    )
+    element(in: app, labelled: "Listen").tap()
+    XCTAssertTrue(
+      app.descendants(matching: .any)["live.offline-audio-player"]
+        .waitForExistence(timeout: 5)
+    )
+    capture(
+      app,
+      named: "Live downloads · Audio playback after offline restart"
+    )
+    app.terminate()
   }
 
   func testDiagnosticsShowsSanitizedBackendRequests() throws {

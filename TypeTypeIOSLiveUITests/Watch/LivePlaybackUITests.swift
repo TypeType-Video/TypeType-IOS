@@ -3,6 +3,29 @@ import XCTest
 
 @MainActor
 final class LivePlaybackUITests: XCTestCase {
+  func testRandomizedFiveMinuteYouTubePlayback() throws {
+    let candidates = [
+      (
+        searchQuery: "MKBHD",
+        expectedVideoID: "zzjq7_ddb0U"
+      ),
+      (
+        searchQuery: "GTA LaSalle",
+        expectedVideoID: "mcV4qoX2MIE"
+      ),
+      (
+        searchQuery: "MrBeast",
+        expectedVideoID: "iYlODtkyw_I"
+      ),
+    ]
+    let candidate = candidates.randomElement()!
+    try runPlayback(
+      searchQuery: candidate.searchQuery,
+      expectedVideoID: candidate.expectedVideoID,
+      holdSeconds: 300
+    )
+  }
+
   func testYouTubeSABRPlaybackReachesPlayingState() throws {
     try runPlayback(
       searchQuery: "Big Buck Bunny",
@@ -34,10 +57,39 @@ final class LivePlaybackUITests: XCTestCase {
     )
   }
 
+  func testSustainedYouTubeLivePlayback() throws {
+    try runPlayback(
+      searchQuery: "NASA live",
+      expectedVideoID: "awQzjn72bI0",
+      holdSeconds: 60,
+      expectsLive: true
+    )
+  }
+
   func testSustainedBiliBiliPlayback() throws {
     try runPlayback(
       searchQuery: "BV1xx411c7mD",
       expectedVideoID: "BV1xx411c7mD",
+      serviceID: 5,
+      serviceName: "BiliBili",
+      holdSeconds: 30
+    )
+  }
+
+  func testSustainedBiliBiliAkamaiPlayback() throws {
+    try runPlayback(
+      searchQuery: "BV1cN411d74Q",
+      expectedVideoID: "BV1cN411d74Q",
+      serviceID: 5,
+      serviceName: "BiliBili",
+      holdSeconds: 30
+    )
+  }
+
+  func testSustainedBiliBiliLargeAkamaiRangesPlayback() throws {
+    try runPlayback(
+      searchQuery: "BV12V3v66E3B",
+      expectedVideoID: "BV12V3v66E3B",
       serviceID: 5,
       serviceName: "BiliBili",
       holdSeconds: 30
@@ -51,6 +103,16 @@ final class LivePlaybackUITests: XCTestCase {
       serviceID: 6,
       serviceName: "NicoNico",
       holdSeconds: 30
+    )
+  }
+
+  func testSustainedNicoNicoSignedHLSPlayback() throws {
+    try runPlayback(
+      searchQuery: "死んでみた 箱庭コト",
+      expectedVideoID: "sm46589126",
+      serviceID: 6,
+      serviceName: "NicoNico",
+      holdSeconds: 60
     )
   }
 
@@ -83,7 +145,8 @@ final class LivePlaybackUITests: XCTestCase {
     serviceName: String? = nil,
     holdSeconds: TimeInterval = 0,
     exercisesFullscreen: Bool = false,
-    exercisesPictureInPicture: Bool = false
+    exercisesPictureInPicture: Bool = false,
+    expectsLive: Bool = false
   ) throws {
     let environment = ProcessInfo.processInfo.environment
     let liveURL = environment["TYPETYPE_LIVE_URL"]
@@ -153,6 +216,15 @@ final class LivePlaybackUITests: XCTestCase {
     )
     waitForExpectations(timeout: 120)
 
+    if expectsLive {
+      let statistics = app.staticTexts["live.video.statistics"]
+      XCTAssertTrue(statistics.waitForExistence(timeout: 10))
+      XCTAssertTrue(
+        statistics.label.localizedCaseInsensitiveContains("Live"),
+        "The selected result did not open as a live stream."
+      )
+    }
+
     if exercisesFullscreen {
       try exerciseFullscreen(app)
     }
@@ -163,13 +235,10 @@ final class LivePlaybackUITests: XCTestCase {
     }
 
     if holdSeconds > 0 {
-      let hold = expectation(description: "Sustained SABR playback")
-      DispatchQueue.main.asyncAfter(deadline: .now() + holdSeconds) {
-        hold.fulfill()
-      }
-      wait(for: [hold], timeout: holdSeconds + 5)
-      expectation(for: playing, evaluatedWith: player)
-      waitForExpectations(timeout: 30)
+      try assertSustainedPlayback(
+        in: app,
+        seconds: holdSeconds
+      )
     }
 
     let attachment = XCTAttachment(screenshot: app.screenshot())
@@ -194,6 +263,52 @@ final class LivePlaybackUITests: XCTestCase {
     XCTAssertTrue(
       waitForPlayingPlayer(in: app, timeout: 30),
       app.debugDescription
+    )
+  }
+
+  private func assertSustainedPlayback(
+    in app: XCUIApplication,
+    seconds: TimeInterval
+  ) throws {
+    let position = app.otherElements["live.player.position"]
+    XCTAssertTrue(position.waitForExistence(timeout: 10))
+    let startingPosition = try playbackPosition(from: position)
+    var lastPosition = startingPosition
+    var lastAdvance = Date()
+    let deadline = Date().addingTimeInterval(seconds)
+    while Date() < deadline {
+      RunLoop.current.run(
+        until: Date().addingTimeInterval(2)
+      )
+      XCTAssertEqual(app.state, .runningForeground)
+      XCTAssertTrue(
+        waitForPlayingPlayer(in: app, timeout: 2),
+        "Playback buffered for more than two seconds."
+      )
+      let currentPosition = try playbackPosition(from: position)
+      if currentPosition > lastPosition {
+        lastPosition = currentPosition
+        lastAdvance = Date()
+      }
+      XCTAssertLessThan(
+        Date().timeIntervalSince(lastAdvance),
+        8,
+        "Playback reported playing while its timeline was stalled."
+      )
+    }
+    XCTAssertGreaterThanOrEqual(
+      lastPosition - startingPosition,
+      max(seconds - 8, seconds * 0.65),
+      "Playback did not make enough real timeline progress."
+    )
+  }
+
+  private func playbackPosition(
+    from element: XCUIElement
+  ) throws -> TimeInterval {
+    try XCTUnwrap(
+      livePlaybackPosition(from: element),
+      "Unexpected playback position: \(String(describing: element.value))"
     )
   }
 
@@ -323,26 +438,24 @@ final class LivePlaybackUITests: XCTestCase {
       app.coordinate(
         withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)
       ).tap()
-      let exit = app.buttons["Close Button"]
-      XCTAssertTrue(
-        exit.waitForExistence(timeout: 5),
-        app.debugDescription
-      )
+      XCTAssertTrue(revealAVKitCloseControl(in: app))
       if cycle == 1 {
         XCUIDevice.shared.orientation = .landscapeLeft
         XCTAssertEqual(app.state, .runningForeground)
-        XCTAssertTrue(exit.waitForExistence(timeout: 5))
+        XCTAssertTrue(revealAVKitCloseControl(in: app))
         XCUIDevice.shared.orientation = .portrait
         XCTAssertTrue(
-          revealAVKitControl(exit, in: app),
+          revealAVKitCloseControl(in: app),
           app.debugDescription
         )
       }
       XCTAssertTrue(
-        revealAVKitControl(exit, in: app),
+        revealAVKitCloseControl(in: app),
         app.debugDescription
       )
-      exit.tap()
+      app.coordinate(
+        withNormalizedOffset: CGVector(dx: 0.08, dy: 0.095)
+      ).tap()
       XCTAssertEqual(app.state, .runningForeground)
       XCTAssertTrue(
         waitForPlayingPlayer(in: app, timeout: 20),
@@ -368,18 +481,20 @@ final class LivePlaybackUITests: XCTestCase {
     return false
   }
 
-  private func revealAVKitControl(
-    _ control: XCUIElement,
+  private func revealAVKitCloseControl(
     in app: XCUIApplication
   ) -> Bool {
     for _ in 0..<4 {
-      if control.exists, control.isHittable {
+      let control = app.buttons["Close Button"]
+      if control.exists, !control.frame.isEmpty {
         return true
       }
       app.coordinate(
         withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)
       ).tap()
-      if control.waitForExistence(timeout: 2) {
+      let refreshed = app.buttons["Close Button"]
+      if refreshed.waitForExistence(timeout: 2),
+        !refreshed.frame.isEmpty {
         return true
       }
     }

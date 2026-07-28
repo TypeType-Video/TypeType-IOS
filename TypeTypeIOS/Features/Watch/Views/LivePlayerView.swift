@@ -34,6 +34,7 @@ struct LivePlayerView: View {
 
       statusOverlay
       playbackStatusAccessibilityElement
+      playbackPositionAccessibilityElement
 
       Button {
         showsOptions = true
@@ -81,6 +82,18 @@ struct LivePlayerView: View {
       .accessibilityLabel("Playback status")
       .accessibilityIdentifier("live.player.container")
       .accessibilityValue(controller.accessibilityStatus)
+  }
+
+  private var playbackPositionAccessibilityElement: some View {
+    Color.clear
+      .frame(width: 1, height: 1)
+      .allowsHitTesting(false)
+      .accessibilityElement(children: .ignore)
+      .accessibilityLabel("Playback position")
+      .accessibilityIdentifier("live.player.position")
+      .accessibilityValue(
+        "\(Int(controller.position.rounded(.down)))"
+      )
   }
 
   @ViewBuilder
