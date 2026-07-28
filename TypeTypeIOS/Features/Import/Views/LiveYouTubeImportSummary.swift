@@ -1,54 +1,129 @@
 import SwiftUI
 
-struct LiveYouTubeImportCountsView: View {
-  let title: String
-  let counts: LiveYouTubeImportCounts
+struct LiveYouTubeImportArchiveRow: View {
+  let archive: LiveYouTubeImportArchive
+  let isActive: Bool
 
   var body: some View {
-    VStack(alignment: .leading, spacing: 4) {
-      Text(title).font(.headline)
-      Text("\(counts.subscriptions) subscriptions")
-      Text("\(counts.playlists) playlists")
-      Text("\(counts.playlistItems) playlist videos")
-      Text("\(counts.favorites) favorites")
-      Text("\(counts.watchLater) Watch later entries")
-      Text("\(counts.history) history entries")
-    }
-    .font(.caption)
-  }
-}
+    VStack(alignment: .leading, spacing: 9) {
+      HStack(spacing: 12) {
+        Image(systemName: icon)
+          .foregroundStyle(iconColor)
+          .frame(width: 24)
+          .symbolEffect(.pulse, isActive: isActive)
 
-struct LiveYouTubeImportReportView: View {
-  let report: LiveYouTubeImportReport
-
-  var body: some View {
-    VStack(alignment: .leading, spacing: 5) {
-      Label("Import completed", systemImage: "checkmark.circle.fill")
-        .foregroundStyle(.green)
-      result("Subscriptions", report.subscriptions)
-      result("Playlists", report.playlists)
-      result("Playlist videos", report.playlistItems)
-      result("Favorites", report.favorites)
-      result("Watch later", report.watchLater)
-      result("History", report.history)
-      ForEach(report.warnings, id: \.self) {
-        Label($0, systemImage: "exclamationmark.triangle")
+        VStack(alignment: .leading, spacing: 2) {
+          Text(archive.fileName)
+            .font(.subheadline.weight(.semibold))
+            .lineLimit(1)
+          Text(statusTitle)
+            .font(.caption)
+            .foregroundStyle(statusColor)
+        }
+        Spacer(minLength: 8)
+        if isActive || isCompleted {
+          Text("\(archive.progress)%")
+            .font(.caption.monospacedDigit())
+            .foregroundStyle(.secondary)
+        }
       }
-      ForEach(report.errors, id: \.self) {
-        Label($0, systemImage: "xmark.octagon")
-          .foregroundStyle(.red)
+
+      if isActive {
+        ProgressView(
+          value: Double(archive.progress),
+          total: 100
+        )
+        .tint(DemoTheme.accent)
+      }
+
+      if let preview = archive.preview {
+        DisclosureGroup("Detected data") {
+          LiveYouTubeImportCountsView(
+            title: "Ready to import",
+            counts: preview.counts
+          )
+          messages(preview.warnings, icon: "exclamationmark.triangle")
+          messages(
+            preview.errors,
+            icon: "xmark.octagon",
+            color: .red
+          )
+        }
+      }
+
+      if let report = archive.report {
+        DisclosureGroup("Import report") {
+          LiveYouTubeImportReportView(report: report)
+        }
       }
     }
-    .font(.caption)
-  }
-
-  private func result(
-    _ title: String,
-    _ value: LiveYouTubeImportStats
-  ) -> some View {
-    Text(
-      "\(title): \(value.imported) imported, "
-        + "\(value.skipped) skipped, \(value.failed) failed"
+    .accessibilityElement(children: .contain)
+    .accessibilityIdentifier(
+      "live.import.youtube.archive.\(archive.id.uuidString)"
     )
+  }
+
+  private var isCompleted: Bool {
+    if case .completed = archive.state { return true }
+    return false
+  }
+
+  private var statusTitle: String {
+    switch archive.state {
+    case .queued:
+      return "Waiting"
+    case .uploading:
+      return "Uploading archive"
+    case .previewing:
+      return "Reading Takeout data"
+    case .committing:
+      return "Preparing synchronization"
+    case .importing:
+      return archive.job?.phase
+        .replacingOccurrences(of: "_", with: " ")
+        .capitalized ?? "Importing"
+    case .completed:
+      return "Completed"
+    case let .failed(message):
+      return message
+    }
+  }
+
+  private var icon: String {
+    switch archive.state {
+    case .queued: return "tray"
+    case .uploading: return "arrow.up.doc"
+    case .previewing: return "doc.text.magnifyingglass"
+    case .committing: return "checkmark.shield"
+    case .importing: return "arrow.triangle.2.circlepath"
+    case .completed: return "checkmark.circle.fill"
+    case .failed: return "exclamationmark.triangle.fill"
+    }
+  }
+
+  private var iconColor: Color {
+    switch archive.state {
+    case .completed: return .green
+    case .failed: return .red
+    default: return DemoTheme.accent
+    }
+  }
+
+  private var statusColor: Color {
+    if case .failed = archive.state { return .red }
+    return .secondary
+  }
+
+  @ViewBuilder
+  private func messages(
+    _ values: [String],
+    icon: String,
+    color: Color = .secondary
+  ) -> some View {
+    ForEach(values, id: \.self) { value in
+      Label(value, systemImage: icon)
+        .font(.caption)
+        .foregroundStyle(color)
+    }
   }
 }
