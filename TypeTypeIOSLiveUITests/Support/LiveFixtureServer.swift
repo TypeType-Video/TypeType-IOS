@@ -5,7 +5,13 @@ final class LiveFixtureServer {
   private let queue = DispatchQueue(
     label: "LiveFixtureServer"
   )
+  private let prefersNicoRecommendation: Bool
   private var listener: NWListener?
+  private var downloadMode = "video"
+
+  init(prefersNicoRecommendation: Bool = false) {
+    self.prefersNicoRecommendation = prefersNicoRecommendation
+  }
 
   func start() throws -> URL {
     let parameters = NWParameters.tcp
@@ -52,7 +58,17 @@ final class LiveFixtureServer {
       let request = data.flatMap {
         String(data: $0, encoding: .utf8)
       } ?? ""
-      let response = Self.response(for: request)
+      if request.contains("POST /api/downloader/jobs "),
+        request.contains(#""mode":"audio""#) {
+        self.downloadMode = "audio"
+      } else if request.contains("POST /api/downloader/jobs ") {
+        self.downloadMode = "video"
+      }
+      let response = Self.response(
+        for: request,
+        prefersNicoRecommendation: self.prefersNicoRecommendation,
+        downloadMode: self.downloadMode
+      )
       connection.send(
         content: response,
         contentContext: .finalMessage,
@@ -64,7 +80,11 @@ final class LiveFixtureServer {
     }
   }
 
-  private static func response(for request: String) -> Data {
+  private static func response(
+    for request: String,
+    prefersNicoRecommendation: Bool,
+    downloadMode: String
+  ) -> Data {
     let firstLine = request.split(separator: "\r\n").first
       .map(String.init) ?? ""
     let parts = firstLine.split(separator: " ")
@@ -98,6 +118,8 @@ final class LiveFixtureServer {
       )
     case "/api/auth/guest":
       return json(#"{"accessToken":"fixture-token"}"#)
+    case "/api/auth/login":
+      return json(#"{"accessToken":"fixture-account-token"}"#)
     case "/api/auth/me":
       return json(
         """
@@ -109,7 +131,12 @@ final class LiveFixtureServer {
     case "/api/auth/logout":
       return http(status: "204 No Content", body: "")
     case "/api/recommendations/home":
-      return json(recommendations(query: query))
+      return json(
+        recommendations(
+          query: query,
+          prefersNicoRecommendation: prefersNicoRecommendation
+        )
+      )
     case "/api/settings":
       return json(
         settingsJSON(
@@ -176,6 +203,47 @@ final class LiveFixtureServer {
         )
       }
       return json("[]")
+    case "/api/downloader/jobs":
+      return json(
+        downloadJob(
+          status: "queued",
+          stage: "queued",
+          mode: downloadMode
+        )
+      )
+    case "/api/downloader/jobs/fixture-download":
+      if method == "DELETE" {
+        return http(status: "204 No Content", body: "")
+      }
+      return json(
+        downloadJob(
+          status: "done",
+          stage: "done",
+          mode: downloadMode
+        )
+      )
+    case "/api/downloader/jobs/fixture-download/cancel":
+      return json(
+        downloadJob(
+          status: "cancelled",
+          stage: "cancelled",
+          mode: downloadMode
+        )
+      )
+    case "/api/downloader/jobs/fixture-download/artifact":
+      guard let media = fixtureDownloadMedia else {
+        return http(
+          status: "500 Internal Server Error",
+          body: #"{"error":"Fixture media is missing"}"#
+        )
+      }
+      return http(
+        status: "200 OK",
+        body: media,
+        contentType: downloadMode == "audio"
+          ? "audio/mp4"
+          : "video/mp4"
+      )
     case "/api/channel/page":
       return json(channelPage(request: request))
     case "/api/channel/playlists":
@@ -203,6 +271,16 @@ final class LiveFixtureServer {
         "nextpage":null,"commentsDisabled":false}
         """
       )
+    case "/api/streams/niconico":
+      return json(nicoStreamJSON)
+    case "/api/bullet-comments":
+      return json(
+        """
+        {"comments":[{"text":"Fixture danmaku","argbColor":-1,\
+        "position":"TOP","relativeFontSize":1.0,"durationMs":0,\
+        "isLive":false}],"nextpage":null}
+        """
+      )
     case "/api/subscriptions":
       if method == "POST" {
         return json(subscriptionJSON)
@@ -224,6 +302,19 @@ final class LiveFixtureServer {
         body: #"{"error":"Not found"}"#
       )
     }
+  }
+
+  private static var fixtureDownloadMedia: Data? {
+    let repository = URL(fileURLWithPath: #filePath)
+      .deletingLastPathComponent()
+      .deletingLastPathComponent()
+      .deletingLastPathComponent()
+    let mediaURL = repository
+      .appendingPathComponent("TypeTypeIOS")
+      .appendingPathComponent("Resources")
+      .appendingPathComponent("Media")
+      .appendingPathComponent("BigBuckBunnyDemo.mp4")
+    return try? Data(contentsOf: mediaURL)
   }
 
   private static func settingsJSON(
@@ -253,7 +344,8 @@ final class LiveFixtureServer {
   }
 
   private static func recommendations(
-    query: [String: String]
+    query: [String: String],
+    prefersNicoRecommendation: Bool
   ) -> String {
     if query["service"] == "5" {
       return page(
@@ -277,11 +369,24 @@ final class LiveFixtureServer {
         hasMore: false
       )
     }
+    let nico = video(
+      id: "nico-1",
+      title: "NicoNico video",
+      url: "https://www.nicovideo.jp/watch/sm9"
+    )
+    let regular = video(
+      id: "video-1",
+      title: "Backend recommendation"
+    )
+    let short = video(
+      id: "short-1",
+      title: "Short video",
+      isShort: true
+    )
     return page(
-      items: [
-        video(id: "video-1", title: "Backend recommendation"),
-        video(id: "short-1", title: "Filtered short", isShort: true),
-      ],
+      items: prefersNicoRecommendation
+        ? [nico, regular, short]
+        : [regular, short, nico],
       cursor: "page-2",
       hasMore: true
     )
@@ -301,7 +406,7 @@ final class LiveFixtureServer {
     return searchPage(
       items: [
         video(id: "search-video-1", title: "Backend search result"),
-        video(id: "search-short", title: "Filtered search short", isShort: true),
+        video(id: "search-short", title: "Search short video", isShort: true),
       ],
       channels: [channelResultJSON],
       playlists: [playlistJSON],
