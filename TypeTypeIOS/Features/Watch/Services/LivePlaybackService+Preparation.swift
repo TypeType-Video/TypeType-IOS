@@ -131,11 +131,23 @@ extension LivePlaybackService {
       usesAuthenticatedLoader = true
     } else if videoMethod == "progressive",
       audioMethod == "progressive" {
+      guard
+        let preparedVideoURL = providerProxyURL(
+          for: videoURL,
+          authenticated: true
+        ),
+        let preparedAudioURL = providerProxyURL(
+          for: audioURL,
+          authenticated: true
+        )
+      else {
+        throw LivePlaybackFailure.invalidServerResource
+      }
       providerPlayback = .separateProgressive(
-        videoURL: videoURL,
-        audioURL: audioURL
+        videoURL: preparedVideoURL,
+        audioURL: preparedAudioURL
       )
-      usesAuthenticatedLoader = false
+      usesAuthenticatedLoader = true
     } else {
       throw LivePlaybackFailure.noPlayableSource
     }

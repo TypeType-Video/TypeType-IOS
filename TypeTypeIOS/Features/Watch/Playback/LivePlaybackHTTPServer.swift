@@ -107,12 +107,16 @@ final class LivePlaybackHTTPServer: @unchecked Sendable {
     let routeID: String
     if preparation.isSABR {
       routeID = try await startSABRSession()
-    } else if let providerPlayback = preparation.providerPlayback,
-      case .separateHLS = providerPlayback {
-      routeID = register(
-        target: .providerMaster,
-        pathExtension: "m3u8"
-      )
+    } else if let providerPlayback = preparation.providerPlayback {
+      switch providerPlayback {
+      case .separateHLS:
+        routeID = register(
+          target: .providerMaster,
+          pathExtension: "m3u8"
+        )
+      case .separateProgressive:
+        routeID = try await startProgressiveProviderSession()
+      }
     } else {
       guard let assetURL = preparation.assetURL else {
         stop()
