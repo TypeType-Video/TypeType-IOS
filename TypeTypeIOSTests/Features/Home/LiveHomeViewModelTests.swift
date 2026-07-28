@@ -3,7 +3,7 @@ import XCTest
 
 @MainActor
 final class LiveHomeViewModelTests: XCTestCase {
-  func testInitialLoadFiltersShortsAndDuplicateURLs() async {
+  func testInitialLoadTreatsShortsAsVideosAndDeduplicatesURLs() async {
     let first = LiveVideoItemFixture.make()
     let duplicate = LiveVideoItemFixture.make(id: "duplicate")
     let short = LiveVideoItemFixture.make(
@@ -32,7 +32,7 @@ final class LiveHomeViewModelTests: XCTestCase {
     await viewModel.loadIfNeeded()
 
     XCTAssertEqual(viewModel.state, .loaded)
-    XCTAssertEqual(viewModel.videos.map(\.id), ["video-1"])
+    XCTAssertEqual(viewModel.videos.map(\.id), ["video-1", "short"])
     XCTAssertTrue(viewModel.canLoadMore)
     XCTAssertEqual(service.calls.first?.serviceID, 0)
     XCTAssertEqual(service.calls.first?.intent, "auto")
@@ -117,6 +117,48 @@ final class LiveHomeViewModelTests: XCTestCase {
     XCTAssertEqual(service.calls.last?.serviceID, 5)
   }
 
+  func testContinueWatchingKeepsNewestEventPerVideo() async {
+    let url = "https://www.youtube.com/watch?v=video-1"
+    let older = LiveHistoryItem(
+      id: "older",
+      url: url,
+      title: "Video",
+      duration: 1_000,
+      progress: 120,
+      watchedAt: 100
+    )
+    let newest = LiveHistoryItem(
+      id: "newest",
+      url: url,
+      title: "Video",
+      duration: 1_000,
+      progress: 260,
+      watchedAt: 200
+    )
+    let service = HomeFeedStub(
+      results: [
+        .success(
+          HomeRecommendationsPage(
+            items: [],
+            nextCursor: nil,
+            hasMore: false
+          )
+        ),
+      ]
+    )
+    let viewModel = LiveHomeViewModel(
+      service: service,
+      historyService: HomeHistoryStub(items: [older, newest]),
+      settingsService: HomeSettingsStub(),
+      serviceSelection: makeSelection(supported: [0])
+    )
+
+    await viewModel.reload()
+
+    XCTAssertEqual(viewModel.continueWatching.map(\.id), ["newest"])
+    XCTAssertEqual(viewModel.continueWatching.first?.progress, 260)
+  }
+
   func testEmptyAndFailureAreExplicitStates() async {
     let service = HomeFeedStub(
       results: [
@@ -162,6 +204,12 @@ final class LiveHomeViewModelTests: XCTestCase {
 }
 
 private final class HomeHistoryStub: LiveHistoryServiceProtocol {
+  private let items: [LiveHistoryItem]
+
+  init(items: [LiveHistoryItem] = []) {
+    self.items = items
+  }
+
   func history(
     query: String?,
     from: Int64?,
@@ -169,7 +217,7 @@ private final class HomeHistoryStub: LiveHistoryServiceProtocol {
     limit: Int,
     offset: Int
   ) async throws -> [LiveHistoryItem] {
-    []
+    items
   }
 
   func add(

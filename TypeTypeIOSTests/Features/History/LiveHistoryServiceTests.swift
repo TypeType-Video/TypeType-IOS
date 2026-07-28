@@ -61,6 +61,71 @@ final class LiveHistoryServiceTests: XCTestCase {
     XCTAssertEqual(requests[1].url?.path, "/api/history")
   }
 
+  func testProgressReadsMillisecondsFromProgressRoute() async throws {
+    URLProtocolStub.register { request in
+      XCTAssertEqual(request.httpMethod, "GET")
+      XCTAssertEqual(request.url?.path, "/api/progress")
+      XCTAssertEqual(
+        URLComponents(
+          url: try XCTUnwrap(request.url),
+          resolvingAgainstBaseURL: false
+        )?.queryItems,
+        [
+          URLQueryItem(
+            name: "url",
+            value: "https://www.youtube.com/watch?v=mcV4qoX2MIE"
+          )
+        ]
+      )
+      return try Self.response(
+        request,
+        status: 200,
+        body: #"{"position":120000}"#
+      )
+    }
+
+    let positionMS = try await makeService().progress(
+      videoURL: "https://www.youtube.com/watch?v=mcV4qoX2MIE"
+    )
+
+    XCTAssertEqual(positionMS, 120_000)
+  }
+
+  func testMissingProgressReturnsNil() async throws {
+    URLProtocolStub.register { request in
+      XCTAssertEqual(request.httpMethod, "GET")
+      XCTAssertEqual(request.url?.path, "/api/progress")
+      return try Self.response(
+        request,
+        status: 404,
+        body: #"{"error":"not found"}"#
+      )
+    }
+
+    let positionMS = try await makeService().progress(
+      videoURL: "https://www.youtube.com/watch?v=iYlODtkyw_I"
+    )
+
+    XCTAssertNil(positionMS)
+  }
+
+  func testProgressUpdateWritesMillisecondsWithoutConversion() async throws {
+    URLProtocolStub.register { request in
+      XCTAssertEqual(request.httpMethod, "PUT")
+      XCTAssertEqual(request.url?.path, "/api/progress")
+      XCTAssertEqual(
+        try XCTUnwrap(URLProtocolStub.bodyData(from: request)),
+        Data(#"{"position":42500}"#.utf8)
+      )
+      return try Self.response(request, status: 204, body: "")
+    }
+
+    try await makeService().updateProgress(
+      videoURL: "https://www.youtube.com/watch?v=zzjq7_ddb0U",
+      positionMS: 42_500
+    )
+  }
+
   private func makeService() -> LiveHistoryService {
     LiveHistoryService(
       apiClient: URLSessionAPIClient(
