@@ -16,6 +16,14 @@ final class ServerProbeServiceTests: XCTestCase {
   func testProbesInstanceContract() async throws {
     URLProtocolStub.register { request in
       XCTAssertEqual(request.url?.absoluteString, "https://host.test/api/instance")
+      XCTAssertEqual(
+        request.cachePolicy,
+        .reloadIgnoringLocalCacheData
+      )
+      XCTAssertEqual(
+        request.value(forHTTPHeaderField: "Cache-Control"),
+        "no-cache"
+      )
       guard let url = request.url else {
         throw ProbeTestError.missingURL
       }

@@ -85,7 +85,85 @@ final class RootCoordinatorTests: XCTestCase {
     )
   }
 
-  private func makeDependencies() throws -> AppDependencies {
+  func testIncomingMediaLinkWaitsForAuthenticationThenConsumesOnce()
+    async throws
+  {
+    let dependencies = try makeDependencies()
+    let coordinator = RootCoordinator(dependencies: dependencies)
+    let incomingURL = try XCTUnwrap(
+      URL(string: "typetype://watch?v=sm9")
+    )
+
+    coordinator.receiveIncomingURL(incomingURL)
+    XCTAssertNil(coordinator.consumeIncomingMediaLink())
+    XCTAssertEqual(coordinator.pendingIncomingURL, incomingURL)
+
+    await coordinator.bootstrap()
+    try await coordinator.addServer(
+      name: "Beta",
+      urlInput: "https://beta.example.test"
+    )
+    try await coordinator.login(
+      identifier: "person@example.test",
+      password: "secret"
+    )
+
+    let link = try XCTUnwrap(coordinator.consumeIncomingMediaLink())
+    guard case let .video(video) = link.destination else {
+      return XCTFail("The queued link should open as a video.")
+    }
+    XCTAssertEqual(
+      video.url,
+      "https://www.nicovideo.jp/watch/sm9"
+    )
+    XCTAssertNil(coordinator.pendingIncomingURL)
+    XCTAssertNil(coordinator.consumeIncomingMediaLink())
+  }
+
+  func testCachedSessionKeepsDownloadsReachableWhenInstanceIsOffline()
+    async throws
+  {
+    let dependencies = try makeDependencies(
+      probe: RootOfflineProbeStub()
+    )
+    let server = try dependencies.serverStore.makeServer(
+      name: "Offline instance",
+      urlInput: "https://offline.example.test"
+    )
+    try dependencies.serverStore.insert(server)
+    dependencies.serverStore.setSelectedServerID(server.id)
+    dependencies.sessionStore.saveSession(
+      snapshot: SessionSnapshot(
+        serverID: server.id,
+        userID: "user-1",
+        accountIdentifier: "person@example.test",
+        publicUsername: "person",
+        role: AuthRole.user.rawValue
+      ),
+      accessToken: "cached-token"
+    )
+
+    let coordinator = RootCoordinator(dependencies: dependencies)
+    await coordinator.bootstrap()
+
+    XCTAssertEqual(coordinator.state, .authenticated)
+    XCTAssertTrue(coordinator.isUsingOfflineSession)
+    XCTAssertEqual(coordinator.currentUser?.id, "user-1")
+    XCTAssertEqual(coordinator.currentUser?.publicUsername, "person")
+    XCTAssertNotNil(coordinator.connectionError)
+  }
+
+  private func makeDependencies(
+    probe: ServerProbeServiceProtocol? = nil
+  ) throws -> AppDependencies {
+    let selectedProbe: ServerProbeServiceProtocol
+    if let probe {
+      selectedProbe = probe
+    } else {
+      selectedProbe = RootProbeStub(
+        metadata: try Self.instanceMetadata()
+      )
+    }
     let serverStore = ServerStore(defaults: defaults)
     let sessionStore = SessionStore(
       defaults: defaults,
@@ -103,9 +181,7 @@ final class RootCoordinatorTests: XCTestCase {
     return AppDependencies(
       serverStore: serverStore,
       sessionStore: sessionStore,
-      serverProbeService: RootProbeStub(
-        metadata: try Self.instanceMetadata()
-      ),
+      serverProbeService: selectedProbe,
       authService: RootAuthStub(),
       oidcService: RootOIDCStub(),
       resetPasswordService: RootResetPasswordStub(),
@@ -199,6 +275,13 @@ private final class RootProbeStub: ServerProbeServiceProtocol {
 
   func probe(baseURL: URL) async throws -> InstanceMetadata {
     metadata
+  }
+}
+
+private final class RootOfflineProbeStub:
+  ServerProbeServiceProtocol {
+  func probe(baseURL: URL) async throws -> InstanceMetadata {
+    throw NetworkError.transport
   }
 }
 
