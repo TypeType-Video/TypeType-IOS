@@ -1,67 +1,61 @@
 import SwiftUI
 
 struct LiveAuthenticatedAppView: View {
-  enum Tab: Hashable {
-    case home
-    case subscriptions
-    case history
-    case playlists
-    case more
-  }
-
   @ObservedObject var coordinator: RootCoordinator
-  @ObservedObject private var serviceSelection: LiveServiceSelection
-  @ObservedObject private var notificationCenter: LiveNotificationCenter
-  @State private var selectedTab = Tab.home
-  @State private var startupCollection: LiveLibraryCollectionKind?
-  @State private var didApplyDefaultLandingPage = false
+  @ObservedObject var serviceSelection: LiveServiceSelection
+  @ObservedObject var notificationCenter: LiveNotificationCenter
+  @ObservedObject var downloadCenter: LiveDownloadCenter
+  @ObservedObject var playbackCoordinator: LivePlaybackCoordinator
+  @ObservedObject var connectivityMonitor: LiveConnectivityMonitor
+  @State var selectedTab = LiveAuthenticatedTab.home
+  @State var startupCollection: LiveLibraryCollectionKind?
+  @State var didApplyDefaultLandingPage = false
+  @State var presentsSearch = false
+  @State var presentsExpandedPlayback = false
+  @State var incomingMediaLink: LiveIncomingMediaLink?
+  @State var presentsOfflineDownloads = false
   @Environment(\.scenePhase) private var scenePhase
 
   init(coordinator: RootCoordinator) {
     self.coordinator = coordinator
     serviceSelection = coordinator.dependencies.serviceSelection
     notificationCenter = coordinator.dependencies.notificationCenter
+    downloadCenter = coordinator.dependencies.downloadCenter
+    playbackCoordinator = coordinator.dependencies.playbackCoordinator
+    connectivityMonitor = coordinator.dependencies.connectivityMonitor
   }
 
   var body: some View {
-    TabView(selection: $selectedTab) {
-      LiveHomeView(coordinator: coordinator)
-        .tabItem {
-          Label("Home", systemImage: "house")
-        }
-        .tag(Tab.home)
-
-      LiveSubscriptionsView(coordinator: coordinator)
-      .tabItem {
-        Label("Subscriptions", systemImage: "bell")
+    shell
+    .safeAreaInset(edge: .top, spacing: 0) {
+      if connectivityMonitor.status == .offline
+        || coordinator.isUsingOfflineSession {
+        LiveConnectivityBanner(
+          instanceUnavailable: coordinator.isUsingOfflineSession,
+          onOpenDownloads: {
+            presentsOfflineDownloads = true
+          },
+          onRetry: reconnect
+        )
       }
-      .tag(Tab.subscriptions)
-
-      LiveHistoryView(coordinator: coordinator)
-      .tabItem {
-        Label("History", systemImage: "clock")
-      }
-      .tag(Tab.history)
-
-      LivePlaylistsView(
-        coordinator: coordinator,
-        requestedCollection: $startupCollection
-      )
-      .tabItem {
-        Label("Playlists", systemImage: "rectangle.stack.badge.play")
-      }
-      .tag(Tab.playlists)
-
-      LiveAccountView(coordinator: coordinator)
-        .tabItem {
-          Label("More", systemImage: "line.3.horizontal")
-        }
-        .badge(notificationCenter.unreadCount)
-        .tag(Tab.more)
     }
+    .animation(.snappy, value: playbackCoordinator.showsMiniPlayer)
+    .animation(.snappy, value: presentsSearch)
     .task {
       await notificationCenter.refresh()
       await applyDefaultLandingPage()
+    }
+    .task(id: downloadScopeID) {
+      await downloadCenter.activate()
+    }
+    .task {
+      await playbackCoordinator.restoreIfNeeded()
+    }
+    .task {
+      presentPendingIncomingMediaLink()
+    }
+    .onChange(of: coordinator.pendingIncomingURL) {
+      presentPendingIncomingMediaLink()
     }
     .task {
       while !Task.isCancelled {
@@ -79,7 +73,14 @@ struct LiveAuthenticatedAppView: View {
       Task {
         try? await coordinator.dependencies.sessionActivityService
           .report()
+        await downloadCenter.activate()
+        await coordinator.reconnectIfNeeded()
       }
+    }
+    .onChange(of: connectivityMonitor.status) {
+      guard connectivityMonitor.status == .online else { return }
+      reconnect()
+      playbackCoordinator.retryAfterNetworkRecovery()
     }
     .tint(DemoTheme.accent)
     .alert(
@@ -105,30 +106,27 @@ struct LiveAuthenticatedAppView: View {
     .accessibilityIdentifier("live.authenticated.shell")
   }
 
-  @MainActor
-  private func applyDefaultLandingPage() async {
-    guard !didApplyDefaultLandingPage else { return }
-    didApplyDefaultLandingPage = true
-    guard let settings = try? await coordinator.dependencies
-      .settingsService.settings()
+  var downloadScopeID: String {
+    [
+      coordinator.selectedServer?.id ?? "no-server",
+      coordinator.currentUser?.id ?? "no-user",
+    ].joined(separator: ":")
+  }
+
+  func presentPendingIncomingMediaLink() {
+    guard incomingMediaLink == nil,
+      let link = coordinator.consumeIncomingMediaLink()
     else {
       return
     }
-    switch settings.defaultLandingPage {
-    case "subscriptions":
-      selectedTab = .subscriptions
-    case "history":
-      selectedTab = .history
-    case "playlists":
-      selectedTab = .playlists
-    case "watch-later":
-      startupCollection = .watchLater
-      selectedTab = .playlists
-    case "favorites":
-      startupCollection = .favorites
-      selectedTab = .playlists
-    default:
-      selectedTab = .home
+    incomingMediaLink = link
+  }
+
+  func reconnect() {
+    Task {
+      await coordinator.reconnectIfNeeded()
+      await downloadCenter.activate()
+      await notificationCenter.refresh()
     }
   }
 }
