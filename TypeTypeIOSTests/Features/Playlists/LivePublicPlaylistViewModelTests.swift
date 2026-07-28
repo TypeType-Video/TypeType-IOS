@@ -3,7 +3,7 @@ import XCTest
 
 @MainActor
 final class LivePublicPlaylistViewModelTests: XCTestCase {
-  func testLoadPaginationFiltersShortsAndTogglesSavedState() async {
+  func testLoadPaginationIncludesShortsAndTogglesSavedState() async {
     let listURL = "https://video.test/public-list"
     let first = LiveVideoItemFixture.make()
     let duplicate = LiveVideoItemFixture.make(id: "duplicate")
@@ -40,7 +40,10 @@ final class LivePublicPlaylistViewModelTests: XCTestCase {
     let createdSavedID = viewModel.savedID
     await viewModel.toggleSaved()
 
-    XCTAssertEqual(viewModel.videos.map(\.id), ["video-1", "second"])
+    XCTAssertEqual(
+      viewModel.videos.map(\.id),
+      ["video-1", "short", "second"]
+    )
     XCTAssertNotNil(createdSavedID)
     XCTAssertNil(viewModel.savedID)
     XCTAssertEqual(

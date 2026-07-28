@@ -3,7 +3,7 @@ import XCTest
 
 @MainActor
 final class LiveChannelViewModelTests: XCTestCase {
-  func testInitialLoadUsesRealListingsAndFiltersShorts() async {
+  func testInitialLoadTreatsShortsAsRegularVideos() async {
     let video = LiveVideoItemFixture.make(
       id: "video",
       url: "https://youtube.test/video"
@@ -44,7 +44,7 @@ final class LiveChannelViewModelTests: XCTestCase {
 
     XCTAssertEqual(viewModel.state, .loaded)
     XCTAssertEqual(viewModel.channel?.name, "Blender")
-    XCTAssertEqual(viewModel.videos.map(\.id), ["video"])
+    XCTAssertEqual(viewModel.videos.map(\.id), ["video", "short"])
     XCTAssertEqual(viewModel.podcasts.map(\.title), ["Open Movies"])
     XCTAssertTrue(viewModel.isSubscribed)
   }

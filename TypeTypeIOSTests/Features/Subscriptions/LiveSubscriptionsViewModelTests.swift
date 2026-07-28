@@ -3,7 +3,7 @@ import XCTest
 
 @MainActor
 final class LiveSubscriptionsViewModelTests: XCTestCase {
-  func testInitialLoadFiltersShortsAndDuplicates() async {
+  func testInitialLoadIncludesShortsAndDeduplicates() async {
     let video = LiveVideoItemFixture.make()
     let duplicate = LiveVideoItemFixture.make(id: "duplicate")
     let short = LiveVideoItemFixture.make(
@@ -24,7 +24,10 @@ final class LiveSubscriptionsViewModelTests: XCTestCase {
     await viewModel.reload()
 
     XCTAssertEqual(viewModel.state, .loaded)
-    XCTAssertEqual(viewModel.visibleVideos.map(\.id), ["video-1"])
+    XCTAssertEqual(
+      viewModel.visibleVideos.map(\.id),
+      ["video-1", "short"]
+    )
     XCTAssertEqual(viewModel.channels.count, 1)
     XCTAssertTrue(viewModel.canLoadMore)
   }

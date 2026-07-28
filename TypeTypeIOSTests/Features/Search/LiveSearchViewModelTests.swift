@@ -22,7 +22,7 @@ final class LiveSearchViewModelTests: XCTestCase {
     XCTAssertEqual(search.filterServices, [0])
   }
 
-  func testSearchUsesMixedResultsFiltersShortsAndRecordsHistory() async {
+  func testSearchUsesMixedResultsIncludesShortsAndRecordsHistory() async {
     let video = LiveVideoItemFixture.make(
       id: "video",
       url: "https://www.youtube.com/watch?v=video"
@@ -51,6 +51,7 @@ final class LiveSearchViewModelTests: XCTestCase {
         "channel:https://youtube.test/channel",
         "playlist:https://youtube.test/playlist",
         "video:https://www.youtube.com/watch?v=video",
+        "video:https://www.youtube.com/watch?v=video-1",
       ]
     )
     XCTAssertEqual(viewModel.state, .loaded)
