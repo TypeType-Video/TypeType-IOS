@@ -77,6 +77,10 @@ extension LiveDownloadSheet {
       Label(message, systemImage: "exclamationmark.triangle.fill")
         .foregroundStyle(.red)
       if viewModel.job != nil {
+        Button("Retry", systemImage: "arrow.clockwise") {
+          Task { await viewModel.start() }
+        }
+        .disabled(!viewModel.canStart)
         Button("Clear job", role: .destructive) {
           Task { await viewModel.clear() }
         }
