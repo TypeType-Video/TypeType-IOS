@@ -114,6 +114,18 @@ development team and bundle identifier, then choose the connected iPhone or
 iPad. Signing certificates, provisioning profiles, accounts, instance URLs,
 and credentials are not stored in this repository.
 
+## Releases
+
+GitHub Actions validates unit tests and a Release build on pushes to `dev` and
+`main`, and on pull requests. Maintainers can publish the version declared by
+`MARKETING_VERSION` in `project.yml` by manually running the `iOS` workflow
+from `main` with release publication enabled.
+
+Each GitHub release contains an unsigned IPA and its SHA-256 checksum. The IPA
+must be signed for the destination device by Xcode or a compatible sideloading
+tool. Apple signing certificates, provisioning profiles, and account
+credentials are never handled by the public build.
+
 ## Project structure
 
 | Path | Contents |
