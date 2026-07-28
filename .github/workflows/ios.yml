@@ -34,7 +34,7 @@ env:
 
 jobs:
   verify:
-    runs-on: macos-26-intel
+    runs-on: macos-15-intel
     timeout-minutes: 35
     steps:
       - name: Checkout
@@ -42,9 +42,8 @@ jobs:
 
       - name: Select Xcode
         run: |
-          if [[ -d /Applications/Xcode_26.5.app ]]; then
-            sudo xcode-select --switch /Applications/Xcode_26.5.app
-          fi
+          test -d /Applications/Xcode_26.3.app
+          sudo xcode-select --switch /Applications/Xcode_26.3.app
           xcodebuild -version
 
       - name: Install XcodeGen
@@ -60,7 +59,7 @@ jobs:
             -project TypeTypeIOS.xcodeproj \
             -scheme TypeTypeIOS \
             -configuration Debug \
-            -destination "platform=iOS Simulator,name=iPhone 17e,OS=latest" \
+            -destination "platform=iOS Simulator,name=iPhone 17,OS=26.2" \
             -parallel-testing-enabled NO \
             -maximum-concurrent-test-simulator-destinations 1 \
             -only-testing:TypeTypeIOSTests \
@@ -88,7 +87,7 @@ jobs:
   release:
     needs: verify
     if: ${{ github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.publish_release }}
-    runs-on: macos-26-intel
+    runs-on: macos-15-intel
     timeout-minutes: 35
     permissions:
       contents: write
@@ -98,9 +97,8 @@ jobs:
 
       - name: Select Xcode
         run: |
-          if [[ -d /Applications/Xcode_26.5.app ]]; then
-            sudo xcode-select --switch /Applications/Xcode_26.5.app
-          fi
+          test -d /Applications/Xcode_26.3.app
+          sudo xcode-select --switch /Applications/Xcode_26.3.app
           xcodebuild -version
 
       - name: Install XcodeGen
