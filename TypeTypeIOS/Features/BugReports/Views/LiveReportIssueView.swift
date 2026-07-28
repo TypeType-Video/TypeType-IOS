@@ -3,9 +3,15 @@ import SwiftUI
 struct LiveReportIssueView: View {
   @StateObject private var viewModel: LiveReportIssueViewModel
 
-  init(service: LiveBugReportsServiceProtocol) {
+  init(
+    service: LiveBugReportsServiceProtocol,
+    videoURL: String = ""
+  ) {
     _viewModel = StateObject(
-      wrappedValue: LiveReportIssueViewModel(service: service)
+      wrappedValue: LiveReportIssueViewModel(
+        service: service,
+        videoURL: videoURL
+      )
     )
   }
 

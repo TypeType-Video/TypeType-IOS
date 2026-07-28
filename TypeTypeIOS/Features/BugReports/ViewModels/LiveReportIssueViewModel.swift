@@ -11,8 +11,12 @@ final class LiveReportIssueViewModel: ObservableObject {
 
   private let service: LiveBugReportsServiceProtocol
 
-  init(service: LiveBugReportsServiceProtocol) {
+  init(
+    service: LiveBugReportsServiceProtocol,
+    videoURL: String = ""
+  ) {
     self.service = service
+    self.videoURL = videoURL
   }
 
   func submit() async {
