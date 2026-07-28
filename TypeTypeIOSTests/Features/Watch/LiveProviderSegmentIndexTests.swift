@@ -1,0 +1,74 @@
+import Foundation
+import XCTest
+@testable import TypeTypeIOS
+
+final class LiveProviderSegmentIndexTests: XCTestCase {
+  func testParsesVersionZeroSIDXReferences() throws {
+    let data = Data([
+      0x00, 0x00, 0x00, 0x2c,
+      0x73, 0x69, 0x64, 0x78,
+      0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x01,
+      0x00, 0x00, 0x03, 0xe8,
+      0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x07,
+      0x00, 0x00, 0x00, 0x01,
+      0x00, 0x00, 0x10, 0x00,
+      0x00, 0x00, 0x17, 0x70,
+      0x90, 0x00, 0x00, 0x00,
+    ])
+
+    let index = try LiveProviderSegmentIndex.parse(data)
+
+    XCTAssertEqual(index.firstOffset, 7)
+    XCTAssertEqual(
+      index.references,
+      [
+        LiveProviderSegmentReference(
+          byteCount: 4_096,
+          duration: 6
+        )
+      ]
+    )
+  }
+
+  func testRejectsHierarchicalSIDXReferences() {
+    var data = Data([
+      0x00, 0x00, 0x00, 0x2c,
+      0x73, 0x69, 0x64, 0x78,
+      0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x01,
+      0x00, 0x00, 0x03, 0xe8,
+      0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x01,
+      0x00, 0x00, 0x10, 0x00,
+      0x00, 0x00, 0x17, 0x70,
+      0x90, 0x00, 0x00, 0x00,
+    ])
+    data[32] = 0x80
+
+    XCTAssertThrowsError(
+      try LiveProviderSegmentIndex.parse(data)
+    )
+  }
+
+  func testProgressiveProviderRangesAreSplitIntoBoundedChunks() {
+    XCTAssertEqual(
+      LivePlaybackHTTPServer.providerChunkRanges(3_900...916_693),
+      [
+        3_900...134_971,
+        134_972...266_043,
+        266_044...397_115,
+        397_116...528_187,
+        528_188...659_259,
+        659_260...790_331,
+        790_332...916_693,
+      ]
+    )
+    XCTAssertEqual(
+      LivePlaybackHTTPServer.providerChunkRanges(837...3_756),
+      [837...3_756]
+    )
+  }
+}
