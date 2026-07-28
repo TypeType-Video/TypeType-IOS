@@ -5,7 +5,10 @@ extension LivePlaybackHTTPServer {
     switch route.target {
     case let .upstream(url):
       return upstreamMIMEType(for: url)
-    case .sabrMaster, .sabrTrack, .providerMaster:
+    case let .upstreamRange(_, _, mimeType):
+      return mimeType
+    case .sabrMaster, .sabrTrack, .providerMaster,
+      .providerProgressiveVideo, .providerProgressiveAudio:
       return Self.playlistMIME
     case .subtitlePlaylist:
       return Self.playlistMIME

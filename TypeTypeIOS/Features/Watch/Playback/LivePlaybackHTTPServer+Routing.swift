@@ -46,12 +46,20 @@ extension LivePlaybackHTTPServer {
     switch route.target {
     case let .upstream(url):
       return "upstream:\(url.absoluteString)" as NSString
+    case let .upstreamRange(url, range, mimeType):
+      return
+        "upstream-range:\(url.absoluteString):\(range.lowerBound)-\(range.upperBound):\(mimeType)"
+        as NSString
     case .sabrMaster:
       return "sabr-master" as NSString
     case let .sabrTrack(kind):
       return "sabr-track:\(String(describing: kind))" as NSString
     case .providerMaster:
       return "provider-master" as NSString
+    case .providerProgressiveVideo:
+      return "provider-progressive-video" as NSString
+    case .providerProgressiveAudio:
+      return "provider-progressive-audio" as NSString
     case let .subtitlePlaylist(index):
       return "subtitle-playlist:\(index)" as NSString
     case let .subtitleVTT(index):

@@ -9,9 +9,12 @@ final class LivePlaybackHTTPServer: @unchecked Sendable {
 
   enum Target {
     case upstream(URL)
+    case upstreamRange(URL, ClosedRange<Int>, String)
     case sabrMaster
     case sabrTrack(LiveSABRTrackKind)
     case providerMaster
+    case providerProgressiveVideo
+    case providerProgressiveAudio
     case subtitlePlaylist(Int)
     case subtitleVTT(Int)
   }
@@ -47,6 +50,9 @@ final class LivePlaybackHTTPServer: @unchecked Sendable {
   var sabrVideoRouteID: String?
   var sabrMasterBaseURL: URL?
   var sabrPlaybackStartTime: TimeInterval = 0
+  var providerProgressiveMaster: String?
+  var providerProgressiveVideo: String?
+  var providerProgressiveAudio: String?
 
   init(
     service: LivePlaybackServiceProtocol,
