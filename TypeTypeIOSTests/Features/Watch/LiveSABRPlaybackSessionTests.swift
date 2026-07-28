@@ -3,6 +3,56 @@ import XCTest
 @testable import TypeTypeIOS
 
 final class LiveSABRPlaybackSessionTests: XCTestCase {
+  func testBufferPolicyMatchesTheMSELiveAndVODWindows() {
+    XCTAssertEqual(
+      LiveSABRBufferPolicy.goalMS(
+        isLive: true,
+        playbackRate: 1
+      ),
+      8_000
+    )
+    XCTAssertEqual(
+      LiveSABRBufferPolicy.goalMS(
+        isLive: false,
+        playbackRate: 1
+      ),
+      30_000
+    )
+    XCTAssertEqual(
+      LiveSABRBufferPolicy.refreshThresholdMS(for: 8_000),
+      5_333
+    )
+    XCTAssertEqual(
+      LiveSABRBufferPolicy.nativeLiveRefreshThresholdMS(for: 8_000),
+      8_000
+    )
+    XCTAssertEqual(
+      LiveSABRBufferPolicy.nativeLiveRefreshThresholdMS(for: 20_000),
+      20_000
+    )
+    XCTAssertEqual(
+      LiveSABRBufferPolicy.nativeLiveGoalMS(playbackRate: 1),
+      20_000
+    )
+  }
+
+  func testBufferPolicyScalesForPlaybackRateWithoutOverfilling() {
+    XCTAssertEqual(
+      LiveSABRBufferPolicy.goalMS(
+        isLive: true,
+        playbackRate: 2
+      ),
+      16_000
+    )
+    XCTAssertEqual(
+      LiveSABRBufferPolicy.goalMS(
+        isLive: false,
+        playbackRate: 4
+      ),
+      60_000
+    )
+  }
+
   func testTransientSABRRetryPolicyMatchesAndroidClient() {
     XCTAssertEqual(
       LivePlaybackService.sabrRetryDelayMS(
@@ -76,6 +126,32 @@ final class LiveSABRPlaybackSessionTests: XCTestCase {
     XCTAssertEqual(service.createdVideoItags, [136, 133])
   }
 
+  func testSnapshotJoinsRecoveryInsteadOfCreatingACompetingSession()
+    async throws {
+    let service = RecoveryPlaybackService(
+      recoveredPrefetchDelayMS: 250
+    )
+    let session = LiveSABRPlaybackSession(
+      service: service,
+      preparation: preparation()
+    )
+
+    let starting = Task {
+      try await session.start()
+    }
+    try await Task.sleep(for: .milliseconds(50))
+    let concurrentSnapshot = Task {
+      try await session.snapshot()
+    }
+
+    let started = try await starting.value
+    let joined = try await concurrentSnapshot.value
+
+    XCTAssertEqual(started.sessionID, "recovered")
+    XCTAssertEqual(joined.sessionID, started.sessionID)
+    XCTAssertEqual(service.createdVideoItags, [136, 136])
+  }
+
   func testReportsPlaybackRateToTheActiveSABRSession() async throws {
     let service = RecoveryPlaybackService()
     let session = LiveSABRPlaybackSession(
@@ -87,6 +163,41 @@ final class LiveSABRPlaybackSessionTests: XCTestCase {
     await session.updatePlaybackRate(2)
 
     XCTAssertEqual(service.positionRates.last, 2)
+  }
+
+  func testLiveWindowMayEndAfterTheMovingPresentationHead() {
+    let live = LiveSABRLiveState(
+      active: true,
+      postLiveDVR: false,
+      headSequence: 177_026,
+      headTimeMS: 885_117_095,
+      seekableStartMS: 841_917_095,
+      seekableEndMS: 885_117_095,
+      atLiveEdge: true,
+      targetLatencyMS: 20_000
+    )
+
+    XCTAssertTrue(
+      LiveSABRPlaybackSession.windowFitsPresentation(
+        incomingEndMS: 885_122_095,
+        durationMS: 885_117_095,
+        live: live
+      )
+    )
+    XCTAssertFalse(
+      LiveSABRPlaybackSession.windowFitsPresentation(
+        incomingEndMS: 605_000,
+        durationMS: 600_000,
+        live: nil
+      )
+    )
+    XCTAssertFalse(
+      LiveSABRPlaybackSession.windowFitsPresentation(
+        incomingEndMS: 885_200_000,
+        durationMS: 885_117_095,
+        live: live
+      )
+    )
   }
 
   func testSeekRepositionsTheActiveSABRSession() async throws {
@@ -120,6 +231,11 @@ final class LiveSABRPlaybackSessionTests: XCTestCase {
       audioTrackName: nil,
       audioLocale: nil,
       isOriginal: true,
+      contentLength: 0,
+      initStart: 0,
+      initEnd: 0,
+      indexStart: 0,
+      indexEnd: 0,
       deliveryMethod: "SABR",
       manifestURL: nil
     )
@@ -135,6 +251,11 @@ final class LiveSABRPlaybackSessionTests: XCTestCase {
       viewCount: 0,
       likeCount: 0,
       dislikeCount: 0,
+      uploadDate: "",
+      uploaded: -1,
+      uploaderSubscriberCount: -1,
+      uploaderVerified: false,
+      publishedAt: nil,
       startPosition: 120,
       hlsURL: "",
       videoStreams: [],
@@ -178,6 +299,11 @@ final class LiveSABRPlaybackSessionTests: XCTestCase {
       width: height * 16 / 9,
       height: height,
       fps: 30,
+      contentLength: 0,
+      initStart: 0,
+      initEnd: 0,
+      indexStart: 0,
+      indexEnd: 0,
       deliveryMethod: "SABR",
       manifestURL: nil
     )

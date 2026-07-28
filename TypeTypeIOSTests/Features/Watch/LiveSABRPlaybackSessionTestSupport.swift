@@ -9,13 +9,16 @@ final class RecoveryPlaybackService:
   private(set) var lifecycle: [String] = []
   private let recoveryAction: String
   private let retryVideoItags: [Int]
+  private let recoveredPrefetchDelayMS: Int64
 
   init(
     recoveryAction: String = "retry_fresh_session",
-    retryVideoItags: [Int] = []
+    retryVideoItags: [Int] = [],
+    recoveredPrefetchDelayMS: Int64 = 0
   ) {
     self.recoveryAction = recoveryAction
     self.retryVideoItags = retryVideoItags
+    self.recoveredPrefetchDelayMS = recoveredPrefetchDelayMS
   }
 
   func stream(for videoURL: String) async throws -> LivePlaybackStream {
@@ -86,6 +89,11 @@ final class RecoveryPlaybackService:
         recoveryAction: recoveryAction,
         retryVideoItags: retryVideoItags,
         live: nil
+      )
+    }
+    if recoveredPrefetchDelayMS > 0 {
+      try await Task.sleep(
+        for: .milliseconds(recoveredPrefetchDelayMS)
       )
     }
     return LiveSABRWindowResponse(
