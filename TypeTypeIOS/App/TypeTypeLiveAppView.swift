@@ -29,9 +29,16 @@ struct TypeTypeLiveAppView: View {
       }
     }
     .task {
+      if let launchURL = AppConfig.debugIncomingURL {
+        coordinator.receiveIncomingURL(launchURL)
+      }
       await coordinator.bootstrap()
     }
+    .onOpenURL(perform: coordinator.receiveIncomingURL)
     .animation(.easeInOut(duration: 0.22), value: coordinator.state)
+    .preferredColorScheme(
+      AppConfig.debugForcesLightAppearance ? .light : nil
+    )
   }
 }
 
