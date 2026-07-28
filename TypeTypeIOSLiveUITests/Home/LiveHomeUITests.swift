@@ -160,6 +160,181 @@ final class LiveHomeUITests: XCTestCase {
     capture(app, named: "Live home · BiliBili service")
   }
 
+  func testNicoVideoExposesNativeDanmakuControls() throws {
+    server = LiveFixtureServer(prefersNicoRecommendation: true)
+    let serverURL = try server.start()
+    let app = XCUIApplication()
+    app.launchArguments = [
+      "--typetype-live-ui",
+      "--typetype-reset-live-state",
+    ]
+    app.launch()
+
+    connect(app, address: serverURL.absoluteString)
+    let guest = app.buttons["live.auth.guest"]
+    XCTAssertTrue(guest.waitForExistence(timeout: 3))
+    guest.tap()
+    XCTAssertTrue(
+      app.descendants(matching: .any)["live.authenticated.shell"]
+        .waitForExistence(timeout: 10)
+    )
+    let nico = app.buttons["live.home.video.card.nico-1"]
+    XCTAssertTrue(nico.waitForExistence(timeout: 15))
+    XCTAssertTrue(nico.isHittable)
+    nico.tap()
+
+    let playerSurface = app.descendants(matching: .any)[
+      "live.player.surface"
+    ]
+    let sponsorBlock = app.descendants(matching: .any)[
+      "live.player.sponsorblock"
+    ].firstMatch
+    XCTAssertTrue(sponsorBlock.waitForExistence(timeout: 5))
+    let sponsorTitle = app.staticTexts["Exclusive access"]
+    XCTAssertTrue(sponsorTitle.waitForExistence(timeout: 3))
+    XCTAssertGreaterThan(sponsorTitle.frame.width, 1)
+    let skipSponsor = app.buttons["Skip"]
+    XCTAssertTrue(skipSponsor.exists)
+    XCTAssertGreaterThanOrEqual(
+      sponsorTitle.frame.minX,
+      playerSurface.frame.minX
+    )
+    XCTAssertLessThanOrEqual(
+      skipSponsor.frame.maxX,
+      playerSurface.frame.maxX
+    )
+    XCTAssertEqual(
+      sponsorBlock.frame.midX,
+      playerSurface.frame.midX,
+      accuracy: 6,
+      "SponsorBlock must remain centered in the inline portrait player."
+    )
+    capture(app, named: "Live player · SponsorBlock overlay")
+    playerSurface.tap()
+    let fullscreen = app.buttons.matching(
+      NSPredicate(
+        format: "label CONTAINS[c] %@",
+        "full screen"
+      )
+    ).firstMatch
+    XCTAssertTrue(fullscreen.waitForExistence(timeout: 3))
+    fullscreen.tap()
+    XCTAssertTrue(
+      app.descendants(matching: .any)["live.player.sponsorblock"]
+        .waitForExistence(timeout: 3)
+    )
+    capture(app, named: "Live player · Native full screen")
+    app.coordinate(
+      withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)
+    ).tap()
+    capture(app, named: "Live player · Native controls revealed")
+    let exitFullscreen = app.buttons["Close"]
+    XCTAssertTrue(exitFullscreen.waitForExistence(timeout: 3))
+    exitFullscreen.tap()
+    let metadata = app.scrollViews["live.video.metadata"]
+    XCTAssertTrue(metadata.waitForExistence(timeout: 3))
+    let danmaku = app.descendants(matching: .any)[
+      "live.danmaku.quick-action"
+    ]
+    for _ in 0..<6 where !danmaku.isHittable {
+      metadata.swipeUp(velocity: .slow)
+    }
+    XCTAssertTrue(danmaku.waitForExistence(timeout: 5))
+    XCTAssertTrue(danmaku.isHittable)
+    danmaku.tap()
+    let speed = app.sliders["live.danmaku.speed"]
+    XCTAssertTrue(speed.waitForExistence(timeout: 3))
+    speed.adjust(toNormalizedSliderPosition: 0.75)
+    let size = app.sliders["live.danmaku.size"]
+    XCTAssertTrue(size.waitForExistence(timeout: 3))
+    size.adjust(toNormalizedSliderPosition: 0.6)
+    capture(app, named: "Live player · Danmaku quick controls")
+    app.coordinate(
+      withNormalizedOffset: CGVector(dx: 0.05, dy: 0.9)
+    ).tap()
+
+    XCTAssertTrue(
+      app.scrollViews["live.video.metadata"]
+        .waitForExistence(timeout: 3)
+    )
+    XCTAssertTrue(
+      element(in: app, labelled: "Likes")
+        .waitForExistence(timeout: 3)
+    )
+    XCTAssertTrue(
+      element(in: app, labelled: "Dislikes").exists
+    )
+    XCTAssertTrue(
+      element(in: app, labelled: "Share").exists
+    )
+    XCTAssertTrue(
+      element(in: app, labelled: "Download").exists
+    )
+    capture(app, named: "Live player · NicoNico danmaku")
+  }
+
+  func testCaptionAppearanceInLightMode() throws {
+    try auditCaptionAppearance(
+      serverURL: try server.start(),
+      interfaceStyle: "Light"
+    )
+  }
+
+  func testCaptionAppearanceInDarkMode() throws {
+    try auditCaptionAppearance(
+      serverURL: try server.start(),
+      interfaceStyle: "Dark"
+    )
+  }
+
+  private func auditCaptionAppearance(
+    serverURL: URL,
+    interfaceStyle: String
+  ) throws {
+    let app = XCUIApplication()
+    app.launchArguments = [
+      "--typetype-live-ui",
+      "--typetype-reset-live-state",
+    ]
+    if interfaceStyle == "Light" {
+      app.launchArguments.append("--typetype-force-light-appearance")
+    } else {
+      app.launchArguments.append(contentsOf: [
+        "-AppleInterfaceStyle",
+        "Dark",
+      ])
+    }
+    app.launch()
+    connect(app, address: serverURL.absoluteString)
+    app.buttons["live.auth.guest"].tap()
+    let more = app.tabBars.buttons["More"]
+    XCTAssertTrue(more.waitForExistence(timeout: 15))
+    more.tap()
+    let settings = element(in: app, labelled: "Settings")
+    XCTAssertTrue(settings.waitForExistence(timeout: 3))
+    settings.tap()
+    let settingsScreen = app.collectionViews["live.settings.screen"]
+    XCTAssertTrue(settingsScreen.waitForExistence(timeout: 5))
+    let appearance = element(in: app, labelled: "Caption appearance")
+    for _ in 0..<2 where !appearance.isHittable {
+      settingsScreen.swipeUp()
+    }
+    XCTAssertTrue(appearance.isHittable)
+    appearance.tap()
+    let appearanceScreen = app.collectionViews[
+      "live.settings.caption-appearance"
+    ]
+    XCTAssertTrue(appearanceScreen.waitForExistence(timeout: 5))
+    XCTAssertTrue(element(in: app, labelled: "Font").exists)
+    XCTAssertTrue(element(in: app, labelled: "Size").exists)
+    XCTAssertTrue(element(in: app, labelled: "Edge style").exists)
+    capture(
+      app,
+      named: "Live settings · Captions · \(interfaceStyle)"
+    )
+    app.terminate()
+  }
+
   private func connect(
     _ app: XCUIApplication,
     address: String
