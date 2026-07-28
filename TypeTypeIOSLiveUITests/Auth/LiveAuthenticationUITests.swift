@@ -9,8 +9,9 @@ final class LiveAuthenticationUITests: XCTestCase {
         ?? environment["TYPETYPE_UI_TEST_PRODUCTION_URL"],
       !liveURL.isEmpty
     else {
-      XCTFail("TYPETYPE_UI_TEST_LIVE_URL is required")
-      return
+      throw XCTSkip(
+        "TYPETYPE_UI_TEST_LIVE_URL is not configured"
+      )
     }
     let capabilities = try await fetchCapabilities(
       liveURL: liveURL
@@ -157,7 +158,10 @@ final class LiveAuthenticationUITests: XCTestCase {
     app.keyboards.buttons["Search"].tap()
     XCTAssertTrue(
       app.buttons.matching(
-        identifier: "live.home.video.card"
+        NSPredicate(
+          format: "identifier BEGINSWITH %@",
+          "live.home.video.card."
+        )
       ).firstMatch.waitForExistence(timeout: 90)
     )
     capture(app, named: "Live search · HTTPS instance")

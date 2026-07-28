@@ -52,8 +52,8 @@ final class LiveSearchUITests: XCTestCase {
     XCTAssertTrue(
       element(in: app, labelled: "Backend playlist").exists
     )
-    XCTAssertFalse(
-      element(in: app, labelled: "Filtered search short").exists
+    XCTAssertTrue(
+      element(in: app, labelled: "Search short video").exists
     )
     capture(app, named: "Live search · Mixed backend results")
 
@@ -97,11 +97,22 @@ final class LiveSearchUITests: XCTestCase {
       ).firstMatch.waitForExistence(timeout: 5)
     )
 
-    app.segmentedControls["live.channel.tabs"]
-      .buttons["Playlists"].tap()
+    let sortMenu = app.buttons["live.channel.sort"]
+    XCTAssertEqual(sortMenu.value as? String, "Newest")
+    sortMenu.tap()
+    app.buttons["Popular"].firstMatch.tap()
+    XCTAssertEqual(sortMenu.value as? String, "Popular")
+    capture(app, named: "Live channel · Popular video order")
+
+    app.buttons["live.channel.tabs"].tap()
+    app.buttons["Playlists"].firstMatch.tap()
     XCTAssertTrue(
       element(in: app, labelled: "Backend playlist")
         .waitForExistence(timeout: 10)
+    )
+    XCTAssertEqual(
+      app.buttons["live.channel.tabs"].value as? String,
+      "Playlists"
     )
     capture(app, named: "Live channel · Playlists and subscription")
   }

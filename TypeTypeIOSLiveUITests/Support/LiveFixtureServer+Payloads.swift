@@ -89,6 +89,80 @@ extension LiveFixtureServer {
     }
     """
 
+  static func downloadJob(
+    status: String,
+    stage: String,
+    mode: String = "video"
+  ) -> String {
+    let completed = status == "done"
+    let audioOnly = mode == "audio"
+    return """
+    {
+      "id":"fixture-download",
+      "url":"https://www.youtube.com/watch?v=video-1",
+      "status":"\(status)",
+      "title":"Backend recommendation",
+      "resolved":{
+        "videoItag":\(audioOnly ? "null" : #""137""#),
+        "audioItag":"140",
+        "height":\(audioOnly ? "null" : "1080"),
+        "fps":\(audioOnly ? "null" : "30"),
+        "videoCodec":\(audioOnly ? "null" : #""avc1""#),
+        "audioCodec":"mp4a",
+        "container":"\(audioOnly ? "m4a" : "mp4")",
+        "bitrate":null,
+        "fileName":"Backend recommendation.\(audioOnly ? "m4a" : "mp4")"
+      },
+      "progressPercent":\(completed ? 100 : 0),
+      "downloadedBytes":\(completed ? 21 : 0),
+      "totalBytes":21,
+      "speedBytesPerSecond":null,
+      "etaSeconds":null,
+      "stage":"\(stage)",
+      "queuedAt":null,
+      "startedAt":null,
+      "finishedAt":null,
+      "queueWaitMs":null,
+      "runTimeMs":null,
+      "errorCode":null,
+      "error":null
+    }
+    """
+  }
+
+  static let nicoStreamJSON = """
+    {
+      "id":"https://www.nicovideo.jp/watch/sm9",
+      "title":"NicoNico video",
+      "uploaderName":"TypeType Channel",
+      "uploaderUrl":"https://www.nicovideo.jp/user/fixture",
+      "uploaderAvatarUrl":"https://example.test/avatar.jpg",
+      "thumbnailUrl":"https://example.test/nico.jpg",
+      "description":"A backend fixture video.",
+      "duration":10,
+      "viewCount":12345,
+      "likeCount":128000,
+      "dislikeCount":1200,
+      "startPosition":0,
+      "hlsUrl":"https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/720/Big_Buck_Bunny_720_10s_1MB.mp4",
+      "videoStreams":[],
+      "audioStreams":[],
+      "videoOnlyStreams":[],
+      "subtitles":[],
+      "streamSegments":[],
+      "sponsorBlockSegments":[{
+        "startTime":0,
+        "endTime":10000,
+        "category":"exclusive_access",
+        "action":"skip"
+      }],
+      "relatedStreams":[],
+      "isLive":false,
+      "isPostLive":false,
+      "isLiveContent":false
+    }
+    """
+
   static func video(
     id: String,
     title: String,
@@ -187,16 +261,28 @@ extension LiveFixtureServer {
     body: String,
     contentType: String = "application/json"
   ) -> Data {
-    let bodyData = Data(body.utf8)
+    http(
+      status: status,
+      body: Data(body.utf8),
+      contentType: contentType
+    )
+  }
+
+  static func http(
+    status: String,
+    body: Data,
+    contentType: String
+  ) -> Data {
     let headers = [
       "HTTP/1.0 \(status)",
       "Content-Type: \(contentType)",
+      "Content-Length: \(body.count)",
       "Connection: close",
       "",
       "",
     ].joined(separator: "\r\n")
     var response = Data(headers.utf8)
-    response.append(bodyData)
+    response.append(body)
     return response
   }
 }
