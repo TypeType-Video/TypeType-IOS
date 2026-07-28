@@ -8,6 +8,10 @@ protocol LivePlaybackServiceProtocol: AnyObject {
     preferences: LivePlaybackPreferences
   ) throws -> LivePlaybackPreparation
   func resourceData(for assetURL: URL) async throws -> Data
+  func resourceData(
+    for assetURL: URL,
+    range: ClosedRange<Int>
+  ) async throws -> Data
   func subtitleData(for source: LivePlaybackSubtitle) async throws -> Data
   func createSABRPlayback(
     videoID: String,
@@ -42,6 +46,13 @@ protocol LivePlaybackServiceProtocol: AnyObject {
 }
 
 extension LivePlaybackServiceProtocol {
+  func resourceData(
+    for assetURL: URL,
+    range: ClosedRange<Int>
+  ) async throws -> Data {
+    try await resourceData(for: assetURL)
+  }
+
   func bulletComments(
     for videoURL: String
   ) async throws -> [LiveBulletComment] {
@@ -160,6 +171,26 @@ final class LivePlaybackService: LivePlaybackServiceProtocol {
   func resourceData(for assetURL: URL) async throws -> Data {
     let endpoint = try serverEndpoint(for: assetURL)
     return try await apiClient.requestData(endpoint)
+  }
+
+  func resourceData(
+    for assetURL: URL,
+    range: ClosedRange<Int>
+  ) async throws -> Data {
+    let endpoint = try serverEndpoint(for: assetURL)
+    return try await apiClient.requestData(
+      APIEndpoint(
+        path: endpoint.path,
+        method: endpoint.method,
+        queryItems: endpoint.queryItems,
+        headers: [
+          "Range": "bytes=\(range.lowerBound)-\(range.upperBound)"
+        ],
+        body: endpoint.body,
+        requiresAuth: endpoint.requiresAuth,
+        timeoutInterval: endpoint.timeoutInterval
+      )
+    )
   }
 
   func subtitleData(for source: LivePlaybackSubtitle) async throws -> Data {

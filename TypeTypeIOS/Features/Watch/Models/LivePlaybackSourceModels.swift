@@ -11,6 +11,11 @@ struct LivePlaybackVideoSource: Decodable, Hashable, Identifiable {
   let width: Int
   let height: Int
   let fps: Int
+  let contentLength: Int64
+  let initStart: Int64
+  let initEnd: Int64
+  let indexStart: Int64
+  let indexEnd: Int64
   let deliveryMethod: String
   let manifestURL: String?
 
@@ -58,7 +63,8 @@ struct LivePlaybackVideoSource: Decodable, Hashable, Identifiable {
 
   private enum CodingKeys: String, CodingKey {
     case url, mimeType, resolution, bitrate, codec, isVideoOnly
-    case itag, width, height, fps, deliveryMethod
+    case itag, width, height, fps, contentLength
+    case initStart, initEnd, indexStart, indexEnd, deliveryMethod
     case manifestURL = "manifestUrl"
   }
 }
@@ -74,6 +80,11 @@ struct LivePlaybackAudioSource: Decodable, Hashable, Identifiable {
   let audioTrackName: String?
   let audioLocale: String?
   let isOriginal: Bool
+  let contentLength: Int64
+  let initStart: Int64
+  let initEnd: Int64
+  let indexStart: Int64
+  let indexEnd: Int64
   let deliveryMethod: String
   let manifestURL: String?
 
@@ -127,7 +138,8 @@ struct LivePlaybackAudioSource: Decodable, Hashable, Identifiable {
 
   private enum CodingKeys: String, CodingKey {
     case url, mimeType, bitrate, codec, quality, itag
-    case audioTrackName, audioLocale, isOriginal, deliveryMethod
+    case audioTrackName, audioLocale, isOriginal, contentLength
+    case initStart, initEnd, indexStart, indexEnd, deliveryMethod
     case audioTrackID = "audioTrackId"
     case manifestURL = "manifestUrl"
   }
