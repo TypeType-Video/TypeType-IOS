@@ -43,6 +43,7 @@ final class LivePlaybackHTTPServer: @unchecked Sendable {
   let service: LivePlaybackServiceProtocol
   let preparation: LivePlaybackPreparation
   let preferredSubtitleLanguage: String
+  let providerFailureHandler: ProviderFailureHandler?
   let queue = DispatchQueue(
     label: "dev.typetype.ios.live-playback-http",
     qos: .userInitiated
@@ -67,12 +68,41 @@ final class LivePlaybackHTTPServer: @unchecked Sendable {
   init(
     service: LivePlaybackServiceProtocol,
     preparation: LivePlaybackPreparation,
-    preferredSubtitleLanguage: String
+    preferredSubtitleLanguage: String,
+    providerFailureHandler: ProviderFailureHandler? = nil
   ) {
     self.service = service
     self.preparation = preparation
     self.preferredSubtitleLanguage = preferredSubtitleLanguage
+    self.providerFailureHandler = providerFailureHandler
     cache.totalCostLimit = 128 * 1_024 * 1_024
+  }
+
+  func providerMediaKind(
+    for target: Target
+  ) -> ProviderMediaKind? {
+    guard let providerPlayback = preparation.providerPlayback else {
+      return nil
+    }
+    let targetURL: URL
+    switch target {
+    case let .upstream(url),
+      let .upstreamRange(url, _, _):
+      targetURL = url
+    default:
+      return nil
+    }
+    switch providerPlayback {
+    case let .separateProgressive(videoURL, audioURL),
+      let .separateHLS(videoURL, audioURL):
+      if targetURL == videoURL {
+        return .video
+      }
+      if targetURL == audioURL {
+        return .audio
+      }
+      return nil
+    }
   }
 
   func start() async throws -> URL {

@@ -101,6 +101,13 @@ extension LivePlaybackHTTPServer {
           on: connection
         )
       } catch {
+        let failure = error as NSError
+        AppLogger.app.error(
+          "Local playback response failed: \(failure.domain, privacy: .public) \(failure.code) \(failure.localizedDescription, privacy: .public)"
+        )
+        if let kind = providerMediaKind(for: route.target) {
+          providerFailureHandler?(self, kind)
+        }
         send(
           status: 502,
           reason: "Bad Gateway",

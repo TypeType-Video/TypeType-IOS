@@ -157,7 +157,15 @@ extension LivePlayerController {
       let server = LivePlaybackHTTPServer(
         service: service,
         preparation: installedPreparation,
-        preferredSubtitleLanguage: settings.defaultSubtitleLanguage
+        preferredSubtitleLanguage: settings.defaultSubtitleLanguage,
+        providerFailureHandler: { [weak self] server, kind in
+          Task { @MainActor [weak self] in
+            self?.recoverProviderPlayback(
+              reportedBy: server,
+              failedKind: kind
+            )
+          }
+        }
       )
       do {
         assetURL = try await server.start()
