@@ -37,6 +37,7 @@ final class SessionStore {
       serverID: snapshot.serverID,
       userID: snapshot.userID,
       accountIdentifier: snapshot.accountIdentifier,
+      publicUsername: snapshot.publicUsername,
       role: snapshot.role
     )
     var snapshots = registry()

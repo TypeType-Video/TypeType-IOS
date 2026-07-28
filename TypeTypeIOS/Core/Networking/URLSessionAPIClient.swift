@@ -3,23 +3,31 @@ import Foundation
 final class URLSessionAPIClient: APIClient {
   typealias TokenRefreshHandler = (String) async throws -> String?
 
-  private let serverURLProvider: () -> URL?
-  private let accessTokenProvider: () -> String?
-  private let session: URLSession
-  private let decoder: JSONDecoder
-  private let tokenRefreshGate = TokenRefreshGate()
-  private var tokenRefreshHandler: TokenRefreshHandler?
+  let serverURLProvider: () -> URL?
+  let accessTokenProvider: () -> String?
+  let session: URLSession
+  let decoder: JSONDecoder
+  let diagnosticsStore: LiveDiagnosticsStore?
+  let diagnosticScopeProvider: () -> LiveDiagnosticScope?
+  let tokenRefreshGate = TokenRefreshGate()
+  var tokenRefreshHandler: TokenRefreshHandler?
 
   init(
     serverURLProvider: @escaping () -> URL?,
     accessTokenProvider: @escaping () -> String?,
     session: URLSession = URLSessionAPIClient.makeSession(),
-    decoder: JSONDecoder = JSONDecoder()
+    decoder: JSONDecoder = JSONDecoder(),
+    diagnosticsStore: LiveDiagnosticsStore? = nil,
+    diagnosticScopeProvider: @escaping () -> LiveDiagnosticScope? = {
+      nil
+    }
   ) {
     self.serverURLProvider = serverURLProvider
     self.accessTokenProvider = accessTokenProvider
     self.session = session
     self.decoder = decoder
+    self.diagnosticsStore = diagnosticsStore
+    self.diagnosticScopeProvider = diagnosticScopeProvider
   }
 
   func setTokenRefreshHandler(_ handler: @escaping TokenRefreshHandler) {
@@ -45,158 +53,73 @@ final class URLSessionAPIClient: APIClient {
     _ = try await requestData(endpoint)
   }
 
+  func upload<T: Decodable>(
+    _ endpoint: APIEndpoint,
+    from fileURL: URL,
+    as type: T.Type
+  ) async throws -> T {
+    let data = try await uploadData(endpoint, from: fileURL)
+    do {
+      return try decoder.decode(type, from: data)
+    } catch {
+      AppLogger.network.error(
+        "Decode failure for \(endpoint.path, privacy: .public)"
+      )
+      throw NetworkError.decoding
+    }
+  }
+
   func requestData(_ endpoint: APIEndpoint) async throws -> Data {
     let request = try makeURLRequest(endpoint)
     do {
-      return try await execute(request)
+      return try await executeRead(request) {
+        try await self.execute(request)
+      }
     } catch let error as NetworkError {
       guard case .statusCode(401, _) = error else { throw error }
       guard endpoint.requiresAuth else { throw error }
       guard let retryRequest = await makeRetryRequest(from: request) else {
         throw error
       }
-      return try await execute(retryRequest)
+      return try await executeRead(retryRequest) {
+        try await self.execute(retryRequest)
+      }
     }
   }
 
-  private func execute(_ request: URLRequest) async throws -> Data {
+  func download(_ endpoint: APIEndpoint) async throws -> URL {
+    let request = try makeURLRequest(endpoint)
     do {
-      let (data, response) = try await session.data(for: request)
-      guard let http = response as? HTTPURLResponse else {
-        throw NetworkError.invalidResponse
+      return try await executeRead(request) {
+        try await self.executeDownload(request)
       }
-      guard (200...299).contains(http.statusCode) else {
-        throw NetworkError.statusCode(
-          http.statusCode,
-          errorMessage(from: data)
-        )
-      }
-      return data
     } catch let error as NetworkError {
-      throw error
-    } catch is CancellationError {
-      throw CancellationError()
-    } catch {
-      throw NetworkError.transport
-    }
-  }
-
-  private func makeRetryRequest(
-    from request: URLRequest
-  ) async -> URLRequest? {
-    guard let tokenRefreshHandler else { return nil }
-    guard let staleToken = bearerToken(from: request) else { return nil }
-    guard let refreshedToken = await tokenRefreshGate.refresh(
-      staleToken: staleToken,
-      using: tokenRefreshHandler
-    ) else {
-      return nil
-    }
-    var retryRequest = request
-    retryRequest.setValue(
-      "Bearer \(refreshedToken)",
-      forHTTPHeaderField: "Authorization"
-    )
-    return retryRequest
-  }
-
-  private func makeURLRequest(
-    _ endpoint: APIEndpoint
-  ) throws -> URLRequest {
-    guard let baseURL = serverURLProvider() else {
-      throw NetworkError.missingServerURL
-    }
-    guard var components = URLComponents(
-      url: baseURL,
-      resolvingAgainstBaseURL: false
-    ) else {
-      throw NetworkError.invalidURL
-    }
-
-    let path = endpoint.path.hasPrefix("/")
-      ? endpoint.path
-      : "/\(endpoint.path)"
-    let basePath = components.path.hasSuffix("/")
-      ? String(components.path.dropLast())
-      : components.path
-    components.path = "\(basePath)\(path)"
-    components.queryItems = endpoint.queryItems.isEmpty
-      ? nil
-      : endpoint.queryItems
-
-    guard let url = components.url else {
-      throw NetworkError.invalidURL
-    }
-    var request = URLRequest(url: url)
-    request.httpMethod = endpoint.method.rawValue
-    request.httpBody = endpoint.body
-    if let timeoutInterval = endpoint.timeoutInterval {
-      request.timeoutInterval = timeoutInterval
-    }
-    request.setValue("application/json", forHTTPHeaderField: "Accept")
-
-    if endpoint.body != nil, endpoint.headers["Content-Type"] == nil {
-      request.setValue(
-        "application/json",
-        forHTTPHeaderField: "Content-Type"
-      )
-    }
-    for (key, value) in endpoint.headers {
-      request.setValue(value, forHTTPHeaderField: key)
-    }
-    if endpoint.requiresAuth {
-      guard let token = accessTokenProvider() else {
-        throw NetworkError.missingAccessToken
+      guard case .statusCode(401, _) = error else { throw error }
+      guard endpoint.requiresAuth else { throw error }
+      guard let retryRequest = await makeRetryRequest(from: request) else {
+        throw error
       }
-      request.setValue(
-        "Bearer \(token)",
-        forHTTPHeaderField: "Authorization"
-      )
-    }
-
-    AppLogger.network.debug(
-      "\(endpoint.method.rawValue, privacy: .public) \(url.path, privacy: .public)"
-    )
-    return request
-  }
-
-  private func errorMessage(from data: Data) -> String? {
-    if let json = try? JSONSerialization.jsonObject(with: data)
-      as? [String: Any] {
-      if let message = json["error"] as? String {
-        return message
-      }
-      if let message = json["message"] as? String {
-        return message
+      return try await executeRead(retryRequest) {
+        try await self.executeDownload(retryRequest)
       }
     }
-    let text = String(data: data, encoding: .utf8)?
-      .trimmingCharacters(in: .whitespacesAndNewlines)
-    guard let text, !text.isEmpty else { return nil }
-    return String(text.prefix(500))
   }
 
-  private func bearerToken(from request: URLRequest) -> String? {
-    guard let header = request.value(
-      forHTTPHeaderField: "Authorization"
-    ) else {
-      return nil
+  private func uploadData(
+    _ endpoint: APIEndpoint,
+    from fileURL: URL
+  ) async throws -> Data {
+    var request = try makeURLRequest(endpoint)
+    request.httpBody = nil
+    do {
+      return try await executeUpload(request, from: fileURL)
+    } catch let error as NetworkError {
+      guard case .statusCode(401, _) = error else { throw error }
+      guard endpoint.requiresAuth else { throw error }
+      guard let retryRequest = await makeRetryRequest(from: request) else {
+        throw error
+      }
+      return try await executeUpload(retryRequest, from: fileURL)
     }
-    let prefix = "Bearer "
-    guard header.hasPrefix(prefix) else { return nil }
-    let token = String(header.dropFirst(prefix.count))
-    return token.isEmpty ? nil : token
-  }
-
-  static func makeSession() -> URLSession {
-    let configuration = URLSessionConfiguration.default
-    configuration.httpCookieAcceptPolicy = .always
-    configuration.httpCookieStorage = .shared
-    configuration.httpShouldSetCookies = true
-    configuration.requestCachePolicy = .reloadRevalidatingCacheData
-    configuration.timeoutIntervalForRequest = 30
-    configuration.timeoutIntervalForResource = 120
-    configuration.waitsForConnectivity = true
-    return URLSession(configuration: configuration)
   }
 }
