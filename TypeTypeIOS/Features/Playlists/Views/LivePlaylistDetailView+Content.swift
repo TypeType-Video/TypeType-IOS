@@ -41,6 +41,33 @@ extension LivePlaylistDetailView {
                 .foregroundStyle(.secondary)
             }
           }
+          Section {
+            HStack(spacing: 12) {
+              Button {
+                startPlayback(
+                  title: playlist.name,
+                  videos: viewModel.videos.map(\.video),
+                  shuffle: false
+                )
+              } label: {
+                Label("Play all", systemImage: "play.fill")
+                  .frame(maxWidth: .infinity)
+              }
+              .buttonStyle(.borderedProminent)
+
+              Button {
+                startPlayback(
+                  title: playlist.name,
+                  videos: viewModel.videos.map(\.video),
+                  shuffle: true
+                )
+              } label: {
+                Label("Shuffle", systemImage: "shuffle")
+                  .frame(maxWidth: .infinity)
+              }
+              .buttonStyle(.bordered)
+            }
+          }
           Section("\(playlist.videoCount) videos") {
             ForEach(viewModel.videos) { video in
               LivePlaylistVideoRow(
@@ -111,6 +138,18 @@ extension LivePlaylistDetailView {
     Binding(
       get: { viewModel.errorMessage != nil },
       set: { if !$0 { viewModel.dismissError() } }
+    )
+  }
+
+  private func startPlayback(
+    title: String,
+    videos: [LiveVideoItem],
+    shuffle: Bool
+  ) {
+    selectedVideo = dependencies.playbackCoordinator.startQueue(
+      title: title,
+      videos: videos,
+      shuffle: shuffle
     )
   }
 }

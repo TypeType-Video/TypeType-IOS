@@ -71,6 +71,13 @@ struct LivePublicPlaylistView: View {
         LivePublicPlaylistHeader(
           playlist: viewModel.playlist,
           isSaved: viewModel.savedID != nil,
+          isPreparingPlayback: viewModel.isPreparingPlayback,
+          onPlayAll: {
+            Task { await startPlayback(shuffle: false) }
+          },
+          onShuffle: {
+            Task { await startPlayback(shuffle: true) }
+          },
           onToggleSaved: {
             Task { await viewModel.toggleSaved() }
           }
@@ -134,6 +141,17 @@ struct LivePublicPlaylistView: View {
     Binding(
       get: { viewModel.errorMessage != nil },
       set: { if !$0 { viewModel.dismissError() } }
+    )
+  }
+
+  private func startPlayback(shuffle: Bool) async {
+    guard let videos = await viewModel.videosForPlayback() else {
+      return
+    }
+    selectedVideo = dependencies.playbackCoordinator.startQueue(
+      title: viewModel.playlist.title,
+      videos: videos,
+      shuffle: shuffle
     )
   }
 }

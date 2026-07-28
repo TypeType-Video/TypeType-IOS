@@ -31,7 +31,7 @@ struct LiveVideoLibraryActionsView: View {
             title: viewModel.isInWatchLater ? "Saved for later" : "Watch later",
             symbol: viewModel.isInWatchLater
               ? "clock.badge.checkmark"
-              : "clock.badge.plus"
+              : "clock"
           ) {
             Task { await viewModel.toggleWatchLater() }
           }

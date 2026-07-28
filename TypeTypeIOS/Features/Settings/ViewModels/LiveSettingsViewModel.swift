@@ -52,8 +52,9 @@ final class LiveSettingsViewModel: ObservableObject {
     }
   }
 
-  func save() async {
-    guard !isSaving, hasChanges else { return }
+  @discardableResult
+  func save() async -> LiveSettings? {
+    guard !isSaving, hasChanges else { return nil }
     isSaving = true
     defer { isSaving = false }
     do {
@@ -63,8 +64,10 @@ final class LiveSettingsViewModel: ObservableObject {
       serviceSelection.synchronize(with: updated)
       deArrowStore.invalidatePreferences()
       message = "Settings saved"
+      return updated
     } catch {
       errorMessage = text(for: error)
+      return nil
     }
   }
 

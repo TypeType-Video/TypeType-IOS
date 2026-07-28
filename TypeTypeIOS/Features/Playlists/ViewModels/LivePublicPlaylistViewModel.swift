@@ -14,6 +14,7 @@ final class LivePublicPlaylistViewModel: ObservableObject {
   @Published private(set) var videos: [LiveVideoItem] = []
   @Published private(set) var savedID: String?
   @Published private(set) var isLoadingMore = false
+  @Published private(set) var isPreparingPlayback = false
   @Published private(set) var errorMessage: String?
 
   private let service: LivePlaylistsServiceProtocol
@@ -92,6 +93,34 @@ final class LivePublicPlaylistViewModel: ObservableObject {
     }
   }
 
+  func videosForPlayback() async -> [LiveVideoItem]? {
+    guard !isPreparingPlayback else { return nil }
+    isPreparingPlayback = true
+    defer { isPreparingPlayback = false }
+    do {
+      while let pageToken = nextPage, !pageToken.isEmpty {
+        let page = try await service.publicPlaylist(
+          url: playlist.url,
+          nextPage: pageToken
+        )
+        let existing = Set(videos.map(\.canonicalID))
+        videos.append(contentsOf: uniqueVisible(page.videos).filter {
+          !existing.contains($0.canonicalID)
+        })
+        nextPage = page.nextPage
+        if nextPage == pageToken {
+          break
+        }
+      }
+      return videos
+    } catch is CancellationError {
+      return nil
+    } catch {
+      errorMessage = message(for: error)
+      return nil
+    }
+  }
+
   func dismissError() {
     errorMessage = nil
   }
@@ -101,8 +130,7 @@ final class LivePublicPlaylistViewModel: ObservableObject {
   ) -> [LiveVideoItem] {
     var seen: Set<String> = []
     return candidates.filter {
-      !$0.isShortFormContent
-        && seen.insert($0.canonicalID).inserted
+      seen.insert($0.canonicalID).inserted
     }
   }
 

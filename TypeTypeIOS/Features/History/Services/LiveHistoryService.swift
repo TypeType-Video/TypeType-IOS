@@ -12,8 +12,24 @@ protocol LiveHistoryServiceProtocol {
     video: LiveVideoItem,
     progress: Int64
   ) async throws -> LiveHistoryItem
+  func progress(videoURL: String) async throws -> Int64?
+  func updateProgress(
+    videoURL: String,
+    positionMS: Int64
+  ) async throws
   func remove(id: String) async throws
   func clear() async throws
+}
+
+extension LiveHistoryServiceProtocol {
+  func progress(videoURL: String) async throws -> Int64? {
+    nil
+  }
+
+  func updateProgress(
+    videoURL: String,
+    positionMS: Int64
+  ) async throws {}
 }
 
 final class LiveHistoryService: LiveHistoryServiceProtocol {
@@ -75,6 +91,45 @@ final class LiveHistoryService: LiveHistoryServiceProtocol {
     )
   }
 
+  func updateProgress(
+    videoURL: String,
+    positionMS: Int64
+  ) async throws {
+    try await apiClient.request(
+      APIEndpoint(
+        path: "/progress",
+        method: .put,
+        queryItems: [
+          URLQueryItem(name: "url", value: videoURL)
+        ],
+        body: try APIEndpoint.jsonBody(
+          LiveProgressPayload(position: max(positionMS, 0))
+        ),
+        requiresAuth: true
+      )
+    )
+  }
+
+  func progress(videoURL: String) async throws -> Int64? {
+    do {
+      let item = try await apiClient.request(
+        APIEndpoint(
+          path: "/progress",
+          method: .get,
+          queryItems: [
+            URLQueryItem(name: "url", value: videoURL)
+          ],
+          requiresAuth: true
+        ),
+        as: LiveProgressItem.self
+      )
+      return max(item.position, 0)
+    } catch let error as NetworkError {
+      guard case .statusCode(404, _) = error else { throw error }
+      return nil
+    }
+  }
+
   func remove(id: String) async throws {
     do {
       try await apiClient.request(
@@ -98,6 +153,14 @@ final class LiveHistoryService: LiveHistoryServiceProtocol {
       )
     )
   }
+}
+
+private struct LiveProgressPayload: Encodable {
+  let position: Int64
+}
+
+private struct LiveProgressItem: Decodable {
+  let position: Int64
 }
 
 private struct LiveHistoryPayload: Encodable {

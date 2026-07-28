@@ -177,8 +177,7 @@ final class LiveChannelViewModel: ObservableObject {
   ) -> [LiveVideoItem] {
     var seen: Set<String> = []
     return candidates.filter {
-      !$0.isShortFormContent
-        && seen.insert($0.canonicalID).inserted
+      seen.insert($0.canonicalID).inserted
     }
   }
 

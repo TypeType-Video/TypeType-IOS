@@ -13,7 +13,6 @@ enum LiveSearchResultMapper {
     page.channels.map(LiveSearchResult.channel)
       + page.playlists.map(LiveSearchResult.playlist)
       + page.items
-        .filter { !$0.isShortFormContent }
         .map(LiveSearchResult.video)
   }
 

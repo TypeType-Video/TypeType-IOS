@@ -77,8 +77,7 @@ extension LiveSearchViewModel {
       }
       var seen: Set<String> = []
       trending = values.filter {
-        !$0.isShortFormContent
-          && seen.insert($0.canonicalID).inserted
+        seen.insert($0.canonicalID).inserted
       }
     } catch is CancellationError {
       return

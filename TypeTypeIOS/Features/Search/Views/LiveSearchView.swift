@@ -7,6 +7,7 @@ struct LiveSearchView: View {
   @State var selectedVideoChannelURL: String?
   @State var selectedChannel: LiveChannelResult?
   @State var selectedPlaylist: LivePlaylistResult?
+  @Environment(\.dismissSearch) private var dismissSearch
   private let onClose: () -> Void
 
   init(
@@ -45,6 +46,7 @@ struct LiveSearchView: View {
         .searchSuggestions {
           ForEach(viewModel.suggestions, id: \.self) { suggestion in
             Button {
+              dismissSearch()
               Task { await viewModel.submit(suggestion) }
             } label: {
               Label(suggestion, systemImage: "magnifyingglass")
@@ -53,6 +55,7 @@ struct LiveSearchView: View {
           }
         }
         .onSubmit(of: .search) {
+          dismissSearch()
           Task { await viewModel.submit() }
         }
         .onChange(of: viewModel.query) {
