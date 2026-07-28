@@ -1,3 +1,4 @@
+import Combine
 import Foundation
 
 @MainActor
@@ -13,7 +14,7 @@ final class LiveDownloadViewModel: ObservableObject {
   @Published var mode = LiveDownloadMode.video {
     didSet { applyModeDefaults() }
   }
-  @Published var quality = "balanced"
+  @Published var quality = "1080p"
   @Published var format = "mp4"
   @Published var sponsorBlock = false
   @Published var includesSubtitles = false
@@ -24,19 +25,21 @@ final class LiveDownloadViewModel: ObservableObject {
   @Published private(set) var isClearing = false
 
   let video: LiveVideoItem
-  private let service: LiveDownloaderServiceProtocol
-  private var trackingTask: Task<Void, Never>?
+  private let center: LiveDownloadCenter
+  private var recordID: String?
+  private var recordsObservation: AnyCancellable?
 
   init(
     video: LiveVideoItem,
-    service: LiveDownloaderServiceProtocol
+    center: LiveDownloadCenter
   ) {
     self.video = video
-    self.service = service
-  }
-
-  deinit {
-    trackingTask?.cancel()
+    self.center = center
+    recordsObservation = center.$records.sink { [weak self] _ in
+      Task { @MainActor [weak self] in
+        self?.synchronize()
+      }
+    }
   }
 
   var canStart: Bool {
@@ -63,137 +66,85 @@ final class LiveDownloadViewModel: ObservableObject {
 
   func start() async {
     guard canStart else { return }
-    trackingTask?.cancel()
-    job = nil
     state = .creating
     do {
-      let created = try await service.create(
-        videoURL: video.url,
-        options: options
-      )
-      job = created
-      updateState(from: created)
-      guard created.status == "queued"
-        || created.status == "running"
-      else {
-        return
+      if let recordID,
+        center.record(id: recordID)?.state.canRetry == true {
+        try await center.retry(
+          id: recordID,
+          options: options
+        )
+      } else {
+        let record = try await center.start(
+          video: video,
+          options: options
+        )
+        recordID = record.id
       }
-      track(id: created.id)
+      synchronize()
     } catch {
       state = .failed(Self.message(for: error))
     }
   }
 
   func cancel() async {
-    guard let job, isWorking, !isCancelling else { return }
+    guard let recordID, isWorking, !isCancelling else { return }
     isCancelling = true
     defer { isCancelling = false }
     do {
-      let updated = try await service.cancel(id: job.id)
-      self.job = updated
-      updateState(from: updated)
+      try await center.cancel(id: recordID)
+      synchronize()
     } catch {
       state = .failed(Self.message(for: error))
     }
   }
 
   func clear() async {
-    guard let job, !isClearing else {
+    guard let recordID, !isClearing else {
       reset()
       return
     }
     isClearing = true
     defer { isClearing = false }
     do {
-      try await service.delete(id: job.id)
+      try await center.remove(id: recordID)
       reset()
     } catch {
       state = .failed(Self.message(for: error))
     }
   }
 
-  func artifactURL(baseURL: URL?) -> URL? {
-    guard let baseURL, let id = job?.id,
-      var components = URLComponents(
-        url: baseURL,
-        resolvingAgainstBaseURL: false
-      )
-    else {
+  var artifactURL: URL? {
+    guard let recordID, let record = center.record(id: recordID) else {
       return nil
     }
-    let basePath = components.path.hasSuffix("/")
-      ? String(components.path.dropLast())
-      : components.path
-    components.path =
-      "\(basePath)/downloader/jobs/\(id)/artifact"
-    components.queryItems = nil
-    components.fragment = nil
-    return components.url
+    return center.artifactURL(for: record)
   }
 
-  private var options: LiveDownloadOptions {
-    LiveDownloadOptions(
-      mode: mode.rawValue,
-      quality: quality,
-      format: format,
-      allowQualityFallback: true,
-      sponsorBlock: sponsorBlock,
-      sponsorBlockCategories: ["sponsor", "intro"],
-      thumbnailOnly: mode == .thumbnail,
-      subtitles: LiveDownloadSubtitleOptions(
-        enabled: includesSubtitles,
-        auto: includesSubtitles,
-        embed: includesSubtitles && mode == .video,
-        languages: subtitleLanguage.isEmpty
-          ? []
-          : [subtitleLanguage],
-        format: "srt"
-      )
-    )
-  }
-
-  private func track(id: String) {
-    trackingTask?.cancel()
-    trackingTask = Task {
-      while !Task.isCancelled {
-        do {
-          try await Task.sleep(for: .seconds(1))
-          let updated = try await service.job(id: id)
-          try Task.checkCancellation()
-          job = updated
-          updateState(from: updated)
-          guard updated.status == "queued"
-            || updated.status == "running"
-          else {
-            return
-          }
-        } catch is CancellationError {
-          return
-        } catch {
-          state = .failed(Self.message(for: error))
-          return
-        }
-      }
+  private func synchronize() {
+    guard let recordID, let record = center.record(id: recordID) else {
+      return
     }
-  }
-
-  private func updateState(from job: LiveDownloadJob) {
-    switch job.status {
-    case "done":
+    job = record.job
+    switch record.state {
+    case .ready:
       state = .done
-    case "failed":
+    case .failed:
       state = .failed(
-        job.error?.trimmingCharacters(in: .whitespacesAndNewlines)
+        record.failureMessage?
+          .trimmingCharacters(in: .whitespacesAndNewlines)
           .nilIfEmpty
           ?? "The download failed."
       )
-    default:
+    case .cancelled:
+      state = .failed("The download was cancelled.")
+    case .queued, .preparing, .downloading, .finalizing, .saving:
       state = .tracking
     }
   }
 
   private func reset() {
-    trackingTask?.cancel()
+    recordID = nil
     job = nil
     state = .idle
   }
@@ -202,10 +153,10 @@ final class LiveDownloadViewModel: ObservableObject {
     switch mode {
     case .video:
       format = "mp4"
-      quality = "balanced"
+      quality = "1080p"
     case .audio:
-      format = "mp3"
-      quality = "balanced"
+      format = "m4a"
+      quality = "best"
     case .thumbnail:
       format = "jpg"
       quality = "best"
@@ -218,6 +169,7 @@ final class LiveDownloadViewModel: ObservableObject {
     (error as? LocalizedError)?.errorDescription
       ?? "The download service is unavailable."
   }
+
 }
 
 private extension String {

@@ -143,6 +143,10 @@ final class LiveVideoQuickActionsViewModel: ObservableObject {
     message = nil
   }
 
+  func presentMessage(_ value: String) {
+    message = value
+  }
+
   private func perform(
     _ operation: () async throws -> Void
   ) async {

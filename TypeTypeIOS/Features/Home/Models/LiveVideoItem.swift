@@ -1,6 +1,6 @@
 import Foundation
 
-struct LiveVideoItem: Decodable, Hashable, Identifiable {
+struct LiveVideoItem: Codable, Hashable, Identifiable {
   let id: String
   let title: String
   let url: String

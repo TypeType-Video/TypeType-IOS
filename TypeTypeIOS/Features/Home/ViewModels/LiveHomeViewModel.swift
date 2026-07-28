@@ -3,14 +3,6 @@ import Foundation
 
 @MainActor
 final class LiveHomeViewModel: ObservableObject {
-  enum State: Equatable {
-    case idle
-    case loading
-    case loaded
-    case empty
-    case failed(String)
-  }
-
   @Published private(set) var state = State.idle
   @Published private(set) var videos: [LiveVideoItem] = []
   @Published private(set) var isLoadingMore = false
@@ -54,11 +46,6 @@ final class LiveHomeViewModel: ObservableObject {
         }
       }
       .store(in: &cancellables)
-  }
-
-  func loadIfNeeded() async {
-    guard state == .idle else { return }
-    await reload()
   }
 
   func reload() async {
@@ -209,36 +196,4 @@ final class LiveHomeViewModel: ObservableObject {
       : .loaded
   }
 
-  private static func inProgress(
-    _ items: [LiveHistoryItem]
-  ) -> [LiveHistoryItem] {
-    items
-      .filter { item in
-        guard item.progress > 0, item.duration > 0 else {
-          return false
-        }
-        let watched = item.duration > 60
-          ? item.progress >= item.duration - 60
-          : Double(item.progress) >= Double(item.duration) * 0.9
-        return !watched
-      }
-      .sorted { $0.watchedAt > $1.watchedAt }
-      .prefix(12)
-      .map { $0 }
-  }
-
-  private static func uniqueVisibleVideos(
-    _ candidates: [LiveVideoItem]
-  ) -> [LiveVideoItem] {
-    var seen: Set<String> = []
-    return candidates.filter { video in
-      guard !video.isShortFormContent else { return false }
-      return seen.insert(video.canonicalID).inserted
-    }
-  }
-
-  private static func message(for error: Error) -> String {
-    (error as? LocalizedError)?.errorDescription
-      ?? "Recommendations could not be loaded."
-  }
 }

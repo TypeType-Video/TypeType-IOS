@@ -12,7 +12,7 @@ enum LiveDownloadMode: String, CaseIterable, Identifiable {
   }
 }
 
-struct LiveDownloadJob: Decodable, Equatable, Identifiable {
+struct LiveDownloadJob: Codable, Equatable, Identifiable {
   let id: String
   let url: String
   let status: String
@@ -41,7 +41,7 @@ struct LiveDownloadJob: Decodable, Equatable, Identifiable {
   }
 }
 
-struct LiveResolvedDownload: Decodable, Equatable {
+struct LiveResolvedDownload: Codable, Equatable {
   let videoItag: String?
   let audioItag: String?
   let height: Int?
@@ -53,18 +53,47 @@ struct LiveResolvedDownload: Decodable, Equatable {
   let fileName: String?
 }
 
-struct LiveDownloadOptions: Encodable {
+struct LiveDownloadOptions: Codable, Equatable {
   let mode: String
   let quality: String
   let format: String
+  let height: Int?
+  let videoCodec: String?
+  let audioCodec: String?
   let allowQualityFallback: Bool
   let sponsorBlock: Bool
   let sponsorBlockCategories: [String]
   let thumbnailOnly: Bool
   let subtitles: LiveDownloadSubtitleOptions
+
+  init(
+    mode: String,
+    quality: String,
+    format: String,
+    height: Int? = nil,
+    videoCodec: String? = nil,
+    audioCodec: String? = nil,
+    allowQualityFallback: Bool,
+    sponsorBlock: Bool,
+    sponsorBlockCategories: [String],
+    thumbnailOnly: Bool,
+    subtitles: LiveDownloadSubtitleOptions
+  ) {
+    self.mode = mode
+    self.quality = quality
+    self.format = format
+    self.height = height
+    self.videoCodec = videoCodec
+    self.audioCodec = audioCodec
+    self.allowQualityFallback = allowQualityFallback
+    self.sponsorBlock = sponsorBlock
+    self.sponsorBlockCategories = sponsorBlockCategories
+    self.thumbnailOnly = thumbnailOnly
+    self.subtitles = subtitles
+  }
 }
 
-struct LiveDownloadSubtitleOptions: Encodable {
+struct LiveDownloadSubtitleOptions: Codable, Equatable {
   let enabled: Bool
   let auto: Bool
   let embed: Bool

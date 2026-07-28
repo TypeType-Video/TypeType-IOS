@@ -8,6 +8,7 @@ protocol LiveDownloaderServiceProtocol {
   func job(id: String) async throws -> LiveDownloadJob
   func cancel(id: String) async throws -> LiveDownloadJob
   func delete(id: String) async throws
+  func artifact(id: String) async throws -> URL
 }
 
 final class LiveDownloaderService: LiveDownloaderServiceProtocol {
@@ -57,6 +58,12 @@ final class LiveDownloaderService: LiveDownloaderServiceProtocol {
     } catch let error as NetworkError {
       guard case .statusCode(404, _) = error else { throw error }
     }
+  }
+
+  func artifact(id: String) async throws -> URL {
+    try await apiClient.download(
+      endpoint("/downloader/jobs/\(id)/artifact", .get)
+    )
   }
 
   private func endpoint(
