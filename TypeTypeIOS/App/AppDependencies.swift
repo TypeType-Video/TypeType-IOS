@@ -28,9 +28,54 @@ final class AppDependencies {
   let adminAccessService: LiveAdminAccessServiceProtocol
   let contentControlsService: LiveContentControlsServiceProtocol
   let bugReportsService: LiveBugReportsServiceProtocol
+  let diagnosticsStore: LiveDiagnosticsStore
   let importService: LiveImportServiceProtocol
   let youtubeSessionService: LiveYouTubeSessionServiceProtocol
   let playbackService: LivePlaybackServiceProtocol?
+  lazy var connectivityMonitor = LiveConnectivityMonitor()
+  @MainActor
+  lazy var downloadCenter: LiveDownloadCenter = {
+    LiveDownloadCenter(
+      service: downloaderService,
+      scopeProvider: { [weak self] in
+        guard let self,
+          let serverID = serverStore.selectedServerID(),
+          let session = sessionStore.session(forServerID: serverID)
+        else {
+          return nil
+        }
+        return LiveDownloadScope(
+          serverID: serverID,
+          accountID: session.userID
+        )
+      }
+    )
+  }()
+  @MainActor
+  lazy var playbackCoordinator: LivePlaybackCoordinator = {
+    LivePlaybackCoordinator(
+      settingsService: settingsService,
+      scopeProvider: { [weak self] in
+        guard let self,
+          let serverID = serverStore.selectedServerID(),
+          let session = sessionStore.session(forServerID: serverID)
+        else {
+          return nil
+        }
+        return LivePlaybackScope(
+          serverID: serverID,
+          accountID: session.userID
+        )
+      },
+      playerFactory: { [unowned self] video, autoplay in
+        LivePlayerController(
+          video: video,
+          dependencies: self,
+          autoplay: autoplay
+        )
+      }
+    )
+  }()
 
   init(
     serverStore: ServerStore,
@@ -60,6 +105,7 @@ final class AppDependencies {
     adminAccessService: LiveAdminAccessServiceProtocol,
     contentControlsService: LiveContentControlsServiceProtocol,
     bugReportsService: LiveBugReportsServiceProtocol,
+    diagnosticsStore: LiveDiagnosticsStore = LiveDiagnosticsStore(),
     importService: LiveImportServiceProtocol,
     youtubeSessionService: LiveYouTubeSessionServiceProtocol,
     playbackService: LivePlaybackServiceProtocol? = nil
@@ -91,112 +137,21 @@ final class AppDependencies {
     self.adminAccessService = adminAccessService
     self.contentControlsService = contentControlsService
     self.bugReportsService = bugReportsService
+    self.diagnosticsStore = diagnosticsStore
     self.importService = importService
     self.youtubeSessionService = youtubeSessionService
     self.playbackService = playbackService
   }
 
-  @MainActor
-  static func live() -> AppDependencies {
-    let serverStore = ServerStore()
-    let sessionStore = SessionStore(
-      keychain: SecureKeychainService()
-    )
-#if DEBUG
-    if CommandLine.arguments.contains("--typetype-reset-live-state") {
-      sessionStore.clearAllSessions()
-      UserDefaults.standard.removeObject(
-        forKey: AppConfig.serverListKey
-      )
-      UserDefaults.standard.removeObject(
-        forKey: AppConfig.selectedServerIDKey
-      )
+  func diagnosticScope() -> LiveDiagnosticScope? {
+    guard let serverID = serverStore.selectedServerID(),
+      let session = sessionStore.session(forServerID: serverID)
+    else {
+      return nil
     }
-#endif
-    let client = URLSessionAPIClient(
-      serverURLProvider: {
-        serverStore.selectedServer()?.baseURL
-      },
-      accessTokenProvider: {
-        guard let serverID = serverStore.selectedServerID() else {
-          return nil
-        }
-        return sessionStore.accessToken(forServerID: serverID)
-      }
-    )
-    let authService = AuthService(apiClient: client)
-    client.setTokenRefreshHandler { _ in
-      let token = try await authService.refresh()
-      guard let serverID = serverStore.selectedServerID(),
-        sessionStore.updateAccessToken(token, forServerID: serverID)
-      else {
-        return nil
-      }
-      return token
-    }
-    let settingsService = LiveSettingsService(apiClient: client)
-    let notificationsService = LiveNotificationsService(apiClient: client)
-    let deArrowService = LiveDeArrowService(
-      apiClient: client,
-      baseURLProvider: {
-        serverStore.selectedServer()?.baseURL
-      }
-    )
-    return AppDependencies(
-      serverStore: serverStore,
-      sessionStore: sessionStore,
-      serverProbeService: ServerProbeService(),
-      authService: authService,
-      oidcService: OIDCService(apiClient: client),
-      resetPasswordService: ResetPasswordService(apiClient: client),
-      homeFeedService: HomeFeedService(apiClient: client),
-      commentsService: LiveCommentsService(apiClient: client),
-      downloaderService: LiveDownloaderService(apiClient: client),
-      deArrowStore: LiveDeArrowStore(
-        service: deArrowService,
-        settingsService: settingsService
-      ),
-      searchService: LiveSearchService(apiClient: client),
-      searchHistoryService: LiveSearchHistoryService(apiClient: client),
-      channelService: LiveChannelService(apiClient: client),
-      subscriptionsService: LiveSubscriptionsService(
-        apiClient: client
-      ),
-      historyService: LiveHistoryService(apiClient: client),
-      libraryService: LiveLibraryService(apiClient: client),
-      playlistsService: LivePlaylistsService(apiClient: client),
-      profileService: LiveProfileService(apiClient: client),
-      settingsService: settingsService,
-      serviceSelection: LiveServiceSelection(
-        settingsService: settingsService
-      ),
-      notificationsService: notificationsService,
-      notificationCenter: LiveNotificationCenter(
-        service: notificationsService
-      ),
-      sessionActivityService: LiveSessionActivityService(
-        apiClient: client,
-        canReport: {
-          guard let serverID = serverStore.selectedServerID(),
-            let session = sessionStore.session(forServerID: serverID)
-          else {
-            return false
-          }
-          return !session.userID.hasPrefix("guest:")
-        }
-      ),
-      adminService: LiveAdminService(apiClient: client),
-      adminAccessService: LiveAdminAccessService(apiClient: client),
-      contentControlsService: LiveContentControlsService(apiClient: client),
-      bugReportsService: LiveBugReportsService(apiClient: client),
-      importService: LiveImportService(apiClient: client),
-      youtubeSessionService: LiveYouTubeSessionService(apiClient: client),
-      playbackService: LivePlaybackService(
-        apiClient: client,
-        serverURLProvider: {
-          serverStore.selectedServer()?.baseURL
-        }
-      )
+    return LiveDiagnosticScope(
+      serverID: serverID,
+      accountID: session.userID
     )
   }
 }
