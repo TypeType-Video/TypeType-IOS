@@ -37,16 +37,20 @@ final class LiveHomeUITests: XCTestCase {
     connect(app, address: serverURL.absoluteString)
     app.buttons["live.auth.guest"].tap()
 
-    let firstCard = app.buttons.matching(
-      identifier: "live.home.video.card"
-    ).firstMatch
+    let videoCards = app.buttons.matching(
+      NSPredicate(
+        format: "identifier BEGINSWITH %@",
+        "live.home.video.card."
+      )
+    )
+    let firstCard = videoCards.firstMatch
     XCTAssertTrue(firstCard.waitForExistence(timeout: 15))
     XCTAssertTrue(
       element(in: app, labelled: "Backend recommendation")
         .waitForExistence(timeout: 3)
     )
-    XCTAssertFalse(
-      element(in: app, labelled: "Filtered short").exists
+    XCTAssertTrue(
+      element(in: app, labelled: "Short video").exists
     )
     XCTAssertTrue(
       element(in: app, labelled: "Loaded automatically")
@@ -66,7 +70,9 @@ final class LiveHomeUITests: XCTestCase {
     }
     capture(app, named: "Live home · Backend recommendations")
 
-    firstCard.tap()
+    let shortCard = app.buttons["live.home.video.card.short-1"]
+    XCTAssertTrue(shortCard.isHittable)
+    shortCard.tap()
     XCTAssertTrue(
       app.scrollViews["live.video.metadata"]
         .waitForExistence(timeout: 3)
@@ -74,6 +80,34 @@ final class LiveHomeUITests: XCTestCase {
     XCTAssertTrue(
       app.staticTexts["A backend fixture video."].exists
     )
+    let playerOptions = app.buttons["live.player.options"]
+    XCTAssertTrue(playerOptions.waitForExistence(timeout: 3))
+    playerOptions.tap()
+    XCTAssertTrue(
+      app.descendants(matching: .any)["live.player.options-sheet"]
+        .waitForExistence(timeout: 3)
+    )
+    let sleepTimer = app.buttons[
+      "live.player.sleep-timer.open"
+    ]
+    XCTAssertTrue(sleepTimer.waitForExistence(timeout: 3))
+    sleepTimer.tap()
+    XCTAssertTrue(
+      app.descendants(matching: .any)["live.player.sleep-timer"]
+        .waitForExistence(timeout: 3)
+    )
+    app.buttons["15 minutes"].tap()
+    XCTAssertTrue(
+      app.buttons["15 minutes"]
+        .waitForExistence(timeout: 3)
+    )
+    capture(app, named: "Live player · Active sleep timer")
+    app.navigationBars["Sleep timer"].buttons.firstMatch.tap()
+    XCTAssertTrue(
+      app.buttons["live.player.sleep-timer.open"]
+        .waitForExistence(timeout: 3)
+    )
+    app.buttons["Done"].tap()
     app.navigationBars["Video"].buttons.firstMatch.tap()
 
     app.tabBars.buttons["More"].tap()
@@ -112,12 +146,11 @@ final class LiveHomeUITests: XCTestCase {
     let save = app.buttons["live.settings.save"]
     XCTAssertTrue(save.waitForExistence(timeout: 3))
     save.tap()
-    let saveDeadline = Date().addingTimeInterval(5)
-    while save.isEnabled, Date() < saveDeadline {
-      RunLoop.current.run(
-        until: Date().addingTimeInterval(0.1)
-      )
-    }
+    let saveDisabled = expectation(
+      for: NSPredicate(format: "enabled == false"),
+      evaluatedWith: save
+    )
+    await fulfillment(of: [saveDisabled], timeout: 5)
     XCTAssertFalse(save.isEnabled)
     app.tabBars.buttons["Home"].tap()
     XCTAssertTrue(
