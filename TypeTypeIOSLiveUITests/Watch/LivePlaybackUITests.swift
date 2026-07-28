@@ -10,6 +10,72 @@ final class LivePlaybackUITests: XCTestCase {
     )
   }
 
+  func testSustainedMKBHDPlayback() throws {
+    try runPlayback(
+      searchQuery: "MKBHD",
+      expectedVideoID: "zzjq7_ddb0U",
+      holdSeconds: 75
+    )
+  }
+
+  func testSustainedLaSallePlayback() throws {
+    try runPlayback(
+      searchQuery: "GTA LaSalle",
+      expectedVideoID: "mcV4qoX2MIE",
+      holdSeconds: 75
+    )
+  }
+
+  func testSustainedMrBeastPlayback() throws {
+    try runPlayback(
+      searchQuery: "MrBeast",
+      expectedVideoID: "iYlODtkyw_I",
+      holdSeconds: 75
+    )
+  }
+
+  func testSustainedBiliBiliPlayback() throws {
+    try runPlayback(
+      searchQuery: "BV1xx411c7mD",
+      expectedVideoID: "BV1xx411c7mD",
+      serviceID: 5,
+      serviceName: "BiliBili",
+      holdSeconds: 30
+    )
+  }
+
+  func testSustainedNicoNicoPlayback() throws {
+    try runPlayback(
+      searchQuery: "Windrose",
+      expectedVideoID: "sm46594288",
+      serviceID: 6,
+      serviceName: "NicoNico",
+      holdSeconds: 30
+    )
+  }
+
+  func testNativeFullscreenRoundTripKeepsPlaying() throws {
+    try runPlayback(
+      searchQuery: "GTA LaSalle",
+      expectedVideoID: "mcV4qoX2MIE",
+      exercisesFullscreen: true
+    )
+  }
+
+  func testNativePictureInPictureStarts() throws {
+    guard AVPictureInPictureController.isPictureInPictureSupported()
+    else {
+      throw XCTSkip(
+        "Picture in Picture is unavailable on this simulator runtime."
+      )
+    }
+    try runPlayback(
+      searchQuery: "MKBHD",
+      expectedVideoID: "zzjq7_ddb0U",
+      exercisesPictureInPicture: true
+    )
+  }
+
   private func runPlayback(
     searchQuery: String,
     expectedVideoID: String,
