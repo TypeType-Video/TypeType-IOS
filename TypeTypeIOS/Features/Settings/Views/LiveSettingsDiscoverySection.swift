@@ -36,7 +36,6 @@ struct LiveSettingsDiscoverySection: View {
         isOn: $settings.hideRelatedVideos
       )
       Toggle("Hide comments and danmaku", isOn: $settings.hideComments)
-      Toggle("Hide Shorts", isOn: $settings.hideShorts)
     }
 
     Section("DeArrow") {

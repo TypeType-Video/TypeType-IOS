@@ -33,7 +33,7 @@ struct DemoSessionPreferences {
   var audioLanguage = "Original"
   var prefersOriginalLanguage = true
   var loopPlayback = false
-  var cinemaMode = false
+  var cinemaMode = true
   var bulletComments = false
   var bulletCommentSpeed = 1.0
   var bulletCommentSize = 1.0

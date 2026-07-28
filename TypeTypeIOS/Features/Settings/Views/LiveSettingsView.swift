@@ -25,7 +25,12 @@ struct LiveSettingsView: View {
             Button("Reset") { viewModel.resetDraft() }
           }
           Button("Save") {
-            Task { await viewModel.save() }
+            Task {
+              guard let settings = await viewModel.save() else {
+                return
+              }
+              dependencies.playbackCoordinator.applySettings(settings)
+            }
           }
           .disabled(!viewModel.hasChanges || viewModel.isSaving)
           .accessibilityIdentifier("live.settings.save")

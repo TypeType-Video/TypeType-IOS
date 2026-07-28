@@ -40,7 +40,7 @@ final class LiveSubscriptionsViewModel: ObservableObject {
   }
 
   var visibleVideos: [LiveVideoItem] {
-    videos.filter { !$0.isShortFormContent }
+    videos
   }
 
   func prepare() async {
@@ -113,8 +113,7 @@ final class LiveSubscriptionsViewModel: ObservableObject {
   ) -> [LiveVideoItem] {
     var seen: Set<String> = []
     return candidates.filter {
-      !$0.isShortFormContent
-        && seen.insert($0.canonicalID).inserted
+      seen.insert($0.canonicalID).inserted
     }
   }
 
