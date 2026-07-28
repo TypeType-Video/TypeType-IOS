@@ -20,8 +20,10 @@ extension LivePlayerController {
     presentationResumeTask?.cancel()
     presentationResumeTask = nil
     if player.timeControlStatus == .playing {
+      providerRecoveryDesiredAutoplay = false
       player.pause()
     } else {
+      providerRecoveryDesiredAutoplay = true
       player.playImmediately(atRate: playbackRate)
     }
   }
@@ -29,6 +31,7 @@ extension LivePlayerController {
   func pause() {
     presentationResumeTask?.cancel()
     presentationResumeTask = nil
+    providerRecoveryDesiredAutoplay = false
     player.pause()
   }
 
@@ -38,6 +41,7 @@ extension LivePlayerController {
       self.presentationResumeTask = nil
       return
     }
+    providerRecoveryDesiredAutoplay = true
     player.playImmediately(atRate: playbackRate)
     presentationResumeTask = Task { @MainActor [weak self] in
       for delay in [100, 250, 500, 900] {
@@ -64,6 +68,8 @@ extension LivePlayerController {
       seekSABR(to: 0, autoplay: true)
       return
     }
+    providerRecoveryResumeTime = 0
+    providerRecoveryDesiredAutoplay = true
     state = .loading
     player.seek(
       to: .zero,
@@ -88,6 +94,7 @@ extension LivePlayerController {
     seekTask?.cancel()
     bulletCommentsTask?.cancel()
     bulletCommentsTask = nil
+    providerRecoveryDesiredAutoplay = false
     player.pause()
     recordHistoryIfNeeded(force: true)
     reportPlaybackSessionProgress()
@@ -113,6 +120,9 @@ extension LivePlayerController {
     if preparation?.isSABR == true {
       seekSABR(to: bounded, autoplay: nil)
       return
+    }
+    if preparation?.providerPlayback != nil {
+      providerRecoveryResumeTime = bounded
     }
     player.seek(
       to: CMTime(seconds: bounded, preferredTimescale: 600),

@@ -2,6 +2,16 @@ import Foundation
 import Network
 
 final class LivePlaybackHTTPServer: @unchecked Sendable {
+  enum ProviderMediaKind: Sendable {
+    case video
+    case audio
+  }
+
+  typealias ProviderFailureHandler = @Sendable (
+    LivePlaybackHTTPServer,
+    ProviderMediaKind
+  ) -> Void
+
   struct Resource {
     let data: Data
     let mimeType: String

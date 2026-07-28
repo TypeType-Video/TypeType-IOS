@@ -74,6 +74,11 @@ final class LivePlayerController: ObservableObject {
   var bulletCommentStateRevision = 0
   var handledSponsorSegments: Set<String> = []
   var sponsorMutedRange: Range<TimeInterval>?
+  var attemptedProviderVideoSourceIDs: Set<String> = []
+  var attemptedProviderAudioSourceIDs: Set<String> = []
+  var providerRecoveryInProgress = false
+  var providerRecoveryResumeTime: TimeInterval = 0
+  var providerRecoveryDesiredAutoplay = false
 
   init(
     video: LiveVideoItem,
@@ -185,7 +190,27 @@ final class LivePlayerController: ObservableObject {
   }
 
   static func message(for error: Error) -> String {
-    (error as? LocalizedError)?.errorDescription
-      ?? "Playback could not be prepared."
+    if let description = (error as? LocalizedError)?.errorDescription,
+      !description.isEmpty {
+      return description
+    }
+    let description = (error as NSError).localizedDescription
+    return description.isEmpty
+      ? "Playback could not be prepared."
+      : description
+  }
+
+  static func logPreparationFailure(_ error: Error) {
+    let failure = error as NSError
+    AppLogger.app.error(
+      "Playback preparation failed: \(failure.domain, privacy: .public) \(failure.code) \(failure.localizedDescription, privacy: .public)"
+    )
+    if let underlying = failure.userInfo[
+      NSUnderlyingErrorKey
+    ] as? NSError {
+      AppLogger.app.error(
+        "Underlying playback failure: \(underlying.domain, privacy: .public) \(underlying.code) \(underlying.localizedDescription, privacy: .public)"
+      )
+    }
   }
 }

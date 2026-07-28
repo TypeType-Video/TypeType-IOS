@@ -31,9 +31,6 @@ extension LivePlayerController {
       guard !Task.isCancelled else { return }
       stream = loadedStream
       onMetadataResolved?(video.resolving(with: loadedStream))
-      if audioOnly {
-        audioOnly = false
-      }
       if selectedVideoItag != nil {
         selectedVideoItag = nil
       }
@@ -69,7 +66,11 @@ extension LivePlayerController {
           at: TimeInterval(savedPositionMS) / 1_000
         )
       }
-      try await install(
+      resetProviderRecoveryState(
+        for: preparation,
+        autoplay: initialAutoplay
+      )
+      try await installWithProviderFallback(
         preparation,
         autoplay: initialAutoplay,
         seekOverride: nil
@@ -77,6 +78,7 @@ extension LivePlayerController {
     } catch is CancellationError {
       return
     } catch {
+      Self.logPreparationFailure(error)
       state = .failed(Self.message(for: error))
       stopPlaybackSession()
     }
@@ -97,12 +99,17 @@ extension LivePlayerController {
           preferences: preferences
         )
         guard !Task.isCancelled else { return }
-        try await install(
+        resetProviderRecoveryState(
+          for: preparation,
+          autoplay: wasPlaying
+        )
+        try await installWithProviderFallback(
           preparation,
           autoplay: wasPlaying,
           seekOverride: restartTime
         )
       } catch {
+        Self.logPreparationFailure(error)
         state = .failed(Self.message(for: error))
         stopPlaybackSession()
       }
@@ -144,18 +151,6 @@ extension LivePlayerController {
     pendingSeek = installedPreparation.isSABR ? nil : requestedTime
     playbackTimeOffset = 0
 
-    if let providerPlayback = installedPreparation.providerPlayback,
-      case let .separateProgressive(videoURL, audioURL) =
-        providerPlayback {
-      let asset = try await providerComposition(
-        videoURL: videoURL,
-        audioURL: audioURL,
-        fallbackDuration: duration
-      )
-      installPlayerItem(asset: asset, autoplay: autoplay)
-      return
-    }
-
     let assetURL: URL
     if installedPreparation.usesAuthenticatedLoader,
       let service {
@@ -164,7 +159,12 @@ extension LivePlayerController {
         preparation: installedPreparation,
         preferredSubtitleLanguage: settings.defaultSubtitleLanguage
       )
-      assetURL = try await server.start()
+      do {
+        assetURL = try await server.start()
+      } catch {
+        server.stop()
+        throw error
+      }
       playbackServer = server
       if installedPreparation.isSABR {
         server.updatePlaybackRate(playbackRate)

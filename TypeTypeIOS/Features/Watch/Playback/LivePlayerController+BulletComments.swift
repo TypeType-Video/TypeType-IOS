@@ -13,9 +13,10 @@ extension LivePlayerController {
   var precisePosition: TimeInterval {
     let current = player.currentTime().seconds
     guard current.isFinite else { return position }
-    return min(
-      playbackTimeOffset + max(current, 0),
-      max(duration, 0)
+    return Self.timelinePosition(
+      playbackSeconds: current,
+      offset: playbackTimeOffset,
+      duration: duration
     )
   }
 

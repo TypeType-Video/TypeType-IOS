@@ -12,18 +12,37 @@ extension LivePlayerController {
         guard let self else { return }
         let seconds = time.seconds
         guard seconds.isFinite else { return }
-        let currentPosition = min(
-          playbackTimeOffset + max(seconds, 0),
-          max(duration, 0)
+        let currentPosition = Self.timelinePosition(
+          playbackSeconds: seconds,
+          offset: playbackTimeOffset,
+          duration: duration
         )
         if abs(position - currentPosition) >= 0.05 {
           position = currentPosition
+        }
+        if preparation?.providerPlayback != nil {
+          providerRecoveryResumeTime = max(
+            providerRecoveryResumeTime,
+            currentPosition
+          )
         }
         playbackServer?.updatePlayerTime(currentPosition)
         updateSponsorBlock(at: currentPosition)
         recordHistoryIfNeeded(force: false)
       }
     }
+  }
+
+  static func timelinePosition(
+    playbackSeconds: TimeInterval,
+    offset: TimeInterval,
+    duration: TimeInterval
+  ) -> TimeInterval {
+    let absolutePosition = max(offset, 0) + max(playbackSeconds, 0)
+    guard duration.isFinite, duration > 0 else {
+      return absolutePosition
+    }
+    return min(absolutePosition, duration)
   }
 
   private func updateSponsorBlock(at seconds: TimeInterval) {
