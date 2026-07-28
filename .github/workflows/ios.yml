@@ -90,8 +90,6 @@ jobs:
               "$device_type" \
               "$runtime"
           )"
-          xcrun simctl boot "$simulator_id"
-          xcrun simctl bootstatus "$simulator_id" -b
           echo "SIMULATOR_ID=$simulator_id" >> "$GITHUB_ENV"
 
       - name: Run unit tests
