@@ -3,11 +3,13 @@ import Foundation
 
 @MainActor
 final class RootCoordinator: ObservableObject {
-  @Published private(set) var state = RootState.booting
-  @Published private(set) var servers: [ServerProfile] = []
-  @Published private(set) var selectedServer: ServerProfile?
-  @Published private(set) var instance: InstanceMetadata?
-  @Published private(set) var currentUser: AuthUser?
+  @Published var state = RootState.booting
+  @Published var servers: [ServerProfile] = []
+  @Published var selectedServer: ServerProfile?
+  @Published var instance: InstanceMetadata?
+  @Published var currentUser: AuthUser?
+  @Published var pendingIncomingURL: URL?
+  @Published var isUsingOfflineSession = false
   @Published var connectionError: String?
 
   let dependencies: AppDependencies
@@ -43,6 +45,7 @@ final class RootCoordinator: ObservableObject {
     reloadServers()
     selectedServer = server
     instance = metadata
+    isUsingOfflineSession = false
     dependencies.serviceSelection.configure(
       supportedServiceIDs: metadata.supportedServices
     )
@@ -56,62 +59,32 @@ final class RootCoordinator: ObservableObject {
 
   func deleteServer(_ server: ServerProfile) {
     let wasSelected = selectedServer?.id == server.id
+    dependencies.playbackCoordinator.forgetServer(server.id)
     dependencies.sessionStore.clearSession(forServerID: server.id)
     dependencies.serverStore.deleteServer(id: server.id)
     reloadServers()
     if wasSelected {
       instance = nil
       currentUser = nil
+      isUsingOfflineSession = false
     }
     state = .serverSetup
   }
 
   func showServerSetup() {
+    dependencies.playbackCoordinator.endSession()
     state = .serverSetup
-  }
-
-  func login(identifier: String, password: String) async throws {
-    let result = try await dependencies.authService.login(
-      identifier: identifier,
-      password: password
-    )
-    completeAuthentication(result)
-  }
-
-  func register(
-    name: String,
-    email: String,
-    password: String
-  ) async throws {
-    let result = try await dependencies.authService.register(
-      name: name,
-      email: email,
-      password: password
-    )
-    completeAuthentication(result)
-  }
-
-  func continueAsGuest() async throws {
-    completeAuthentication(
-      try await dependencies.authService.guestLogin()
-    )
-  }
-
-  func continueWithOIDC() async throws {
-    let coordinator = OIDCAuthenticationCoordinator(
-      oidcService: dependencies.oidcService,
-      authService: dependencies.authService
-    )
-    completeAuthentication(try await coordinator.signIn())
   }
 
   func signOut() async {
     try? await dependencies.authService.logout()
+    dependencies.playbackCoordinator.endSession()
     dependencies.notificationCenter.clear()
     if let serverID = selectedServer?.id {
       dependencies.sessionStore.clearSession(forServerID: serverID)
     }
     currentUser = nil
+    isUsingOfflineSession = false
     state = selectedServer == nil ? .serverSetup : .authentication
   }
 
@@ -132,82 +105,7 @@ final class RootCoordinator: ObservableObject {
     }
   }
 
-  private func activate(
-    _ server: ServerProfile,
-    restoresSession: Bool
-  ) async {
-    state = .booting
-    connectionError = nil
-    selectedServer = server
-    dependencies.serverStore.setSelectedServerID(server.id)
-    dependencies.deArrowStore.invalidatePreferences()
-    guard let baseURL = server.baseURL else {
-      connectionError = ServerStoreError.invalidURL.localizedDescription
-      state = .serverSetup
-      return
-    }
-    do {
-      instance = try await dependencies.serverProbeService.probe(
-        baseURL: baseURL
-      )
-      dependencies.serviceSelection.configure(
-        supportedServiceIDs: instance?.supportedServices ?? [0]
-      )
-    } catch {
-      connectionError = error.localizedDescription
-      state = .serverSetup
-      return
-    }
-    guard restoresSession else {
-      state = .authentication
-      return
-    }
-    await restoreSession(for: server)
-  }
-
-  private func restoreSession(for server: ServerProfile) async {
-    guard let snapshot = dependencies.sessionStore.session(
-      forServerID: server.id
-    ), let token = dependencies.sessionStore.accessToken(
-      forServerID: server.id
-    ) else {
-      state = .authentication
-      return
-    }
-    do {
-      let result = try await dependencies.authService.restoreSession(
-        snapshot: snapshot,
-        accessToken: token
-      )
-      guard selectedServer?.id == server.id else { return }
-      completeAuthentication(result)
-    } catch {
-      dependencies.sessionStore.clearSession(forServerID: server.id)
-      currentUser = nil
-      state = .authentication
-    }
-  }
-
-  private func completeAuthentication(_ result: AuthSessionResult) {
-    guard let server = selectedServer else { return }
-    let snapshot = SessionSnapshot(
-      serverID: server.id,
-      userID: result.user.id,
-      accountIdentifier: result.accountIdentifier,
-      role: result.user.role.rawValue
-    )
-    dependencies.sessionStore.saveSession(
-      snapshot: snapshot,
-      accessToken: result.accessToken
-    )
-    currentUser = result.user
-    state = .authenticated
-    Task {
-      await dependencies.serviceSelection.refresh()
-    }
-  }
-
-  private func reloadServers() {
+  func reloadServers() {
     servers = dependencies.serverStore.allServers()
       .sorted { $0.createdAt < $1.createdAt }
     selectedServer =
