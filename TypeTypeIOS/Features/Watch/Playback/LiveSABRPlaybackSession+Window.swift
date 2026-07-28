@@ -2,6 +2,28 @@ import Foundation
 
 extension LiveSABRPlaybackSession {
   func loadWindow() async throws -> LiveSABRPlaybackSnapshot {
+    if let windowLoadTask {
+      return try await windowLoadTask.task.value
+    }
+    let operationID = UUID()
+    let task = Task { [weak self] () throws
+      -> LiveSABRPlaybackSnapshot in
+      guard let self else { throw CancellationError() }
+      return try await self.performWindowLoad()
+    }
+    windowLoadTask = (operationID, task)
+    do {
+      let snapshot = try await task.value
+      finishWindowLoad(operationID)
+      recoveryCount = 0
+      return snapshot
+    } catch {
+      finishWindowLoad(operationID)
+      throw error
+    }
+  }
+
+  func performWindowLoad() async throws -> LiveSABRPlaybackSnapshot {
     guard let control else {
       throw LivePlaybackFailure.invalidSABRContract
     }
@@ -52,6 +74,11 @@ extension LiveSABRPlaybackSession {
       }
     }
     throw LivePlaybackFailure.sabrSessionTimedOut
+  }
+
+  private func finishWindowLoad(_ operationID: UUID) {
+    guard windowLoadTask?.id == operationID else { return }
+    windowLoadTask = nil
   }
 
   private func windowRequest(
@@ -130,12 +157,14 @@ extension LiveSABRPlaybackSession {
   }
 
   private var rateAwareBufferGoalMS: Int64 {
-    min(
-      Int64(
-        (Double(Self.forwardBufferMS) * Double(max(playbackRate, 1)))
-          .rounded()
-      ),
-      60_000
+    if live?.active == true || preparation.stream.isLive {
+      return LiveSABRBufferPolicy.nativeLiveGoalMS(
+        playbackRate: playbackRate
+      )
+    }
+    return LiveSABRBufferPolicy.goalMS(
+      isLive: false,
+      playbackRate: playbackRate
     )
   }
 

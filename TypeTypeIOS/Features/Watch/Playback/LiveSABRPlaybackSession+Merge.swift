@@ -32,8 +32,11 @@ extension LiveSABRPlaybackSession {
         try endMS(of: incomingVideo)
       )
     }
-    let withinPresentation = incomingEndMS <= responseDurationMS
-      || incomingEndMS - responseDurationMS <= 2_000
+    let withinPresentation = Self.windowFitsPresentation(
+      incomingEndMS: incomingEndMS,
+      durationMS: responseDurationMS,
+      live: response.live
+    )
     guard responseStartMS >= 0,
       incomingEndMS > responseStartMS,
       withinPresentation
@@ -45,6 +48,31 @@ extension LiveSABRPlaybackSession {
     endOfStream = response.endOfStream ?? endOfStream
     live = response.live ?? live
   }
+
+  static func windowFitsPresentation(
+    incomingEndMS: Int64,
+    durationMS: Int64,
+    live: LiveSABRLiveState?
+  ) -> Bool {
+    if let live, live.active {
+      let presentationHeadMS = max(durationMS, live.headTimeMS)
+      guard live.headSequence >= 0,
+        live.headTimeMS >= 0,
+        live.seekableStartMS >= 0,
+        live.seekableEndMS >= live.seekableStartMS,
+        live.headTimeMS >= live.seekableEndMS,
+        live.targetLatencyMS >= 0,
+        presentationHeadMS <= Int64.max - maximumLiveLeadMS
+      else {
+        return false
+      }
+      return incomingEndMS <= presentationHeadMS + maximumLiveLeadMS
+    }
+    return incomingEndMS <= durationMS
+      || incomingEndMS - durationMS <= 2_000
+  }
+
+  private static let maximumLiveLeadMS: Int64 = 60_000
 
   private func mergeTrack(
     current: LiveSABRTrackSnapshot?,

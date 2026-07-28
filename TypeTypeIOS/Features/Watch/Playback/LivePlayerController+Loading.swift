@@ -203,7 +203,13 @@ extension LivePlayerController {
     autoplay: Bool
   ) {
     let item = AVPlayerItem(asset: asset)
-    item.preferredForwardBufferDuration = 20
+    let isLive = preparation?.stream.isLive == true
+    item.preferredForwardBufferDuration = isLive
+      ? TimeInterval(LiveSABRBufferPolicy.liveGoalMS) / 1_000
+      : 20
+    if isLive {
+      item.automaticallyPreservesTimeOffsetFromLive = true
+    }
     observe(item, autoplay: autoplay)
     player.replaceCurrentItem(with: item)
     player.defaultRate = playbackRate

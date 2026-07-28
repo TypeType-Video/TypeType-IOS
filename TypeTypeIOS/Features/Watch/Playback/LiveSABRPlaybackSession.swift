@@ -16,6 +16,12 @@ actor LiveSABRPlaybackSession {
   var lastReportedPlayerTimeMS: Int64 = -5_000
   var recoveryCount = 0
   var attemptedVideoItags: Set<Int> = []
+  var maintenanceTask: Task<Void, Never>?
+  var windowLoadTask:
+    (
+      id: UUID,
+      task: Task<LiveSABRPlaybackSnapshot, Error>
+    )?
 
   init(
     service: LivePlaybackServiceProtocol,
@@ -42,24 +48,9 @@ actor LiveSABRPlaybackSession {
     )
     attemptedVideoItags = [selectedVideo.itag]
     _ = try await loadWindow()
-    return try await loadIndexedSnapshot()
-  }
-
-  func snapshot() async throws -> LiveSABRPlaybackSnapshot {
-    if currentSnapshot == nil {
-      return try await start()
-    }
-    let edge = min(
-      audio?.endMS ?? 0,
-      preparation.audioOnly ? Int64.max : video?.endMS ?? 0
-    )
-    if !endOfStream, edge - playerTimeMS < Self.forwardBufferMS {
-      return try await loadWindow()
-    }
-    guard let currentSnapshot else {
-      throw LivePlaybackFailure.invalidSABRContract
-    }
-    return currentSnapshot
+    let snapshot = try await loadIndexedSnapshot()
+    startMaintenanceIfNeeded()
+    return snapshot
   }
 
   func seek(
@@ -68,6 +59,8 @@ actor LiveSABRPlaybackSession {
     guard seconds.isFinite, let current = control else {
       throw LivePlaybackFailure.invalidSABRContract
     }
+    stopMaintenance()
+    cancelWindowLoad()
     playerTimeMS = Int64(max(seconds, 0) * 1_000)
     let request = playbackRequest(
       videoItag: current.videoItag,
@@ -100,7 +93,9 @@ actor LiveSABRPlaybackSession {
     recoveryCount = 0
     attemptedVideoItags = [current.videoItag]
     _ = try await loadWindow()
-    return try await loadIndexedSnapshot()
+    let snapshot = try await loadIndexedSnapshot()
+    startMaintenanceIfNeeded()
+    return snapshot
   }
 
   func createControl(
@@ -188,6 +183,11 @@ actor LiveSABRPlaybackSession {
     index = nil
   }
 
+  func cancelWindowLoad() {
+    windowLoadTask?.task.cancel()
+    windowLoadTask = nil
+  }
+
   private func loadIndexedSnapshot() async throws
     -> LiveSABRPlaybackSnapshot {
     guard let control else {
@@ -211,7 +211,6 @@ actor LiveSABRPlaybackSession {
     return currentSnapshot
   }
 
-  static let forwardBufferMS: Int64 = 60_000
   static let backBufferMS: Int64 = 30_000
   static let maximumAttempts = 60
   static let maximumRecoveries = 2

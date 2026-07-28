@@ -175,6 +175,7 @@ final class LivePlaybackHTTPServer: @unchecked Sendable {
   }
 
   func stop() {
+    let activeSABRSession = sabrSession
     let active = lock.withLock { () -> [NWConnection] in
       let current = Array(connections.values)
       connections.removeAll()
@@ -187,11 +188,20 @@ final class LivePlaybackHTTPServer: @unchecked Sendable {
     listener = nil
     localPort = nil
     sabrSession = nil
+    if let activeSABRSession {
+      Task {
+        await activeSABRSession.stopMaintenance()
+        await activeSABRSession.cancelWindowLoad()
+      }
+    }
     sabrMasterRouteID = nil
     sabrAudioRouteID = nil
     sabrVideoRouteID = nil
     sabrMasterBaseURL = nil
     sabrPlaybackStartTime = 0
+    providerProgressiveMaster = nil
+    providerProgressiveVideo = nil
+    providerProgressiveAudio = nil
     cache.removeAllObjects()
   }
 

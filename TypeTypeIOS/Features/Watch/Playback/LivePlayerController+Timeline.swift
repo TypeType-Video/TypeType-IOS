@@ -92,7 +92,12 @@ extension LivePlayerController {
   }
 
   func recordHistoryIfNeeded(force: Bool) {
-    guard !settings.disableWatchHistory, position > 0 else { return }
+    guard !settings.disableWatchHistory,
+      stream?.isLive != true,
+      position > 0
+    else {
+      return
+    }
     let progress = Int64(position.rounded(.down))
     let progressMS = Int64((position * 1_000).rounded())
     guard force || lastHistoryProgress < 0

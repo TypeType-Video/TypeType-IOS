@@ -29,7 +29,7 @@ extension LiveSABRPlaybackSession {
     )
     attemptedVideoItags.insert(nextVideoItag)
     resetWindow()
-    return try await loadWindow()
+    return try await performWindowLoad()
   }
 
   private func lowerVideoItag(
