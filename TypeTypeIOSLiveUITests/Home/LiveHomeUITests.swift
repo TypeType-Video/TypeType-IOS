@@ -287,6 +287,283 @@ final class LiveHomeUITests: XCTestCase {
     )
   }
 
+  func testYouTubeImportPresentsQueueAndTakeoutGuide() throws {
+    let serverURL = try server.start()
+    let app = XCUIApplication()
+    app.launchArguments = [
+      "--typetype-live-ui",
+      "--typetype-reset-live-state",
+      "-AppleInterfaceStyle",
+      "Dark",
+    ]
+    app.launch()
+
+    connect(app, address: serverURL.absoluteString)
+    app.buttons["live.auth.guest"].tap()
+    let more = try XCTUnwrap(
+      firstElement(
+        [
+          app.tabBars.buttons["More"],
+          app.buttons["More"].firstMatch,
+          element(in: app, labelled: "More"),
+        ],
+        timeout: 15
+      )
+    )
+    XCTAssertTrue(more.isHittable)
+    more.tap()
+
+    let importData = element(in: app, labelled: "Import data")
+    for _ in 0..<8 {
+      if importData.exists, importData.isHittable {
+        break
+      }
+      app.swipeUp()
+    }
+    XCTAssertTrue(importData.waitForExistence(timeout: 3))
+    XCTAssertTrue(importData.isHittable)
+    importData.tap()
+
+    let screen = app.collectionViews["live.import.screen"]
+    XCTAssertTrue(screen.waitForExistence(timeout: 5))
+    XCTAssertTrue(
+      element(in: app, labelled: "Add Takeout archives").exists
+    )
+    XCTAssertTrue(
+      element(in: app, labelled: "No archives queued").exists
+    )
+    let guide = element(
+      in: app,
+      labelled: "How to export from YouTube"
+    )
+    XCTAssertTrue(guide.waitForExistence(timeout: 3))
+    guide.tap()
+    XCTAssertTrue(
+      element(in: app, labelled: "Open Google Takeout")
+        .waitForExistence(timeout: 3)
+    )
+    capture(app, named: "Live import · YouTube Takeout queue")
+    app.terminate()
+  }
+
+  func testDownloadContinuesAfterSheetClosesAndAppearsOffline()
+    throws
+  {
+    let serverURL = try server.start()
+    let app = XCUIApplication()
+    app.launchArguments = [
+      "--typetype-live-ui",
+      "--typetype-reset-live-state",
+    ]
+    app.launch()
+
+    connect(app, address: serverURL.absoluteString)
+    app.buttons["live.auth.guest"].tap()
+    let card = app.buttons["live.home.video.card.video-1"]
+    XCTAssertTrue(card.waitForExistence(timeout: 15))
+    card.tap()
+
+    let metadata = app.scrollViews["live.video.metadata"]
+    XCTAssertTrue(metadata.waitForExistence(timeout: 5))
+    let download = element(in: app, labelled: "Download")
+    for _ in 0..<6 where !download.isHittable {
+      metadata.swipeUp(velocity: .slow)
+    }
+    XCTAssertTrue(download.isHittable)
+    download.tap()
+
+    let downloadSheet = app.descendants(matching: .any)[
+      "live.download.sheet"
+    ]
+    XCTAssertTrue(downloadSheet.waitForExistence(timeout: 3))
+    let start = app.buttons["Start download"]
+    for _ in 0..<3 where !start.exists {
+      downloadSheet.swipeUp()
+    }
+    XCTAssertTrue(start.waitForExistence(timeout: 3))
+    start.tap()
+    app.buttons["Close"].tap()
+
+    app.navigationBars["Video"].buttons.firstMatch.tap()
+    let more = try XCTUnwrap(
+      firstElement(
+        [
+          app.tabBars.buttons["More"],
+          app.buttons["More"].firstMatch,
+          element(in: app, labelled: "More"),
+        ],
+        timeout: 5
+      )
+    )
+    more.tap()
+    let downloads = element(in: app, labelled: "Downloads")
+    XCTAssertTrue(downloads.waitForExistence(timeout: 3))
+    downloads.tap()
+
+    XCTAssertTrue(
+      app.descendants(matching: .any)["live.downloads.screen"]
+        .waitForExistence(timeout: 3)
+    )
+    XCTAssertTrue(
+      element(in: app, labelled: "Ready offline")
+        .waitForExistence(timeout: 30)
+    )
+    XCTAssertTrue(
+      element(in: app, labelled: "Watch").exists
+    )
+    capture(app, named: "Live downloads · Persisted offline file")
+
+    element(in: app, labelled: "Watch").tap()
+    XCTAssertTrue(
+      app.descendants(matching: .any)["live.offline-player"]
+        .waitForExistence(timeout: 10)
+    )
+    capture(app, named: "Live downloads · Local video playback")
+    app.terminate()
+
+    server.stop()
+    app.launchArguments = ["--typetype-live-ui"]
+    app.launch()
+    XCTAssertTrue(
+      app.descendants(matching: .any)["live.connectivity.banner"]
+        .waitForExistence(timeout: 15)
+    )
+    element(in: app, labelled: "Downloads").tap()
+    XCTAssertTrue(
+      element(in: app, labelled: "Ready offline")
+        .waitForExistence(timeout: 5)
+    )
+    element(in: app, labelled: "Watch").tap()
+    XCTAssertTrue(
+      app.descendants(matching: .any)["live.offline-player"]
+        .waitForExistence(timeout: 5)
+    )
+    capture(app, named: "Live downloads · Playback after offline restart")
+    app.terminate()
+  }
+
+  func testDownloadedAudioUsesDedicatedOfflinePlayer() throws {
+    let serverURL = try server.start()
+    let app = XCUIApplication()
+    app.launchArguments = [
+      "--typetype-live-ui",
+      "--typetype-reset-live-state",
+    ]
+    app.launch()
+
+    connect(app, address: serverURL.absoluteString)
+    app.buttons["live.auth.guest"].tap()
+    let card = app.buttons["live.home.video.card.video-1"]
+    XCTAssertTrue(card.waitForExistence(timeout: 15))
+    card.tap()
+
+    let metadata = app.scrollViews["live.video.metadata"]
+    XCTAssertTrue(metadata.waitForExistence(timeout: 5))
+    let download = element(in: app, labelled: "Download")
+    for _ in 0..<6 where !download.isHittable {
+      metadata.swipeUp(velocity: .slow)
+    }
+    download.tap()
+
+    let typePicker = app.buttons.matching(
+      NSPredicate(format: "label BEGINSWITH %@", "Type")
+    ).firstMatch
+    XCTAssertTrue(typePicker.waitForExistence(timeout: 3))
+    typePicker.tap()
+    let audio = element(in: app, labelled: "Audio")
+    XCTAssertTrue(audio.waitForExistence(timeout: 3))
+    audio.tap()
+
+    let start = app.buttons["Start download"]
+    let downloadSheet = app.descendants(matching: .any)[
+      "live.download.sheet"
+    ]
+    for _ in 0..<3 where !start.exists {
+      downloadSheet.swipeUp()
+    }
+    XCTAssertTrue(start.waitForExistence(timeout: 3))
+    start.tap()
+    app.buttons["Close"].tap()
+    app.navigationBars["Video"].buttons.firstMatch.tap()
+    let more = try XCTUnwrap(
+      firstElement(
+        [
+          app.tabBars.buttons["More"],
+          app.buttons["More"].firstMatch,
+          element(in: app, labelled: "More"),
+        ],
+        timeout: 5
+      )
+    )
+    more.tap()
+    element(in: app, labelled: "Downloads").tap()
+
+    XCTAssertTrue(
+      element(in: app, labelled: "Ready offline")
+        .waitForExistence(timeout: 30)
+    )
+    let listen = element(in: app, labelled: "Listen")
+    XCTAssertTrue(listen.exists)
+    listen.tap()
+    XCTAssertTrue(
+      app.descendants(matching: .any)["live.offline-audio-player"]
+        .waitForExistence(timeout: 10)
+    )
+    XCTAssertTrue(
+      element(in: app, labelled: "Downloaded audio").exists
+    )
+    capture(app, named: "Live downloads · Local audio playback")
+    app.terminate()
+  }
+
+  func testDiagnosticsShowsSanitizedBackendRequests() throws {
+    let serverURL = try server.start()
+    let app = XCUIApplication()
+    app.launchArguments = [
+      "--typetype-live-ui",
+      "--typetype-reset-live-state",
+    ]
+    app.launch()
+
+    connect(app, address: serverURL.absoluteString)
+    app.buttons["live.auth.guest"].tap()
+    XCTAssertTrue(
+      app.buttons["live.home.video.card.video-1"]
+        .waitForExistence(timeout: 15)
+    )
+    let more = try XCTUnwrap(
+      firstElement(
+        [
+          app.tabBars.buttons["More"],
+          app.buttons["More"].firstMatch,
+          element(in: app, labelled: "More"),
+        ],
+        timeout: 5
+      )
+    )
+    more.tap()
+    let diagnostics = element(in: app, labelled: "Diagnostics")
+    XCTAssertTrue(diagnostics.waitForExistence(timeout: 3))
+    diagnostics.tap()
+
+    XCTAssertTrue(
+      app.collectionViews["live.diagnostics.screen"]
+        .waitForExistence(timeout: 5)
+    )
+    let recommendationRequest = app.staticTexts.matching(
+      NSPredicate(
+        format: "label CONTAINS %@",
+        "GET /recommendations/home"
+      )
+    ).firstMatch
+    XCTAssertTrue(
+      recommendationRequest.waitForExistence(timeout: 5)
+    )
+    XCTAssertTrue(element(in: app, labelled: "Share diagnostics").exists)
+    capture(app, named: "Live diagnostics · Sanitized requests")
+    app.terminate()
+  }
+
   private func auditCaptionAppearance(
     serverURL: URL,
     interfaceStyle: String
