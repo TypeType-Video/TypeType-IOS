@@ -21,15 +21,17 @@ extension LiveVideoItem {
         : stream.uploaderAvatarURL,
       duration: stream.duration > 0 ? stream.duration : duration,
       viewCount: stream.viewCount > 0 ? stream.viewCount : viewCount,
-      uploadDate: uploadDate,
-      uploaded: uploaded,
+      uploadDate: stream.uploadDate.isEmpty
+        ? uploadDate
+        : stream.uploadDate,
+      uploaded: stream.uploaded > 0 ? stream.uploaded : uploaded,
       streamType: streamType.isEmpty ? "VIDEO_STREAM" : streamType,
       isShortFormContent: isShortFormContent,
-      uploaderVerified: uploaderVerified,
+      uploaderVerified: stream.uploaderVerified,
       shortDescription: stream.description.isEmpty
         ? shortDescription
         : stream.description,
-      publishedAt: publishedAt,
+      publishedAt: stream.publishedAt ?? publishedAt,
       isLive: stream.isLive,
       isPostLive: stream.isPostLive,
       isLiveContent: stream.isLiveContent,

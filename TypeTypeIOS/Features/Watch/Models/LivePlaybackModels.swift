@@ -12,6 +12,11 @@ struct LivePlaybackStream: Decodable {
   let viewCount: Int64
   let likeCount: Int64
   let dislikeCount: Int64
+  let uploadDate: String
+  let uploaded: Int64
+  let uploaderSubscriberCount: Int64
+  let uploaderVerified: Bool
+  let publishedAt: Int64?
   let startPosition: Int64
   let hlsURL: String
   let videoStreams: [LivePlaybackVideoSource]
@@ -35,7 +40,9 @@ struct LivePlaybackStream: Decodable {
 
   private enum CodingKeys: String, CodingKey {
     case id, title, uploaderName, description, duration, viewCount
-    case likeCount, dislikeCount, startPosition, videoStreams
+    case likeCount, dislikeCount, uploadDate, uploaded
+    case uploaderSubscriberCount, uploaderVerified, publishedAt
+    case startPosition, videoStreams
     case audioStreams, videoOnlyStreams, subtitles, relatedStreams
     case category, isLive, isPostLive, isLiveContent
     case uploaderURL = "uploaderUrl"

@@ -44,4 +44,11 @@ enum LiveVideoMetadataFormatter {
     }
     return video.uploadDate
   }
+
+  static func fullPublication(_ video: LiveVideoItem) -> String {
+    guard let date = video.publicationDate else {
+      return video.uploadDate
+    }
+    return date.formatted(date: .long, time: .omitted)
+  }
 }

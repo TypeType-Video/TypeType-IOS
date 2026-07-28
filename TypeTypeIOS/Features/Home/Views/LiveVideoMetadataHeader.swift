@@ -4,6 +4,7 @@ struct LiveVideoMetadataHeader: View {
   let video: LiveVideoItem
   let title: String
   let description: String?
+  let subscriberCount: Int64?
   let onChannel: () -> Void
   let onSeekTimestamp: (TimeInterval) -> Void
   let onOpenURL: (URL) -> Void
@@ -30,9 +31,18 @@ struct LiveVideoMetadataHeader: View {
                   .accessibilityLabel("Verified")
               }
             }
-            Text(metadata)
+            if let subscriberCount {
+              Text(
+                LiveVideoMetadataFormatter.subscribers(
+                  subscriberCount
+                )
+              )
               .font(.caption)
               .foregroundStyle(.secondary)
+              .accessibilityIdentifier(
+                "live.video.channel.subscribers"
+              )
+            }
           }
           Spacer()
           Image(systemName: "chevron.right")
@@ -44,32 +54,13 @@ struct LiveVideoMetadataHeader: View {
       .disabled(video.uploaderURL.isEmpty)
 
       if let description, !description.isEmpty {
-        InteractiveText(
+        LiveVideoDescriptionCard(
+          video: video,
           text: description,
-          font: .body,
-          lineLimit: nil,
           onSeekTimestamp: onSeekTimestamp,
           onOpenURL: onOpenURL
         )
-        .foregroundStyle(.secondary)
-        .textSelection(.enabled)
       }
     }
-  }
-
-  private var metadata: String {
-    var values = [
-      LiveVideoMetadataFormatter.views(video.viewCount),
-      LiveVideoMetadataFormatter.publication(video),
-    ]
-    if video.isLive {
-      values.insert("Live", at: 0)
-    } else {
-      values.insert(
-        LiveVideoMetadataFormatter.duration(video.duration),
-        at: 0
-      )
-    }
-    return values.filter { !$0.isEmpty }.joined(separator: " · ")
   }
 }

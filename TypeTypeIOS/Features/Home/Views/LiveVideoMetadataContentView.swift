@@ -6,6 +6,8 @@ struct LiveVideoMetadataContentView: View {
   @ObservedObject var deArrowStore: LiveDeArrowStore
   @ObservedObject var playerController: LivePlayerController
   @ObservedObject private var playbackCoordinator: LivePlaybackCoordinator
+  @StateObject private var channelMetadataViewModel:
+    LiveVideoChannelMetadataViewModel
   @State var selectedChannelURL: String?
   @State var selectedRelatedVideo: LiveVideoItem?
   @State var selectedPublicPlaylist: LivePlaylistResult?
@@ -23,6 +25,11 @@ struct LiveVideoMetadataContentView: View {
     deArrowStore = dependencies.deArrowStore
     self.playerController = playerController
     playbackCoordinator = dependencies.playbackCoordinator
+    _channelMetadataViewModel = StateObject(
+      wrappedValue: LiveVideoChannelMetadataViewModel(
+        service: dependencies.channelService
+      )
+    )
   }
 
   var body: some View {
@@ -40,6 +47,7 @@ struct LiveVideoMetadataContentView: View {
           video: resolvedVideo,
           title: playerController.stream?.title ?? branding.title,
           description: playbackDescription,
+          subscriberCount: subscriberCount,
           onChannel: {
             selectedChannelURL = resolvedVideo.uploaderURL
           },
@@ -130,6 +138,13 @@ struct LiveVideoMetadataContentView: View {
     .task(id: libraryActionsIdentity) {
       await deArrowStore.prepare(resolvedVideo)
     }
+    .task(id: channelMetadataIdentity) {
+      await channelMetadataViewModel.load(
+        channelURL: resolvedVideo.uploaderURL,
+        streamSubscriberCount:
+          playerController.stream?.uploaderSubscriberCount
+      )
+    }
     .onDisappear { playerController.flushHistory() }
   }
 
@@ -137,5 +152,20 @@ struct LiveVideoMetadataContentView: View {
     let chapters = playerController.stream?.chapters ?? []
     return (chapters + playerController.sponsorBlockChapters)
       .sorted { $0.startTimeSeconds < $1.startTimeSeconds }
+  }
+
+  private var subscriberCount: Int64? {
+    if let count = playerController.stream?.uploaderSubscriberCount,
+      count >= 0 {
+      return count
+    }
+    return channelMetadataViewModel.subscriberCount
+  }
+
+  private var channelMetadataIdentity: String {
+    [
+      resolvedVideo.uploaderURL,
+      String(playerController.stream?.uploaderSubscriberCount ?? -1),
+    ].joined(separator: ":")
   }
 }
