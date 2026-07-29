@@ -100,7 +100,25 @@ extension LivePlaybackHTTPServer {
           includeBody: request.method == "GET",
           on: connection
         )
+      } catch is CancellationError {
+        send(
+          status: 410,
+          reason: "Gone",
+          body: Data(),
+          mimeType: "text/plain",
+          on: connection
+        )
       } catch {
+        if isStaleSABRResourceFailure(error, route: route) {
+          send(
+            status: 410,
+            reason: "Gone",
+            body: Data(),
+            mimeType: "text/plain",
+            on: connection
+          )
+          return
+        }
         let failure = error as NSError
         AppLogger.app.error(
           "Local playback response failed: \(failure.domain, privacy: .public) \(failure.code) \(failure.localizedDescription, privacy: .public)"
@@ -117,6 +135,23 @@ extension LivePlaybackHTTPServer {
         )
       }
     }
+  }
+
+  private func isStaleSABRResourceFailure(
+    _ error: Error,
+    route: Route
+  ) -> Bool {
+    guard case let .upstream(url) = route.target,
+      url.scheme == LivePlaybackService.authenticatedScheme,
+      url.path.contains("/sabr/playback/"),
+      case let NetworkError.statusCode(code, message) = error,
+      code == 409
+    else {
+      return false
+    }
+    return message?.localizedCaseInsensitiveContains(
+      "stale SABR playback generation"
+    ) == true
   }
 
   func remove(_ connection: NWConnection) {

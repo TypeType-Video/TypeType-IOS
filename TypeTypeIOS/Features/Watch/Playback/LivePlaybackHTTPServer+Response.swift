@@ -24,13 +24,13 @@ extension LivePlaybackHTTPServer {
         return
       }
       let upperBound = min(range.upperBound, total - 1)
-      let body = includeBody
+      let body: Data = includeBody
         ? resource.data[range.lowerBound...upperBound]
-        : Data.SubSequence()
+        : Data()
       send(
         status: 206,
         reason: "Partial Content",
-        body: Data(body),
+        body: body,
         mimeType: resource.mimeType,
         contentLength: upperBound - range.lowerBound + 1,
         additionalHeaders: [
@@ -73,15 +73,81 @@ extension LivePlaybackHTTPServer {
     })
     headers.append("")
     headers.append("")
-    var response = Data(headers.joined(separator: "\r\n").utf8)
-    response.append(body)
+    let headerData = Data(headers.joined(separator: "\r\n").utf8)
     connection.send(
-      content: response,
-      completion: .contentProcessed { [weak self, weak connection] _ in
+      content: headerData,
+      completion: .contentProcessed { [weak self, weak connection] error in
         guard let self, let connection else { return }
-        connection.cancel()
-        remove(connection)
+        guard error == nil else {
+          abortResponse(on: connection)
+          return
+        }
+        guard !body.isEmpty else {
+          finishResponse(on: connection)
+          return
+        }
+        connection.send(
+          content: body,
+          completion: .contentProcessed {
+            [weak self, weak connection] error in
+            guard let self, let connection else { return }
+            guard error == nil else {
+              abortResponse(on: connection)
+              return
+            }
+            finishResponse(on: connection)
+          }
+        )
       }
     )
+  }
+
+  private func finishResponse(on connection: NWConnection) {
+    connection.send(
+      content: nil,
+      contentContext: .finalMessage,
+      isComplete: true,
+      completion: .contentProcessed {
+        [weak self, weak connection] error in
+        guard let self, let connection else { return }
+        guard error == nil else {
+          abortResponse(on: connection)
+          return
+        }
+        awaitPeerClose(on: connection)
+      }
+    )
+  }
+
+  private func awaitPeerClose(on connection: NWConnection) {
+    connection.receive(
+      minimumIncompleteLength: 1,
+      maximumLength: 1_024
+    ) { [weak self, weak connection] _, _, isComplete, error in
+      guard let self, let connection else { return }
+      if isComplete || error != nil {
+        connection.cancel()
+        remove(connection)
+      } else {
+        awaitPeerClose(on: connection)
+      }
+    }
+    queue.asyncAfter(deadline: .now() + 2) {
+      [weak self, weak connection] in
+      guard let self, let connection,
+        lock.withLock({
+          self.connections[ObjectIdentifier(connection)] != nil
+        })
+      else {
+        return
+      }
+      connection.cancel()
+      remove(connection)
+    }
+  }
+
+  private func abortResponse(on connection: NWConnection) {
+    connection.cancel()
+    remove(connection)
   }
 }
