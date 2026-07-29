@@ -5,23 +5,40 @@ extension LivePlaybackHTTPServer {
     target: Target,
     pathExtension: String
   ) -> String {
-    if case let .upstream(url) = target,
-      let existing = lock.withLock({
-        upstreamRouteIDs[url]
-      }) {
-      return existing
-    }
     let identifier = UUID().uuidString.lowercased()
-    lock.withLock {
+    return lock.withLock {
+      if case let .upstream(url) = target,
+        let existing = upstreamRouteIDs[url] {
+        return existing
+      }
       routes[identifier] = Route(
         target: target,
         pathExtension: pathExtension
       )
       if case let .upstream(url) = target {
         upstreamRouteIDs[url] = identifier
+        trackUpstreamMediaRoute(url)
       }
+      return identifier
     }
-    return identifier
+  }
+
+  private func trackUpstreamMediaRoute(_ url: URL) {
+    guard !Self.isDynamicPlaylistURL(url) else { return }
+    upstreamMediaRouteOrder.append(url)
+    while upstreamMediaRouteOrder.count
+      > Self.maximumUpstreamMediaRoutes {
+      let evictedURL = upstreamMediaRouteOrder.removeFirst()
+      guard let routeID = upstreamRouteIDs.removeValue(
+        forKey: evictedURL
+      ) else {
+        continue
+      }
+      routes.removeValue(forKey: routeID)
+      cache.removeObject(
+        forKey: "upstream:\(evictedURL.absoluteString)" as NSString
+      )
+    }
   }
 
   func route(for path: String) -> Route? {
@@ -29,6 +46,34 @@ extension LivePlaybackHTTPServer {
     let file = String(path.dropFirst("/resource/".count))
     let identifier = String(file.split(separator: ".").first ?? "")
     return lock.withLock { routes[identifier] }
+  }
+
+  func discardStaleSABRResourceRoutes() {
+    loadCoordinator.cancelAll()
+    let staleURLs = lock.withLock { () -> [URL] in
+      let values = upstreamRouteIDs.keys.filter {
+        $0.scheme == LivePlaybackService.authenticatedScheme
+          && $0.path.contains("/sabr/playback/")
+      }
+      for url in values {
+        guard let routeID = upstreamRouteIDs.removeValue(
+          forKey: url
+        ) else {
+          continue
+        }
+        routes.removeValue(forKey: routeID)
+      }
+      let staleSet = Set(values)
+      upstreamMediaRouteOrder.removeAll {
+        staleSet.contains($0)
+      }
+      return values
+    }
+    for url in staleURLs {
+      cache.removeObject(
+        forKey: "upstream:\(url.absoluteString)" as NSString
+      )
+    }
   }
 
   func localURL(

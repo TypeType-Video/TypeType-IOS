@@ -29,18 +29,19 @@ extension LivePlaybackHTTPServer {
   }
 
   func localExtension(for url: URL) -> String {
+    Self.isDynamicPlaylistURL(url) ? "m3u8" : "m4s"
+  }
+
+  static func isDynamicPlaylistURL(_ url: URL) -> Bool {
     let query = URLComponents(
       url: url,
       resolvingAgainstBaseURL: false
     )?.queryItems ?? []
-    if url.pathExtension.lowercased() == "m3u8"
+    return url.pathExtension.lowercased() == "m3u8"
       || query.contains(where: {
         $0.name == "format" && $0.value == "hls"
       })
-      || query.contains(where: { $0.name == "playlist" }) {
-      return "m3u8"
-    }
-    return "m4s"
+      || query.contains(where: { $0.name == "playlist" })
   }
 
   func isPlaylist(_ data: Data) -> Bool {
@@ -52,10 +53,14 @@ extension LivePlaybackHTTPServer {
   }
 
   func isCacheable(_ route: Route) -> Bool {
-    if case .sabrTrack = route.target {
+    switch route.target {
+    case .sabrTrack:
       return false
+    case let .upstream(url):
+      return !Self.isDynamicPlaylistURL(url)
+    default:
+      return true
     }
-    return true
   }
 
   func isLocalURL(_ url: URL) -> Bool {

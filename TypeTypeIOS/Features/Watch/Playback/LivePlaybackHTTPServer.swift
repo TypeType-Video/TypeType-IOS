@@ -12,12 +12,12 @@ final class LivePlaybackHTTPServer: @unchecked Sendable {
     ProviderMediaKind
   ) -> Void
 
-  struct Resource {
+  struct Resource: Sendable {
     let data: Data
     let mimeType: String
   }
 
-  enum Target {
+  enum Target: Sendable {
     case upstream(URL)
     case upstreamRange(URL, ClosedRange<Int>, String)
     case sabrMaster
@@ -29,7 +29,7 @@ final class LivePlaybackHTTPServer: @unchecked Sendable {
     case subtitleVTT(Int)
   }
 
-  struct Route {
+  struct Route: Sendable {
     let target: Target
     let pathExtension: String
   }
@@ -50,10 +50,12 @@ final class LivePlaybackHTTPServer: @unchecked Sendable {
   )
   let lock = NSLock()
   let cache = NSCache<NSString, NSData>()
+  let loadCoordinator = LivePlaybackResourceLoadCoordinator()
   var listener: NWListener?
   var connections: [ObjectIdentifier: NWConnection] = [:]
   var routes: [String: Route] = [:]
   var upstreamRouteIDs: [URL: String] = [:]
+  var upstreamMediaRouteOrder: [URL] = []
   var localPort: NWEndpoint.Port?
   var sabrSession: LiveSABRPlaybackSession?
   var sabrMasterRouteID: String?
@@ -181,6 +183,7 @@ final class LivePlaybackHTTPServer: @unchecked Sendable {
       connections.removeAll()
       routes.removeAll()
       upstreamRouteIDs.removeAll()
+      upstreamMediaRouteOrder.removeAll()
       return current
     }
     active.forEach { $0.cancel() }
@@ -203,6 +206,7 @@ final class LivePlaybackHTTPServer: @unchecked Sendable {
     providerProgressiveVideo = nil
     providerProgressiveAudio = nil
     cache.removeAllObjects()
+    loadCoordinator.cancelAll()
   }
 
   func updatePlayerTime(_ seconds: TimeInterval) {
@@ -230,6 +234,7 @@ final class LivePlaybackHTTPServer: @unchecked Sendable {
       throw LivePlaybackFailure.localPlaybackUnavailable
     }
     let snapshot = try await sabrSession.seek(to: seconds)
+    discardStaleSABRResourceRoutes()
     sabrMasterBaseURL = snapshot.audio.initURL
     sabrPlaybackStartTime = snapshot.isIndexedVOD
       ? 0
@@ -239,6 +244,7 @@ final class LivePlaybackHTTPServer: @unchecked Sendable {
   }
 
   static let playlistMIME = "application/vnd.apple.mpegurl"
+  static let maximumUpstreamMediaRoutes = 1_024
 }
 
 private final class ContinuationGate: @unchecked Sendable {

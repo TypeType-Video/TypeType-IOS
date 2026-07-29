@@ -1,91 +1,15 @@
 import Foundation
 
 extension LivePlaybackHTTPServer {
-  func load(_ route: Route) async throws -> Resource {
-    let cacheKey = cacheKey(for: route)
-    if isCacheable(route),
-      let cached = cache.object(forKey: cacheKey) {
-      return Resource(
-        data: cached as Data,
-        mimeType: mimeType(for: route)
-      )
-    }
-
-    let resource: Resource
-    switch route.target {
-    case let .upstream(url):
-      resource = try await loadUpstream(url)
-    case let .upstreamRange(url, range, mimeType):
-      resource = Resource(
-        data: try await loadProviderRange(url, range: range),
-        mimeType: mimeType
-      )
-    case .sabrMaster:
-      resource = try await loadSABRMaster()
-    case let .sabrTrack(kind):
-      resource = try await loadSABRTrack(kind)
-    case .providerMaster:
-      let playlist = try providerProgressiveMaster
-        ?? providerMasterPlaylist()
-      resource = Resource(
-        data: Data(playlist.utf8),
-        mimeType: Self.playlistMIME
-      )
-    case .providerProgressiveVideo:
-      guard let providerProgressiveVideo else {
-        throw LivePlaybackFailure.invalidPlaylist
-      }
-      resource = Resource(
-        data: Data(providerProgressiveVideo.utf8),
-        mimeType: Self.playlistMIME
-      )
-    case .providerProgressiveAudio:
-      guard let providerProgressiveAudio else {
-        throw LivePlaybackFailure.invalidPlaylist
-      }
-      resource = Resource(
-        data: Data(providerProgressiveAudio.utf8),
-        mimeType: Self.playlistMIME
-      )
-    case let .subtitlePlaylist(index):
-      guard preparation.subtitles.indices.contains(index) else {
-        throw LivePlaybackFailure.invalidServerResource
-      }
-      resource = Resource(
-        data: Data(subtitlePlaylist(index: index).utf8),
-        mimeType: Self.playlistMIME
-      )
-    case let .subtitleVTT(index):
-      guard preparation.subtitles.indices.contains(index) else {
-        throw LivePlaybackFailure.invalidServerResource
-      }
-      let data = try await service.subtitleData(
-        for: preparation.subtitles[index]
-      )
-      resource = Resource(
-        data: normalizedVTT(data),
-        mimeType: "text/vtt"
-      )
-    }
-    if isCacheable(route) {
-      cache.setObject(
-        resource.data as NSData,
-        forKey: cacheKey,
-        cost: resource.data.count
-      )
-    }
-    return resource
-  }
-
   func loadProviderRange(
     _ url: URL,
     range: ClosedRange<Int>,
     allowsAdaptiveRetry: Bool = true
   ) async throws -> Data {
     let chunks = Self.providerChunkRanges(range)
-    let orderedChunks = try await withThrowingTaskGroup(
+    return try await withThrowingTaskGroup(
       of: (Int, Data).self,
-      returning: [Data].self
+      returning: Data.self
     ) { group in
       var nextIndex = 0
       let initialRequestCount = min(
@@ -106,12 +30,24 @@ extension LivePlaybackHTTPServer {
         }
       }
 
-      var results = Array<Data?>(
-        repeating: nil,
-        count: chunks.count
+      var result = Data(
+        count: range.upperBound - range.lowerBound + 1
       )
+      var completedCount = 0
       while let (index, data) = try await group.next() {
-        results[index] = data
+        let chunk = chunks[index]
+        let destinationStart = chunk.lowerBound - range.lowerBound
+        let destinationEnd = destinationStart + data.count
+        guard destinationStart >= 0,
+          destinationEnd <= result.count
+        else {
+          throw LivePlaybackFailure.invalidPlaylist
+        }
+        result.replaceSubrange(
+          destinationStart..<destinationEnd,
+          with: data
+        )
+        completedCount += 1
         guard nextIndex < chunks.count else { continue }
         let queuedIndex = nextIndex
         let queuedChunk = chunks[queuedIndex]
@@ -126,20 +62,11 @@ extension LivePlaybackHTTPServer {
         }
       }
 
-      return try results.map { data in
-        guard let data else {
-          throw LivePlaybackFailure.invalidPlaylist
-        }
-        return data
+      guard completedCount == chunks.count else {
+        throw LivePlaybackFailure.invalidPlaylist
       }
+      return result
     }
-
-    var result = Data()
-    result.reserveCapacity(range.upperBound - range.lowerBound + 1)
-    for chunk in orderedChunks {
-      result.append(chunk)
-    }
-    return result
   }
 
   private func loadProviderChunk(
@@ -232,7 +159,7 @@ extension LivePlaybackHTTPServer {
     return chunks
   }
 
-  private func loadUpstream(_ url: URL) async throws -> Resource {
+  func loadUpstream(_ url: URL) async throws -> Resource {
     for attempt in 0..<Self.sabrResourcePollLimit {
       try Task.checkCancellation()
       let data = try await service.resourceData(for: url)
