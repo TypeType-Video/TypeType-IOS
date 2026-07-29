@@ -119,6 +119,14 @@ jobs:
             -destination "generic/platform=iOS Simulator" \
             CODE_SIGNING_ALLOWED=NO
 
+      - name: Delete test simulator
+        if: ${{ always() }}
+        run: |
+          if test -n "${SIMULATOR_ID:-}"; then
+            xcrun simctl shutdown "$SIMULATOR_ID" 2>/dev/null || true
+            xcrun simctl delete "$SIMULATOR_ID"
+          fi
+
       - name: Upload test results
         if: ${{ always() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
