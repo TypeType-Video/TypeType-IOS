@@ -40,6 +40,7 @@ extension LivePlaybackHTTPServer {
 
   private func insertSubtitleDeclarations(in lines: inout [String]) {
     let defaultIndex = preferredSubtitleIndex
+    let autoselect = defaultIndex == nil ? "NO" : "YES"
     let declarations = preparation.subtitles.indices.compactMap {
       index -> String? in
       let routeID = register(
@@ -58,7 +59,7 @@ extension LivePlaybackHTTPServer {
         "#EXT-X-MEDIA:TYPE=SUBTITLES,GROUP-ID=\"subs\","
         + "NAME=\"\(hlsQuoted(subtitle.displayName))\","
         + "LANGUAGE=\"\(hlsQuoted(subtitle.languageTag))\","
-        + "AUTOSELECT=YES,DEFAULT=\(isDefault),FORCED=NO,"
+        + "AUTOSELECT=\(autoselect),DEFAULT=\(isDefault),FORCED=NO,"
         + "URI=\"\(url.absoluteString)\""
     }
     let insertion = lines.firstIndex {

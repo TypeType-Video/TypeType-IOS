@@ -17,7 +17,10 @@ extension LivePlaybackHTTPServer {
       #EXT-X-TARGETDURATION:\(targetDuration)
       #EXT-X-MEDIA-SEQUENCE:0
       #EXT-X-PLAYLIST-TYPE:VOD
-      #EXTINF:\(String(format: "%.3f", preparation.stream.duration)),
+      #EXTINF:\(String(
+        format: "%.3f",
+        Double(preparation.stream.duration)
+      )),
       \(url?.absoluteString ?? "")
       #EXT-X-ENDLIST
 
@@ -42,8 +45,8 @@ extension LivePlaybackHTTPServer {
     return Data(source.utf8)
   }
 
-  var preferredSubtitleIndex: Int {
-    guard !preferredSubtitleLanguage.isEmpty else { return 0 }
+  var preferredSubtitleIndex: Int? {
+    guard !preferredSubtitleLanguage.isEmpty else { return nil }
     return preparation.subtitles.firstIndex {
       $0.languageTag.caseInsensitiveCompare(
         preferredSubtitleLanguage
@@ -51,7 +54,7 @@ extension LivePlaybackHTTPServer {
         || $0.languageTag.lowercased().hasPrefix(
           preferredSubtitleLanguage.lowercased()
         )
-    } ?? 0
+    }
   }
 
   func hlsQuoted(_ value: String) -> String {
