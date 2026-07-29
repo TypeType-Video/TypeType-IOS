@@ -31,10 +31,15 @@ concurrency:
 env:
   CI: true
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  DEVELOPER_DIR: /Applications/Xcode.app/Contents/Developer
 
 jobs:
   verify:
-    runs-on: macos-15-intel
+    runs-on:
+      - self-hosted
+      - macOS
+      - X64
+      - typetype-ios
     timeout-minutes: 35
     steps:
       - name: Checkout
@@ -42,8 +47,7 @@ jobs:
 
       - name: Select Xcode
         run: |
-          test -d /Applications/Xcode_26.3.app
-          sudo xcode-select --switch /Applications/Xcode_26.3.app
+          test -d "$DEVELOPER_DIR"
           xcodebuild -version
 
       - name: Install XcodeGen
@@ -127,7 +131,11 @@ jobs:
   release:
     needs: verify
     if: ${{ github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.publish_release }}
-    runs-on: macos-15-intel
+    runs-on:
+      - self-hosted
+      - macOS
+      - X64
+      - typetype-ios
     timeout-minutes: 35
     permissions:
       contents: write
@@ -137,8 +145,7 @@ jobs:
 
       - name: Select Xcode
         run: |
-          test -d /Applications/Xcode_26.3.app
-          sudo xcode-select --switch /Applications/Xcode_26.3.app
+          test -d "$DEVELOPER_DIR"
           xcodebuild -version
 
       - name: Install XcodeGen
