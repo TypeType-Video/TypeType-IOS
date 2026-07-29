@@ -24,12 +24,14 @@ extension LiveSABRPlaybackSession {
     }
     maintenanceTask = Task { [weak self] in
       while !Task.isCancelled {
+        guard let self else { return }
+        let delayMS = await self.maintenanceDelayMS()
         do {
-          try await Task.sleep(for: .seconds(1))
+          try await Task.sleep(for: .milliseconds(delayMS))
         } catch {
           return
         }
-        await self?.refreshWindowIfNeeded()
+        await self.refreshWindowIfNeeded()
       }
     }
   }
@@ -37,6 +39,7 @@ extension LiveSABRPlaybackSession {
   func stopMaintenance() {
     maintenanceTask?.cancel()
     maintenanceTask = nil
+    maintenanceFailureCount = 0
   }
 
   private func refreshWindowIfNeeded() async {
@@ -51,12 +54,16 @@ extension LiveSABRPlaybackSession {
     let thresholdMS = LiveSABRBufferPolicy.nativeLiveRefreshThresholdMS(
       for: playbackGoalMS
     )
-    guard edge - playerTimeMS < thresholdMS else { return }
+    guard edge - playerTimeMS < thresholdMS else {
+      maintenanceFailureCount = 0
+      return
+    }
     AppLogger.app.info(
       "Live SABR refresh started: player=\(self.playerTimeMS, privacy: .public) edge=\(edge, privacy: .public) threshold=\(thresholdMS, privacy: .public)"
     )
     do {
       _ = try await loadWindow()
+      maintenanceFailureCount = 0
       let refreshedEdge = min(
         audio?.endMS ?? 0,
         preparation.audioOnly ? Int64.max : video?.endMS ?? 0
@@ -67,10 +74,20 @@ extension LiveSABRPlaybackSession {
     } catch is CancellationError {
       return
     } catch {
+      maintenanceFailureCount = min(
+        maintenanceFailureCount + 1,
+        20
+      )
       let failure = error as NSError
       AppLogger.app.error(
         "Live SABR refresh failed: \(failure.domain, privacy: .public) \(failure.code) \(failure.localizedDescription, privacy: .public)"
       )
     }
+  }
+
+  private func maintenanceDelayMS() -> Int64 {
+    Self.maintenanceRetryDelayMS(
+      failureCount: maintenanceFailureCount
+    )
   }
 }

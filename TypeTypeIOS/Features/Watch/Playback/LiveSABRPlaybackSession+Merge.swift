@@ -10,11 +10,18 @@ extension LiveSABRPlaybackSession {
       throw LivePlaybackFailure.invalidSABRContract
     }
     let responseStartMS = response.startTimeMS ?? playerTimeMS
+    let activeLive = response.live?.active == true
+      || live?.active == true
+      || preparation.stream.isLive
+    let seekableStartMS = response.live?.seekableStartMS
+      ?? live?.seekableStartMS
     audio = try mergeTrack(
       current: audio,
       incoming: incomingAudio,
       itag: control?.audioItag,
-      expectedKind: "audio"
+      expectedKind: "audio",
+      activeLive: activeLive,
+      seekableStartMS: seekableStartMS
     )
     var incomingEndMS = try endMS(of: incomingAudio)
     if !preparation.audioOnly {
@@ -25,7 +32,9 @@ extension LiveSABRPlaybackSession {
         current: video,
         incoming: incomingVideo,
         itag: control?.videoItag,
-        expectedKind: "video"
+        expectedKind: "video",
+        activeLive: activeLive,
+        seekableStartMS: seekableStartMS
       )
       incomingEndMS = min(
         incomingEndMS,
@@ -78,7 +87,9 @@ extension LiveSABRPlaybackSession {
     current: LiveSABRTrackSnapshot?,
     incoming: LiveSABRWindowTrack,
     itag: Int?,
-    expectedKind: String
+    expectedKind: String,
+    activeLive: Bool,
+    seekableStartMS: Int64?
   ) throws -> LiveSABRTrackSnapshot {
     let mediaKind = incoming.mime.split(separator: ";")
       .first?.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -95,6 +106,13 @@ extension LiveSABRPlaybackSession {
       initialization: true
     )
     var segments = current?.segments ?? []
+    if activeLive {
+      segments = Self.retainedLiveSegments(
+        segments,
+        playerTimeMS: playerTimeMS,
+        seekableStartMS: seekableStartMS
+      )
+    }
     var known = Set(segments.map(\.url))
     var previousEndMS: Int64 = -1
     for item in incoming.segments {
@@ -125,12 +143,39 @@ extension LiveSABRPlaybackSession {
       throw LivePlaybackFailure.invalidSABRContract
     }
     segments.sort { $0.startMS < $1.startMS }
+    if activeLive {
+      segments = Self.retainedLiveSegments(
+        segments,
+        playerTimeMS: playerTimeMS,
+        seekableStartMS: seekableStartMS
+      )
+    }
     return LiveSABRTrackSnapshot(
       itag: itag,
       mime: incoming.mime,
       initURL: initURL,
       segments: segments
     )
+  }
+
+  static func retainedLiveSegments(
+    _ segments: [LiveSABRMediaSegment],
+    playerTimeMS: Int64,
+    seekableStartMS: Int64?
+  ) -> [LiveSABRMediaSegment] {
+    guard !segments.isEmpty else { return [] }
+    let playbackFloor = max(
+      playerTimeMS - backBufferMS - liveRetentionMarginMS,
+      0
+    )
+    let floor = max(playbackFloor, seekableStartMS ?? 0)
+    let retained = segments.filter {
+      $0.startMS + $0.durationMS > floor
+    }
+    let usable = retained.isEmpty
+      ? Array(segments.suffix(1))
+      : retained
+    return Array(usable.suffix(maximumRetainedLiveSegments))
   }
 
   private func endMS(
@@ -163,4 +208,7 @@ extension LiveSABRPlaybackSession {
     )
     return url
   }
+
+  private static let liveRetentionMarginMS: Int64 = 10_000
+  private static let maximumRetainedLiveSegments = 1_024
 }

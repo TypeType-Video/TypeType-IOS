@@ -68,15 +68,22 @@ enum LiveSABRPlaylistBuilder {
         kind: kind
       )
     }
+    let slidingLive = snapshot.live?.active == true
+      || (
+        snapshot.index?.live == true
+          && !snapshot.endOfStream
+      )
     return eventMedia(
       track: track,
-      endOfStream: snapshot.endOfStream
+      endOfStream: snapshot.endOfStream,
+      slidingLive: slidingLive
     )
   }
 
   private static func eventMedia(
     track: LiveSABRTrackSnapshot,
-    endOfStream: Bool
+    endOfStream: Bool,
+    slidingLive: Bool
   ) -> Data {
     let segments = track.segments
     let targetDuration = max(
@@ -89,9 +96,13 @@ enum LiveSABRPlaylistBuilder {
       "#EXT-X-VERSION:7",
       "#EXT-X-TARGETDURATION:\(targetDuration)",
       "#EXT-X-MEDIA-SEQUENCE:\(mediaSequence)",
-      "#EXT-X-PLAYLIST-TYPE:EVENT",
-      "#EXT-X-MAP:URI=\"\(track.initURL.absoluteString)\"",
     ]
+    if !slidingLive {
+      lines.append("#EXT-X-PLAYLIST-TYPE:EVENT")
+    }
+    lines.append(
+      "#EXT-X-MAP:URI=\"\(track.initURL.absoluteString)\""
+    )
     for segment in segments {
       let duration = String(
         format: "%.3f",

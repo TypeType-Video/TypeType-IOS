@@ -17,6 +17,7 @@ actor LiveSABRPlaybackSession {
   var recoveryCount = 0
   var attemptedVideoItags: Set<Int> = []
   var maintenanceTask: Task<Void, Never>?
+  var maintenanceFailureCount = 0
   var windowLoadTask:
     (
       id: UUID,
@@ -193,22 +194,41 @@ actor LiveSABRPlaybackSession {
     guard let control else {
       throw LivePlaybackFailure.invalidSABRContract
     }
-    let value = try await service.loadSABRIndex(
-      videoID: control.videoID,
-      sessionID: control.sessionID
-    )
-    guard value.videoID == control.videoID,
-      value.sessionID == control.sessionID,
-      value.tracks.audio.itag == control.audioItag,
-      value.tracks.video.itag == control.videoItag
-    else {
-      throw LivePlaybackFailure.invalidSABRContract
+    let requiredAudioSegment = audio?.segments.map(\.sequence).max() ?? 0
+    let requiredVideoSegment = preparation.audioOnly
+      ? 0
+      : video?.segments.map(\.sequence).max() ?? 0
+    for attempt in 0..<Self.maximumAttempts {
+      let value = try await service.loadSABRIndex(
+        videoID: control.videoID,
+        sessionID: control.sessionID
+      )
+      guard value.videoID == control.videoID,
+        value.sessionID == control.sessionID,
+        value.tracks.audio.itag == control.audioItag,
+        value.tracks.video.itag == control.videoItag
+      else {
+        throw LivePlaybackFailure.invalidSABRContract
+      }
+      let published = value.live
+        || value.tracks.audio.maxSegment >= requiredAudioSegment
+          && (
+            preparation.audioOnly
+              || value.tracks.video.maxSegment >= requiredVideoSegment
+          )
+      if published {
+        index = value
+        guard let currentSnapshot else {
+          throw LivePlaybackFailure.invalidSABRContract
+        }
+        return currentSnapshot
+      }
+      guard attempt + 1 < Self.maximumAttempts else { break }
+      try await Task.sleep(for: .milliseconds(
+        Self.minimumRetryMS
+      ))
     }
-    index = value
-    guard let currentSnapshot else {
-      throw LivePlaybackFailure.invalidSABRContract
-    }
-    return currentSnapshot
+    throw LivePlaybackFailure.sabrSessionTimedOut
   }
 
   static let backBufferMS: Int64 = 30_000
@@ -216,4 +236,11 @@ actor LiveSABRPlaybackSession {
   static let maximumRecoveries = 2
   static let minimumRetryMS: Int64 = 250
   static let maximumRetryMS: Int64 = 2_000
+
+  static func maintenanceRetryDelayMS(
+    failureCount: Int
+  ) -> Int64 {
+    let exponent = min(max(failureCount, 0), 5)
+    return min(1_000 * Int64(1 << exponent), 30_000)
+  }
 }

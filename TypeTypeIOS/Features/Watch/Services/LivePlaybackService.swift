@@ -75,11 +75,18 @@ final class LivePlaybackService: LivePlaybackServiceProtocol {
   func stream(for videoURL: String) async throws -> LivePlaybackStream {
     let path = streamPath(for: videoURL)
     if path == "/streams/youtube/sabr/bootstrap" {
-      return try await youtubeSABRStream(
-        path: path,
-        videoURL: videoURL,
-        attempt: 0
-      )
+      do {
+        return try await requestStream(
+          path: "/streams/youtube/sabr",
+          videoURL: videoURL
+        )
+      } catch {
+        return try await youtubeSABRStream(
+          path: path,
+          videoURL: videoURL,
+          attempt: 0
+        )
+      }
     }
     return try await requestStream(path: path, videoURL: videoURL)
   }
