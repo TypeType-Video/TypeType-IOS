@@ -90,6 +90,10 @@ extension LivePlayerController {
   func stop() {
     presentationResumeTask?.cancel()
     presentationResumeTask = nil
+    sabrStallRecoveryTask?.cancel()
+    sabrStallRecoveryTask = nil
+    sabrRecoveryBudgetResetTask?.cancel()
+    sabrRecoveryBudgetResetTask = nil
     loadTask?.cancel()
     seekTask?.cancel()
     bulletCommentsTask?.cancel()

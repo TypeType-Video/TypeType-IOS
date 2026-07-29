@@ -10,6 +10,11 @@ extension LivePlayerController {
       return
     }
     state = .loading
+    sabrStallRecoveryTask?.cancel()
+    sabrStallRecoveryTask = nil
+    sabrRecoveryBudgetResetTask?.cancel()
+    sabrRecoveryBudgetResetTask = nil
+    sabrStallRecoveryCount = 0
     handledSponsorSegments.removeAll()
     sponsorMutedRange = nil
     do {

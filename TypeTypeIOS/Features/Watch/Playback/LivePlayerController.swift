@@ -69,6 +69,9 @@ final class LivePlayerController: ObservableObject {
   var didRecordHistoryEvent = false
   var playbackSessionProgressTask: Task<Void, Never>?
   var presentationResumeTask: Task<Void, Never>?
+  var sabrStallRecoveryTask: Task<Void, Never>?
+  var sabrRecoveryBudgetResetTask: Task<Void, Never>?
+  var sabrStallRecoveryCount = 0
   var bulletCommentsTask: Task<Void, Never>?
   var bulletCommentsLoadGeneration = 0
   var bulletCommentStateRevision = 0
@@ -114,6 +117,8 @@ final class LivePlayerController: ObservableObject {
   deinit {
     playbackSessionProgressTask?.cancel()
     presentationResumeTask?.cancel()
+    sabrStallRecoveryTask?.cancel()
+    sabrRecoveryBudgetResetTask?.cancel()
     bulletCommentsTask?.cancel()
     playbackServer?.stop()
     let reporter = playbackSessionReporter

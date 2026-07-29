@@ -42,12 +42,7 @@ extension LivePlaybackCoordinator {
   }
 
   func retryAfterNetworkRecovery() {
-    guard let controller,
-      case .failed = controller.state
-    else {
-      return
-    }
-    controller.retry()
+    controller?.retryAfterNetworkRecovery()
   }
 
   func replacePlayback(

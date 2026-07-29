@@ -14,6 +14,7 @@ struct LiveAuthenticatedAppView: View {
   @State var presentsExpandedPlayback = false
   @State var incomingMediaLink: LiveIncomingMediaLink?
   @State var presentsOfflineDownloads = false
+  @State var observedConnectivityOutage = false
   @Environment(\.scenePhase) private var scenePhase
 
   init(coordinator: RootCoordinator) {
@@ -54,6 +55,13 @@ struct LiveAuthenticatedAppView: View {
     .task {
       presentPendingIncomingMediaLink()
     }
+#if DEBUG
+    .task {
+      if CommandLine.arguments.contains("--typetype-open-downloads") {
+        presentsOfflineDownloads = true
+      }
+    }
+#endif
     .onChange(of: coordinator.pendingIncomingURL) {
       presentPendingIncomingMediaLink()
     }
@@ -78,7 +86,16 @@ struct LiveAuthenticatedAppView: View {
       }
     }
     .onChange(of: connectivityMonitor.status) {
-      guard connectivityMonitor.status == .online else { return }
+      if connectivityMonitor.status == .offline {
+        observedConnectivityOutage = true
+        return
+      }
+      guard connectivityMonitor.status == .online,
+        observedConnectivityOutage
+      else {
+        return
+      }
+      observedConnectivityOutage = false
       reconnect()
       playbackCoordinator.retryAfterNetworkRecovery()
     }

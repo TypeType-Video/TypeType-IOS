@@ -47,18 +47,28 @@ extension LivePlayerController {
         guard let self else { return }
         switch player.timeControlStatus {
         case .paused:
+          sabrStallRecoveryTask?.cancel()
+          sabrStallRecoveryTask = nil
+          sabrRecoveryBudgetResetTask?.cancel()
+          sabrRecoveryBudgetResetTask = nil
           if state == .playing {
             state = .paused
             reportPlaybackSessionProgress()
           }
         case .waitingToPlayAtSpecifiedRate:
+          sabrRecoveryBudgetResetTask?.cancel()
+          sabrRecoveryBudgetResetTask = nil
           if state != .loading {
             state = .loading
           }
+          scheduleSABRStallRecovery(for: item)
         case .playing:
+          sabrStallRecoveryTask?.cancel()
+          sabrStallRecoveryTask = nil
           if state != .playing {
             state = .playing
           }
+          scheduleSABRRecoveryBudgetReset(for: item)
           startPlaybackSessionIfNeeded()
         @unknown default:
           break
