@@ -1,15 +1,31 @@
+<!-- markdownlint-disable MD033 MD041 -->
+
 <div align="center">
   <img src="https://raw.githubusercontent.com/TypeType-Video/TypeType/main/assets/banner.svg" alt="TypeType" width="100%">
   <h1>TypeType iOS</h1>
   <p>A native TypeType experience for iPhone and iPad.</p>
 </div>
 
-TypeType iOS brings
-[TypeType](https://github.com/TypeType-Video/TypeType) to Apple devices with a
-SwiftUI interface, native navigation, AVKit playback, Picture in Picture, and
-an experience designed independently for iPhone and iPad. The application
-connects to a TypeType-Server instance; extraction, synchronization, and
-authoritative user data remain server-side.
+<div align="center">
+
+[![iOS](https://github.com/TypeType-Video/TypeType-IOS/actions/workflows/ios.yml/badge.svg?branch=main)](https://github.com/TypeType-Video/TypeType-IOS/actions/workflows/ios.yml)
+[![MPL 2.0](https://img.shields.io/badge/license-MPL--2.0-orange.svg)](LICENSE)
+[![iOS 17+](https://img.shields.io/badge/iOS-17%2B-000000.svg?logo=apple)](project.yml)
+[![Swift 5.10](https://img.shields.io/badge/Swift-5.10-F05138.svg?logo=swift&logoColor=white)](project.yml)
+[![TypeType](https://img.shields.io/badge/TypeType-ecosystem-7c3aed.svg)](https://github.com/TypeType-Video/TypeType)
+
+</div>
+
+TypeType iOS is the native SwiftUI client for
+[TypeType](https://github.com/TypeType-Video/TypeType). It combines adaptive
+iPhone and iPad navigation with AVKit playback, background audio, Picture in
+Picture, offline media, and persistent access to a selected self-hosted
+instance.
+
+The client communicates exclusively with
+[TypeType-Server](https://github.com/TypeType-Video/TypeType-Server). Media
+extraction, YouTube session state, SABR playback sessions, synchronization,
+downloads, recommendations, and authoritative user data remain server-side.
 
 ## iPhone
 
@@ -23,29 +39,67 @@ authoritative user data remain server-side.
 | --- | --- |
 | ![TypeType home on iPad](assets/screenshots/ipad-home.png) | ![TypeType watch page on iPad](assets/screenshots/ipad-player.png) |
 
-The screenshots come directly from the current application. They use its
-deterministic UI-regression catalog so visual changes remain reproducible.
+The screenshots come directly from the current iPhone and iPad application
+builds. Reproducible interface fixtures keep visual regressions independent
+from changing public feeds.
 
-## Native experience
+## Features
 
 - One adaptive SwiftUI interface for iPhone and iPad
-- Server setup, sign-in, registration, password reset, OIDC, and persistent sessions
-- Home, multi-service search, channels, podcasts, subscriptions, history, and playlists
-- Native AVKit playback, Picture in Picture, mini-player, and audio-only mode
-- YouTube SABR playback through TypeType-Server with selectable H.264 quality
-  and AAC audio tracks
-- Queue, captions, chapters, SponsorBlock controls, comments, and related videos
-- Profile, imports, downloads, notifications, content controls, settings, and administration
+- Instance setup, guest access, local accounts, OIDC, password reset, and
+  Keychain-backed persistent sessions
+- Home, multi-service search, channels, podcasts, subscriptions, history,
+  playlists, favorites, and Watch Later
+- YouTube, BiliBili, and NicoNico discovery with provider-aware playback and
+  native NicoNico danmaku
+- Queue, captions, chapters, SponsorBlock, DeArrow, comments, related videos,
+  sleep timer, and playback-speed controls
+- Server-backed audio and video downloads with persistent tracking and native
+  offline playback
+- Profile, imports, notifications, content controls, diagnostics, settings,
+  and instance administration
 - Dark and light appearances with Dynamic Type and VoiceOver-friendly controls
 
+## Native playback
+
+| Source | Native path |
+| --- | --- |
+| YouTube | TypeType SABR sessions, fragmented MP4 segments, bounded live and VOD buffers, native seeking, and selectable H.264/AAC tracks |
+| BiliBili | Authenticated byte-range loading, SIDX indexing, separate audio/video adaptation to local HLS, and automatic source fallback |
+| NicoNico | Provider media through AVKit with synchronized, configurable danmaku |
+| Downloads | Validated local audio or video artifacts played directly with AVKit |
+
+The application presents online media through the native player rather than a
+WebView. Full-screen playback, Picture in Picture, mini-player transitions,
+audio-only round trips, background audio, captions, queue state, and playback
+progress share one controller. Downloaded artifacts use a dedicated offline
+AVKit player.
+
+Playback is designed to survive transient network failures. SABR window
+requests are serialized and refreshed near the playback edge, interrupted
+transport requests can recover without losing the timeline, and unstable
+provider formats fall back to another compatible source.
+
 > [!NOTE]
-> The normal application uses the
-> [TypeType-Server](https://github.com/TypeType-Video/TypeType-Server) API for
-> authentication, discovery, playback, account data, mutations, settings,
-> imports, downloads, notifications, and administration. YouTube playback
-> consumes the server's SABR-backed fragmented MP4 sessions through native
-> AVKit; the iOS application does not embed an extraction engine. The
-> deterministic catalog is opt-in and restricted to debug simulator UI tests.
+> TypeType iOS contains no extraction engine, browser player, or copied backend
+> implementation. It consumes the TypeType-Server HTTP API and converts the
+> server's media contracts into native AVFoundation and AVKit playback.
+
+## Quality
+
+The repository separates deterministic regression coverage from opt-in live
+backend validation:
+
+- Unit and contract tests cover networking, authentication, persistence,
+  playback preparation, SABR windows, provider indexing, downloads, and state
+  transitions.
+- iPhone and iPad XCUITests cover complete interface journeys with reproducible
+  content and screenshots.
+- Live XCUITests exercise randomized YouTube, BiliBili, and NicoNico videos,
+  long-form playback, full-screen round trips, audio-only transitions, process
+  relaunches, provider fallback, and real transport interruptions.
+- GitHub Actions runs the unit suite and builds the Release configuration for
+  every push and pull request targeting `dev` or `main`.
 
 ## Stack
 
@@ -54,7 +108,7 @@ deterministic UI-regression catalog so visual changes remain reproducible.
 | Language | Swift 5.10 |
 | Platform | iOS 17+ |
 | Interface | SwiftUI |
-| Playback | AVKit |
+| Playback | AVFoundation and AVKit |
 | Networking | URLSession |
 | Persistence | Keychain and UserDefaults |
 | Project generation | XcodeGen |
@@ -62,8 +116,8 @@ deterministic UI-regression catalog so visual changes remain reproducible.
 
 ## API contract
 
-The client communicates with TypeType-Server over HTTP. Documented endpoints
-follow the server
+The client communicates with TypeType-Server over HTTPS, or local HTTP for a
+private self-hosted instance. Documented endpoints follow the server
 [OpenAPI specification](https://github.com/TypeType-Video/TypeType-Server/blob/dev/openapi.yaml);
 integration work is also checked against the current server routes while that
 published contract grows. No extraction engine or backend implementation is
