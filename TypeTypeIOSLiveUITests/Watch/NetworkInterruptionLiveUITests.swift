@@ -3,6 +3,22 @@ import XCTest
 
 @MainActor
 final class NetworkInterruptionLiveUITests: XCTestCase {
+  private var proxy: LiveInterruptingProxy!
+  private var proxyURL: URL!
+
+  override func setUpWithError() throws {
+    continueAfterFailure = false
+    proxy = LiveInterruptingProxy()
+    proxyURL = try proxy.start()
+  }
+
+  override func tearDown() {
+    proxy?.stop()
+    proxy = nil
+    proxyURL = nil
+    super.tearDown()
+  }
+
   func testRandomizedLongFormPlaybackStaysPlayingForFiveMinutes()
     throws
   {
@@ -88,7 +104,7 @@ final class NetworkInterruptionLiveUITests: XCTestCase {
       "Playback did not advance before the transport interruption."
     )
 
-    try await triggerNetworkCut(seconds: 30)
+    triggerNetworkCut(seconds: 30)
     try await Task.sleep(for: .seconds(45))
 
     XCTAssertEqual(app.state, .runningForeground)
@@ -106,9 +122,11 @@ final class NetworkInterruptionLiveUITests: XCTestCase {
     )
     try await Task.sleep(for: .seconds(12))
     XCTAssertTrue(waitForPlayingPlayer(in: app, timeout: 15))
+    let continuedPosition = try XCTUnwrap(
+      playbackPosition(from: position)
+    )
     XCTAssertGreaterThanOrEqual(
-      try XCTUnwrap(playbackPosition(from: position))
-        - recoveredPosition,
+      continuedPosition - recoveredPosition,
       8,
       "Playback did not continue advancing after recovery."
     )
@@ -117,6 +135,9 @@ final class NetworkInterruptionLiveUITests: XCTestCase {
       query=\(query)
       video=\(videoID)
       interruption=30 seconds of closed proxy connections
+      initialPosition=\(initialPosition)
+      recoveredPosition=\(recoveredPosition)
+      continuedPosition=\(continuedPosition)
       """
     )
     report.name = "Transport recovery selection"
@@ -138,7 +159,7 @@ final class NetworkInterruptionLiveUITests: XCTestCase {
     name.typeText("TypeType interrupted transport")
     let url = app.textFields["live.server.url"]
     url.tap()
-    url.typeText("http://127.0.0.1:18082")
+    url.typeText(proxyURL.absoluteString)
     app.swipeUp()
     app.buttons["live.server.connect"].tap()
     let guest = app.buttons["live.auth.guest"]
@@ -243,19 +264,8 @@ final class NetworkInterruptionLiveUITests: XCTestCase {
     }
   }
 
-  private func triggerNetworkCut(
-    seconds: Int
-  ) async throws {
-    var components = URLComponents(
-      string: "http://127.0.0.1:18082/__control__/offline"
-    )
-    components?.queryItems = [
-      URLQueryItem(name: "seconds", value: String(seconds)),
-    ]
-    let url = try XCTUnwrap(components?.url)
-    let (_, response) = try await URLSession.shared.data(from: url)
-    let http = try XCTUnwrap(response as? HTTPURLResponse)
-    XCTAssertEqual(http.statusCode, 204)
+  private func triggerNetworkCut(seconds: Int) {
+    proxy.cutTransport(for: seconds)
   }
 
   private func waitForPlayingPlayer(
