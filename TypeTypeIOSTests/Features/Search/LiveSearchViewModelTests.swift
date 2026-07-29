@@ -108,6 +108,42 @@ final class LiveSearchViewModelTests: XCTestCase {
     XCTAssertFalse(viewModel.canLoadMore)
   }
 
+  func testSearchResultsDoNotWaitForHistoryRecording() async {
+    let video = LiveVideoItemFixture.make(
+      id: "video",
+      url: "https://www.youtube.com/watch?v=video"
+    )
+    let search = SearchServiceStub(
+      pages: [
+        LiveSearchPage(
+          items: [video],
+          nextPage: nil,
+          searchSuggestion: nil,
+          isCorrectedSearch: false,
+          playlists: [],
+          channels: []
+        ),
+      ]
+    )
+    let history = SearchHistoryStub(
+      items: [],
+      addDelay: .seconds(5)
+    )
+    let viewModel = makeViewModel(search: search, history: history)
+
+    let submission = Task {
+      await viewModel.submit("resilient search")
+    }
+    for _ in 0..<100 where viewModel.state != .loaded {
+      try? await Task.sleep(for: .milliseconds(5))
+    }
+
+    XCTAssertEqual(viewModel.state, .loaded)
+    XCTAssertEqual(viewModel.results.count, 1)
+    submission.cancel()
+    await submission.value
+  }
+
   func testSharedServiceSelectionUpdatesSearchDiscovery() async {
     let search = SearchServiceStub(pages: [])
     let selection = makeSelection()
@@ -258,9 +294,14 @@ private final class SearchHistoryStub:
   private let lock = NSLock()
   private var items: [LiveSearchHistoryItem]
   private var terms: [String] = []
+  private let addDelay: Duration?
 
-  init(items: [LiveSearchHistoryItem]) {
+  init(
+    items: [LiveSearchHistoryItem],
+    addDelay: Duration? = nil
+  ) {
     self.items = items
+    self.addDelay = addDelay
   }
 
   var addedTerms: [String] {
@@ -275,7 +316,10 @@ private final class SearchHistoryStub:
   }
 
   func add(term: String) async throws -> LiveSearchHistoryItem {
-    lock.withLock {
+    if let addDelay {
+      try await Task.sleep(for: addDelay)
+    }
+    return lock.withLock {
       terms.append(term)
       let item = LiveSearchHistoryItem(
         id: term,

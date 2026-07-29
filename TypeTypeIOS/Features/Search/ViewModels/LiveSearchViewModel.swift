@@ -99,11 +99,11 @@ final class LiveSearchViewModel: ObservableObject {
     do {
       async let historyUpdate: Void = record(term)
       let page = try await task.value
-      _ = await historyUpdate
       guard requestID == currentRequest, !Task.isCancelled else {
         return
       }
       applyInitial(page)
+      _ = await historyUpdate
     } catch is CancellationError {
       return
     } catch {
