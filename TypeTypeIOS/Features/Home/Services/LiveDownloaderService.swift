@@ -22,7 +22,7 @@ final class LiveDownloaderService: LiveDownloaderServiceProtocol {
     videoURL: String,
     options: LiveDownloadOptions
   ) async throws -> LiveDownloadJob {
-    try await apiClient.request(
+    let creation = try await apiClient.request(
       APIEndpoint(
         path: "/downloader/jobs",
         method: .post,
@@ -32,8 +32,9 @@ final class LiveDownloaderService: LiveDownloaderServiceProtocol {
         requiresAuth: true,
         timeoutInterval: 90
       ),
-      as: LiveDownloadJob.self
+      as: LiveDownloadCreationResponse.self
     )
+    return try await job(id: creation.id)
   }
 
   func job(id: String) async throws -> LiveDownloadJob {
@@ -77,4 +78,8 @@ final class LiveDownloaderService: LiveDownloaderServiceProtocol {
       timeoutInterval: 90
     )
   }
+}
+
+private struct LiveDownloadCreationResponse: Decodable {
+  let id: String
 }
