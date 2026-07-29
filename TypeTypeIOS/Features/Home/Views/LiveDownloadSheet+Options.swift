@@ -9,11 +9,13 @@ extension LiveDownloadSheet {
             Text(mode.title).tag(mode)
           }
         }
+        .accessibilityIdentifier("live.download.type")
         Picker("Quality", selection: $viewModel.quality) {
           ForEach(qualities, id: \.self) { value in
             Text(value.capitalized).tag(value)
           }
         }
+        .accessibilityIdentifier("live.download.quality")
         if formats.count == 1, let format = formats.first {
           LabeledContent("Format", value: format.uppercased())
         } else {

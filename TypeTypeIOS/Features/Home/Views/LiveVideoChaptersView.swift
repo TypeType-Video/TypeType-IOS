@@ -34,9 +34,13 @@ struct LiveVideoChaptersView: View {
               )
             }
             .buttonStyle(.plain)
+            .accessibilityIdentifier(
+              "live.video.chapter.\(chapter.startTimeSeconds)"
+            )
           }
         }
       }
+      .accessibilityIdentifier("live.video.chapters")
     }
   }
 }

@@ -18,6 +18,9 @@ extension AppDependencies {
       UserDefaults.standard.removeObject(
         forKey: AppConfig.selectedServerIDKey
       )
+      UserDefaults.standard.removeObject(
+        forKey: AppConfig.playbackQueueRegistryKey
+      )
     }
 #endif
     let diagnosticsStore = LiveDiagnosticsStore()
