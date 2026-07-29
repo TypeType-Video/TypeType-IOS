@@ -5,15 +5,24 @@ actor LiveDiagnosticsStore {
   private let fileManager: FileManager
   private let rootURL: URL
   private let maximumEntries: Int
+  private let persistenceDelay: Duration
+  private var cachedEntries: [
+    LiveDiagnosticScope: [LiveDiagnosticEntry]
+  ] = [:]
+  private var persistenceTasks: [
+    LiveDiagnosticScope: Task<Void, Never>
+  ] = [:]
 
   init(
     rootURL: URL = LiveDiagnosticsStore.defaultRootURL(),
     fileManager: FileManager = .default,
-    maximumEntries: Int = 200
+    maximumEntries: Int = 200,
+    persistenceDelay: Duration = .milliseconds(500)
   ) {
     self.rootURL = rootURL
     self.fileManager = fileManager
     self.maximumEntries = maximumEntries
+    self.persistenceDelay = persistenceDelay
   }
 
   func record(
@@ -31,7 +40,7 @@ actor LiveDiagnosticsStore {
     ) else {
       return
     }
-    var entries = load(scope: scope)
+    var entries = entriesInMemory(for: scope)
     entries.append(
       LiveDiagnosticEntry(
         id: UUID().uuidString,
@@ -51,16 +60,19 @@ actor LiveDiagnosticsStore {
     if entries.count > maximumEntries {
       entries.removeFirst(entries.count - maximumEntries)
     }
-    persist(entries, scope: scope)
+    cachedEntries[scope] = entries
+    schedulePersistence(for: scope)
   }
 
   func entries(
     for scope: LiveDiagnosticScope
   ) -> [LiveDiagnosticEntry] {
-    load(scope: scope).reversed()
+    entriesInMemory(for: scope).reversed()
   }
 
   func clear(scope: LiveDiagnosticScope) {
+    persistenceTasks.removeValue(forKey: scope)?.cancel()
+    cachedEntries.removeValue(forKey: scope)
     try? fileManager.removeItem(at: fileURL(for: scope))
   }
 
@@ -122,6 +134,40 @@ actor LiveDiagnosticsStore {
       return []
     }
     return entries
+  }
+
+  private func entriesInMemory(
+    for scope: LiveDiagnosticScope
+  ) -> [LiveDiagnosticEntry] {
+    if let entries = cachedEntries[scope] {
+      return entries
+    }
+    let entries = load(scope: scope)
+    cachedEntries[scope] = entries
+    return entries
+  }
+
+  private func schedulePersistence(
+    for scope: LiveDiagnosticScope
+  ) {
+    guard persistenceTasks[scope] == nil else { return }
+    let delay = persistenceDelay
+    persistenceTasks[scope] = Task { [weak self] in
+      do {
+        try await Task.sleep(for: delay)
+      } catch {
+        return
+      }
+      await self?.persistCachedEntries(for: scope)
+    }
+  }
+
+  private func persistCachedEntries(
+    for scope: LiveDiagnosticScope
+  ) {
+    persistenceTasks[scope] = nil
+    guard let entries = cachedEntries[scope] else { return }
+    persist(entries, scope: scope)
   }
 
   private func persist(
