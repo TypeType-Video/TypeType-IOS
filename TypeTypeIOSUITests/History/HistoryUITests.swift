@@ -16,8 +16,7 @@ final class HistoryUITests: XCTestCase {
       app.staticTexts["Big Buck Bunny — Blender Open Movie"].exists
     )
 
-    let search = app.searchFields["Search history"]
-    XCTAssertTrue(search.waitForExistence(timeout: 3))
+    let search = app.searchField("Search history")
     search.tap()
     search.typeText("SABR")
 

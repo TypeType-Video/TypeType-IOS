@@ -22,4 +22,51 @@ extension XCUIApplication {
     }
     tab.tap()
   }
+
+  func searchField(_ prompt: String) -> XCUIElement {
+    let existingField = searchFields[prompt]
+    if existingField.waitForExistence(timeout: 1) {
+      return existingField
+    }
+
+    let textField = textFields[prompt]
+    if textField.waitForExistence(timeout: 1) {
+      return textField
+    }
+
+    let searchButton = buttons["Search"]
+    XCTAssertTrue(searchButton.waitForExistence(timeout: 2))
+    searchButton.tap()
+
+    if existingField.waitForExistence(timeout: 2) {
+      return existingField
+    }
+    if textField.waitForExistence(timeout: 2) {
+      return textField
+    }
+    let anyField = searchFields.firstMatch
+    XCTAssertTrue(anyField.waitForExistence(timeout: 2))
+    return anyField
+  }
+
+  func notificationControl() -> XCUIElement {
+    let direct = buttons["demo.home.notifications"]
+    if direct.waitForExistence(timeout: 1) {
+      return direct
+    }
+
+    let navigationBar = navigationBars.firstMatch
+    XCTAssertTrue(navigationBar.waitForExistence(timeout: 2))
+    let overflow = navigationBar.buttons["More"]
+    if overflow.waitForExistence(timeout: 1) {
+      overflow.tap()
+    } else {
+      navigationBar.coordinate(
+        withNormalizedOffset: CGVector(dx: 0.94, dy: 0.25)
+      ).tap()
+    }
+    let bell = images["bell"].firstMatch
+    XCTAssertTrue(bell.waitForExistence(timeout: 2))
+    return bell
+  }
 }

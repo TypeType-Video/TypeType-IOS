@@ -13,7 +13,7 @@ final class FunctionalFlowsUITests: XCTestCase {
     app.launchArguments = ["--typetype-demo-home"]
     app.launch()
 
-    app.buttons["demo.home.notifications"].tap()
+    app.notificationControl().tap()
 
     XCTAssertTrue(
       app.descendants(matching: .any)["demo.notifications.screen"]

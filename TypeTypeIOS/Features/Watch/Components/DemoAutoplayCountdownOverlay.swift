@@ -79,6 +79,8 @@ struct DemoAutoplayCountdownOverlay: View {
           HStack {
             Button("Play now", action: onPlay)
               .buttonStyle(.borderedProminent)
+            Button("Cancel autoplay", action: onCancel)
+              .buttonStyle(.bordered)
             Button(isPaused ? "Resume" : "Pause", action: togglePause)
             .buttonStyle(.bordered)
           }

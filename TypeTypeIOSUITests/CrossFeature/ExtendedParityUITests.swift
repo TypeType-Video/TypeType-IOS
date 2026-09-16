@@ -50,13 +50,19 @@ final class ExtendedParityUITests: XCTestCase {
     XCTAssertTrue(app.staticTexts["Global channels"].waitForExistence(timeout: 2))
 
     app.buttons["Users"].tap()
-    XCTAssertTrue(app.searchFields["Name, email, or ID"].waitForExistence(timeout: 2))
+    XCTAssertTrue(
+      app.searchField("Name, email, or ID")
+        .waitForExistence(timeout: 2)
+    )
 
     app.buttons["Sessions"].tap()
     XCTAssertTrue(app.staticTexts["iPhone 17 · iOS"].waitForExistence(timeout: 2))
 
     app.buttons["Issues"].tap()
-    XCTAssertTrue(app.searchFields["Search issues"].waitForExistence(timeout: 2))
+    XCTAssertTrue(
+      app.searchField("Search issues")
+        .waitForExistence(timeout: 2)
+    )
   }
 
   func testLightAppearanceRemainsReadableAcrossMainSurfaces() {
