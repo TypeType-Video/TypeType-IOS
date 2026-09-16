@@ -2,7 +2,7 @@ import Foundation
 
 struct LiveChannelNotificationPreference: Codable, Equatable, Identifiable {
   let channelURL: String
-  let enabled: Bool
+  var enabled: Bool
   let updatedAt: Int64
 
   var id: String {

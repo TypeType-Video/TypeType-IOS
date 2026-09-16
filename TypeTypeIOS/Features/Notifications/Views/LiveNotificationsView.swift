@@ -4,6 +4,7 @@ struct LiveNotificationsView: View {
   let dependencies: AppDependencies
   @StateObject private var viewModel: LiveNotificationsViewModel
   @State private var selectedVideo: LiveVideoItem?
+  @State private var presentsSettings = false
 
   init(dependencies: AppDependencies) {
     self.dependencies = dependencies
@@ -21,16 +22,30 @@ struct LiveNotificationsView: View {
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {
         ToolbarItem(placement: .topBarTrailing) {
-          Button("Mark all read") {
-            Task { await viewModel.markAllRead() }
+          Menu {
+            Button("Mark all read") {
+              Task { await viewModel.markAllRead() }
+            }
+            .disabled(
+              viewModel.unreadCount == 0 || viewModel.isMarkingRead
+            )
+            if dependencies.pushNotificationsEnabled {
+              Button("Channel notifications") {
+                presentsSettings = true
+              }
+            }
+          } label: {
+            Image(systemName: "ellipsis.circle")
           }
-          .disabled(
-            viewModel.unreadCount == 0 || viewModel.isMarkingRead
-          )
+          .accessibilityLabel("Notification actions")
+          .accessibilityIdentifier("live.notifications.actions")
         }
       }
       .navigationDestination(item: $selectedVideo) { video in
         LiveVideoMetadataView(video: video, dependencies: dependencies)
+      }
+      .navigationDestination(isPresented: $presentsSettings) {
+        LiveNotificationSettingsView(dependencies: dependencies)
       }
       .task { await viewModel.prepare() }
       .alert("Notifications", isPresented: errorBinding) {
