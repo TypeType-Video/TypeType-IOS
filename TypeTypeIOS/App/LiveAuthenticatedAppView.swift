@@ -43,8 +43,11 @@ struct LiveAuthenticatedAppView: View {
     .animation(.snappy, value: playbackCoordinator.showsMiniPlayer)
     .animation(.snappy, value: presentsSearch)
     .task {
-      await notificationCenter.refresh()
+      notificationCenter.startPolling()
       await applyDefaultLandingPage()
+    }
+    .onDisappear {
+      notificationCenter.stopPolling()
     }
     .task(id: coordinator.identityScopeID) {
       await downloadCenter.activate()
