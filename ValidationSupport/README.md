@@ -1,13 +1,18 @@
 # Regression validation
 
-`Scripts/run-regression.sh` runs the deterministic local regression campaign
-used before an iOS beta:
+Validation is simulator-only. `Scripts/run-regression.sh` runs the
+deterministic local regression campaign used before an iOS beta:
 
 - Release build.
 - Full unit suite on every requested simulator or device.
 - Full deterministic UI suite on the first requested destination.
 - Screenshot attachment export.
 - Optional long-playback, transport-interruption, and process-relaunch tests.
+
+Offline and airplane-mode behavior is covered in the simulator by stopping the
+local fixture server or interrupting its transport, then checking the cached
+experience and recovery. Physical-device validation is intentionally out of
+scope.
 
 Run the default iPhone and iPad simulator matrix:
 
@@ -34,8 +39,3 @@ Scripts/run-regression.sh "id=SIMULATOR_UDID"
 
 Artifacts, logs, result bundles, and exported screenshots are written under
 `build/regression/<timestamp>/`. `build/` is intentionally not committed.
-
-Physical-device validation remains a separate manual gate: install the current
-build, then exercise sign-in, profile switching, playback, background audio,
-Picture in Picture, downloads, airplane mode, process relaunch, and multi-instance
-setup on the actual hardware.

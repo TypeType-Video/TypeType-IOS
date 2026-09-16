@@ -13,3 +13,10 @@
 
 - CI is disabled until the user says to re-enable it.
 - Do not enable, re-add, or trigger CI without an explicit user request.
+
+## Validation scope
+
+- Validate iOS work on the iOS Simulator only.
+- Do not require, plan, or claim physical iPhone or iPad validation.
+- Use simulator network/server interruptions as the offline and airplane-mode
+  equivalents.
