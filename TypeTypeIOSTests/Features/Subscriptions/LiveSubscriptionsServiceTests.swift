@@ -191,6 +191,56 @@ final class LiveSubscriptionsServiceTests: XCTestCase {
     XCTAssertNil(page.nextPage)
   }
 
+  func testGroupManagementUsesServerRoutes() async throws {
+    var requests: [(path: String, method: String, body: Data)] = []
+    URLProtocolStub.register { request in
+      XCTAssertEqual(
+        request.value(forHTTPHeaderField: "Authorization"),
+        "Bearer token"
+      )
+      let entry = (
+        path: request.url?.path ?? "",
+        method: request.httpMethod ?? "",
+        body: (try? URLProtocolStub.bodyData(from: request)) ?? Data()
+      )
+      requests.append(entry)
+      return try Self.response(
+        request,
+        status: request.httpMethod == "POST" ? 201 : 204,
+        body: request.httpMethod == "POST" ? Self.groupJSON : ""
+      )
+    }
+
+    let service = makeService()
+    let groupID = "11111111-1111-1111-1111-111111111111"
+    _ = try await service.createGroup(name: "Music")
+    try await service.renameGroup(id: groupID, name: "Gaming")
+    try await service.addChannels(
+      ["https://youtube.test/channel/one"],
+      toGroup: groupID
+    )
+    try await service.removeChannel(
+      "https://youtube.test/channel/one",
+      fromGroup: groupID
+    )
+    try await service.deleteGroup(id: groupID)
+
+    XCTAssertEqual(requests.map(\.method), [
+      "POST", "PUT", "PUT", "DELETE", "DELETE",
+    ])
+    XCTAssertEqual(requests[1].path, "/api/subscriptions/groups/\(groupID)")
+    XCTAssertEqual(
+      requests[2].path,
+      "/api/subscriptions/groups/\(groupID)/channels"
+    )
+    XCTAssertTrue(
+      requests[3].path == "/api/subscriptions/groups/\(groupID)/channels"
+    )
+    XCTAssertTrue(
+      requests[3].body.isEmpty
+    )
+  }
+
   private static let groupsJSON = """
     [
       {

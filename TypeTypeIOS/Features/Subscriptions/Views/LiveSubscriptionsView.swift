@@ -6,6 +6,7 @@ struct LiveSubscriptionsView: View {
   @State private var selectedVideo: LiveVideoItem?
   @State private var selectedVideoChannelURL: String?
   @State private var selectedChannel: LiveSubscription?
+  @State private var isShowingGroups = false
 
   init(coordinator: RootCoordinator) {
     self.coordinator = coordinator
@@ -66,6 +67,16 @@ struct LiveSubscriptionsView: View {
           .accessibilityValue(viewModel.filterLabel)
           .accessibilityIdentifier("live.subscriptions.filter")
         }
+        ToolbarItem(placement: .topBarTrailing) {
+          Button {
+            isShowingGroups = true
+          } label: {
+            Image(systemName: "square.stack.3d.up.fill")
+          }
+          .disabled(viewModel.state != .loaded)
+          .accessibilityLabel("Manage subscription groups")
+          .accessibilityIdentifier("live.subscriptions.groups")
+        }
       }
         .navigationDestination(item: $selectedVideo) { video in
           LiveVideoMetadataView(
@@ -86,6 +97,9 @@ struct LiveSubscriptionsView: View {
             channelURL: channel.channelURL,
             dependencies: coordinator.dependencies
           )
+        }
+        .navigationDestination(isPresented: $isShowingGroups) {
+          LiveSubscriptionGroupsView(viewModel: viewModel)
         }
     }
     .task { await viewModel.prepare() }
@@ -188,7 +202,9 @@ struct LiveSubscriptionsView: View {
             onUnsubscribe: {
               Task { await viewModel.unsubscribe(channel) }
             }
-          )
+          ) { channel in
+            AnyView(groupQuickActions(for: channel))
+          }
         }
         .listStyle(.plain)
         .refreshable { await viewModel.reload() }
@@ -205,5 +221,38 @@ struct LiveSubscriptionsView: View {
         alignment: .top
       ),
     ]
+  }
+
+  @ViewBuilder
+  private func groupQuickActions(
+    for channel: LiveSubscription
+  ) -> some View {
+    Section("Groups") {
+      if viewModel.groups.isEmpty {
+        Text("No groups")
+      } else {
+        ForEach(viewModel.groups) { group in
+          let isMember = viewModel.groupIDs(for: channel.channelURL)
+            .contains(group.id)
+          Button {
+            Task {
+              await viewModel.toggleGroupMembership(channel, in: group)
+            }
+          } label: {
+            if isMember {
+              Label(
+                "Remove from \(group.name)",
+                systemImage: "minus.circle"
+              )
+            } else {
+              Label(
+                "Add to \(group.name)",
+                systemImage: "plus.circle"
+              )
+            }
+          }
+        }
+      }
+    }
   }
 }
