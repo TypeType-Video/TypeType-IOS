@@ -60,6 +60,7 @@ targets:
         MARKETING_VERSION: 0.2.0
         PRODUCT_BUNDLE_IDENTIFIER: dev.typetype.ios
         PRODUCT_NAME: TypeTypeIOS
+        TARGETED_DEVICE_FAMILY: "1,2"
 
   TypeTypeIOSTests:
     type: bundle.unit-test
