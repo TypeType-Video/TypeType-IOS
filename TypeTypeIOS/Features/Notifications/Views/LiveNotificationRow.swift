@@ -51,6 +51,8 @@ struct LiveNotificationRow: View {
     }
     .buttonStyle(.plain)
     .accessibilityIdentifier("live.notifications.row")
+    .opacity(notification.read ? 0.68 : 1)
+    .accessibilityValue(notification.read ? "Read" : "Unread")
     .task { await deArrowStore.prepare(notification.video) }
   }
 

@@ -87,7 +87,7 @@ struct LiveNotificationsView: View {
               notification: item,
               deArrowStore: dependencies.deArrowStore
             ) {
-              selectedVideo = item.video
+              selectedVideo = viewModel.markReadAndOpen(item)
             }
           }
           DemoIncrementalLoadingTrigger(

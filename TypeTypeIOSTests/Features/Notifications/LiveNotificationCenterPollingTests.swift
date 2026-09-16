@@ -78,4 +78,10 @@ private final class UnreadCountServiceStub: LiveNotificationsServiceProtocol {
   func markAllRead() async throws -> LiveNotificationsReadResult {
     throw NetworkError.invalidResponse
   }
+
+  func markRead(
+    notificationID: String
+  ) async throws -> LiveNotificationsReadResult {
+    throw NetworkError.invalidResponse
+  }
 }
