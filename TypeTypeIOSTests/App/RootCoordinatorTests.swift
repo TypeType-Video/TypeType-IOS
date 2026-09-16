@@ -209,6 +209,87 @@ final class RootCoordinatorTests: XCTestCase {
     )
   }
 
+  func testMultipleInstancesPreserveIndependentSessions() async throws {
+    let auth = RootAuthStub(
+      restoreResults: [
+        "token-beta": AuthSessionResult(
+          user: AuthUser(
+            id: "user-beta",
+            role: .user,
+            publicUsername: "Beta Person"
+          ),
+          accountIdentifier: "beta@example.test",
+          accessToken: "restored-beta"
+        ),
+        "token-stable": AuthSessionResult(
+          user: AuthUser(
+            id: "user-stable",
+            role: .admin,
+            publicUsername: "Stable Person"
+          ),
+          accountIdentifier: "stable@example.test",
+          accessToken: "restored-stable"
+        ),
+      ]
+    )
+    let dependencies = try makeDependencies(auth: auth)
+    let coordinator = RootCoordinator(dependencies: dependencies)
+    await coordinator.bootstrap()
+    XCTAssertEqual(coordinator.state, .serverSetup)
+
+    try await coordinator.addServer(
+      name: "Beta",
+      urlInput: "https://beta.example.test"
+    )
+    let beta = try XCTUnwrap(coordinator.selectedServer)
+    try await coordinator.addServer(
+      name: "Stable",
+      urlInput: "https://stable.example.test"
+    )
+    let stable = try XCTUnwrap(coordinator.selectedServer)
+
+    dependencies.sessionStore.saveSession(
+      snapshot: SessionSnapshot(
+        serverID: beta.id,
+        userID: "user-beta",
+        accountIdentifier: "beta@example.test",
+        publicUsername: "Beta Person",
+        role: AuthRole.user.rawValue
+      ),
+      accessToken: "token-beta"
+    )
+    dependencies.sessionStore.saveSession(
+      snapshot: SessionSnapshot(
+        serverID: stable.id,
+        userID: "user-stable",
+        accountIdentifier: "stable@example.test",
+        publicUsername: "Stable Person",
+        role: AuthRole.admin.rawValue
+      ),
+      accessToken: "token-stable"
+    )
+
+    await coordinator.selectServer(beta)
+    XCTAssertEqual(coordinator.selectedServer?.id, beta.id)
+    XCTAssertEqual(coordinator.currentUser?.id, "user-beta")
+    XCTAssertEqual(
+      dependencies.sessionStore.accessToken(forServerID: beta.id),
+      "restored-beta"
+    )
+
+    await coordinator.selectServer(stable)
+    XCTAssertEqual(coordinator.selectedServer?.id, stable.id)
+    XCTAssertEqual(coordinator.currentUser?.id, "user-stable")
+    XCTAssertEqual(
+      dependencies.sessionStore.accessToken(forServerID: stable.id),
+      "restored-stable"
+    )
+    XCTAssertEqual(
+      dependencies.sessionStore.session(forServerID: beta.id)?.userID,
+      "user-beta"
+    )
+  }
+
   private func makeDependencies(
     probe: ServerProbeServiceProtocol? = nil,
     auth: RootAuthStub? = nil,
@@ -355,9 +436,14 @@ private final class RootAuthStub: AuthServiceProtocol {
     accessToken: "access-1"
   )
   private let tokenUsers: [String: AuthUser]
+  private let restoreResults: [String: AuthSessionResult]
 
-  init(tokenUsers: [String: AuthUser] = [:]) {
+  init(
+    tokenUsers: [String: AuthUser] = [:],
+    restoreResults: [String: AuthSessionResult] = [:]
+  ) {
     self.tokenUsers = tokenUsers
+    self.restoreResults = restoreResults
   }
 
   func registrationStatus() async throws -> RegisterStatus {
@@ -395,7 +481,7 @@ private final class RootAuthStub: AuthServiceProtocol {
     snapshot: SessionSnapshot,
     accessToken: String
   ) async throws -> AuthSessionResult {
-    result
+    restoreResults[accessToken] ?? result
   }
 
   func user(accessToken: String) async throws -> AuthUser {

@@ -35,7 +35,7 @@ final class LiveDiagnosticsStoreTests: XCTestCase {
 
     let pending = await store.entries(for: scope)
     XCTAssertEqual(pending.count, 20)
-    try await Task.sleep(for: .milliseconds(100))
+    await store.flush()
 
     let restoredStore = LiveDiagnosticsStore(rootURL: rootURL)
     let restored = await restoredStore.entries(for: scope)
