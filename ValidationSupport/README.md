@@ -24,9 +24,12 @@ Run explicit destinations:
 
 ```sh
 Scripts/run-regression.sh \
-  "id=SIMULATOR_OR_DEVICE_UDID" \
-  "id=SECOND_SIMULATOR_OR_DEVICE_UDID"
+  "id=SIMULATOR_UDID" \
+  "id=SECOND_SIMULATOR_UDID"
 ```
+
+The script rejects physical-device destinations. Pass only iOS Simulator
+destinations.
 
 Enable local-resilience/live-style tests and point their HTTP proxy at an
 instance:

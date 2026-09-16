@@ -22,6 +22,22 @@ if (( ${#destinations[@]} == 0 )); then
   )
 fi
 
+for destination in "${destinations[@]}"; do
+  if [[ "$destination" == platform=iOS\ Simulator* ]]; then
+    continue
+  fi
+
+  if [[ "$destination" == id=* ]]; then
+    udid=${destination#id=}
+    if xcrun simctl list devices | grep -Fq "$udid"; then
+      continue
+    fi
+  fi
+
+  echo "Validation is simulator-only; reject destination: $destination" >&2
+  exit 2
+done
+
 run_live="${RUN_LIVE_TESTS:-false}"
 upstream_host="${TYPETYPE_LIVE_UPSTREAM_HOST:-watch.typetype.video}"
 artifact_root="${REGRESSION_OUTPUT:-build/regression/$(date +%Y%m%d-%H%M%S)}"
