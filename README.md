@@ -58,6 +58,7 @@ from changing public feeds.
   native NicoNico danmaku
 - Queue, captions, chapters, SponsorBlock, DeArrow, comments, related videos,
   sleep timer, and playback-speed controls
+- Player double-tap seek zones with native AVKit controls
 - Server-backed audio and video downloads with persistent tracking and native
   offline playback
 - Profile, imports, notifications, content controls, diagnostics, settings,
