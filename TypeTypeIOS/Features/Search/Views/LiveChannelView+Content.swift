@@ -9,7 +9,7 @@ extension LiveChannelView {
             channel: channel,
             isSubscribed: viewModel.isSubscribed,
             isChangingSubscription:
-              viewModel.isChangingSubscription
+              viewModel.isChangingSubscription,
             isNotificationsAvailable:
               viewModel.isNotificationsAvailable,
             isNotificationsEnabled:
