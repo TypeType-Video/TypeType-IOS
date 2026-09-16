@@ -58,9 +58,9 @@ final class LivePushNotificationsServiceTests: XCTestCase {
       XCTAssertEqual(request.httpMethod, "PUT")
       let body = try XCTUnwrap(URLProtocolStub.bodyData(from: request))
       let payload = try XCTUnwrap(
-        JSONSerialization.jsonObject(with: body) as? [String: Bool]
+        JSONSerialization.jsonObject(with: body) as? [String: Any]
       )
-      XCTAssertEqual(payload["enabled"], true)
+      XCTAssertEqual(payload["enabled"] as? Bool, true)
       return try Self.response(
         request,
         status: 200,
