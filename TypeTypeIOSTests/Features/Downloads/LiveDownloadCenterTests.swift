@@ -218,6 +218,47 @@ final class LiveDownloadCenterTests: XCTestCase {
     XCTAssertNil(center.activeScope)
   }
 
+  func testTransientDownloadRefreshesStopAfterBoundedRetries()
+    async throws
+  {
+    let rootURL = FileManager.default.temporaryDirectory
+      .appendingPathComponent(UUID().uuidString, isDirectory: true)
+    defer { try? FileManager.default.removeItem(at: rootURL) }
+    let scope = LiveDownloadScope(
+      serverID: "https://example.test",
+      accountID: "account-1"
+    )
+    let service = DownloadServiceStub(jobFailuresRemaining: 100)
+    let center = LiveDownloadCenter(
+      service: service,
+      scopeProvider: { scope },
+      rootURL: rootURL,
+      mediaValidator: AcceptingMediaValidator(),
+      retryPolicy: LiveDownloadRetryPolicy(
+        maxAttempts: 5,
+        delays: [.zero, .zero, .zero, .zero]
+      )
+    )
+
+    let record = try await center.start(
+      video: Self.video,
+      options: Self.options
+    )
+
+    for _ in 0..<100 where center.activeTrackingCount != 0 {
+      try await Task.sleep(for: .milliseconds(5))
+    }
+
+    XCTAssertEqual(service.jobAttempts, 5)
+    XCTAssertEqual(center.activeTrackingCount, 0)
+    XCTAssertEqual(center.record(id: record.id)?.state, .failed)
+    XCTAssertEqual(
+      center.record(id: record.id)?.failureMessage,
+      "Download paused after 5 attempts. The network is unavailable; try again later."
+    )
+    XCTAssertTrue(center.record(id: record.id)?.state.canRetry == true)
+  }
+
   private static let video = LiveVideoItem(
     id: "mcV4qoX2MIE",
     title: "Download test",

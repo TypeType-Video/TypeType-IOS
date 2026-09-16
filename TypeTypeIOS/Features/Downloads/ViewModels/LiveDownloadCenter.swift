@@ -14,6 +14,7 @@ final class LiveDownloadCenter: ObservableObject {
   let rootURL: URL
   let indexURL: URL
   let artifactsURL: URL
+  let retryPolicy: LiveDownloadRetryPolicy
   var activeScope: LiveDownloadScope?
   var trackingTasks: [String: Task<Void, Never>] = [:]
   var refreshingRecordIDs: Set<String> = []
@@ -24,12 +25,14 @@ final class LiveDownloadCenter: ObservableObject {
     rootURL: URL = LiveDownloadCenter.defaultRootURL(),
     fileManager: FileManager = .default,
     mediaValidator: LiveOfflineMediaValidating =
-      LiveOfflineMediaValidator()
+      LiveOfflineMediaValidator(),
+    retryPolicy: LiveDownloadRetryPolicy = .standard
   ) {
     self.service = service
     self.scopeProvider = scopeProvider
     self.fileManager = fileManager
     self.mediaValidator = mediaValidator
+    self.retryPolicy = retryPolicy
     self.rootURL = rootURL
     indexURL = rootURL.appendingPathComponent(
       "downloads.json",
