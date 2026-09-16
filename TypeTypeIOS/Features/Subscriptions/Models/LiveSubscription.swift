@@ -27,3 +27,17 @@ struct LiveSubscriptionPayload: Encodable {
     case avatarURL = "avatarUrl"
   }
 }
+
+struct LiveSubscriptionGroup: Codable, Equatable, Hashable, Identifiable {
+  let id: String
+  let name: String
+  let channelCount: Int
+  let createdAt: Int64
+  let updatedAt: Int64
+}
+
+enum LiveSubscriptionFilter: Equatable, Hashable {
+  case all
+  case ungrouped
+  case group(id: String, name: String)
+}
