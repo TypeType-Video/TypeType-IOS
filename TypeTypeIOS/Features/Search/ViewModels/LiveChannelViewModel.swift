@@ -25,8 +25,8 @@ final class LiveChannelViewModel: ObservableObject {
   @Published var isSubscribed = false
   @Published var isChangingSubscription = false
   @Published var subscriptionError: String?
-  @Published private(set) var isNotificationsAvailable = false
-  @Published private(set) var isNotificationsEnabled = false
+  @Published internal(set) var isNotificationsAvailable = false
+  @Published internal(set) var isNotificationsEnabled = false
   @Published var isChangingNotifications = false
   @Published var isLoadingPodcasts = false
   @Published var canLoadMorePodcasts = false
