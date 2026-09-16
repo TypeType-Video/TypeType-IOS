@@ -17,7 +17,9 @@ final class LiveInterruptingProxy {
   private var offlineUntil = Date.distantPast
 
   init(
-    upstreamHost: String = "watch.typetype.video",
+    upstreamHost: String = ProcessInfo.processInfo
+      .environment["TYPETYPE_LIVE_UPSTREAM_HOST"]
+      ?? "watch.typetype.video",
     upstreamPort: UInt16 = 443
   ) {
     self.upstreamHost = NWEndpoint.Host(upstreamHost)
