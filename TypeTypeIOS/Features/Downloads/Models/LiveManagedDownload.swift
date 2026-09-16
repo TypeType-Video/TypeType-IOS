@@ -75,6 +75,7 @@ struct LiveManagedDownload: Codable, Equatable, Identifiable {
   var job: LiveDownloadJob
   var state: LiveManagedDownloadState
   var localFileName: String?
+  var artifactChecksum: String?
   var failureMessage: String?
 
   var progress: Double? {

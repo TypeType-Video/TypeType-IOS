@@ -34,6 +34,34 @@ extension LiveDownloadCenter {
           "The downloaded file is no longer available on this device."
         changed = true
       }
+
+      for index in records.indices where records[index].state == .ready {
+        guard let artifactURL = artifactURL(for: records[index]) else {
+          continue
+        }
+        let checksum = try? LiveDownloadChecksum.sha256(
+          at: artifactURL,
+          fileManager: fileManager
+        )
+        if let expectedChecksum = records[index].artifactChecksum {
+          if checksum != expectedChecksum {
+            records[index].state = .failed
+            records[index].failureMessage =
+              "The downloaded file no longer matches its integrity checksum."
+            changed = true
+          }
+        } else if let checksum {
+          records[index].artifactChecksum = checksum
+          changed = true
+        } else {
+          records[index].state = .failed
+          records[index].failureMessage =
+            "The downloaded file could not be checked for integrity."
+          changed = true
+        }
+      }
+
+      cleanOrphanedArtifacts()
       if changed { persist() }
     } catch {
       AppLogger.app.error(

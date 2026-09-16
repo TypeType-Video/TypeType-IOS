@@ -76,6 +76,14 @@ struct LiveDownloadsView: View {
         .refreshable {
           await center.refresh()
         }
+        .safeAreaInset(edge: .bottom) {
+          Text("Storage used: \(ByteCountFormatter.string(fromByteCount: center.storageUsage, countStyle: .file))")
+            .font(.footnote.monospacedDigit())
+            .foregroundStyle(.secondary)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 6)
+            .background(.bar)
+        }
       }
     }
     .navigationTitle("Downloads")

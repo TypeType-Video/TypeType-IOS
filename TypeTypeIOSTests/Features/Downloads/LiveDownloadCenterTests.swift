@@ -1,3 +1,4 @@
+import CryptoKit
 import Foundation
 import XCTest
 @testable import TypeTypeIOS
@@ -259,6 +260,94 @@ final class LiveDownloadCenterTests: XCTestCase {
     XCTAssertTrue(center.record(id: record.id)?.state.canRetry == true)
   }
 
+  func testDownloadChecksumIsPersistedAndVerifiedOnRestore()
+    async throws
+  {
+    let context = try await makeCompletedDownloadContext()
+    let record = try XCTUnwrap(
+      context.center.record(id: context.record.id)
+    )
+    let expectedChecksum = SHA256.hash(data: Data("offline-media".utf8))
+      .map { String(format: "%02x", $0) }
+      .joined()
+
+    XCTAssertEqual(record.artifactChecksum, expectedChecksum)
+    XCTAssertEqual(
+      context.restoredCenter.record(id: record.id)?.state,
+      .ready
+    )
+    XCTAssertEqual(
+      context.restoredCenter.record(id: record.id)?.artifactChecksum,
+      expectedChecksum
+    )
+  }
+
+  func testCorruptedDownloadChecksumFailsOnRestore() async throws {
+    let context = try await makeCompletedDownloadContext()
+    let record = try XCTUnwrap(
+      context.center.record(id: context.record.id)
+    )
+    let artifactURL = try XCTUnwrap(
+      context.center.artifactURL(for: record)
+    )
+
+    try Data("corrupted-media".utf8).write(to: artifactURL)
+    let restored = LiveDownloadCenter(
+      service: context.service,
+      scopeProvider: { context.scope },
+      rootURL: context.rootURL,
+      mediaValidator: AcceptingMediaValidator()
+    )
+
+    let restoredRecord = try XCTUnwrap(
+      restored.record(id: record.id)
+    )
+    XCTAssertEqual(restoredRecord.state, .failed)
+    XCTAssertEqual(
+      restoredRecord.failureMessage,
+      "The downloaded file no longer matches its integrity checksum."
+    )
+  }
+
+  func testRestoreMigratesLegacyDownloadsWithChecksums() async throws {
+    let context = try await makeCompletedDownloadContext()
+    let record = try XCTUnwrap(
+      context.center.record(id: context.record.id)
+    )
+    context.center.records[0].artifactChecksum = nil
+    context.center.persist()
+
+    let restored = LiveDownloadCenter(
+      service: context.service,
+      scopeProvider: { context.scope },
+      rootURL: context.rootURL,
+      mediaValidator: AcceptingMediaValidator()
+    )
+    let restoredRecord = try XCTUnwrap(
+      restored.record(id: record.id)
+    )
+    XCTAssertEqual(restoredRecord.state, .ready)
+    XCTAssertNotNil(restoredRecord.artifactChecksum)
+  }
+
+  func testRestoreRemovesOrphanedArtifacts() async throws {
+    let context = try await makeCompletedDownloadContext()
+    let orphanURL = context.center.artifactsURL
+      .appendingPathComponent("orphan.bin")
+    try Data("orphan".utf8).write(to: orphanURL)
+
+    _ = LiveDownloadCenter(
+      service: context.service,
+      scopeProvider: { context.scope },
+      rootURL: context.rootURL,
+      mediaValidator: AcceptingMediaValidator()
+    )
+
+    XCTAssertFalse(
+      context.center.fileManager.fileExists(atPath: orphanURL.path)
+    )
+  }
+
   private static let video = LiveVideoItem(
     id: "mcV4qoX2MIE",
     title: "Download test",
@@ -298,4 +387,46 @@ final class LiveDownloadCenterTests: XCTestCase {
       format: "vtt"
     )
   )
+
+  private func makeCompletedDownloadContext() async throws -> (
+    center: LiveDownloadCenter,
+    restoredCenter: LiveDownloadCenter,
+    service: DownloadServiceStub,
+    scope: LiveDownloadScope,
+    rootURL: URL,
+    record: LiveManagedDownload
+  ) {
+    let rootURL = FileManager.default.temporaryDirectory
+      .appendingPathComponent(UUID().uuidString, isDirectory: true)
+    let scope = LiveDownloadScope(
+      serverID: "https://example.test",
+      accountID: "account-1"
+    )
+    let service = DownloadServiceStub()
+    let center = LiveDownloadCenter(
+      service: service,
+      scopeProvider: { scope },
+      rootURL: rootURL,
+      mediaValidator: AcceptingMediaValidator()
+    )
+    let record = try await center.start(
+      video: Self.video,
+      options: Self.options
+    )
+    await center.refresh()
+    let restored = LiveDownloadCenter(
+      service: service,
+      scopeProvider: { scope },
+      rootURL: rootURL,
+      mediaValidator: AcceptingMediaValidator()
+    )
+    return (
+      center,
+      restored,
+      service,
+      scope,
+      rootURL,
+      record
+    )
+  }
 }

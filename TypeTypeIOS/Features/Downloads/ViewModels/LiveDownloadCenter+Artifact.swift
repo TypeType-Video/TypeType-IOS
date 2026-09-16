@@ -31,6 +31,10 @@ extension LiveDownloadCenter {
         fileURL: destination,
         mode: record.options.mode
       )
+      record.artifactChecksum = try LiveDownloadChecksum.sha256(
+        at: destination,
+        fileManager: fileManager
+      )
       record.localFileName = fileName
       record.state = .ready
       record.failureMessage = nil
