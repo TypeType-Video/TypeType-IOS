@@ -191,7 +191,8 @@ extension LivePlayerController {
   }
 
   func setPlaybackRate(_ rate: Float) {
-    playbackRate = min(max(rate, 0.25), 4)
+    playbackRate = Self.normalizePlaybackRate(rate)
+    Self.savePlaybackRate(playbackRate)
     player.defaultRate = playbackRate
     if player.timeControlStatus == .playing {
       player.rate = playbackRate

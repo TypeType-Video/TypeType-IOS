@@ -30,6 +30,8 @@ extension LivePlayerController {
     loopsPlayback = UserDefaults.standard.bool(
       forKey: Self.loopPreferenceKey
     )
+    playbackRate = Self.loadPlaybackRate()
+    player.defaultRate = playbackRate
   }
 
   func applySettings(_ settings: LiveSettings) {
@@ -136,4 +138,32 @@ extension LivePlayerController {
 
   private static let loopPreferenceKey =
     "typetype.player.loop-playback"
+
+  static let playbackRatePreferenceKey =
+    "typetype.player.playback-rate"
+
+  nonisolated static func normalizePlaybackRate(_ rate: Float) -> Float {
+    min(max(rate, 0.25), 4)
+  }
+
+  nonisolated static func loadPlaybackRate(
+    defaults: UserDefaults = .standard
+  ) -> Float {
+    guard defaults.object(forKey: playbackRatePreferenceKey) != nil else {
+      return 1
+    }
+    return normalizePlaybackRate(Float(
+      defaults.double(forKey: playbackRatePreferenceKey)
+    ))
+  }
+
+  nonisolated static func savePlaybackRate(
+    _ rate: Float,
+    defaults: UserDefaults = .standard
+  ) {
+    defaults.set(
+      Double(normalizePlaybackRate(rate)),
+      forKey: playbackRatePreferenceKey
+    )
+  }
 }
