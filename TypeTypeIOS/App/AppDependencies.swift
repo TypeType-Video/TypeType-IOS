@@ -23,7 +23,9 @@ final class AppDependencies {
   let settingsService: LiveSettingsServiceProtocol
   let serviceSelection: LiveServiceSelection
   let notificationsService: LiveNotificationsServiceProtocol
+  let pushNotificationsService: LivePushNotificationsServiceProtocol?
   let notificationCenter: LiveNotificationCenter
+  var pushNotificationsEnabled = false
   let sessionActivityService: LiveSessionActivityServiceProtocol
   let adminService: LiveAdminServiceProtocol
   let adminAccessService: LiveAdminAccessServiceProtocol
@@ -101,6 +103,7 @@ final class AppDependencies {
     settingsService: LiveSettingsServiceProtocol,
     serviceSelection: LiveServiceSelection,
     notificationsService: LiveNotificationsServiceProtocol,
+    pushNotificationsService: LivePushNotificationsServiceProtocol? = nil,
     notificationCenter: LiveNotificationCenter,
     sessionActivityService: LiveSessionActivityServiceProtocol,
     adminService: LiveAdminServiceProtocol,
@@ -134,6 +137,7 @@ final class AppDependencies {
     self.settingsService = settingsService
     self.serviceSelection = serviceSelection
     self.notificationsService = notificationsService
+    self.pushNotificationsService = pushNotificationsService
     self.notificationCenter = notificationCenter
     self.sessionActivityService = sessionActivityService
     self.adminService = adminService

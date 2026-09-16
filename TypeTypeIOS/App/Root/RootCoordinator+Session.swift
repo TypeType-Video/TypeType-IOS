@@ -31,6 +31,8 @@ extension RootCoordinator {
       dependencies.serviceSelection.configure(
         supportedServiceIDs: metadata.supportedServices
       )
+      dependencies.pushNotificationsEnabled =
+        metadata.pushNotifications?.enabled == true
       completeAuthentication(result)
     } catch {
       if shouldInvalidateCachedSession(after: error) {
@@ -70,6 +72,8 @@ extension RootCoordinator {
       dependencies.serviceSelection.configure(
         supportedServiceIDs: instance?.supportedServices ?? [0]
       )
+      dependencies.pushNotificationsEnabled =
+        instance?.pushNotifications?.enabled == true
     } catch {
       if restoresSession, restoreOfflineSession(for: server) {
         connectionError =

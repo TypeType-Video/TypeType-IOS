@@ -49,6 +49,8 @@ final class RootCoordinator: ObservableObject {
     dependencies.serviceSelection.configure(
       supportedServiceIDs: metadata.supportedServices
     )
+    dependencies.pushNotificationsEnabled =
+      metadata.pushNotifications?.enabled == true
     connectionError = nil
     state = .authentication
   }

@@ -60,6 +60,9 @@ extension AppDependencies {
     }
     let settingsService = LiveSettingsService(apiClient: client)
     let notificationsService = LiveNotificationsService(apiClient: client)
+    let pushNotificationsService = LivePushNotificationsService(
+      apiClient: client
+    )
     let deArrowService = LiveDeArrowService(
       apiClient: client,
       baseURLProvider: {
@@ -96,6 +99,7 @@ extension AppDependencies {
         settingsService: settingsService
       ),
       notificationsService: notificationsService,
+      pushNotificationsService: pushNotificationsService,
       notificationCenter: LiveNotificationCenter(
         service: notificationsService
       ),
