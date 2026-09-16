@@ -10,9 +10,19 @@ extension LiveChannelView {
             isSubscribed: viewModel.isSubscribed,
             isChangingSubscription:
               viewModel.isChangingSubscription
-          ) {
-            Task { await viewModel.toggleSubscription() }
-          }
+            isNotificationsAvailable:
+              viewModel.isNotificationsAvailable,
+            isNotificationsEnabled:
+              viewModel.isNotificationsEnabled,
+            isChangingNotifications:
+              viewModel.isChangingNotifications,
+            onNotifications: {
+              Task { await viewModel.toggleNotifications() }
+            },
+            onSubscription: {
+              Task { await viewModel.toggleSubscription() }
+            }
+          )
         }
 
         if viewModel.selectedTab == .videos,

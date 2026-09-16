@@ -109,14 +109,59 @@ final class LiveChannelViewModelTests: XCTestCase {
     XCTAssertFalse(viewModel.isSubscribed)
   }
 
+  func testChannelNotificationPreferenceLoadsAndToggles() async {
+    let channel = ChannelServiceStub(
+      channelPages: [Self.page(videos: [])]
+    )
+    let push = PushNotificationsServiceStub(
+      preferences: [
+        LiveChannelNotificationPreference(
+          channelURL: Self.url,
+          enabled: false,
+          updatedAt: 20
+        )
+      ]
+    )
+    let viewModel = makeViewModel(
+      channel: channel,
+      subscriptions: SubscriptionsServiceStub(
+        values: [
+          LiveSubscription(
+            channelURL: Self.url,
+            name: "Blender",
+            avatarURL: "",
+            subscribedAt: 1
+          )
+        ]
+      ),
+      push: push,
+      pushEnabled: true
+    )
+
+    await viewModel.loadIfNeeded()
+
+    XCTAssertTrue(viewModel.isNotificationsAvailable)
+    XCTAssertFalse(viewModel.isNotificationsEnabled)
+
+    await viewModel.toggleNotifications()
+
+    XCTAssertTrue(viewModel.isNotificationsEnabled)
+    XCTAssertEqual(push.updated?.enabled, true)
+    XCTAssertEqual(push.updated?.channelURL, Self.url)
+  }
+
   private func makeViewModel(
     channel: ChannelServiceStub,
-    subscriptions: SubscriptionsServiceStub
+    subscriptions: SubscriptionsServiceStub,
+    push: PushNotificationsServiceStub? = nil,
+    pushEnabled: Bool = false
   ) -> LiveChannelViewModel {
     LiveChannelViewModel(
       channelURL: Self.url,
       channelService: channel,
-      subscriptionsService: subscriptions
+      subscriptionsService: subscriptions,
+      pushNotificationsService: push,
+      pushNotificationsEnabled: pushEnabled
     )
   }
 
@@ -287,6 +332,45 @@ private final class SubscriptionsServiceStub:
     lock.withLock {
       unsubscribed.append(channelURL)
       values.removeAll { $0.channelURL == channelURL }
+    }
+  }
+}
+
+private final class PushNotificationsServiceStub:
+  LivePushNotificationsServiceProtocol {
+  private let lock = NSLock()
+  private var preferences: [LiveChannelNotificationPreference]
+  private(set) var updated: LiveChannelNotificationPreference?
+
+  init(preferences: [LiveChannelNotificationPreference]) {
+    self.preferences = preferences
+  }
+
+  func channelPreferences() async throws -> [
+    LiveChannelNotificationPreference
+  ] {
+    lock.withLock { preferences }
+  }
+
+  func setChannelPreference(
+    channelURL: String,
+    enabled: Bool
+  ) async throws -> LiveChannelNotificationPreference {
+    lock.withLock {
+      let value = LiveChannelNotificationPreference(
+        channelURL: channelURL,
+        enabled: enabled,
+        updatedAt: 30
+      )
+      if let index = preferences.firstIndex(where: {
+        $0.channelURL == channelURL
+      }) {
+        preferences[index] = value
+      } else {
+        preferences.append(value)
+      }
+      updated = value
+      return value
     }
   }
 }

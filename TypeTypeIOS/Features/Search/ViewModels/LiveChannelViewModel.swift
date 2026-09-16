@@ -25,12 +25,17 @@ final class LiveChannelViewModel: ObservableObject {
   @Published var isSubscribed = false
   @Published var isChangingSubscription = false
   @Published var subscriptionError: String?
+  @Published private(set) var isNotificationsAvailable = false
+  @Published private(set) var isNotificationsEnabled = false
+  @Published var isChangingNotifications = false
   @Published var isLoadingPodcasts = false
   @Published var canLoadMorePodcasts = false
 
   let channelURL: String
   let channelService: LiveChannelServiceProtocol
   let subscriptionsService: LiveSubscriptionsServiceProtocol
+  let pushNotificationsService: LivePushNotificationsServiceProtocol?
+  let pushNotificationsEnabled: Bool
   var requestID = UUID()
   var nextPage: String?
   var podcastNextPage: String?
@@ -40,19 +45,24 @@ final class LiveChannelViewModel: ObservableObject {
   init(
     channelURL: String,
     channelService: LiveChannelServiceProtocol,
-    subscriptionsService: LiveSubscriptionsServiceProtocol
+    subscriptionsService: LiveSubscriptionsServiceProtocol,
+    pushNotificationsService: LivePushNotificationsServiceProtocol? = nil,
+    pushNotificationsEnabled: Bool = false
   ) {
     self.channelURL = channelURL
     self.channelService = channelService
     self.subscriptionsService = subscriptionsService
+    self.pushNotificationsService = pushNotificationsService
+    self.pushNotificationsEnabled = pushNotificationsEnabled
   }
 
   func loadIfNeeded() async {
     guard state == .idle else { return }
-    async let subscription: Void = refreshSubscriptionStatus()
+    await refreshSubscriptionStatus()
+    async let notifications: Void = refreshNotificationPreference()
     async let podcasts: Void = loadPodcasts()
-    await reloadChannel()
-    _ = await (subscription, podcasts)
+    async let channel: Void = reloadChannel()
+    _ = await (notifications, podcasts, channel)
   }
 
   func reloadChannel() async {

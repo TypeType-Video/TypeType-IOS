@@ -49,6 +49,7 @@ from changing public feeds.
 - Instance setup, guest access, local accounts, OIDC, password reset, and
   Keychain-backed persistent sessions
 - Account profiles with isolated server-side sessions
+- Channel notification preferences when the instance enables push delivery
 - Home, multi-service search, channels, podcasts, subscriptions, history,
   playlists, favorites, and Watch Later
 - YouTube, BiliBili, and NicoNico discovery with provider-aware playback and

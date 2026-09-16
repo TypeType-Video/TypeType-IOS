@@ -4,6 +4,10 @@ struct LiveChannelHeaderView: View {
   let channel: LiveChannelPage
   let isSubscribed: Bool
   let isChangingSubscription: Bool
+  var isNotificationsAvailable = false
+  var isNotificationsEnabled = false
+  var isChangingNotifications = false
+  var onNotifications: () -> Void = {}
   let onSubscription: () -> Void
 
   var body: some View {
@@ -45,6 +49,38 @@ struct LiveChannelHeaderView: View {
         }
 
         Spacer()
+
+        if isSubscribed, isNotificationsAvailable {
+          Button(action: onNotifications) {
+            Group {
+              if isChangingNotifications {
+                ProgressView()
+              } else {
+                Image(
+                  systemName: isNotificationsEnabled
+                    ? "bell.fill"
+                    : "bell.slash"
+                )
+                .font(.body.weight(.semibold))
+              }
+            }
+            .frame(width: 34, height: 34)
+          }
+          .buttonStyle(.bordered)
+          .tint(
+            isNotificationsEnabled
+              ? DemoTheme.accent
+              : DemoTheme.elevatedSurface
+          )
+          .buttonBorderShape(.circle)
+          .disabled(isChangingNotifications)
+          .accessibilityLabel(
+            isNotificationsEnabled
+              ? "Turn off channel notifications"
+              : "Turn on channel notifications"
+          )
+          .accessibilityIdentifier("live.channel.notifications")
+        }
 
         Button(action: onSubscription) {
           if isChangingSubscription {

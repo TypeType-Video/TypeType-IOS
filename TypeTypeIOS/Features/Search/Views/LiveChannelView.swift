@@ -16,7 +16,11 @@ struct LiveChannelView: View {
       wrappedValue: LiveChannelViewModel(
         channelURL: channelURL,
         channelService: dependencies.channelService,
-        subscriptionsService: dependencies.subscriptionsService
+        subscriptionsService: dependencies.subscriptionsService,
+        pushNotificationsService:
+          dependencies.pushNotificationsService,
+        pushNotificationsEnabled:
+          dependencies.pushNotificationsEnabled
       )
     )
   }
