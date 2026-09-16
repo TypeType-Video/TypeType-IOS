@@ -32,7 +32,41 @@ struct LiveSubscriptionsView: View {
             .frame(width: 220)
             .accessibilityIdentifier("live.subscriptions.section")
           }
+          ToolbarItem(placement: .topBarTrailing) {
+          Menu {
+            Button {
+              Task { await viewModel.selectFilter(.all) }
+            } label: {
+              Label("All subscriptions", systemImage: "square.grid.2x2")
+            }
+            Button {
+              Task { await viewModel.selectFilter(.ungrouped) }
+            } label: {
+              Label("Ungrouped", systemImage: "tray")
+            }
+            if !viewModel.groups.isEmpty {
+              Section("Groups") {
+                ForEach(viewModel.groups) { group in
+                  Button(group.name) {
+                    Task {
+                      await viewModel.selectFilter(.group(
+                        id: group.id,
+                        name: group.name
+                      ))
+                    }
+                  }
+                }
+              }
+            }
+          } label: {
+            Image(systemName: "folder.badge.gearshape")
+          }
+          .disabled(viewModel.state != .loaded)
+          .accessibilityLabel("Subscription filter")
+          .accessibilityValue(viewModel.filterLabel)
+          .accessibilityIdentifier("live.subscriptions.filter")
         }
+      }
         .navigationDestination(item: $selectedVideo) { video in
           LiveVideoMetadataView(
             video: video,

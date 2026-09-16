@@ -50,6 +50,7 @@ from changing public feeds.
   Keychain-backed persistent sessions
 - Account profiles with isolated server-side sessions
 - Channel notification preferences when the instance enables push delivery
+- Subscription feed filters, including ungrouped and named groups
 - Home, multi-service search, channels, podcasts, subscriptions, history,
   playlists, favorites, and Watch Later
 - YouTube, BiliBili, and NicoNico discovery with provider-aware playback and

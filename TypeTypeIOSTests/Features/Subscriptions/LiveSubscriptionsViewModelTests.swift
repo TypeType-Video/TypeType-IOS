@@ -80,10 +80,42 @@ private final class SubscriptionsStub: LiveSubscriptionsServiceProtocol {
     ]
   }
 
-  func feed(nextPage: String?) async throws -> LiveSubscriptionFeedPage {
+  func feed(
+    nextPage: String?,
+    filter: LiveSubscriptionFilter
+  ) async throws -> LiveSubscriptionFeedPage {
     cursors.append(nextPage)
     return pages.removeFirst()
   }
+
+  func groups() async throws -> [LiveSubscriptionGroup] { [] }
+
+  func memberships() async throws -> [
+    LiveSubscriptionGroupMembership
+  ] { [] }
+
+  func createGroup(name: String) async throws -> LiveSubscriptionGroup {
+    LiveSubscriptionGroup(
+      id: "group",
+      name: name,
+      channelCount: 0,
+      createdAt: 0,
+      updatedAt: 0
+    )
+  }
+
+  func renameGroup(id: String, name: String) async throws {}
+  func deleteGroup(id: String) async throws {}
+
+  func addChannels(
+    _ channelURLs: [String],
+    toGroup id: String
+  ) async throws {}
+
+  func removeChannel(
+    _ channelURL: String,
+    fromGroup id: String
+  ) async throws {}
 
   func subscribe(
     channelURL: String,

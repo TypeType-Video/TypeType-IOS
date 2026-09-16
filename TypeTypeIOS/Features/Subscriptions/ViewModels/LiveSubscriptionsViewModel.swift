@@ -22,6 +22,8 @@ final class LiveSubscriptionsViewModel: ObservableObject {
   @Published private(set) var videos: [LiveVideoItem] = []
   @Published private(set) var channels: [LiveSubscription] = []
   @Published private(set) var isLoadingMore = false
+  @Published private(set) var groups: [LiveSubscriptionGroup] = []
+  @Published var filter = LiveSubscriptionFilter.all
 
   private let service: LiveSubscriptionsServiceProtocol
   private var nextPage: String?
@@ -43,6 +45,17 @@ final class LiveSubscriptionsViewModel: ObservableObject {
     videos
   }
 
+  var filterLabel: String {
+    switch filter {
+    case .all:
+      return "All subscriptions"
+    case .ungrouped:
+      return "Ungrouped"
+    case let .group(_, name):
+      return name
+    }
+  }
+
   func prepare() async {
     guard state == .idle else { return }
     await reload()
@@ -53,13 +66,19 @@ final class LiveSubscriptionsViewModel: ObservableObject {
     state = .loading
     do {
       async let channelRequest = service.subscriptions()
-      async let feedRequest = service.feed(nextPage: nil)
-      let (loadedChannels, page) = try await (
+      async let groupRequest = service.groups()
+      async let feedRequest = service.feed(
+        nextPage: nil,
+        filter: filter
+      )
+      let (loadedChannels, loadedGroups, page) = try await (
         channelRequest,
+        groupRequest,
         feedRequest
       )
       try Task.checkCancellation()
       channels = loadedChannels
+      groups = loadedGroups
       videos = uniqueVisible(page.videos)
       nextPage = page.nextPage
       state = .loaded
@@ -77,7 +96,10 @@ final class LiveSubscriptionsViewModel: ObservableObject {
     isLoadingMore = true
     defer { isLoadingMore = false }
     do {
-      let page = try await service.feed(nextPage: nextPage)
+      let page = try await service.feed(
+        nextPage: nextPage,
+        filter: filter
+      )
       let existing = Set(videos.map(\.canonicalID))
       videos.append(
         contentsOf: uniqueVisible(page.videos).filter {
@@ -93,6 +115,23 @@ final class LiveSubscriptionsViewModel: ObservableObject {
         return
       }
       state = .failed(message(for: error))
+    } catch {
+      state = .failed(message(for: error))
+    }
+  }
+
+  func selectFilter(_ newFilter: LiveSubscriptionFilter) async {
+    guard filter != newFilter else { return }
+    filter = newFilter
+    loadTask?.cancel()
+    state = .loading
+    do {
+      let page = try await service.feed(nextPage: nil, filter: filter)
+      videos = uniqueVisible(page.videos)
+      nextPage = page.nextPage
+      state = .loaded
+    } catch is CancellationError {
+      return
     } catch {
       state = .failed(message(for: error))
     }
