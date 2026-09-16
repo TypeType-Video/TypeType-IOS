@@ -16,6 +16,11 @@ extension LiveAccountView {
         NavigationLink("Profile") {
           LiveProfileView(coordinator: coordinator, user: user)
         }
+        if coordinator.dependencies.accountProfileService != nil {
+          NavigationLink("Account profiles") {
+            LiveAccountProfilesView(coordinator: coordinator)
+          }
+        }
       }
     }
   }
