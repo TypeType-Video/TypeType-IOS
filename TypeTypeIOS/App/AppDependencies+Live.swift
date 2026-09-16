@@ -48,6 +48,7 @@ extension AppDependencies {
       }
     )
     let authService = AuthService(apiClient: client)
+    let accountProfileService = LiveAccountProfileService(apiClient: client)
     client.setTokenRefreshHandler { _ in
       let token = try await authService.refresh()
       guard let serverID = serverStore.selectedServerID(),
@@ -89,6 +90,7 @@ extension AppDependencies {
       libraryService: LiveLibraryService(apiClient: client),
       playlistsService: LivePlaylistsService(apiClient: client),
       profileService: LiveProfileService(apiClient: client),
+      accountProfileService: accountProfileService,
       settingsService: settingsService,
       serviceSelection: LiveServiceSelection(
         settingsService: settingsService

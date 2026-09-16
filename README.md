@@ -48,6 +48,7 @@ from changing public feeds.
 - One adaptive SwiftUI interface for iPhone and iPad
 - Instance setup, guest access, local accounts, OIDC, password reset, and
   Keychain-backed persistent sessions
+- Account profiles with isolated server-side sessions
 - Home, multi-service search, channels, podcasts, subscriptions, history,
   playlists, favorites, and Watch Later
 - YouTube, BiliBili, and NicoNico discovery with provider-aware playback and
