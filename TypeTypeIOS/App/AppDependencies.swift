@@ -162,3 +162,13 @@ final class AppDependencies {
     )
   }
 }
+
+@MainActor
+extension AppDependencies {
+  func invalidateIdentityScopedRuntimeState() {
+    playbackCoordinator.endSession()
+    notificationCenter.clear()
+    deArrowStore.invalidatePreferences()
+    downloadCenter.cancelTracking()
+  }
+}

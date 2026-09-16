@@ -58,6 +58,16 @@ final class LiveDownloadCenter: ObservableObject {
     visibleRecords.filter(\.state.isActive).count
   }
 
+  var activeTrackingCount: Int {
+    trackingTasks.count
+  }
+
+  func cancelTracking() {
+    trackingTasks.values.forEach { $0.cancel() }
+    trackingTasks.removeAll()
+    activeScope = nil
+  }
+
   func activate() async {
     let scope = scopeProvider()
     if activeScope != scope {

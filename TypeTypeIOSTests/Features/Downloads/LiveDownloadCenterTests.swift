@@ -192,6 +192,32 @@ final class LiveDownloadCenterTests: XCTestCase {
     XCTAssertEqual(center.visibleRecords.first?.state, .ready)
   }
 
+  func testCancelTrackingClearsIdentityScopedWork() async throws {
+    let rootURL = FileManager.default.temporaryDirectory
+      .appendingPathComponent(UUID().uuidString, isDirectory: true)
+    defer { try? FileManager.default.removeItem(at: rootURL) }
+    let scope = LiveDownloadScope(
+      serverID: "https://example.test",
+      accountID: "account-1"
+    )
+    let center = LiveDownloadCenter(
+      service: DownloadServiceStub(),
+      scopeProvider: { scope },
+      rootURL: rootURL,
+      mediaValidator: AcceptingMediaValidator()
+    )
+
+    _ = try await center.start(
+      video: Self.video,
+      options: Self.options
+    )
+    XCTAssertEqual(center.activeTrackingCount, 1)
+
+    center.cancelTracking()
+    XCTAssertEqual(center.activeTrackingCount, 0)
+    XCTAssertNil(center.activeScope)
+  }
+
   private static let video = LiveVideoItem(
     id: "mcV4qoX2MIE",
     title: "Download test",

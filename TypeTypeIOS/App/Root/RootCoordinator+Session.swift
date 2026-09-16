@@ -52,7 +52,7 @@ extension RootCoordinator {
     restoresSession: Bool
   ) async {
     if selectedServer?.id != server.id {
-      dependencies.playbackCoordinator.endSession()
+      dependencies.invalidateIdentityScopedRuntimeState()
     }
     state = .booting
     connectionError = nil
@@ -165,8 +165,7 @@ extension RootCoordinator {
     let user = try await dependencies.authService.user(
       accessToken: response.accessToken
     )
-    dependencies.playbackCoordinator.endSession()
-    dependencies.notificationCenter.clear()
+    dependencies.invalidateIdentityScopedRuntimeState()
     completeAuthentication(
       AuthSessionResult(
         user: user,

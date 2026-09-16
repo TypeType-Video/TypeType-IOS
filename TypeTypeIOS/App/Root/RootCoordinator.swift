@@ -69,6 +69,7 @@ final class RootCoordinator: ObservableObject {
       instance = nil
       currentUser = nil
       isUsingOfflineSession = false
+      dependencies.invalidateIdentityScopedRuntimeState()
     }
     state = .serverSetup
   }
@@ -80,8 +81,7 @@ final class RootCoordinator: ObservableObject {
 
   func signOut() async {
     try? await dependencies.authService.logout()
-    dependencies.playbackCoordinator.endSession()
-    dependencies.notificationCenter.clear()
+    dependencies.invalidateIdentityScopedRuntimeState()
     if let serverID = selectedServer?.id {
       dependencies.sessionStore.clearSession(forServerID: serverID)
     }
