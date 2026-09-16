@@ -12,6 +12,13 @@ final class RootCoordinator: ObservableObject {
   @Published var isUsingOfflineSession = false
   @Published var connectionError: String?
 
+  var identityScopeID: String {
+    [
+      selectedServer?.id ?? "no-server",
+      currentUser?.id ?? "no-user",
+    ].joined(separator: ":")
+  }
+
   let dependencies: AppDependencies
   private var didBootstrap = false
 

@@ -26,6 +26,7 @@ struct TypeTypeLiveAppView: View {
         LiveAuthView(coordinator: coordinator)
       case .authenticated:
         LiveAuthenticatedAppView(coordinator: coordinator)
+          .id(coordinator.identityScopeID)
       }
     }
     .task {

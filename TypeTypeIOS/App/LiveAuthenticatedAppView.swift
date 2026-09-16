@@ -46,7 +46,7 @@ struct LiveAuthenticatedAppView: View {
       await notificationCenter.refresh()
       await applyDefaultLandingPage()
     }
-    .task(id: downloadScopeID) {
+    .task(id: coordinator.identityScopeID) {
       await downloadCenter.activate()
     }
     .task {
@@ -121,13 +121,6 @@ struct LiveAuthenticatedAppView: View {
       )
     }
     .accessibilityIdentifier("live.authenticated.shell")
-  }
-
-  var downloadScopeID: String {
-    [
-      coordinator.selectedServer?.id ?? "no-server",
-      coordinator.currentUser?.id ?? "no-user",
-    ].joined(separator: ":")
   }
 
   func presentPendingIncomingMediaLink() {

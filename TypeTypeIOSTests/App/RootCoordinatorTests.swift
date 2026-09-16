@@ -193,8 +193,18 @@ final class RootCoordinatorTests: XCTestCase {
       password: "secret"
     )
     let serverID = try XCTUnwrap(coordinator.selectedServer?.id)
+    let identityBeforeSwitch = coordinator.identityScopeID
 
     try await coordinator.switchAccountProfile(to: profileID)
+
+    XCTAssertNotEqual(
+      identityBeforeSwitch,
+      coordinator.identityScopeID
+    )
+    XCTAssertEqual(
+      coordinator.identityScopeID,
+      "\(serverID):profile-2"
+    )
 
     XCTAssertEqual(coordinator.state, .authenticated)
     XCTAssertEqual(coordinator.currentUser?.id, "profile-2")
