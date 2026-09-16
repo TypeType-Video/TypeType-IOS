@@ -19,6 +19,7 @@ final class AppDependencies {
   let libraryService: LiveLibraryServiceProtocol
   let playlistsService: LivePlaylistsServiceProtocol
   let profileService: LiveProfileServiceProtocol
+  let accountProfileService: LiveAccountProfileServiceProtocol?
   let settingsService: LiveSettingsServiceProtocol
   let serviceSelection: LiveServiceSelection
   let notificationsService: LiveNotificationsServiceProtocol
@@ -96,6 +97,7 @@ final class AppDependencies {
     libraryService: LiveLibraryServiceProtocol,
     playlistsService: LivePlaylistsServiceProtocol,
     profileService: LiveProfileServiceProtocol,
+    accountProfileService: LiveAccountProfileServiceProtocol? = nil,
     settingsService: LiveSettingsServiceProtocol,
     serviceSelection: LiveServiceSelection,
     notificationsService: LiveNotificationsServiceProtocol,
@@ -128,6 +130,7 @@ final class AppDependencies {
     self.libraryService = libraryService
     self.playlistsService = playlistsService
     self.profileService = profileService
+    self.accountProfileService = accountProfileService
     self.settingsService = settingsService
     self.serviceSelection = serviceSelection
     self.notificationsService = notificationsService
