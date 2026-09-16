@@ -6,57 +6,70 @@ struct LivePlayerView: View {
   let posterURL: URL?
   @Binding var cinemaMode: Bool
   @State private var showsOptions = false
+  @State private var seekFeedback: PlayerDoubleTapSeekFeedback?
 
   var body: some View {
-    ZStack {
-      Color.black
+    GeometryReader { proxy in
+      ZStack {
+        Color.black
 
-      LivePlayerLayerView(
-        player: controller.player,
-        controller: controller
-      )
-        .accessibilityIdentifier("live.player.surface")
+        LivePlayerLayerView(
+          player: controller.player,
+          controller: controller
+        )
+          .accessibilityIdentifier("live.player.surface")
 
-      if controller.audioOnly {
-        ZStack {
-          LiveRemoteImage(url: posterURL)
-            .scaledToFill()
-            .blur(radius: 28)
-            .opacity(0.48)
-            .clipped()
-          Image(systemName: "waveform")
-            .font(.system(size: 44, weight: .medium))
-            .foregroundStyle(.white)
-            .symbolEffect(.variableColor.iterative)
-        }
-        .allowsHitTesting(false)
-      }
-
-      statusOverlay
-      playbackStatusAccessibilityElement
-      playbackPositionAccessibilityElement
-
-      Button {
-        showsOptions = true
-      } label: {
-        Image(systemName: "slider.horizontal.3")
-          .font(.body.weight(.semibold))
-          .foregroundStyle(.white)
-          .frame(width: 38, height: 38)
-          .background(.black.opacity(0.58), in: Circle())
-          .overlay {
-            Circle().stroke(.white.opacity(0.22), lineWidth: 0.5)
+        if controller.audioOnly {
+          ZStack {
+            LiveRemoteImage(url: posterURL)
+              .scaledToFill()
+              .blur(radius: 28)
+              .opacity(0.48)
+              .clipped()
+            Image(systemName: "waveform")
+              .font(.system(size: 44, weight: .medium))
+              .foregroundStyle(.white)
+              .symbolEffect(.variableColor.iterative)
           }
+          .allowsHitTesting(false)
+        }
+
+        seekFeedbackOverlay
+        statusOverlay
+        playbackStatusAccessibilityElement
+        playbackPositionAccessibilityElement
+
+        Button {
+          showsOptions = true
+        } label: {
+          Image(systemName: "slider.horizontal.3")
+            .font(.body.weight(.semibold))
+            .foregroundStyle(.white)
+            .frame(width: 38, height: 38)
+            .background(.black.opacity(0.58), in: Circle())
+            .overlay {
+              Circle().stroke(.white.opacity(0.22), lineWidth: 0.5)
+            }
+        }
+        .buttonStyle(.plain)
+        .frame(
+          maxWidth: .infinity,
+          maxHeight: .infinity,
+          alignment: .topTrailing
+        )
+        .padding(10)
+        .accessibilityLabel("Player options")
+        .accessibilityIdentifier("live.player.options")
       }
-      .buttonStyle(.plain)
-      .frame(
-        maxWidth: .infinity,
-        maxHeight: .infinity,
-        alignment: .topTrailing
+      .simultaneousGesture(
+        SpatialTapGesture(count: 2)
+          .onEnded { value in
+            handleDoubleTap(
+              at: value.location,
+              width: proxy.size.width
+            )
+          }
       )
-      .padding(10)
-      .accessibilityLabel("Player options")
-      .accessibilityIdentifier("live.player.options")
     }
     .aspectRatio(16 / 9, contentMode: .fit)
     .clipShape(
@@ -71,6 +84,71 @@ struct LivePlayerView: View {
         coordinator: coordinator,
         cinemaMode: $cinemaMode
       )
+    }
+  }
+
+  private func handleDoubleTap(
+    at location: CGPoint,
+    width: CGFloat
+  ) {
+    guard let direction = PlayerDoubleTapSeek.direction(
+      x: location.x,
+      width: width
+    ), let target = PlayerDoubleTapSeek.target(
+      current: controller.position,
+      duration: controller.duration,
+      direction: direction
+    ) else {
+      return
+    }
+
+    seekFeedback = PlayerDoubleTapSeekFeedback(
+      direction: direction,
+      seconds: Self.doubleTapSeconds
+    )
+    controller.seek(to: target)
+  }
+
+  @ViewBuilder
+  private var seekFeedbackOverlay: some View {
+    if let activeFeedback = seekFeedback {
+      HStack {
+        if activeFeedback.direction == .forward {
+          Spacer(minLength: 0)
+        }
+        Label(
+          activeFeedback.direction == .back
+            ? "-\(activeFeedback.seconds)s"
+            : "+\(activeFeedback.seconds)s",
+          systemImage: activeFeedback.direction == .back
+            ? "arrow.counterclockwise"
+            : "arrow.clockwise"
+        )
+        .font(.headline.weight(.semibold))
+        .foregroundStyle(.white)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 10)
+        .background(.black.opacity(0.68), in: Capsule())
+        .padding(
+          activeFeedback.direction == .back ? .leading : .trailing,
+          42
+        )
+        if activeFeedback.direction == .back {
+          Spacer(minLength: 0)
+        }
+      }
+      .allowsHitTesting(false)
+      .transition(.opacity)
+      .task(id: activeFeedback.id) {
+        try? await Task.sleep(for: .milliseconds(650))
+        withAnimation(.easeOut(duration: 0.12)) {
+          let pulse = activeFeedback.pulse
+          if seekFeedback?.pulse == pulse {
+            seekFeedback = nil
+          }
+        }
+      }
+      .accessibilityHidden(true)
     }
   }
 
@@ -125,4 +203,7 @@ struct LivePlayerView: View {
       EmptyView()
     }
   }
+
+  private static let doubleTapSeconds =
+    PlayerDoubleTapSeek.seconds
 }
