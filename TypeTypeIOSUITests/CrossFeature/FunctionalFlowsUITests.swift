@@ -98,7 +98,7 @@ final class FunctionalFlowsUITests: XCTestCase {
     favorite.tap()
 
     app.navigationBars["Watch"].buttons.element(boundBy: 0).tap()
-    app.tabBars.buttons["Playlists"].tap()
+    app.tapTab("Playlists")
     app.buttons["demo.playlists.card.favorites"].tap()
 
     XCTAssertTrue(
@@ -193,14 +193,14 @@ final class FunctionalFlowsUITests: XCTestCase {
     ).tap()
     XCTAssertEqual(recommendations.value as? String, "0")
 
-    app.tabBars.buttons["Home"].tap()
+    app.tapTab("Home")
     XCTAssertTrue(
       app.descendants(matching: .any)["demo.home.recommendations.hidden"]
         .waitForExistence(timeout: 3)
     )
     XCTAssertTrue(app.staticTexts["Continue watching"].exists)
 
-    app.tabBars.buttons["More"].tap()
+    app.tapTab("More")
     XCTAssertTrue(
       app.switches["Home recommendations"].waitForExistence(timeout: 3)
     )
@@ -224,14 +224,14 @@ final class FunctionalFlowsUITests: XCTestCase {
     )
     app.buttons["Done"].tap()
 
-    app.tabBars.buttons["Playlists"].tap()
+    app.tapTab("Playlists")
     let imported = app.staticTexts["Imported from YouTube"]
     for _ in 0..<3 where !imported.exists {
       app.swipeUp()
     }
     XCTAssertTrue(imported.waitForExistence(timeout: 3))
 
-    app.tabBars.buttons["History"].tap()
+    app.tapTab("History")
     XCTAssertTrue(
       app.staticTexts["Designing a calmer TypeType experience"]
         .waitForExistence(timeout: 3)

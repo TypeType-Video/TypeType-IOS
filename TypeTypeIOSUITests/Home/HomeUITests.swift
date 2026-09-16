@@ -9,17 +9,10 @@ final class HomeUITests: XCTestCase {
     XCTAssertTrue(
       app.otherElements["demo.home.brand"].waitForExistence(timeout: 3)
     )
-    let usesiPadTabLayout = app.frame.width >= 600
-    let homeTab = usesiPadTabLayout
-      ? app.buttons["Home"].firstMatch
-      : app.tabBars.buttons["Home"]
-    let subscriptionsTab = usesiPadTabLayout
-      ? app.buttons["Subscriptions"].firstMatch
-      : app.tabBars.buttons["Subscriptions"]
     XCTAssertTrue(app.staticTexts["Continue watching"].exists)
     XCTAssertTrue(app.staticTexts["Recommended"].exists)
-    XCTAssertTrue(homeTab.exists)
-    XCTAssertTrue(subscriptionsTab.exists)
+    XCTAssertTrue(app.tabItem("Home").exists)
+    XCTAssertTrue(app.tabItem("Subscriptions").exists)
     XCTAssertTrue(
       app.buttons["demo.home.video.native-ios"].exists
     )

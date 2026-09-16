@@ -73,7 +73,7 @@ final class ExtendedParityUITests: XCTestCase {
     app.buttons["Light"].tap()
     app.navigationBars.buttons.element(boundBy: 0).tap()
 
-    app.tabBars.buttons["Subscriptions"].tap()
+    app.tapTab("Subscriptions")
     XCTAssertTrue(
       app.descendants(matching: .any)["demo.subscriptions.videos"]
         .waitForExistence(timeout: 3)
@@ -87,7 +87,7 @@ final class ExtendedParityUITests: XCTestCase {
     subscriptions.lifetime = .keepAlways
     add(subscriptions)
 
-    app.tabBars.buttons["More"].tap()
+    app.tapTab("More")
     app.staticTexts["Import"].tap()
     XCTAssertTrue(
       app.descendants(matching: .any)["demo.import.screen"]

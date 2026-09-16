@@ -6,7 +6,7 @@ final class PlaylistsUITests: XCTestCase {
     app.launchArguments = ["--typetype-demo-home"]
     app.launch()
 
-    app.tabBars.buttons["Playlists"].tap()
+    app.tapTab("Playlists")
     XCTAssertTrue(
       app.descendants(matching: .any)["demo.playlists.screen"]
         .waitForExistence(timeout: 5)

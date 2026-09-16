@@ -6,7 +6,7 @@ final class SubscriptionsUITests: XCTestCase {
     app.launchArguments = ["--typetype-demo-home"]
     app.launch()
 
-    app.tabBars.buttons["Subscriptions"].tap()
+    app.tapTab("Subscriptions")
     XCTAssertTrue(
       app.descendants(matching: .any)["demo.subscriptions.screen"]
         .waitForExistence(timeout: 5)

@@ -43,7 +43,7 @@ final class AppearanceAuditUITests: XCTestCase {
     ]
 
     for (tab, identifier) in surfaces {
-      app.tabBars.buttons[tab].tap()
+      app.tapTab(tab)
       XCTAssertTrue(
         app.descendants(matching: .any)[identifier]
           .waitForExistence(timeout: 3)
@@ -53,7 +53,7 @@ final class AppearanceAuditUITests: XCTestCase {
   }
 
   private func selectAppearance(named appearanceName: String) {
-    app.tabBars.buttons["More"].tap()
+    app.tapTab("More")
     let appearance = app.staticTexts["Appearance"]
     XCTAssertTrue(appearance.waitForExistence(timeout: 3))
     appearance.tap()
