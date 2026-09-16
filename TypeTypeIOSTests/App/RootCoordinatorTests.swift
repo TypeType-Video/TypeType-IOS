@@ -153,8 +153,66 @@ final class RootCoordinatorTests: XCTestCase {
     XCTAssertNotNil(coordinator.connectionError)
   }
 
+  func testProfileSwitchReplacesServerScopedSession() async throws {
+    let profileUser = AuthUser(
+      id: "profile-2",
+      role: .user,
+      publicUsername: "Kids profile"
+    )
+    let profileID = "22222222-2222-2222-2222-222222222222"
+    let authStub = RootAuthStub(
+      tokenUsers: [
+        "profile-token": profileUser,
+      ]
+    )
+    let accountProfiles = RootAccountProfileStub(
+      profile: AccountProfileItem(
+        id: profileID,
+        name: "Kids",
+        isActive: false,
+        isDefault: false,
+        lastUsedAt: 20,
+        publicUsername: nil,
+        avatarURL: nil,
+        avatarType: nil,
+        avatarCode: nil
+      )
+    )
+    let dependencies = try makeDependencies(
+      auth: authStub,
+      accountProfiles: accountProfiles
+    )
+    let coordinator = RootCoordinator(dependencies: dependencies)
+    await coordinator.bootstrap()
+    try await coordinator.addServer(
+      name: "Beta",
+      urlInput: "https://beta.example.test"
+    )
+    try await coordinator.login(
+      identifier: "person@example.test",
+      password: "secret"
+    )
+    let serverID = try XCTUnwrap(coordinator.selectedServer?.id)
+
+    try await coordinator.switchAccountProfile(to: profileID)
+
+    XCTAssertEqual(coordinator.state, .authenticated)
+    XCTAssertEqual(coordinator.currentUser?.id, "profile-2")
+    XCTAssertEqual(
+      dependencies.sessionStore.accessToken(forServerID: serverID),
+      "profile-token"
+    )
+    XCTAssertEqual(
+      dependencies.sessionStore.session(forServerID: serverID)?
+        .accountIdentifier,
+      "person@example.test"
+    )
+  }
+
   private func makeDependencies(
-    probe: ServerProbeServiceProtocol? = nil
+    probe: ServerProbeServiceProtocol? = nil,
+    auth: RootAuthStub? = nil,
+    accountProfiles: RootAccountProfileStub? = nil
   ) throws -> AppDependencies {
     let selectedProbe: ServerProbeServiceProtocol
     if let probe {
@@ -182,7 +240,7 @@ final class RootCoordinatorTests: XCTestCase {
       serverStore: serverStore,
       sessionStore: sessionStore,
       serverProbeService: selectedProbe,
-      authService: RootAuthStub(),
+      authService: auth ?? RootAuthStub(),
       oidcService: RootOIDCStub(),
       resetPasswordService: RootResetPasswordStub(),
       homeFeedService: RootHomeFeedStub(),
@@ -200,6 +258,7 @@ final class RootCoordinatorTests: XCTestCase {
       libraryService: RootLibraryStub(),
       playlistsService: RootPlaylistsStub(),
       profileService: LiveProfileService(apiClient: apiClient),
+      accountProfileService: accountProfiles,
       settingsService: settingsService,
       serviceSelection: LiveServiceSelection(
         settingsService: settingsService,
@@ -295,6 +354,11 @@ private final class RootAuthStub: AuthServiceProtocol {
     accountIdentifier: "person@example.test",
     accessToken: "access-1"
   )
+  private let tokenUsers: [String: AuthUser]
+
+  init(tokenUsers: [String: AuthUser] = [:]) {
+    self.tokenUsers = tokenUsers
+  }
 
   func registrationStatus() async throws -> RegisterStatus {
     RegisterStatus(
@@ -335,10 +399,45 @@ private final class RootAuthStub: AuthServiceProtocol {
   }
 
   func user(accessToken: String) async throws -> AuthUser {
-    result.user
+    tokenUsers[accessToken] ?? result.user
   }
 
   func logout() async throws {}
+}
+
+private final class RootAccountProfileStub:
+  LiveAccountProfileServiceProtocol {
+  private let profile: AccountProfileItem
+
+  init(profile: AccountProfileItem) {
+    self.profile = profile
+  }
+
+  func list() async throws -> AccountProfilesResponse {
+    AccountProfilesResponse(
+      profiles: [profile],
+      activeProfileID: "11111111-1111-1111-1111-111111111111",
+      defaultProfileID: "11111111-1111-1111-1111-111111111111"
+    )
+  }
+
+  func create(name: String) async throws -> AccountProfileItem {
+    profile
+  }
+
+  func rename(id: String, name: String) async throws -> AccountProfileItem {
+    profile
+  }
+
+  func setDefault(id: String) async throws -> AccountProfileItem {
+    profile
+  }
+
+  func switchTo(id: String) async throws -> ProfileSwitchResponse {
+    ProfileSwitchResponse(accessToken: "profile-token", profile: profile)
+  }
+
+  func delete(id: String) async throws {}
 }
 
 private final class RootOIDCStub: OIDCServiceProtocol {
