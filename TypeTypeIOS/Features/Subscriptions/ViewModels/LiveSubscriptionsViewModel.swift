@@ -23,7 +23,12 @@ final class LiveSubscriptionsViewModel: ObservableObject {
   @Published private(set) var channels: [LiveSubscription] = []
   @Published private(set) var isLoadingMore = false
   @Published private(set) var groups: [LiveSubscriptionGroup] = []
+  @Published private(set) var memberships: [
+    LiveSubscriptionGroupMembership
+  ] = []
   @Published var filter = LiveSubscriptionFilter.all
+  @Published private(set) var isMutatingGroups = false
+  @Published var groupActionError: String?
 
   private let service: LiveSubscriptionsServiceProtocol
   private var nextPage: String?
@@ -67,18 +72,21 @@ final class LiveSubscriptionsViewModel: ObservableObject {
     do {
       async let channelRequest = service.subscriptions()
       async let groupRequest = service.groups()
+      async let membershipRequest = service.memberships()
       async let feedRequest = service.feed(
         nextPage: nil,
         filter: filter
       )
-      let (loadedChannels, loadedGroups, page) = try await (
+      let (loadedChannels, loadedGroups, loadedMemberships, page) = try await (
         channelRequest,
         groupRequest,
+        membershipRequest,
         feedRequest
       )
       try Task.checkCancellation()
       channels = loadedChannels
       groups = loadedGroups
+      memberships = loadedMemberships
       videos = uniqueVisible(page.videos)
       nextPage = page.nextPage
       state = .loaded
@@ -147,6 +155,82 @@ final class LiveSubscriptionsViewModel: ObservableObject {
     }
   }
 
+  func groupIDs(for channelURL: String) -> Set<String> {
+    let normalized = normalizedChannelURL(channelURL)
+    guard let membership = memberships.first(
+      where: { normalizedChannelURL($0.channelURL) == normalized }
+    ) else {
+      return []
+    }
+    return Set(membership.groupIDs)
+  }
+
+  func createGroup(named rawName: String) async {
+    let name = rawName.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard !name.isEmpty, !isMutatingGroups else { return }
+    await performGroupMutation {
+      let group = try await self.service.createGroup(name: name)
+      self.groups.append(group)
+      self.groups.sort {
+        $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending
+      }
+    }
+  }
+
+  func renameGroup(_ group: LiveSubscriptionGroup, to rawName: String) async {
+    let name = rawName.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard !name.isEmpty, !isMutatingGroups else { return }
+    await performGroupMutation {
+      try await self.service.renameGroup(id: group.id, name: name)
+      try await self.refreshGroupData()
+      if case let .group(id, _) = self.filter, id == group.id {
+        self.filter = .group(id: group.id, name: name)
+      }
+    }
+  }
+
+  func deleteGroup(_ group: LiveSubscriptionGroup) async {
+    guard !isMutatingGroups else { return }
+    await performGroupMutation {
+      try await self.service.deleteGroup(id: group.id)
+      self.groups.removeAll { $0.id == group.id }
+      self.memberships = self.memberships.map { membership in
+        LiveSubscriptionGroupMembership(
+          channelURL: membership.channelURL,
+          name: membership.name,
+          avatarURL: membership.avatarURL,
+          subscribedAt: membership.subscribedAt,
+          groupIDs: membership.groupIDs.filter { $0 != group.id }
+        )
+      }
+      if case let .group(id, _) = self.filter, id == group.id {
+        await self.selectFilter(.all)
+      }
+    }
+  }
+
+  func toggleGroupMembership(
+    _ channel: LiveSubscription,
+    in group: LiveSubscriptionGroup
+  ) async {
+    guard !isMutatingGroups else { return }
+    let isMember = groupIDs(for: channel.channelURL).contains(group.id)
+    await performGroupMutation {
+      if isMember {
+        try await self.service.removeChannel(
+          channel.channelURL,
+          fromGroup: group.id
+        )
+      } else {
+        try await self.service.addChannels(
+          [channel.channelURL],
+          toGroup: group.id
+        )
+      }
+      try await self.refreshGroupData()
+    }
+  }
+
   private func uniqueVisible(
     _ candidates: [LiveVideoItem]
   ) -> [LiveVideoItem] {
@@ -154,6 +238,38 @@ final class LiveSubscriptionsViewModel: ObservableObject {
     return candidates.filter {
       seen.insert($0.canonicalID).inserted
     }
+  }
+
+  private func refreshGroupData() async throws {
+    async let groupRequest = service.groups()
+    async let membershipRequest = service.memberships()
+    let (loadedGroups, loadedMemberships) = try await (
+      groupRequest,
+      membershipRequest
+    )
+    groups = loadedGroups
+    memberships = loadedMemberships
+  }
+
+  private func performGroupMutation(
+    _ operation: @escaping () async throws -> Void
+  ) async {
+    isMutatingGroups = true
+    groupActionError = nil
+    defer { isMutatingGroups = false }
+    do {
+      try await operation()
+    } catch is CancellationError {
+      return
+    } catch {
+      groupActionError = (error as? LocalizedError)?.errorDescription
+        ?? "Subscription group could not be updated."
+    }
+  }
+
+  private func normalizedChannelURL(_ value: String) -> String {
+    value.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+      .lowercased()
   }
 
   private func message(for error: Error) -> String {

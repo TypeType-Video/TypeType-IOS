@@ -4,6 +4,7 @@ struct LiveSubscriptionChannelRow: View {
   let channel: LiveSubscription
   let onOpen: () -> Void
   let onUnsubscribe: () -> Void
+  var groupActions: ((LiveSubscription) -> AnyView)? = nil
 
   var body: some View {
     Button(action: onOpen) {
@@ -31,6 +32,10 @@ struct LiveSubscriptionChannelRow: View {
     }
     .buttonStyle(.plain)
     .contextMenu {
+      if let groupActions {
+        groupActions(channel)
+      }
+      Divider()
       Button(
         "Unsubscribe",
         systemImage: "bell.slash",

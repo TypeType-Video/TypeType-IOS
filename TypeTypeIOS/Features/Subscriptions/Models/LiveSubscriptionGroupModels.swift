@@ -5,7 +5,7 @@ struct LiveSubscriptionGroupMembership: Codable, Equatable, Identifiable {
   let name: String
   let avatarURL: String
   let subscribedAt: Int64
-  let groupIDs: [String]
+  var groupIDs: [String]
 
   var id: String {
     channelURL
