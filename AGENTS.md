@@ -7,6 +7,8 @@
   asks for one in the current task.
 - Always ask the user before opening any pull request, including draft pull
   requests.
+- Never create a commit larger than 390 changed lines (additions plus
+  deletions). Split it into focused commits before pushing.
 - Keep `HANDOFF.md` strictly local and never commit or push it.
 
 ## CI
