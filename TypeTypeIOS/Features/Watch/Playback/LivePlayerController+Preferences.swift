@@ -5,6 +5,21 @@ extension LivePlayerController {
     stream?.subtitles ?? []
   }
 
+  var availableChapters: [LivePlaybackChapter] {
+    (stream?.chapters ?? []).sorted {
+      $0.startTimeSeconds < $1.startTimeSeconds
+    }
+  }
+
+  var currentChapter: LivePlaybackChapter? {
+    let index = LivePlaybackChapterNavigator.currentIndex(
+      in: availableChapters,
+      at: position
+    )
+    guard let index else { return nil }
+    return availableChapters[index]
+  }
+
   func applyLoadedSettings() {
     autoplayEnabled = settings.autoplay
     subtitlesEnabled = settings.subtitlesEnabled

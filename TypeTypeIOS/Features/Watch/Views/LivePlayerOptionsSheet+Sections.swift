@@ -87,6 +87,22 @@ extension LivePlayerOptionsSheet {
     }
   }
 
+  @ViewBuilder var chaptersSection: some View {
+    if !controller.availableChapters.isEmpty {
+      Section("Chapters") {
+        NavigationLink {
+          LivePlayerChaptersView(controller: controller)
+        } label: {
+          LabeledContent(
+            "Chapters",
+            value: controller.currentChapter?.title ?? "Not started"
+          )
+        }
+        .accessibilityIdentifier("live.player.chapters.link")
+      }
+    }
+  }
+
   private var subtitlePicker: some View {
     Picker(
       "Language",
