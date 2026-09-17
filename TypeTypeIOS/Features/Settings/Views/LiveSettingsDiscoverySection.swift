@@ -38,6 +38,20 @@ struct LiveSettingsDiscoverySection: View {
       Toggle("Hide comments and danmaku", isOn: $settings.hideComments)
     }
 
+    if settings.hideSubscriptionLiveStreams != nil {
+      Section {
+        Toggle(
+          "Hide subscription live streams",
+          isOn: Binding(
+            get: { settings.hideSubscriptionLiveStreams ?? false },
+            set: { settings.hideSubscriptionLiveStreams = $0 }
+          )
+        )
+      } footer: {
+        Text("Hide live streams from your subscription feed.")
+      }
+    }
+
     Section("DeArrow") {
       Toggle("Enable DeArrow", isOn: $settings.deArrowEnabled)
       Picker("Titles", selection: $settings.deArrowTitleMode) {

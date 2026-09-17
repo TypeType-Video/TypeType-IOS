@@ -85,7 +85,8 @@ struct LiveVideoMetadataContentView: View {
           )
         }
 
-        if let related = playerController.stream?.relatedStreams {
+        if !(playerController.settings.hideRelatedVideos),
+          let related = playerController.stream?.relatedStreams {
           LiveRelatedVideosSection(
             videos: related,
             deArrowStore: deArrowStore,

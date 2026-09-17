@@ -55,7 +55,7 @@ final class LivePlayerController: ObservableObject {
   let historyService: LiveHistoryServiceProtocol
   let playbackSessionReporter: LivePlaybackSessionReporter
   let bulletCommentStore = LiveBulletCommentStore()
-  var settings = LiveSettings()
+  @Published var settings = LiveSettings()
   var loadTask: Task<Void, Never>?
   var seekTask: Task<Void, Never>?
   var playbackServer: LivePlaybackHTTPServer?
