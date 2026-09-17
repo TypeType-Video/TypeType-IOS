@@ -17,10 +17,23 @@ struct LivePlayerView: View {
 
         LivePlayerLayerView(
           player: controller.player,
-          controller: controller
-        ) { event in
-          handleSwipeAdjustment(event)
-        }
+          controller: controller,
+          onSwipeAdjustment: { event in
+            handleSwipeAdjustment(event)
+          },
+          onPictureInPictureUIRestore: { completion in
+            PictureInPictureRestore.restore(
+              canRestore: coordinator.hasActivePlayback,
+              prepare: {
+                coordinator.expand()
+              },
+              isPrepared: {
+                coordinator.presentation == .expanded
+              },
+              completion: completion
+            )
+          }
+        )
           .accessibilityIdentifier("live.player.surface")
 
         if controller.audioOnly {

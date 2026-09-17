@@ -20,6 +20,8 @@ final class LivePlayerLayerCoordinator:
   var sponsorCenterConstraint: NSLayoutConstraint?
   var sponsorTrailingConstraint: NSLayoutConstraint?
   var swipeGestureHandler: ((PlayerSwipeAdjustmentEvent) -> Void)?
+  var pictureInPictureUIRestoreHandler:
+    (((@escaping (Bool) -> Void)) -> Void)? = nil
   private var swipeGestureKind: PlayerSwipeAdjustmentKind?
   private var swipeGestureBaseFraction: CGFloat = 0.5
 

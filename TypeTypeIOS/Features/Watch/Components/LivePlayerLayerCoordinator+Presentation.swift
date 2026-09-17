@@ -82,7 +82,11 @@ extension LivePlayerLayerCoordinator {
     restoreUserInterfaceForPictureInPictureStopWithCompletionHandler
       completionHandler: @escaping (Bool) -> Void
   ) {
-    completionHandler(true)
+    guard let handler = pictureInPictureUIRestoreHandler else {
+      completionHandler(false)
+      return
+    }
+    handler(completionHandler)
   }
 
   private func transition(

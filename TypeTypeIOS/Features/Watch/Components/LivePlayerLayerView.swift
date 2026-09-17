@@ -19,6 +19,8 @@ struct LivePlayerLayerView: UIViewControllerRepresentable {
   let player: AVPlayer
   let controller: LivePlayerController
   var onSwipeAdjustment: ((PlayerSwipeAdjustmentEvent) -> Void)? = nil
+  var onPictureInPictureUIRestore:
+    (((@escaping (Bool) -> Void)) -> Void)? = nil
 
   func makeCoordinator() -> LivePlayerLayerCoordinator {
     LivePlayerLayerCoordinator(controller: controller)
@@ -38,6 +40,8 @@ struct LivePlayerLayerView: UIViewControllerRepresentable {
     playerController.view.backgroundColor = .black
     playerController.delegate = context.coordinator
     context.coordinator.swipeGestureHandler = onSwipeAdjustment
+    context.coordinator.pictureInPictureUIRestoreHandler =
+      onPictureInPictureUIRestore
     context.coordinator.installSwipeGesture(
       in: playerController.view
     )
@@ -59,6 +63,8 @@ struct LivePlayerLayerView: UIViewControllerRepresentable {
     playerController.videoGravity = controller.imageMode.videoGravity
     context.coordinator.update(controller, in: playerController)
     context.coordinator.swipeGestureHandler = onSwipeAdjustment
+    context.coordinator.pictureInPictureUIRestoreHandler =
+      onPictureInPictureUIRestore
   }
 
   static func dismantleUIViewController(
