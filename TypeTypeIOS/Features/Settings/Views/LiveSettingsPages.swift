@@ -28,6 +28,7 @@ struct LiveSettingsEditingPage<Content: View>: View {
           }
         }
         .disabled(!viewModel.hasChanges || viewModel.isSaving)
+        .accessibilityIdentifier("live.settings.save")
       }
     }
     .alert("Settings", isPresented: errorBinding) {
