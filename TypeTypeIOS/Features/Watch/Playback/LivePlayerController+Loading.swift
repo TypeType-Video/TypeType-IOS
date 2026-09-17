@@ -125,6 +125,8 @@ extension LivePlayerController {
   var preferences: LivePlaybackPreferences {
     LivePlaybackPreferences(
       quality: settings.defaultQuality,
+      preferredCodec: LiveAppPreferencesStore.shared.preferences
+        .playerPreferredCodec,
       videoItag: selectedVideoItag,
       videoSourceID: selectedVideoSourceID,
       audioTrackID: selectedAudioTrackID,

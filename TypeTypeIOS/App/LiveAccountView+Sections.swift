@@ -47,26 +47,34 @@ extension LiveAccountView {
   var preferencesSection: some View {
     Section("Preferences") {
       accountPreferences
-      NavigationLink("Settings") {
+      NavigationLink {
         LiveSettingsView(coordinator: coordinator)
+      } label: {
+        Label("Settings", systemImage: "gearshape.fill")
       }
       downloadsLink
-      NavigationLink("Diagnostics") {
+      NavigationLink {
         LiveDiagnosticsView(
           store: coordinator.dependencies.diagnosticsStore,
           scopeProvider: {
             coordinator.dependencies.diagnosticScope()
           }
         )
+      } label: {
+        Label("Diagnostics", systemImage: "ladybug.fill")
       }
-      NavigationLink("Content controls") {
+      NavigationLink {
         LiveContentControlsView(
           service: coordinator.dependencies.contentControlsService,
           canCreateGlobal: coordinator.currentUser?.role != .user
         )
+      } label: {
+        Label("Content controls", systemImage: "slash.circle.fill")
       }
-      NavigationLink("Import data") {
+      NavigationLink {
         LiveImportView(service: coordinator.dependencies.importService)
+      } label: {
+        Label("Import data", systemImage: "square.and.arrow.up.fill")
       }
     }
   }
@@ -89,11 +97,13 @@ extension LiveAccountView {
       }
       if coordinator.dependencies.rssEnabled,
         let rssFeedService = coordinator.dependencies.rssFeedService {
-        NavigationLink("RSS feeds") {
+        NavigationLink {
           LiveRssFeedsView(
             feedService: rssFeedService,
             subscriptionsService: coordinator.dependencies.subscriptionsService
           )
+        } label: {
+          Label("RSS feeds", systemImage: "dot.radiowaves.left.and.right")
         }
       }
     }
@@ -122,10 +132,12 @@ extension LiveAccountView {
     if let user = coordinator.currentUser,
       !user.id.hasPrefix("guest:") {
       Section("Support") {
-        NavigationLink("Report a problem") {
+        NavigationLink {
           LiveReportIssueView(
             service: coordinator.dependencies.bugReportsService
           )
+        } label: {
+          Label("Report a problem", systemImage: "ladybug.fill")
         }
         if user.role == .admin || user.role == .moderator {
           NavigationLink("Manage bug reports") {

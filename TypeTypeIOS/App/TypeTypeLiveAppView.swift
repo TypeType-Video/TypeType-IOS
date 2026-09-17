@@ -2,8 +2,8 @@ import SwiftUI
 
 struct TypeTypeLiveAppView: View {
   @StateObject private var coordinator: RootCoordinator
-  @AppStorage(LiveAppearancePreference.storageKey)
-  private var appearanceRawValue = LiveAppearancePreference.defaultRawValue
+  @ObservedObject private var preferences = LiveAppPreferencesStore.shared
+  @Environment(\.scenePhase) private var scenePhase
 
   @MainActor
   init() {
@@ -18,6 +18,7 @@ struct TypeTypeLiveAppView: View {
     _coordinator = StateObject(
       wrappedValue: RootCoordinator(dependencies: dependencies)
     )
+    DemoTheme.updateAccent(preferences.preferences.accentColor)
   }
 
   var body: some View {
@@ -41,11 +42,28 @@ struct TypeTypeLiveAppView: View {
       await coordinator.bootstrap()
     }
     .onOpenURL(perform: coordinator.receiveIncomingURL)
-    .animation(.easeInOut(duration: 0.22), value: coordinator.state)
+    .animation(
+      preferences.preferences.appearanceMotion == .off
+        ? nil
+        : .easeInOut(
+          duration: preferences.preferences.appearanceMotion.duration ?? 0.16
+        ),
+      value: coordinator.state
+    )
+    .tint(preferences.preferences.accentColor.color)
+    .onChange(of: preferences.preferences) { newValue in
+      DemoTheme.updateAccent(newValue.accentColor)
+    }
+    .onChange(of: scenePhase) { phase in
+      guard phase == .background,
+        preferences.preferences.playerPauseInBackground
+      else { return }
+      coordinator.dependencies.playbackCoordinator.controller?.pause()
+    }
     .preferredColorScheme(
       AppConfig.debugForcesLightAppearance
         ? .light
-        : LiveAppearancePreference.mode(for: appearanceRawValue).colorScheme
+        : preferences.preferences.appearanceMode.colorScheme
     )
   }
 }

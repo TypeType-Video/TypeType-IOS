@@ -22,6 +22,15 @@ extension LivePlayerController {
 
   func applyLoadedSettings() {
     autoplayEnabled = settings.autoplay
+    let serverPlaybackSpeed = settings.defaultPlaybackSpeed ?? 1
+    if serverPlaybackSpeed != 1,
+      UserDefaults.standard.object(
+        forKey: Self.playbackRatePreferenceKey
+      ) == nil {
+      playbackRate = Self.normalizePlaybackRate(
+        Float(serverPlaybackSpeed)
+      )
+    }
     subtitlesEnabled = settings.subtitlesEnabled
     selectedSubtitleLanguage = settings.defaultSubtitleLanguage
     sponsorBlockEnabled =

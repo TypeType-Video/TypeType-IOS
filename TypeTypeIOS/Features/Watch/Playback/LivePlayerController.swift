@@ -98,10 +98,13 @@ final class LivePlayerController: ObservableObject {
       service: dependencies.sessionActivityService
     )
     let defaults = UserDefaults.standard
+    let appPreferences = LiveAppPreferencesStore.shared.preferences
+    audioOnly = appPreferences.playerAudioOnlyPlayback
+    let defaultDanmakuEnabled = appPreferences.danmakuEnabled
     bulletCommentsEnabled = defaults.object(
       forKey: Self.bulletCommentsEnabledKey
     ) == nil
-      ? true
+      ? defaultDanmakuEnabled
       : defaults.bool(forKey: Self.bulletCommentsEnabledKey)
     let storedSpeed = defaults.object(
       forKey: Self.bulletCommentSpeedKey

@@ -59,6 +59,7 @@ struct LivePlaybackStream: Decodable {
 
 struct LivePlaybackPreferences: Equatable {
   var quality: String
+  var preferredCodec = "recommended"
   var videoItag: Int?
   var videoSourceID: String?
   var audioTrackID: String?

@@ -14,6 +14,7 @@ extension LivePlaybackService {
     let video = selectVideo(
       from: videos,
       quality: preferences.quality,
+      preferredCodec: preferences.preferredCodec,
       requestedItag: preferences.videoItag
     )
     let audio = selectAudio(
@@ -63,6 +64,7 @@ extension LivePlaybackService {
     if let selected = selectVideo(
       from: muxed,
       quality: preferences.quality,
+      preferredCodec: preferences.preferredCodec,
       requestedItag: preferences.videoItag,
       requestedSourceID: preferences.videoSourceID
     ), let url = URL(string: selected.url) {
@@ -89,6 +91,7 @@ extension LivePlaybackService {
     guard let video = selectVideo(
       from: videos,
       quality: preferences.quality,
+      preferredCodec: preferences.preferredCodec,
       requestedItag: preferences.videoItag,
       requestedSourceID: preferences.videoSourceID
     ), let audio = selectAudio(

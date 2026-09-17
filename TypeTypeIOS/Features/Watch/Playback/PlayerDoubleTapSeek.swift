@@ -15,8 +15,6 @@ struct PlayerDoubleTapSeekFeedback: Equatable, Identifiable {
 }
 
 enum PlayerDoubleTapSeek {
-  static let seconds = 10
-
   static func direction(x: CGFloat, width: CGFloat) -> PlayerDoubleTapSeekDirection? {
     guard width.isFinite, width > 0, x.isFinite, x >= 0, x <= width else {
       return nil
@@ -28,9 +26,10 @@ enum PlayerDoubleTapSeek {
   static func target(
     current: TimeInterval,
     duration: TimeInterval,
-    direction: PlayerDoubleTapSeekDirection
+    direction: PlayerDoubleTapSeekDirection,
+    seconds: Int = 10
   ) -> TimeInterval? {
-    let increment = TimeInterval(seconds)
+    let increment = TimeInterval(max(1, seconds))
     let boundedDuration = max(duration, 0)
     let target = direction == .back
       ? current - increment

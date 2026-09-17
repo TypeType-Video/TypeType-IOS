@@ -96,7 +96,8 @@ struct LiveSettingsView: View {
       ) {
         LiveSettingsAppearanceView(
           dependencies: coordinator.dependencies,
-          viewModel: viewModel
+          viewModel: viewModel,
+          preferences: LiveAppPreferencesStore.shared
         )
       }
 
@@ -118,7 +119,8 @@ struct LiveSettingsView: View {
       ) {
         LiveSettingsPlayerView(
           dependencies: coordinator.dependencies,
-          viewModel: viewModel
+          viewModel: viewModel,
+          preferences: LiveAppPreferencesStore.shared
         )
       }
 

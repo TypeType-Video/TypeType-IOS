@@ -3,12 +3,14 @@ import SwiftUI
 struct LivePlayerView: View {
   @ObservedObject var controller: LivePlayerController
   @ObservedObject var coordinator: LivePlaybackCoordinator
+  @ObservedObject private var preferences = LiveAppPreferencesStore.shared
   let posterURL: URL?
   @Binding var cinemaMode: Bool
   @State private var showsOptions = false
   @State private var seekFeedback: PlayerDoubleTapSeekFeedback?
   @State private var swipeAdjustment: PlayerSwipeAdjustmentState?
   @State private var systemBrightnessBeforeSwipe: CGFloat?
+  @State private var longPressBaseRate: Float?
 
   var body: some View {
     GeometryReader { proxy in
@@ -88,6 +90,13 @@ struct LivePlayerView: View {
             )
           }
       )
+      .onLongPressGesture(
+        minimumDuration: 0.35,
+        perform: {},
+        onPressingChanged: { pressing in
+          setLongPressBoost(active: pressing)
+        }
+      )
     }
     .aspectRatio(16 / 9, contentMode: .fit)
     .clipShape(
@@ -112,20 +121,26 @@ struct LivePlayerView: View {
     at location: CGPoint,
     width: CGFloat
   ) {
+    guard !preferences.preferences.playerAccessibleControlsEnabled,
+      preferences.preferences.playerDoubleTapSeekEnabled
+    else {
+      return
+    }
     guard let direction = PlayerDoubleTapSeek.direction(
       x: location.x,
       width: width
     ), let target = PlayerDoubleTapSeek.target(
       current: controller.position,
       duration: controller.duration,
-      direction: direction
+      direction: direction,
+      seconds: preferences.preferences.playerDoubleTapSeekSeconds
     ) else {
       return
     }
 
     seekFeedback = PlayerDoubleTapSeekFeedback(
       direction: direction,
-      seconds: Self.doubleTapSeconds
+      seconds: preferences.preferences.playerDoubleTapSeekSeconds
     )
     controller.seek(to: target)
   }
@@ -133,6 +148,9 @@ struct LivePlayerView: View {
   private func handleSwipeAdjustment(
     _ event: PlayerSwipeAdjustmentEvent
   ) {
+    guard preferences.preferences.playerSwipeBrightnessVolumeEnabled else {
+      return
+    }
     switch event {
     case let .began(kind, fraction):
       if kind == .brightness {
@@ -169,6 +187,17 @@ struct LivePlayerView: View {
     if let brightness = systemBrightnessBeforeSwipe {
       UIScreen.main.brightness = brightness
       systemBrightnessBeforeSwipe = nil
+    }
+  }
+
+  private func setLongPressBoost(active: Bool) {
+    guard preferences.preferences.playerLongPressSpeedEnabled else { return }
+    if active {
+      longPressBaseRate = controller.playbackRate
+      controller.setPlaybackRate(2)
+    } else if let baseRate = longPressBaseRate {
+      controller.setPlaybackRate(baseRate)
+      longPressBaseRate = nil
     }
   }
 
@@ -299,6 +328,4 @@ struct LivePlayerView: View {
     }
   }
 
-  private static let doubleTapSeconds =
-    PlayerDoubleTapSeek.seconds
 }

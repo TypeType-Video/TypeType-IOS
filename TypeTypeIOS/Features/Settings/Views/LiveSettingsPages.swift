@@ -105,8 +105,7 @@ struct LiveSettingsAccountsView: View {
 struct LiveSettingsAppearanceView: View {
   let dependencies: AppDependencies
   @ObservedObject var viewModel: LiveSettingsViewModel
-  @AppStorage(LiveAppearancePreference.storageKey)
-  private var appearanceRawValue = LiveAppearancePreference.defaultRawValue
+  @ObservedObject var preferences: LiveAppPreferencesStore
 
   var body: some View {
     LiveSettingsEditingPage(
@@ -114,10 +113,83 @@ struct LiveSettingsAppearanceView: View {
       dependencies: dependencies
     ) {
       Section("Appearance") {
-        Picker("Color scheme", selection: $appearanceRawValue) {
-          ForEach(LiveAppearanceMode.allCases) { mode in
-            Text(mode.title).tag(mode.rawValue)
+        Picker(
+          "Accent color",
+          selection: preferences.binding(\.accentColor)
+        ) {
+          ForEach(LiveAccentColor.allCases) { color in
+            Text(color.title).tag(color)
           }
+        }
+        Picker(
+          "Personality",
+          selection: preferences.binding(\.appearancePersonality)
+        ) {
+          ForEach(LiveAppearancePersonality.allCases) { personality in
+            Text(personality.title).tag(personality)
+          }
+        }
+        Picker(
+          "Color scheme",
+          selection: preferences.binding(\.appearanceMode)
+        ) {
+          ForEach(LiveAppearanceMode.allCases) { mode in
+            Text(mode.title).tag(mode)
+          }
+        }
+        Toggle("AMOLED black", isOn: preferences.binding(\.appearanceAmoled))
+        Picker("Theme", selection: preferences.binding(\.appearanceTheme)) {
+          ForEach(LiveAppearanceTheme.allCases) { theme in
+            Text(theme.title).tag(theme)
+          }
+        }
+        Picker("Font", selection: preferences.binding(\.appearanceFont)) {
+          ForEach(LiveAppearanceFont.allCases) { font in
+            Text(font.title).tag(font)
+          }
+        }
+        Picker("Motion", selection: preferences.binding(\.appearanceMotion)) {
+          ForEach(LiveAppearanceMotion.allCases) { motion in
+            Text(motion.title).tag(motion)
+          }
+        }
+      }
+
+      if preferences.preferences.appearancePersonality == .manga {
+        Section("Manga") {
+          Picker("Paper", selection: preferences.binding(\.mangaPaper)) {
+            ForEach(LiveMangaPaper.allCases) { paper in
+              Text(paper.title).tag(paper)
+            }
+          }
+          Picker(
+            "Headline marker",
+            selection: preferences.binding(\.mangaHeadlineMarker)
+          ) {
+            ForEach(LiveMangaHeadlineMarker.allCases) { marker in
+              Text(marker.title).tag(marker)
+            }
+          }
+          Toggle(
+            "Screentone",
+            isOn: preferences.binding(\.mangaScreentone)
+          )
+          Toggle(
+            "Speed lines",
+            isOn: preferences.binding(\.mangaSpeedLines)
+          )
+          Toggle(
+            "Starburst",
+            isOn: preferences.binding(\.mangaStarburst)
+          )
+          Toggle(
+            "Inked icons",
+            isOn: preferences.binding(\.mangaInkedIcons)
+          )
+          Toggle(
+            "Panel tilt",
+            isOn: preferences.binding(\.mangaPanelTilt)
+          )
         }
       }
     }
@@ -151,6 +223,7 @@ struct LiveSettingsContentView: View {
 struct LiveSettingsPlayerView: View {
   let dependencies: AppDependencies
   @ObservedObject var viewModel: LiveSettingsViewModel
+  @ObservedObject var preferences: LiveAppPreferencesStore
 
   var body: some View {
     LiveSettingsEditingPage(
@@ -158,11 +231,112 @@ struct LiveSettingsPlayerView: View {
       dependencies: dependencies
     ) {
       LiveSettingsPlaybackSection(settings: $viewModel.draft)
+      localPlaybackSection
+      Section("Gestures") {
+        Toggle(
+          "Accessible player controls",
+          isOn: preferences.binding(\.playerAccessibleControlsEnabled)
+        )
+        Toggle(
+          "Double-tap to seek",
+          isOn: preferences.binding(\.playerDoubleTapSeekEnabled)
+        )
+        if preferences.preferences.playerDoubleTapSeekEnabled {
+          Picker(
+            "Double-tap seek time",
+            selection: preferences.binding(
+              \.playerDoubleTapSeekSeconds
+            )
+          ) {
+            ForEach([5, 10, 15, 20, 30], id: \.self) { seconds in
+              Text("\(seconds)s").tag(seconds)
+            }
+          }
+        }
+        Toggle(
+          "Swipe to seek",
+          isOn: preferences.binding(\.playerSwipeSeekEnabled)
+        )
+        Toggle(
+          "Brightness and volume swipe",
+          isOn: preferences.binding(
+            \.playerSwipeBrightnessVolumeEnabled
+          )
+        )
+        Toggle(
+          "Long-press to speed up",
+          isOn: preferences.binding(\.playerLongPressSpeedEnabled)
+        )
+      }
+      Section("Default codec") {
+        Picker("Preferred codec", selection: preferences.binding(
+          \.playerPreferredCodec
+        )) {
+          Text("Smart").tag("recommended")
+          Text("AV1").tag("av1")
+          Text("VP9").tag("vp9")
+          Text("H.264").tag("h264")
+        }
+      }
+      Section("Bullet comments") {
+        Toggle(
+          "Show bullet comments",
+          isOn: preferences.binding(\.danmakuEnabled)
+        )
+        if preferences.preferences.danmakuEnabled {
+          Picker(
+            "Danmaku speed",
+            selection: preferences.binding(\.danmakuSpeed)
+          ) {
+            ForEach([0.5, 0.75, 1.0, 1.25, 1.5, 2.0], id: \.self) { value in
+              Text("\(value)x").tag(value)
+            }
+          }
+          Picker(
+            "Danmaku size",
+            selection: preferences.binding(\.danmakuSize)
+          ) {
+            ForEach([0.5, 0.75, 1.0, 1.25, 1.5, 2.0], id: \.self) { value in
+              Text("\(Int(value * 100))%").tag(value)
+            }
+          }
+        }
+      }
       LiveSettingsLanguageSection(settings: $viewModel.draft)
       LiveSettingsSponsorBlockSection(settings: $viewModel.draft)
     }
     .navigationTitle("Player")
     .navigationBarTitleDisplayMode(.inline)
+  }
+
+  private var localPlaybackSection: some View {
+    Section("Device playback") {
+      Toggle(
+        "Autoplay next video",
+        isOn: preferences.binding(\.playerAutoplayEnabled)
+      )
+      if preferences.preferences.playerAutoplayEnabled {
+        Picker(
+          "Autoplay countdown",
+          selection: preferences.binding(
+            \.playerAutoplayCountdownSeconds
+          )
+        ) {
+          Text("Immediate").tag(0)
+          ForEach([3, 5, 10, 15, 20, 30], id: \.self) { seconds in
+            Text("\(seconds)s").tag(seconds)
+          }
+        }
+      }
+      Toggle(
+        "Audio-only playback",
+        isOn: preferences.binding(\.playerAudioOnlyPlayback)
+      )
+      Toggle(
+        "Pause in background",
+        isOn: preferences.binding(\.playerPauseInBackground)
+      )
+    }
   }
 }
 

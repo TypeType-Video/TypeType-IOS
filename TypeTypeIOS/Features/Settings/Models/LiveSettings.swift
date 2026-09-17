@@ -23,6 +23,7 @@ struct LiveCaptionStyles: Codable, Equatable {
 struct LiveSettings: Codable, Equatable {
   var defaultService = 0
   var defaultQuality = "1080p"
+  var defaultPlaybackSpeed: Double?
   var defaultLandingPage = "home"
   var autoplay = true
   var skipPlaylistAutoplayScreen = false

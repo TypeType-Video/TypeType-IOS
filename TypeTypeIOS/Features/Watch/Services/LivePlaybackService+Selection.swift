@@ -4,6 +4,7 @@ extension LivePlaybackService {
   func selectVideo(
     from sources: [LivePlaybackVideoSource],
     quality: String,
+    preferredCodec: String = "recommended",
     requestedItag: Int?,
     requestedSourceID: String? = nil
   ) -> LivePlaybackVideoSource? {
@@ -18,7 +19,12 @@ extension LivePlaybackService {
       return requested
     }
     let target = qualityHeight(quality)
-    let ordered = sources.sorted {
+    let codecCandidates = filteredByCodec(
+      sources,
+      preferredCodec: preferredCodec
+    )
+    let codecOrdered = codecCandidates.isEmpty ? sources : codecCandidates
+    let ordered = codecOrdered.sorted {
       if $0.height != $1.height { return $0.height < $1.height }
       return ($0.bitrate ?? 0) < ($1.bitrate ?? 0)
     }
@@ -27,6 +33,24 @@ extension LivePlaybackService {
         ?? ordered.first
     }
     return ordered.last
+  }
+
+  private func filteredByCodec(
+    _ sources: [LivePlaybackVideoSource],
+    preferredCodec: String
+  ) -> [LivePlaybackVideoSource] {
+    let prefixes: [String]
+    switch preferredCodec.lowercased() {
+    case "av1": prefixes = ["av01"]
+    case "vp9": prefixes = ["vp09", "vp9"]
+    case "h264": prefixes = ["avc1"]
+    default: return sources
+    }
+    return sources.filter { source in
+      prefixes.contains {
+        source.codec?.lowercased().hasPrefix($0) == true
+      }
+    }
   }
 
   func selectAudio(
