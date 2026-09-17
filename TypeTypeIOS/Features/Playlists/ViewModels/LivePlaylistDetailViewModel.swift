@@ -19,10 +19,10 @@ final class LivePlaylistDetailViewModel: ObservableObject {
 
     var title: String {
       switch self {
-      case .manual: return "Manual"
-      case .addedNewest: return "Recently added"
-      case .addedOldest: return "Oldest added"
-      case .title: return "Title"
+      case .manual: return String(localized: "Manual")
+      case .addedNewest: return String(localized: "Recently added")
+      case .addedOldest: return String(localized: "Oldest added")
+      case .title: return String(localized: "Title")
       }
     }
   }

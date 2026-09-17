@@ -57,5 +57,7 @@ struct LivePlaylistCard: View {
       )
     }
     .accessibilityIdentifier("live.playlists.card")
+    .accessibilityElement(children: .combine)
+    .accessibilityLabel("\(playlist.name), \(playlist.videoCount) videos")
   }
 }

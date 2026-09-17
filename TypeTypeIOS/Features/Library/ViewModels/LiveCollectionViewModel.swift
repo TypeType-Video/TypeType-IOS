@@ -19,10 +19,10 @@ final class LiveCollectionViewModel: ObservableObject {
 
     var title: String {
       switch self {
-      case .addedNewest: return "Recently added"
-      case .addedOldest: return "Oldest added"
-      case .title: return "Title"
-      case .duration: return "Duration"
+      case .addedNewest: return String(localized: "Recently added")
+      case .addedOldest: return String(localized: "Oldest added")
+      case .title: return String(localized: "Title")
+      case .duration: return String(localized: "Duration")
       }
     }
   }

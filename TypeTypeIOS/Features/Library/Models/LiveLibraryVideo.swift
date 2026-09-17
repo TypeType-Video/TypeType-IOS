@@ -49,9 +49,9 @@ enum LiveLibraryCollectionKind: String, Identifiable {
   var title: String {
     switch self {
     case .favorites:
-      return "Favorites"
+      return String(localized: "Favorites")
     case .watchLater:
-      return "Watch later"
+      return String(localized: "Watch later")
     }
   }
 

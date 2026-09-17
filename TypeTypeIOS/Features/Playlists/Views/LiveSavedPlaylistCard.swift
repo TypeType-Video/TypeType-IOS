@@ -49,5 +49,7 @@ struct LiveSavedPlaylistCard: View {
       )
     }
     .accessibilityIdentifier("live.saved-playlist.card")
+    .accessibilityElement(children: .combine)
+    .accessibilityLabel("\(playlist.title), \(playlist.streamCount) videos")
   }
 }

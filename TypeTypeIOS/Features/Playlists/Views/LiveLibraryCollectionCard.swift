@@ -38,5 +38,7 @@ struct LiveLibraryCollectionCard: View {
     }
     .buttonStyle(.plain)
     .accessibilityIdentifier("live.library.collection-card")
+      .accessibilityElement(children: .combine)
+      .accessibilityLabel("\(kind.title), \(videos.count) videos")
   }
 }
