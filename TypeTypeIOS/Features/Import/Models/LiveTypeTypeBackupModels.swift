@@ -2,6 +2,7 @@ import Foundation
 
 enum LiveTypeTypeBackupCategory: String, CaseIterable, Identifiable {
   case subscriptions
+  case subscriptionGroups = "subscriptionGroups"
   case history
   case playlists
   case watchLater = "watchLater"
@@ -17,6 +18,7 @@ enum LiveTypeTypeBackupCategory: String, CaseIterable, Identifiable {
   var title: String {
     switch self {
     case .subscriptions: return String(localized: "Subscriptions")
+    case .subscriptionGroups: return String(localized: "Subscription groups")
     case .history: return String(localized: "History")
     case .playlists: return String(localized: "Playlists")
     case .watchLater: return String(localized: "Watch later")

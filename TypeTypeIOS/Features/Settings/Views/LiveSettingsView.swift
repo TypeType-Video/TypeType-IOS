@@ -71,9 +71,11 @@ struct LiveSettingsView: View {
         icon: "square.and.arrow.up.fill",
         subtitle: "Export or restore TypeType data, or import from "
           + "YouTube and PipePipe"
-      ) {
-        LiveImportView(service: coordinator.dependencies.importService)
-      }
+        ) {
+          LivePortabilityView(
+            service: coordinator.dependencies.portabilityService
+          )
+        }
 
       if coordinator.dependencies.rssEnabled,
         let rssFeedService = coordinator.dependencies.rssFeedService {
