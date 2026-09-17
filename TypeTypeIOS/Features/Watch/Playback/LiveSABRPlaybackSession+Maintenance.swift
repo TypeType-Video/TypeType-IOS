@@ -82,6 +82,15 @@ extension LiveSABRPlaybackSession {
       AppLogger.app.error(
         "Live SABR refresh failed: \(failure.domain, privacy: .public) \(failure.code) \(failure.localizedDescription, privacy: .public)"
       )
+      guard Self.shouldStopMaintenance(
+        failureCount: maintenanceFailureCount
+      ) else {
+        return
+      }
+      stopMaintenance()
+      maintenanceFailureHandler(
+        LivePlaybackFailure.sabrSessionTimedOut
+      )
     }
   }
 

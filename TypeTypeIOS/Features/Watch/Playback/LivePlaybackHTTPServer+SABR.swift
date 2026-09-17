@@ -4,7 +4,11 @@ extension LivePlaybackHTTPServer {
   func startSABRSession() async throws -> String {
     let session = LiveSABRPlaybackSession(
       service: service,
-      preparation: preparation
+      preparation: preparation,
+      maintenanceFailureHandler: { [weak self] error in
+        guard let self else { return }
+        self.sabrFailureHandler?(error)
+      }
     )
     sabrSession = session
     let snapshot = try await session.start()

@@ -171,6 +171,15 @@ extension LivePlayerController {
               failedKind: kind
             )
           }
+        },
+        sabrFailureHandler: { [weak self] error in
+          Task { @MainActor [weak self] in
+            guard let self else { return }
+            sabrStallRecoveryTask?.cancel()
+            sabrRecoveryBudgetResetTask?.cancel()
+            state = .failed(Self.message(for: error))
+            stopPlaybackSession()
+          }
         }
       )
       do {

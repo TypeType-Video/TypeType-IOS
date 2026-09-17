@@ -12,6 +12,8 @@ final class LivePlaybackHTTPServer: @unchecked Sendable {
     ProviderMediaKind
   ) -> Void
 
+  typealias SABRFailureHandler = @Sendable (Error) -> Void
+
   struct Resource: Sendable {
     let data: Data
     let mimeType: String
@@ -44,6 +46,7 @@ final class LivePlaybackHTTPServer: @unchecked Sendable {
   let preparation: LivePlaybackPreparation
   let preferredSubtitleLanguage: String
   let providerFailureHandler: ProviderFailureHandler?
+  let sabrFailureHandler: SABRFailureHandler?
   let queue = DispatchQueue(
     label: "dev.typetype.ios.live-playback-http",
     qos: .userInitiated
@@ -71,12 +74,14 @@ final class LivePlaybackHTTPServer: @unchecked Sendable {
     service: LivePlaybackServiceProtocol,
     preparation: LivePlaybackPreparation,
     preferredSubtitleLanguage: String,
-    providerFailureHandler: ProviderFailureHandler? = nil
+    providerFailureHandler: ProviderFailureHandler? = nil,
+    sabrFailureHandler: SABRFailureHandler? = nil
   ) {
     self.service = service
     self.preparation = preparation
     self.preferredSubtitleLanguage = preferredSubtitleLanguage
     self.providerFailureHandler = providerFailureHandler
+    self.sabrFailureHandler = sabrFailureHandler
     cache.totalCostLimit = 128 * 1_024 * 1_024
   }
 

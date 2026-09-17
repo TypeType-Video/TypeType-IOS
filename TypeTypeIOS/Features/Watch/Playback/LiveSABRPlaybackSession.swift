@@ -23,13 +23,18 @@ actor LiveSABRPlaybackSession {
       id: UUID,
       task: Task<LiveSABRPlaybackSnapshot, Error>
     )?
+  let maintenanceFailureHandler: @Sendable (Error) -> Void
 
   init(
     service: LivePlaybackServiceProtocol,
-    preparation: LivePlaybackPreparation
+    preparation: LivePlaybackPreparation,
+    maintenanceFailureHandler: @escaping @Sendable (Error) -> Void = {
+      _ in
+    }
   ) {
     self.service = service
     self.preparation = preparation
+    self.maintenanceFailureHandler = maintenanceFailureHandler
     playerTimeMS = Int64(preparation.resumeTime * 1_000)
   }
 
@@ -234,8 +239,13 @@ actor LiveSABRPlaybackSession {
   static let backBufferMS: Int64 = 30_000
   static let maximumAttempts = 60
   static let maximumRecoveries = 2
+  static let maximumMaintenanceFailures = 5
   static let minimumRetryMS: Int64 = 250
   static let maximumRetryMS: Int64 = 2_000
+
+  static func shouldStopMaintenance(failureCount: Int) -> Bool {
+    failureCount >= maximumMaintenanceFailures
+  }
 
   static func maintenanceRetryDelayMS(
     failureCount: Int
