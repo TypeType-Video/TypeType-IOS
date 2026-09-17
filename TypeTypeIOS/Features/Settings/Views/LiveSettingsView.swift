@@ -3,6 +3,8 @@ import SwiftUI
 struct LiveSettingsView: View {
   @StateObject private var viewModel: LiveSettingsViewModel
   private let dependencies: AppDependencies
+  @AppStorage(LiveAppearancePreference.storageKey)
+  private var appearanceRawValue = LiveAppearancePreference.defaultRawValue
 
   init(dependencies: AppDependencies) {
     self.dependencies = dependencies
@@ -63,6 +65,7 @@ struct LiveSettingsView: View {
       }
     case .loaded:
       Form {
+        appearanceSection
         LiveSettingsPlaybackSection(settings: $viewModel.draft)
         LiveSettingsLanguageSection(settings: $viewModel.draft)
         LiveSettingsDiscoverySection(
@@ -87,6 +90,20 @@ struct LiveSettingsView: View {
           }
         }
       }
+    }
+  }
+
+  private var appearanceSection: some View {
+    Section("Appearance") {
+      Picker(
+        "Color scheme",
+        selection: $appearanceRawValue
+      ) {
+        ForEach(LiveAppearanceMode.allCases) { mode in
+          Text(mode.title).tag(mode.rawValue)
+        }
+      }
+      .accessibilityIdentifier("live.settings.appearance")
     }
   }
 

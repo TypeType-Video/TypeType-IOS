@@ -2,6 +2,8 @@ import SwiftUI
 
 struct TypeTypeLiveAppView: View {
   @StateObject private var coordinator: RootCoordinator
+  @AppStorage(LiveAppearancePreference.storageKey)
+  private var appearanceRawValue = LiveAppearancePreference.defaultRawValue
 
   @MainActor
   init() {
@@ -41,7 +43,9 @@ struct TypeTypeLiveAppView: View {
     .onOpenURL(perform: coordinator.receiveIncomingURL)
     .animation(.easeInOut(duration: 0.22), value: coordinator.state)
     .preferredColorScheme(
-      AppConfig.debugForcesLightAppearance ? .light : nil
+      AppConfig.debugForcesLightAppearance
+        ? .light
+        : LiveAppearancePreference.mode(for: appearanceRawValue).colorScheme
     )
   }
 }
