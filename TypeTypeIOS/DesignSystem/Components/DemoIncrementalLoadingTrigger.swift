@@ -3,7 +3,7 @@ import SwiftUI
 struct DemoIncrementalLoadingTrigger: View {
   let canLoadMore: Bool
   let isLoading: Bool
-  let label: String
+  let label: LocalizedStringKey
   let identifier: String
   let action: () -> Void
 

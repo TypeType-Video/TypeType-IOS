@@ -26,14 +26,14 @@ struct LiveSearchFilterBar: View {
           Task { await viewModel.selectService(service.id) }
         } label: {
           menuLabel(
-            service.name,
+            Text(verbatim: service.name),
             selected: service.id == viewModel.selectedServiceID
           )
         }
       }
     } label: {
       filterLabel(
-        selectedService.name,
+        Text(verbatim: selectedService.name),
         systemImage: selectedService.systemImage
       )
     }
@@ -45,9 +45,9 @@ struct LiveSearchFilterBar: View {
       Button {
         Task { await viewModel.selectContentFilter(nil) }
       } label: {
-        menuLabel(
-          "All content",
-          selected: viewModel.selectedContentFilter == nil
+          menuLabel(
+            Text("All content"),
+            selected: viewModel.selectedContentFilter == nil
         )
       }
       ForEach(viewModel.visibleContentFilters) { filter in
@@ -57,7 +57,7 @@ struct LiveSearchFilterBar: View {
           }
         } label: {
           menuLabel(
-            filter.displayName,
+            Text(verbatim: filter.displayName),
             selected:
               filter.value == viewModel.selectedContentFilter
           )
@@ -74,7 +74,7 @@ struct LiveSearchFilterBar: View {
         Task { await viewModel.selectSortFilter(nil) }
       } label: {
         menuLabel(
-          "Default order",
+          Text("Default order"),
           selected: viewModel.selectedSortFilter == nil
         )
       }
@@ -83,7 +83,7 @@ struct LiveSearchFilterBar: View {
           Task { await viewModel.selectSortFilter(filter.value) }
         } label: {
           menuLabel(
-            filter.displayName,
+            Text(verbatim: filter.displayName),
             selected: filter.value == viewModel.selectedSortFilter
           )
         }
@@ -94,10 +94,14 @@ struct LiveSearchFilterBar: View {
   }
 
   private func filterLabel(
-    _ title: String,
+    _ title: Text,
     systemImage: String
   ) -> some View {
-    Label(title, systemImage: systemImage)
+    Label {
+      title
+    } icon: {
+      Image(systemName: systemImage)
+    }
       .font(.caption.weight(.semibold))
       .padding(.horizontal, 11)
       .padding(.vertical, 8)
@@ -105,12 +109,20 @@ struct LiveSearchFilterBar: View {
   }
 
   private func menuLabel(
-    _ title: String,
+    _ title: Text,
     selected: Bool
   ) -> some View {
     selected
-      ? Label(title, systemImage: "checkmark")
-      : Label(title, systemImage: "circle")
+      ? Label {
+          title
+        } icon: {
+          Image(systemName: "checkmark")
+        }
+      : Label {
+          title
+        } icon: {
+          Image(systemName: "circle")
+        }
   }
 
   private var selectedService: VideoService {
@@ -119,15 +131,21 @@ struct LiveSearchFilterBar: View {
     } ?? viewModel.services[0]
   }
 
-  private var contentTitle: String {
-    viewModel.visibleContentFilters.first {
+  private var contentTitle: Text {
+    if let selected = viewModel.visibleContentFilters.first(where: {
       $0.value == viewModel.selectedContentFilter
-    }?.displayName ?? "All content"
+    }) {
+      return Text(verbatim: selected.displayName)
+    }
+    return Text("All content")
   }
 
-  private var sortTitle: String {
-    viewModel.filters.sortFilters.first {
+  private var sortTitle: Text {
+    if let selected = viewModel.filters.sortFilters.first(where: {
       $0.value == viewModel.selectedSortFilter
-    }?.displayName ?? "Default order"
+    }) {
+      return Text(verbatim: selected.displayName)
+    }
+    return Text("Default order")
   }
 }

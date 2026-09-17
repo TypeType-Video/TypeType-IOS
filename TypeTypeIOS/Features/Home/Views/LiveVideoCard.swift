@@ -24,6 +24,8 @@ struct LiveVideoCard: View {
         thumbnail
       }
       .buttonStyle(.plain)
+      .accessibilityLabel("Open video \(branding.title)")
+      .accessibilityHint("Opens video details")
       .accessibilityIdentifier("live.home.video.card.\(video.id)")
 
       HStack(alignment: .top, spacing: 10) {
@@ -58,7 +60,7 @@ struct LiveVideoCard: View {
         avatar
       }
       .buttonStyle(.plain)
-      .accessibilityLabel("Open \(video.uploaderName)")
+      .accessibilityLabel("Open channel \(video.uploaderName)")
     } else {
       avatar
         .accessibilityHidden(true)
@@ -86,11 +88,11 @@ struct LiveVideoCard: View {
       .buttonStyle(.plain)
 
       if let onChannel {
-        Button(action: onChannel) {
-          channelName
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel("Open \(video.uploaderName)")
+      Button(action: onChannel) {
+        channelName
+      }
+      .buttonStyle(.plain)
+      .accessibilityLabel("Open channel \(video.uploaderName)")
       } else {
         channelName
       }
@@ -127,6 +129,7 @@ struct LiveVideoCard: View {
         .padding(.vertical, 3)
         .background(.black.opacity(0.84), in: RoundedRectangle(cornerRadius: 5))
         .padding(7)
+        .accessibilityHidden(true)
     }
   }
 
@@ -143,9 +146,10 @@ struct LiveVideoCard: View {
       }
     }
     .padding(7)
+    .accessibilityHidden(true)
   }
 
-  private func badge(_ text: String, color: Color) -> some View {
+  private func badge(_ text: LocalizedStringKey, color: Color) -> some View {
     Text(text)
       .font(.caption2.weight(.bold))
       .foregroundStyle(.white)

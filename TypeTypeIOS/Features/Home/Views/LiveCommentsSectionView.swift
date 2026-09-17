@@ -132,6 +132,48 @@ struct LiveCommentsSectionView: View {
     )
   }
 
+  private func statusCard<Actions: View>(
+    title: LocalizedStringKey,
+    message: LocalizedStringKey,
+    systemImage: String,
+    @ViewBuilder actions: () -> Actions
+  ) -> some View {
+    VStack(alignment: .leading, spacing: 10) {
+      Label(title, systemImage: systemImage)
+        .font(.subheadline.weight(.semibold))
+      Text(message)
+        .font(.footnote)
+        .foregroundStyle(.secondary)
+      actions()
+    }
+    .padding(14)
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .background(
+      DemoTheme.surface,
+      in: RoundedRectangle(cornerRadius: 12, style: .continuous)
+    )
+  }
+
+  private func statusCard(
+    title: LocalizedStringKey,
+    message: LocalizedStringKey,
+    systemImage: String
+  ) -> some View {
+    VStack(alignment: .leading, spacing: 10) {
+      Label(title, systemImage: systemImage)
+        .font(.subheadline.weight(.semibold))
+      Text(message)
+        .font(.footnote)
+        .foregroundStyle(.secondary)
+    }
+    .padding(14)
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .background(
+      DemoTheme.surface,
+      in: RoundedRectangle(cornerRadius: 12, style: .continuous)
+    )
+  }
+
   private func statusCard(
     title: String,
     message: String,
@@ -266,11 +308,13 @@ private struct LiveCommentRow: View {
           ProgressView()
             .controlSize(.small)
         }
-        Text(
-          repliesVisible
-            ? "Hide replies"
-            : "\(comment.replyCount) \(comment.replyCount == 1 ? "reply" : "replies")"
-        )
+        if repliesVisible {
+          Text("Hide replies")
+        } else if comment.replyCount == 1 {
+          Text("\(comment.replyCount) reply")
+        } else {
+          Text("\(comment.replyCount) replies")
+        }
       }
       .font(.subheadline.weight(.semibold))
     }
@@ -323,7 +367,7 @@ private struct LiveCommentRow: View {
       repliesVisible = true
     } catch {
       errorMessage = (error as? LocalizedError)?.errorDescription
-        ?? "Replies could not be loaded."
+        ?? String(localized: "Replies could not be loaded.")
     }
   }
 }

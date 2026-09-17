@@ -33,5 +33,10 @@ final class LocalizationCatalogTests: XCTestCase {
     XCTAssertTrue(keys.contains("Account identity"))
     XCTAssertTrue(keys.contains("Continue as guest"))
     XCTAssertTrue(keys.contains("Manage subscription groups"))
+    XCTAssertTrue(keys.contains("Open video %@"))
+    XCTAssertTrue(keys.contains("Continue watching"))
+    XCTAssertTrue(keys.contains("Search videos, channels..."))
+    XCTAssertTrue(keys.contains("Comments"))
+    XCTAssertTrue(keys.contains("%lld replies"))
   }
 }

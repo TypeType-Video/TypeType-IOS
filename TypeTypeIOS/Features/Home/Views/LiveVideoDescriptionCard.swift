@@ -73,7 +73,7 @@ struct LiveVideoDescriptionCard: View {
       LiveVideoMetadataFormatter.publication(video),
     ]
     if video.isLive {
-      values.insert("Live", at: 0)
+      values.insert(String(localized: "Live"), at: 0)
     }
     return values.filter { !$0.isEmpty }.joined(separator: " · ")
   }
