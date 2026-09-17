@@ -38,6 +38,7 @@ final class AppDependencies {
   let diagnosticsStore: LiveDiagnosticsStore
   let importService: LiveImportServiceProtocol
   let portabilityService: LivePortabilityServiceProtocol
+  let versionService: LiveVersionServiceProtocol
   let youtubeSessionService: LiveYouTubeSessionServiceProtocol
   let playbackService: LivePlaybackServiceProtocol?
   lazy var connectivityMonitor = LiveConnectivityMonitor()
@@ -119,6 +120,7 @@ final class AppDependencies {
     diagnosticsStore: LiveDiagnosticsStore = LiveDiagnosticsStore(),
     importService: LiveImportServiceProtocol,
     portabilityService: LivePortabilityServiceProtocol = LivePortabilityNoopService(),
+    versionService: LiveVersionServiceProtocol = LiveVersionUnavailableService(),
     youtubeSessionService: LiveYouTubeSessionServiceProtocol,
     playbackService: LivePlaybackServiceProtocol? = nil
   ) {
@@ -155,6 +157,7 @@ final class AppDependencies {
     self.diagnosticsStore = diagnosticsStore
     self.importService = importService
     self.portabilityService = portabilityService
+    self.versionService = versionService
     self.youtubeSessionService = youtubeSessionService
     self.playbackService = playbackService
   }

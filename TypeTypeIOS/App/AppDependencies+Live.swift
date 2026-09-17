@@ -137,6 +137,7 @@ extension AppDependencies {
       diagnosticsStore: diagnosticsStore,
       importService: LiveImportService(apiClient: client),
       portabilityService: LivePortabilityService(apiClient: client),
+      versionService: LiveVersionService(apiClient: client),
       youtubeSessionService: LiveYouTubeSessionService(apiClient: client),
       playbackService: LivePlaybackService(
         apiClient: client,

@@ -186,7 +186,10 @@ struct LiveSettingsView: View {
         icon: "info.circle.fill",
         subtitle: "Version and credits"
       ) {
-        DemoAboutView()
+        LiveAboutView(
+          coordinator: coordinator,
+          versionService: coordinator.dependencies.versionService
+        )
       }
 
       Button {
@@ -208,7 +211,7 @@ struct LiveSettingsView: View {
     .listStyle(.plain)
     .padding(.bottom, playbackCoordinator.showsMiniPlayer ? 82 : 0)
     .scrollContentBackground(.hidden)
-    .background(Color(uiColor: .systemBackground))
+    .background(DemoTheme.background)
   }
 
   private func settingsLink<Destination: View>(
