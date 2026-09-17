@@ -4,6 +4,7 @@ struct TypeTypeLiveAppView: View {
   @StateObject private var coordinator: RootCoordinator
   @ObservedObject private var preferences = LiveAppPreferencesStore.shared
   @Environment(\.scenePhase) private var scenePhase
+  @Environment(\.colorScheme) private var systemColorScheme
 
   @MainActor
   init() {
@@ -18,7 +19,7 @@ struct TypeTypeLiveAppView: View {
     _coordinator = StateObject(
       wrappedValue: RootCoordinator(dependencies: dependencies)
     )
-    DemoTheme.updateAccent(preferences.preferences.accentColor)
+    DemoTheme.update(preferences: preferences.preferences)
   }
 
   var body: some View {
@@ -51,6 +52,15 @@ struct TypeTypeLiveAppView: View {
       value: coordinator.state
     )
     .tint(preferences.preferences.accentColor.color)
+    .environment(\.font, preferences.preferences.appearanceFont == .expressive
+      ? Font.system(.body, design: .rounded)
+      : nil)
+    .onChange(of: preferences.preferences) { newValue in
+      DemoTheme.update(
+        preferences: newValue,
+        colorScheme: systemColorScheme
+      )
+    }
     .onChange(of: preferences.preferences) { newValue in
       DemoTheme.updateAccent(newValue.accentColor)
     }
