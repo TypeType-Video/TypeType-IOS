@@ -12,7 +12,7 @@ final class LiveNotificationCenterPollingTests: XCTestCase {
 
     center.startPolling(interval: .milliseconds(10))
     try await Task.sleep(for: .milliseconds(80))
-    center.stopPolling()
+    await center.stopPollingAndWait()
     let attemptsAfterStop = service.attempts
     try await Task.sleep(for: .milliseconds(30))
 

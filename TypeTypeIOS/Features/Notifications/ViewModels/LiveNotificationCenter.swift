@@ -55,6 +55,16 @@ final class LiveNotificationCenter: ObservableObject {
   }
 
   func stopPolling() {
+    stopPollingCore()
+  }
+
+  func stopPollingAndWait() async {
+    stopPollingCore()
+    let pollingTask = self.pollingTask
+    await pollingTask?.value
+  }
+
+  private func stopPollingCore() {
     pollingTask?.cancel()
     refreshTask?.cancel()
     refreshGeneration += 1
@@ -69,7 +79,7 @@ final class LiveNotificationCenter: ObservableObject {
 
   func clear() {
     refreshTask?.cancel()
-    stopPolling()
+    stopPollingCore()
     pollingGeneration += 1
     unreadCount = 0
   }
