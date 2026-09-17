@@ -106,7 +106,6 @@ struct LiveAuthenticatedAppView: View {
       reconnect()
       playbackCoordinator.retryAfterNetworkRecovery()
     }
-    .tint(DemoTheme.accent)
     .alert(
       "Video service",
       isPresented: Binding(

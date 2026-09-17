@@ -3,6 +3,7 @@ import SwiftUI
 struct LiveSettingsView: View {
   @StateObject private var viewModel: LiveSettingsViewModel
   @ObservedObject private var coordinator: RootCoordinator
+  @ObservedObject private var preferences = LiveAppPreferencesStore.shared
   @ObservedObject private var playbackCoordinator: LivePlaybackCoordinator
 
   init(coordinator: RootCoordinator) {
@@ -212,6 +213,7 @@ struct LiveSettingsView: View {
     .padding(.bottom, playbackCoordinator.showsMiniPlayer ? 82 : 0)
     .scrollContentBackground(.hidden)
     .background(DemoTheme.background)
+    .tint(preferences.preferences.accentColor.color)
   }
 
   private func settingsLink<Destination: View>(
