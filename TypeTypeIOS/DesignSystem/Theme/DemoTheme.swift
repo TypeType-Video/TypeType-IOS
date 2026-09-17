@@ -98,15 +98,14 @@ enum DemoTheme {
   }
 
   private static func themed(_ base: UIColor) -> Color {
-    Color(
-      uiColor: UIColor { traits in
-        let isDark = appearanceMode == .dark
-          || traits.userInterfaceStyle == .dark
-          || appearanceAmoled
-        return resolvedUIColor(base, isDark: isDark)
-          .resolvedColor(with: traits)
-      }
-    )
+    let isDark = appearanceMode == .dark
+      || UITraitCollection.current.userInterfaceStyle == .dark
+      || appearanceAmoled
+    if appearancePersonality == .manga,
+      appearanceTheme == .typetype || appearanceTheme == .dynamic {
+      return Color(uiColor: mangaColor(isDark: isDark))
+    }
+    return Color(uiColor: resolvedUIColor(base, isDark: isDark))
   }
 
   private static func resolvedUIColor(
@@ -114,9 +113,6 @@ enum DemoTheme {
     isDark: Bool
   ) -> UIColor {
     if appearanceAmoled { return .black }
-    if appearancePersonality == .manga {
-      return mangaColor(isDark: isDark)
-    }
     switch appearanceTheme {
     case .typetype, .dynamic:
       return base

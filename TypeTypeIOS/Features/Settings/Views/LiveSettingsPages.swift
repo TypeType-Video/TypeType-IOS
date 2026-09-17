@@ -36,6 +36,8 @@ struct LiveSettingsEditingPage<Content: View>: View {
     } message: {
       Text(viewModel.errorMessage ?? "")
     }
+    .scrollContentBackground(.hidden)
+    .background(DemoTheme.background)
   }
 
   private var errorBinding: Binding<Bool> {
@@ -192,9 +194,77 @@ struct LiveSettingsAppearanceView: View {
           )
         }
       }
+
+      Section("Preview") {
+        Color.clear
+          .accessibilityIdentifier("live.settings.appearance.preview")
+          .frame(height: 0)
+        ZStack {
+          RoundedRectangle(cornerRadius: 16, style: .continuous)
+            .fill(DemoTheme.background)
+            .overlay {
+              if preferences.preferences.appearancePersonality == .manga,
+                preferences.preferences.mangaScreentone {
+                  Canvas { context, size in
+                    var x: CGFloat = 8
+                    while x < size.width {
+                      var y: CGFloat = 8
+                      while y < size.height {
+                        context.fill(
+                          Path(ellipseIn: CGRect(x: x, y: y, width: 2, height: 2)),
+                          with: .color(.primary.opacity(0.10))
+                        )
+                        y += 12
+                      }
+                      x += 12
+                    }
+                  }
+                }
+            }
+            .frame(height: 132)
+            .overlay {
+              RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .strokeBorder(DemoTheme.separator, lineWidth: 1)
+            }
+            .rotationEffect(
+              .degrees(
+                preferences.preferences.appearancePersonality == .manga
+                  && preferences.preferences.mangaPanelTilt ? -1 : 0
+              )
+            )
+
+            VStack(alignment: .leading, spacing: 6) {
+              Text("TypeType")
+                .accessibilityIdentifier("live.settings.appearance.preview")
+                .font(
+                  preferences.preferences.appearancePersonality == .manga
+                    ? .title2.weight(.black).monospaced()
+                    : .title2.weight(.semibold)
+                )
+              Text("Theme preview")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(20)
+          }
+          HStack(spacing: 8) {
+            Circle()
+              .fill(preferences.preferences.accentColor.color)
+              .frame(width: 24, height: 24)
+              .overlay(Circle().strokeBorder(DemoTheme.separator))
+            Text(preferences.preferences.accentColor.title)
+              .font(.caption)
+            Spacer()
+            Text(preferences.preferences.appearanceTheme.title)
+              .font(.caption)
+              .foregroundStyle(.secondary)
+          }
+        }
     }
     .navigationTitle("Appearance")
     .navigationBarTitleDisplayMode(.inline)
+    .accessibilityIdentifier("live.settings.appearance")
   }
 }
 

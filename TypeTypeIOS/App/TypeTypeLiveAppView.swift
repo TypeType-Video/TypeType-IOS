@@ -72,8 +72,38 @@ struct TypeTypeLiveAppView: View {
     .preferredColorScheme(
       AppConfig.debugForcesLightAppearance
         ? .light
-        : preferences.preferences.appearanceMode.colorScheme
+        : preferredColorScheme
     )
+  }
+
+  private var themeIdentity: String {
+    let value = preferences.preferences
+    return [
+      value.accentColor.rawValue,
+      value.appearancePersonality.rawValue,
+      value.appearanceMode.rawValue,
+      value.appearanceAmoled.description,
+      value.appearanceTheme.rawValue,
+      value.appearanceFont.rawValue,
+      value.appearanceMotion.rawValue,
+      value.mangaPaper.rawValue,
+      value.mangaHeadlineMarker.rawValue,
+      value.mangaScreentone.description,
+      value.mangaSpeedLines.description,
+      value.mangaStarburst.description,
+      value.mangaInkedIcons.description,
+      value.mangaPanelTilt.description,
+    ].joined(separator: "|")
+  }
+
+  private var preferredColorScheme: ColorScheme? {
+    if AppConfig.debugForcesLightAppearance { return .light }
+    switch preferences.preferences.appearanceMode {
+    case .light: return .light
+    case .dark: return .dark
+    case .system:
+      return preferences.preferences.appearanceAmoled ? .dark : nil
+    }
   }
 }
 
