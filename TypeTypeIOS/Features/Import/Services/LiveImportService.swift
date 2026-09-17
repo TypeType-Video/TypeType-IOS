@@ -17,6 +17,13 @@ protocol LiveImportServiceProtocol {
     options: LiveYouTubeImportCommit
   ) async throws -> LiveYouTubeImportJob
   func youTubeReport(id: String) async throws -> LiveYouTubeImportReport
+  func exportTypeTypeBackup(
+    categories: Set<LiveTypeTypeBackupCategory>
+  ) async throws -> URL
+  func restoreTypeTypeBackup(
+    data: Data,
+    fileName: String
+  ) async throws -> LiveTypeTypeRestoreSummary
 }
 
 final class LiveImportService: LiveImportServiceProtocol {
@@ -147,6 +154,37 @@ final class LiveImportService: LiveImportServiceProtocol {
       body: body,
       requiresAuth: true,
       timeoutInterval: 90
+    )
+  }
+
+  func exportTypeTypeBackup(
+    categories: Set<LiveTypeTypeBackupCategory>
+  ) async throws -> URL {
+    let names = categories.map(\.rawValue).sorted().joined(separator: ",")
+    return try await apiClient.download(
+      APIEndpoint(
+        path: "/backup/typetype",
+        method: .get,
+        queryItems: [URLQueryItem(name: "categories", value: names)],
+        requiresAuth: true,
+        timeoutInterval: 120
+      )
+    )
+  }
+
+  func restoreTypeTypeBackup(
+    data: Data,
+    fileName: String
+  ) async throws -> LiveTypeTypeRestoreSummary {
+    let form = MultipartFormData(
+      fieldName: "file",
+      fileName: fileName,
+      mediaType: "application/json",
+      data: data
+    )
+    return try await apiClient.request(
+      uploadEndpoint("/restore/typetype", form: form),
+      as: LiveTypeTypeRestoreSummary.self
     )
   }
 }

@@ -145,6 +145,21 @@ private final class ImportServiceStub: LiveImportServiceProtocol {
     )
   }
 
+  func exportTypeTypeBackup(
+    categories: Set<LiveTypeTypeBackupCategory>
+  ) async throws -> URL {
+    URL(fileURLWithPath: "/tmp/\(UUID().uuidString).json")
+  }
+
+  func restoreTypeTypeBackup(
+    data: Data,
+    fileName: String
+  ) async throws -> LiveTypeTypeRestoreSummary {
+    LiveTypeTypeRestoreSummary(
+      restored: ["subscriptions": 1, "history": 2]
+    )
+  }
+
   private var counts: LiveYouTubeImportCounts {
     LiveYouTubeImportCounts(
       subscriptions: 1,

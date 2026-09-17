@@ -1,6 +1,66 @@
 import SwiftUI
 
 extension LiveImportView {
+  var typeTypeBackupSection: some View {
+    Section {
+      ForEach(LiveTypeTypeBackupCategory.allCases) { category in
+        Toggle(category.title, isOn: categoryBinding(category))
+          .disabled(viewModel.isRunning)
+      }
+      if let exportedBackupURL = viewModel.exportedBackupURL {
+        ShareLink(
+          item: exportedBackupURL,
+          preview: SharePreview("TypeType backup", image: "externaldrive")
+        ) {
+          Label("Share backup", systemImage: "square.and.arrow.up")
+        }
+      } else {
+        Label("Share backup", systemImage: "square.and.arrow.up")
+          .foregroundStyle(.secondary)
+      }
+      Button {
+        Task { await viewModel.exportTypeTypeBackup() }
+      } label: {
+        if viewModel.isExportingBackup {
+          HStack {
+            Text("Export selected data")
+            Spacer()
+            ProgressView()
+          }
+        } else {
+          Label("Export selected data", systemImage: "square.and.arrow.down")
+        }
+      }
+      .disabled(!viewModel.canExportTypeTypeBackup)
+      .accessibilityIdentifier("live.import.typetype.export")
+      Button {
+        importsTypeTypeBackup = true
+      } label: {
+        Label("Restore TypeType backup", systemImage: "clock.arrow.circlepath")
+      }
+      .disabled(viewModel.isRunning)
+      if let summary = viewModel.typeTypeRestoreSummary {
+        LabeledContent("Items restored", value: String(summary.total))
+        ForEach(summary.restored.sorted(by: { $0.key < $1.key }), id: \.key) { item in
+          LabeledContent(item.key, value: String(item.value))
+        }
+      }
+    } header: {
+      Text("TypeType backup")
+    } footer: {
+      Text("Restore replaces matching data in this TypeType account. Export and restore use the selected categories.")
+    }
+  }
+
+  private func categoryBinding(
+    _ category: LiveTypeTypeBackupCategory
+  ) -> Binding<Bool> {
+    Binding(
+      get: { viewModel.selectedBackupCategories.contains(category) },
+      set: { _ in viewModel.toggleBackupCategory(category) }
+    )
+  }
+
   var pipePipeSection: some View {
     Section("PipePipe") {
       Picker("Timestamp handling", selection: $timeMode) {

@@ -7,6 +7,13 @@ final class LiveImportViewModel: ObservableObject {
   @Published var youTubeArchives: [LiveYouTubeImportArchive] = []
   @Published var activeYouTubeArchiveID: UUID?
   @Published var errorMessage: String?
+  @Published var selectedBackupCategories: Set<LiveTypeTypeBackupCategory> = Set(
+    LiveTypeTypeBackupCategory.allCases
+  )
+  @Published var exportedBackupURL: URL?
+  @Published var typeTypeRestoreSummary: LiveTypeTypeRestoreSummary?
+  @Published var isExportingBackup = false
+  @Published var isRestoringBackup = false
 
   let service: LiveImportServiceProtocol
 
@@ -33,6 +40,59 @@ final class LiveImportViewModel: ObservableObject {
       default:
         return false
       }
+    }
+  }
+
+  var canExportTypeTypeBackup: Bool {
+    !isRunning && !selectedBackupCategories.isEmpty
+  }
+
+  func toggleBackupCategory(_ category: LiveTypeTypeBackupCategory) {
+    guard !isRunning else { return }
+    if selectedBackupCategories.contains(category) {
+      selectedBackupCategories.remove(category)
+    } else {
+      selectedBackupCategories.insert(category)
+    }
+  }
+
+  func exportTypeTypeBackup() async {
+    guard canExportTypeTypeBackup else { return }
+    isRunning = true
+    isExportingBackup = true
+    errorMessage = nil
+    exportedBackupURL = nil
+    defer {
+      isRunning = false
+      isExportingBackup = false
+    }
+    do {
+      exportedBackupURL = try await service.exportTypeTypeBackup(
+        categories: selectedBackupCategories
+      )
+    } catch {
+      errorMessage = Self.message(for: error)
+    }
+  }
+
+  func restoreTypeTypeBackup(url: URL) async {
+    guard !isRunning else { return }
+    isRunning = true
+    isRestoringBackup = true
+    errorMessage = nil
+    typeTypeRestoreSummary = nil
+    defer {
+      isRunning = false
+      isRestoringBackup = false
+    }
+    do {
+      let file = try Self.read(url)
+      typeTypeRestoreSummary = try await service.restoreTypeTypeBackup(
+        data: file.data,
+        fileName: file.name
+      )
+    } catch {
+      errorMessage = Self.message(for: error)
     }
   }
 
