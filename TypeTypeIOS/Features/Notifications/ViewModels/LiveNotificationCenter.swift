@@ -8,6 +8,7 @@ final class LiveNotificationCenter: ObservableObject {
   private let service: LiveNotificationsServiceProtocol
   private var refreshTask: Task<Void, Never>?
   private var pollingTask: Task<Void, Never>?
+  private var inFlightRefreshTasks: Set<Task<Void, Never>> = []
   private var pollingGeneration = 0
   private var refreshGeneration = 0
 
@@ -30,8 +31,10 @@ final class LiveNotificationCenter: ObservableObject {
         // A badge must never block the authenticated application.
       }
     }
+    inFlightRefreshTasks.insert(task)
     refreshTask = task
     await task.value
+    inFlightRefreshTasks.remove(task)
   }
 
   func startPolling(interval: Duration = .seconds(60)) {
@@ -60,6 +63,10 @@ final class LiveNotificationCenter: ObservableObject {
 
   func stopPollingAndWait() async {
     stopPollingCore()
+    while let refreshTask = inFlightRefreshTasks.first {
+      await refreshTask.value
+      inFlightRefreshTasks.remove(refreshTask)
+    }
     let pollingTask = self.pollingTask
     await pollingTask?.value
   }

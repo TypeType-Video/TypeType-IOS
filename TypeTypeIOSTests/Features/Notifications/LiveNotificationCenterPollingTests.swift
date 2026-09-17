@@ -31,7 +31,7 @@ final class LiveNotificationCenterPollingTests: XCTestCase {
     center.startPolling(interval: .milliseconds(20))
 
     XCTAssertGreaterThanOrEqual(service.attempts, 1)
-    center.stopPolling()
+    await center.stopPollingAndWait()
     let attemptsAfterStop = service.attempts
     try await Task.sleep(for: .milliseconds(30))
     XCTAssertEqual(service.attempts, attemptsAfterStop)
