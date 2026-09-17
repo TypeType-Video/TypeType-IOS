@@ -59,6 +59,24 @@ final class LiveNotificationSettingsViewModelTests: XCTestCase {
     XCTAssertEqual(viewModel.errorMessage, "Network transport failed.")
   }
 
+  func testPermissionLoadsAndRequestUpdatesStatus() async throws {
+    let service = NotificationSettingsServiceStub(preferences: [])
+    let permissions = NotificationPermissionStub(initial: .notDetermined)
+    let viewModel = LiveNotificationSettingsViewModel(
+      service: service,
+      permissionManager: permissions
+    )
+
+    await viewModel.prepare()
+    XCTAssertEqual(viewModel.permissionStatus, .notDetermined)
+
+    await viewModel.requestPermission()
+
+    XCTAssertEqual(permissions.requestCount, 1)
+    XCTAssertEqual(viewModel.permissionStatus, .granted)
+    XCTAssertNil(viewModel.errorMessage)
+  }
+
   private static func preference(
     url: String,
     enabled: Bool
@@ -119,5 +137,25 @@ private final class NotificationSettingsServiceStub: LivePushNotificationsServic
       }
     }
     return preference
+  }
+}
+
+private final class NotificationPermissionStub: LiveNotificationPermissionManaging {
+  private let lock = NSLock()
+  private var status: LiveNotificationPermissionStatus
+  private(set) var requestCount = 0
+
+  init(initial: LiveNotificationPermissionStatus) {
+    status = initial
+  }
+
+  func currentStatus() async -> LiveNotificationPermissionStatus {
+    status
+  }
+
+  func requestAuthorization() async throws -> LiveNotificationPermissionStatus {
+    requestCount += 1
+    status = .granted
+    return status
   }
 }

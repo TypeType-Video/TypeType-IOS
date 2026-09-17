@@ -25,6 +25,8 @@ final class AppDependencies {
   let notificationsService: LiveNotificationsServiceProtocol
   let pushNotificationsService: LivePushNotificationsServiceProtocol?
   let notificationCenter: LiveNotificationCenter
+  lazy var notificationPermissionManager: LiveNotificationPermissionManaging =
+    LiveNotificationPermissionService()
   var pushNotificationsEnabled = false
   let sessionActivityService: LiveSessionActivityServiceProtocol
   let adminService: LiveAdminServiceProtocol

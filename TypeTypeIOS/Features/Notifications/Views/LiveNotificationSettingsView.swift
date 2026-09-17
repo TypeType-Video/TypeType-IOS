@@ -7,7 +7,8 @@ struct LiveNotificationSettingsView: View {
     _viewModel = StateObject(
       wrappedValue: LiveNotificationSettingsViewModel(
         service: dependencies.pushNotificationsService
-          ?? StubPushNotificationSettingsService()
+          ?? StubPushNotificationSettingsService(),
+        permissionManager: dependencies.notificationPermissionManager
       )
     )
   }
@@ -36,6 +37,7 @@ struct LiveNotificationSettingsView: View {
     .navigationTitle("Channel notifications")
     .navigationBarTitleDisplayMode(.inline)
     .task { await viewModel.prepare() }
+    .onChange(of: viewModel.permissionStatus) { _ in }
     .alert(
       "Notification settings",
       isPresented: errorBinding
@@ -51,13 +53,14 @@ struct LiveNotificationSettingsView: View {
   private var settingsList: some View {
     let preferences = viewModel.sortedPreferences
     if preferences.isEmpty {
-      ContentUnavailableView(
-        "No channel settings",
-        systemImage: "bell",
-        description: Text("Notification preferences appear after you subscribe to a channel.")
-      )
+      List {
+        permissionSection
+        emptyPreferencesSection
+      }
+      .listStyle(.insetGrouped)
     } else {
       List {
+        permissionSection
         ForEach(preferences) { preference in
           Toggle(isOn: binding(for: preference)) {
             VStack(alignment: .leading, spacing: 4) {
@@ -79,6 +82,51 @@ struct LiveNotificationSettingsView: View {
         }
       }
       .listStyle(.insetGrouped)
+    }
+  }
+
+  @ViewBuilder
+  private var permissionSection: some View {
+    Section("iOS permissions") {
+      switch viewModel.permissionStatus {
+      case .unknown:
+        LabeledContent("Status", value: "Unavailable")
+      case .notDetermined:
+        Button {
+          Task { await viewModel.requestPermission() }
+        } label: {
+          if viewModel.isRequestingPermission {
+            HStack {
+              Text("Request permission")
+              Spacer()
+              ProgressView()
+            }
+          } else {
+            Text("Enable iOS notifications")
+          }
+        }
+        .disabled(viewModel.isRequestingPermission)
+      case .granted, .provisional, .ephemeral:
+        Label("Notifications enabled", systemImage: "checkmark.circle.fill")
+          .foregroundStyle(.green)
+      case .denied:
+        VStack(alignment: .leading, spacing: 8) {
+          Label("Notifications disabled", systemImage: "bell.slash")
+          Button("Open iOS Settings") {
+            if let url = URL(string: UIApplication.openSettingsURLString) {
+              UIApplication.shared.open(url)
+            }
+          }
+        }
+      }
+    }
+  }
+
+  @ViewBuilder
+  private var emptyPreferencesSection: some View {
+    Section {
+      Text("Notification preferences appear after you subscribe to a channel.")
+        .foregroundStyle(.secondary)
     }
   }
 
