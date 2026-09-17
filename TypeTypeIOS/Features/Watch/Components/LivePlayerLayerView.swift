@@ -18,6 +18,7 @@ private final class LiveAVPlayerViewController: AVPlayerViewController {
 struct LivePlayerLayerView: UIViewControllerRepresentable {
   let player: AVPlayer
   let controller: LivePlayerController
+  var onSwipeAdjustment: ((PlayerSwipeAdjustmentEvent) -> Void)? = nil
 
   func makeCoordinator() -> LivePlayerLayerCoordinator {
     LivePlayerLayerCoordinator(controller: controller)
@@ -36,6 +37,10 @@ struct LivePlayerLayerView: UIViewControllerRepresentable {
     playerController.videoGravity = controller.imageMode.videoGravity
     playerController.view.backgroundColor = .black
     playerController.delegate = context.coordinator
+    context.coordinator.swipeGestureHandler = onSwipeAdjustment
+    context.coordinator.installSwipeGesture(
+      in: playerController.view
+    )
     playerController.onWillTransition = {
       [weak coordinator = context.coordinator] transitionCoordinator in
       coordinator?.preservePlayback(across: transitionCoordinator)
@@ -53,6 +58,7 @@ struct LivePlayerLayerView: UIViewControllerRepresentable {
     }
     playerController.videoGravity = controller.imageMode.videoGravity
     context.coordinator.update(controller, in: playerController)
+    context.coordinator.swipeGestureHandler = onSwipeAdjustment
   }
 
   static func dismantleUIViewController(

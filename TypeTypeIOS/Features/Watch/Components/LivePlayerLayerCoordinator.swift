@@ -19,6 +19,9 @@ final class LivePlayerLayerCoordinator:
   var presentationTransitionInProgress = false
   var sponsorCenterConstraint: NSLayoutConstraint?
   var sponsorTrailingConstraint: NSLayoutConstraint?
+  var swipeGestureHandler: ((PlayerSwipeAdjustmentEvent) -> Void)?
+  private var swipeGestureKind: PlayerSwipeAdjustmentKind?
+  private var swipeGestureBaseFraction: CGFloat = 0.5
 
   init(controller: LivePlayerController) {
     self.controller = controller
@@ -128,5 +131,86 @@ final class LivePlayerLayerCoordinator:
     hostedViews.removeAll()
     sponsorCenterConstraint = nil
     sponsorTrailingConstraint = nil
+  }
+
+  func installSwipeGesture(in view: UIView) {
+    let recognizer = UIPanGestureRecognizer(
+      target: self,
+      action: #selector(handleSwipeGesture(_:))
+    )
+    recognizer.cancelsTouchesInView = false
+    recognizer.delegate = self
+    view.addGestureRecognizer(recognizer)
+  }
+
+  @objc private func handleSwipeGesture(
+    _ recognizer: UIPanGestureRecognizer
+  ) {
+    switch recognizer.state {
+    case .began:
+      guard let kind = swipeGestureKind else { return }
+      swipeGestureHandler?(
+        .began(kind: kind, fraction: swipeGestureBaseFraction)
+      )
+    case .changed:
+      guard let kind = swipeGestureKind,
+        let view = recognizer.view
+      else { return }
+      let translation = recognizer.translation(in: view)
+      let translationVector = CGSize(
+        width: translation.x,
+        height: translation.y
+      )
+      let fraction = PlayerSwipeAdjustmentRules.fraction(
+        base: swipeGestureBaseFraction,
+        translationHeight: translationVector.height,
+        height: view.bounds.height
+      )
+      swipeGestureHandler?(
+        .updated(kind: kind, fraction: fraction)
+      )
+    case .ended, .cancelled, .failed:
+      swipeGestureKind = nil
+      swipeGestureHandler?(.ended)
+    default:
+      break
+    }
+  }
+}
+
+extension LivePlayerLayerCoordinator: UIGestureRecognizerDelegate {
+  func gestureRecognizerShouldBegin(
+    _ gestureRecognizer: UIGestureRecognizer
+  ) -> Bool {
+    guard let recognizer = gestureRecognizer as? UIPanGestureRecognizer,
+      let view = recognizer.view,
+      view.bounds.width > 0,
+      view.bounds.height > 0
+    else { return false }
+
+    let startLocation = recognizer.location(in: view)
+    let translation = recognizer.translation(in: view)
+    guard let kind = PlayerSwipeAdjustmentRules.kind(
+      startLocation: startLocation,
+      size: view.bounds.size,
+      translation: CGSize(width: translation.x, height: translation.y)
+    ) else { return false }
+
+    swipeGestureKind = kind
+    swipeGestureBaseFraction = switch kind {
+    case .brightness:
+      CGFloat(UIScreen.main.brightness)
+    case .volume:
+      CGFloat(controller.player.volume)
+    }
+    return true
+  }
+
+  func gestureRecognizer(
+    _ gestureRecognizer: UIGestureRecognizer,
+    shouldRecognizeSimultaneouslyWith otherGestureRecognizer:
+      UIGestureRecognizer
+  ) -> Bool {
+    true
   }
 }

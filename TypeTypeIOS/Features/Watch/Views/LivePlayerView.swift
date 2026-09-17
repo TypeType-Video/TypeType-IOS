@@ -7,6 +7,8 @@ struct LivePlayerView: View {
   @Binding var cinemaMode: Bool
   @State private var showsOptions = false
   @State private var seekFeedback: PlayerDoubleTapSeekFeedback?
+  @State private var swipeAdjustment: PlayerSwipeAdjustmentState?
+  @State private var systemBrightnessBeforeSwipe: CGFloat?
 
   var body: some View {
     GeometryReader { proxy in
@@ -16,7 +18,9 @@ struct LivePlayerView: View {
         LivePlayerLayerView(
           player: controller.player,
           controller: controller
-        )
+        ) { event in
+          handleSwipeAdjustment(event)
+        }
           .accessibilityIdentifier("live.player.surface")
 
         if controller.audioOnly {
@@ -35,6 +39,7 @@ struct LivePlayerView: View {
         }
 
         seekFeedbackOverlay
+        swipeAdjustmentOverlay
         statusOverlay
         playbackStatusAccessibilityElement
         playbackPositionAccessibilityElement
@@ -78,6 +83,9 @@ struct LivePlayerView: View {
         style: .continuous
       )
     )
+    .onDisappear {
+      restoreSystemBrightness()
+    }
     .sheet(isPresented: $showsOptions) {
       LivePlayerOptionsSheet(
         controller: controller,
@@ -107,6 +115,48 @@ struct LivePlayerView: View {
       seconds: Self.doubleTapSeconds
     )
     controller.seek(to: target)
+  }
+
+  private func handleSwipeAdjustment(
+    _ event: PlayerSwipeAdjustmentEvent
+  ) {
+    switch event {
+    case let .began(kind, fraction):
+      if kind == .brightness {
+        systemBrightnessBeforeSwipe = UIScreen.main.brightness
+      }
+      swipeAdjustment = PlayerSwipeAdjustmentState(
+        kind: kind,
+        fraction: fraction
+      )
+    case let .updated(kind, fraction):
+      swipeAdjustment = PlayerSwipeAdjustmentState(
+        kind: kind,
+        fraction: fraction
+      )
+      applySwipeAdjustment(kind: kind, fraction: fraction)
+    case .ended:
+      swipeAdjustment = nil
+    }
+  }
+
+  private func applySwipeAdjustment(
+    kind: PlayerSwipeAdjustmentKind,
+    fraction: CGFloat
+  ) {
+    switch kind {
+    case .brightness:
+      UIScreen.main.brightness = fraction
+    case .volume:
+      controller.player.volume = Float(fraction)
+    }
+  }
+
+  private func restoreSystemBrightness() {
+    if let brightness = systemBrightnessBeforeSwipe {
+      UIScreen.main.brightness = brightness
+      systemBrightnessBeforeSwipe = nil
+    }
   }
 
   @ViewBuilder
@@ -148,6 +198,38 @@ struct LivePlayerView: View {
           }
         }
       }
+      .accessibilityHidden(true)
+    }
+  }
+
+  @ViewBuilder
+  private var swipeAdjustmentOverlay: some View {
+    if let adjustment = swipeAdjustment {
+      HStack {
+        if adjustment.kind == .volume {
+          Spacer(minLength: 0)
+        }
+        VStack(spacing: 6) {
+          Image(
+            systemName: adjustment.kind == .brightness
+              ? "sun.max.fill"
+              : "speaker.wave.2.fill"
+          )
+          Text("\(adjustment.percent)%")
+            .font(.caption.weight(.semibold))
+            .monospacedDigit()
+        }
+        .foregroundStyle(.white)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
+        .background(.black.opacity(0.68), in: Capsule())
+        .padding(.horizontal, 28)
+        if adjustment.kind == .brightness {
+          Spacer(minLength: 0)
+        }
+      }
+      .allowsHitTesting(false)
+      .transition(.opacity)
       .accessibilityHidden(true)
     }
   }
