@@ -4,6 +4,14 @@ import SwiftUI
 extension LivePlayerOptionsSheet {
   var presentationSection: some View {
     Section("Player presentation") {
+      Picker("Image mode", selection: binding(
+        \.imageMode,
+        setter: controller.setImageMode
+      )) {
+        ForEach(LivePlayerImageMode.allCases) { mode in
+          Text(mode.title).tag(mode)
+        }
+      }
       Toggle("Cinema mode", isOn: $cinemaMode)
       LabeledContent(
         "Picture in Picture",

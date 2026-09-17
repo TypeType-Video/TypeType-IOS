@@ -1,3 +1,6 @@
+import AVKit
+import Foundation
+import QuartzCore
 import Foundation
 
 struct LivePlaybackStream: Decodable {
@@ -61,6 +64,30 @@ struct LivePlaybackPreferences: Equatable {
   var audioTrackID: String?
   var audioSourceID: String?
   var audioOnly: Bool
+}
+
+enum LivePlayerImageMode: String, CaseIterable, Identifiable {
+  case fit
+  case crop
+  case stretch
+
+  var id: String { rawValue }
+
+  var title: String {
+    switch self {
+    case .fit: return "Fit"
+    case .crop: return "Crop"
+    case .stretch: return "Stretch"
+    }
+  }
+
+  var videoGravity: AVLayerVideoGravity {
+    switch self {
+    case .fit: return .resizeAspect
+    case .crop: return .resizeAspectFill
+    case .stretch: return .resize
+    }
+  }
 }
 
 enum LiveProviderPlayback {

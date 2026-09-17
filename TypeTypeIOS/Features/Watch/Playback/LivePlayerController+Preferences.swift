@@ -62,6 +62,10 @@ extension LivePlayerController {
     updateSettings { $0.muted = enabled }
   }
 
+  func setImageMode(_ mode: LivePlayerImageMode) {
+    imageMode = mode
+  }
+
   func setSubtitlesEnabled(_ enabled: Bool) {
     subtitlesEnabled = enabled
     updateSettings { $0.subtitlesEnabled = enabled }

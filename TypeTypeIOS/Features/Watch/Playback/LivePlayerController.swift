@@ -25,6 +25,7 @@ final class LivePlayerController: ObservableObject {
   @Published var selectedAudioTrackID: String?
   @Published var selectedAudioSourceID: String?
   @Published var playbackRate: Float = 1
+  @Published var imageMode = LivePlayerImageMode.fit
   @Published var autoplayEnabled = true
   @Published var loopsPlayback = false
   @Published var subtitlesEnabled = false

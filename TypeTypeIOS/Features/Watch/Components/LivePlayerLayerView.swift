@@ -33,7 +33,7 @@ struct LivePlayerLayerView: UIViewControllerRepresentable {
     playerController.canStartPictureInPictureAutomaticallyFromInline = true
     playerController.entersFullScreenWhenPlaybackBegins = false
     playerController.exitsFullScreenWhenPlaybackEnds = false
-    playerController.videoGravity = .resizeAspect
+    playerController.videoGravity = controller.imageMode.videoGravity
     playerController.view.backgroundColor = .black
     playerController.delegate = context.coordinator
     playerController.onWillTransition = {
@@ -51,6 +51,7 @@ struct LivePlayerLayerView: UIViewControllerRepresentable {
     if playerController.player !== player {
       playerController.player = player
     }
+    playerController.videoGravity = controller.imageMode.videoGravity
     context.coordinator.update(controller, in: playerController)
   }
 
