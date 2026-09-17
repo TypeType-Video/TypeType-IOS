@@ -1,5 +1,6 @@
 name: TypeTypeIOS
 options:
+  developmentLanguage: en
   createIntermediateGroups: true
 settings:
   base:
