@@ -132,17 +132,17 @@ struct LiveSettingsView: View {
         LiveNotificationSettingsView(dependencies: coordinator.dependencies)
       }
 
-      settingsLink(
-        "Storage",
-        icon: "internaldrive.fill",
-        subtitle: "Cache, downloads, history limits"
-      ) {
-        LivePrivacyDataView(
-          history: coordinator.dependencies.historyService,
-          searchHistory: coordinator.dependencies.searchHistoryService,
-          subscriptions: coordinator.dependencies.subscriptionsService
-        )
-      }
+        settingsLink(
+          "Storage",
+          icon: "internaldrive.fill",
+          subtitle: "Cache, downloads, history limits"
+        ) {
+          LiveDownloadsView(
+            center: coordinator.dependencies.downloadCenter,
+            onlinePlaybackCoordinator:
+              coordinator.dependencies.playbackCoordinator
+          )
+        }
 
       settingsLink(
         "Privacy",

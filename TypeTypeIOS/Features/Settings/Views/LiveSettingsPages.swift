@@ -350,6 +350,15 @@ struct LiveSettingsPrivacyView: View {
       dependencies: dependencies
     ) {
       LiveSettingsPrivacySection(settings: $viewModel.draft)
+      Section("Stored activity") {
+        NavigationLink("Manage stored data") {
+          LivePrivacyDataView(
+            history: dependencies.historyService,
+            searchHistory: dependencies.searchHistoryService,
+            subscriptions: dependencies.subscriptionsService
+          )
+        }
+      }
     }
     .navigationTitle("Privacy")
     .navigationBarTitleDisplayMode(.inline)
