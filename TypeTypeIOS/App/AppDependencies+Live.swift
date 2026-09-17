@@ -63,6 +63,7 @@ extension AppDependencies {
     let pushNotificationsService = LivePushNotificationsService(
       apiClient: client
     )
+    let rssFeedService = LiveRssFeedService(apiClient: client)
     let deArrowService = LiveDeArrowService(
       apiClient: client,
       baseURLProvider: {
@@ -100,6 +101,7 @@ extension AppDependencies {
       ),
       notificationsService: notificationsService,
       pushNotificationsService: pushNotificationsService,
+      rssFeedService: rssFeedService,
       notificationCenter: LiveNotificationCenter(
         service: notificationsService
       ),

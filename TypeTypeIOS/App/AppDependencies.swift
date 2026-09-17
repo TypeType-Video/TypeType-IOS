@@ -24,10 +24,12 @@ final class AppDependencies {
   let serviceSelection: LiveServiceSelection
   let notificationsService: LiveNotificationsServiceProtocol
   let pushNotificationsService: LivePushNotificationsServiceProtocol?
+  let rssFeedService: LiveRssFeedServiceProtocol?
   let notificationCenter: LiveNotificationCenter
   lazy var notificationPermissionManager: LiveNotificationPermissionManaging =
     LiveNotificationPermissionService()
   var pushNotificationsEnabled = false
+  var rssEnabled = false
   let sessionActivityService: LiveSessionActivityServiceProtocol
   let adminService: LiveAdminServiceProtocol
   let adminAccessService: LiveAdminAccessServiceProtocol
@@ -106,6 +108,7 @@ final class AppDependencies {
     serviceSelection: LiveServiceSelection,
     notificationsService: LiveNotificationsServiceProtocol,
     pushNotificationsService: LivePushNotificationsServiceProtocol? = nil,
+    rssFeedService: LiveRssFeedServiceProtocol? = nil,
     notificationCenter: LiveNotificationCenter,
     sessionActivityService: LiveSessionActivityServiceProtocol,
     adminService: LiveAdminServiceProtocol,
@@ -140,6 +143,7 @@ final class AppDependencies {
     self.serviceSelection = serviceSelection
     self.notificationsService = notificationsService
     self.pushNotificationsService = pushNotificationsService
+    self.rssFeedService = rssFeedService
     self.notificationCenter = notificationCenter
     self.sessionActivityService = sessionActivityService
     self.adminService = adminService

@@ -95,6 +95,15 @@ extension LiveAccountView {
           service: coordinator.dependencies.youtubeSessionService
         )
       }
+      if coordinator.dependencies.rssEnabled,
+        let rssFeedService = coordinator.dependencies.rssFeedService {
+        NavigationLink("RSS feeds") {
+          LiveRssFeedsView(
+            feedService: rssFeedService,
+            subscriptionsService: coordinator.dependencies.subscriptionsService
+          )
+        }
+      }
     }
   }
   private var downloadsLink: some View {
