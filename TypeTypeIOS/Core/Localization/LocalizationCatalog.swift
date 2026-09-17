@@ -318,6 +318,7 @@ enum LocalizationCatalog {
     "Start import",
     "Import remaining archives",
     "Clear queue",
+    "Expand player",
   ]
 
   static func table(for localization: String) -> [String: String] {

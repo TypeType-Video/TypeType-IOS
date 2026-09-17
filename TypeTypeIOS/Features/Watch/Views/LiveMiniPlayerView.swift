@@ -4,6 +4,10 @@ struct LiveMiniPlayerView: View {
   @ObservedObject var coordinator: LivePlaybackCoordinator
   let onExpand: () -> Void
   @State private var dragTranslation: CGFloat = 0
+  @ScaledMetric(relativeTo: .body) private var playbackControlWidth = 34
+  @ScaledMetric(relativeTo: .body) private var playbackControlHeight = 40
+  @ScaledMetric(relativeTo: .body) private var closeControlWidth = 30
+  @ScaledMetric(relativeTo: .body) private var closeControlHeight = 40
 
   var body: some View {
     if let video = coordinator.currentVideo,
@@ -36,11 +40,13 @@ struct LiveMiniPlayerView: View {
               Text(video.title)
                 .font(.subheadline.weight(.semibold))
                 .foregroundStyle(.primary)
-                .lineLimit(1)
+                .lineLimit(2)
+                .minimumScaleFactor(0.8)
               Text(video.uploaderName)
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
+                .minimumScaleFactor(0.8)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
           }
@@ -61,7 +67,10 @@ struct LiveMiniPlayerView: View {
                 ? "pause.fill"
                 : "play.fill"
             )
-            .frame(width: 34, height: 40)
+            .frame(
+              width: playbackControlWidth,
+              height: playbackControlHeight
+            )
           }
           .accessibilityLabel(
             controller.state == .playing ? "Pause" : "Play"
@@ -70,7 +79,7 @@ struct LiveMiniPlayerView: View {
 
           Button(action: coordinator.close) {
             Image(systemName: "xmark")
-              .frame(width: 30, height: 40)
+              .frame(width: closeControlWidth, height: closeControlHeight)
           }
           .accessibilityLabel("Close player")
           .accessibilityIdentifier("live.miniplayer.close")
@@ -87,6 +96,12 @@ struct LiveMiniPlayerView: View {
       .opacity(dragOpacity)
       .gesture(miniPlayerDragGesture)
       .accessibilityElement(children: .contain)
+      .accessibilityAction(named: "Expand player") {
+        onExpand()
+      }
+      .accessibilityAction(named: "Close player") {
+        coordinator.close()
+      }
       .accessibilityIdentifier("live.miniplayer")
     }
   }
