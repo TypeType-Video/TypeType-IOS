@@ -2,17 +2,15 @@ import SwiftUI
 
 struct LiveSettingsView: View {
   @StateObject private var viewModel: LiveSettingsViewModel
-  private let dependencies: AppDependencies
-  @AppStorage(LiveAppearancePreference.storageKey)
-  private var appearanceRawValue = LiveAppearancePreference.defaultRawValue
+  @ObservedObject private var coordinator: RootCoordinator
 
-  init(dependencies: AppDependencies) {
-    self.dependencies = dependencies
+  init(coordinator: RootCoordinator) {
+    self.coordinator = coordinator
     _viewModel = StateObject(
       wrappedValue: LiveSettingsViewModel(
-        service: dependencies.settingsService,
-        serviceSelection: dependencies.serviceSelection,
-        deArrowStore: dependencies.deArrowStore
+        service: coordinator.dependencies.settingsService,
+        serviceSelection: coordinator.dependencies.serviceSelection,
+        deArrowStore: coordinator.dependencies.deArrowStore
       )
     )
   }
@@ -21,29 +19,7 @@ struct LiveSettingsView: View {
     content
       .navigationTitle("Settings")
       .navigationBarTitleDisplayMode(.inline)
-      .toolbar {
-        ToolbarItemGroup(placement: .topBarTrailing) {
-          if viewModel.hasChanges {
-            Button("Reset") { viewModel.resetDraft() }
-          }
-          Button("Save") {
-            Task {
-              guard let settings = await viewModel.save() else {
-                return
-              }
-              dependencies.playbackCoordinator.applySettings(settings)
-            }
-          }
-          .disabled(!viewModel.hasChanges || viewModel.isSaving)
-          .accessibilityIdentifier("live.settings.save")
-        }
-      }
       .task { await viewModel.prepare() }
-      .alert("Settings", isPresented: errorBinding) {
-        Button("OK") { viewModel.dismissError() }
-      } message: {
-        Text(viewModel.errorMessage ?? "")
-      }
       .accessibilityIdentifier("live.settings.screen")
   }
 
@@ -64,53 +40,148 @@ struct LiveSettingsView: View {
         }
       }
     case .loaded:
-      Form {
-        appearanceSection
-        LiveSettingsPlaybackSection(settings: $viewModel.draft)
-        LiveSettingsLanguageSection(settings: $viewModel.draft)
-        LiveSettingsDiscoverySection(
-          settings: $viewModel.draft,
-          services: dependencies.serviceSelection.services
-        )
-        LiveSettingsSponsorBlockSection(settings: $viewModel.draft)
-        LiveSettingsPrivacySection(settings: $viewModel.draft)
-        Section("Stored data") {
-          NavigationLink("Manage stored data") {
-            LivePrivacyDataView(
-              history: dependencies.historyService,
-              searchHistory: dependencies.searchHistoryService,
-              subscriptions: dependencies.subscriptionsService
-            )
-          }
-        }
-        if let message = viewModel.message {
-          Section {
-            Label(message, systemImage: "checkmark.circle.fill")
-              .foregroundStyle(.green)
-          }
-        }
-      }
+      settingsList
     }
   }
 
-  private var appearanceSection: some View {
-    Section("Appearance") {
-      Picker(
-        "Color scheme",
-        selection: $appearanceRawValue
+  private var settingsList: some View {
+    List {
+      settingsLink(
+        "Instances and accounts",
+        subtitle: "Switch instance or account"
       ) {
-        ForEach(LiveAppearanceMode.allCases) { mode in
-          Text(mode.title).tag(mode.rawValue)
+        LiveSettingsAccountsView(coordinator: coordinator)
+      }
+
+      if let user = coordinator.currentUser, !user.id.hasPrefix("guest:") {
+        settingsLink("Profile", subtitle: "Public username, bio, avatar") {
+          LiveProfileView(coordinator: coordinator, user: user)
         }
       }
-      .accessibilityIdentifier("live.settings.appearance")
+
+      settingsLink(
+        "Data and backups",
+        subtitle: "Export or restore TypeType data, or import from "
+          + "YouTube and PipePipe"
+      ) {
+        LiveImportView(service: coordinator.dependencies.importService)
+      }
+
+      if coordinator.dependencies.rssEnabled,
+        let rssFeedService = coordinator.dependencies.rssFeedService {
+        settingsLink(
+          "Private RSS feeds",
+          subtitle: "Create and manage private feed links"
+        ) {
+          LiveRssFeedsView(
+            feedService: rssFeedService,
+            subscriptionsService: coordinator.dependencies.subscriptionsService
+          )
+        }
+      }
+
+      settingsLink("Appearance", subtitle: "Theme and accent color") {
+        LiveSettingsAppearanceView(
+          dependencies: coordinator.dependencies,
+          viewModel: viewModel
+        )
+      }
+
+      settingsLink(
+        "Content",
+        subtitle: "Discovery, DeArrow, and visible surfaces"
+      ) {
+        LiveSettingsContentView(
+          dependencies: coordinator.dependencies,
+          viewModel: viewModel
+        )
+      }
+
+      settingsLink(
+        "Player",
+        subtitle: "Gestures, autoplay, default quality"
+      ) {
+        LiveSettingsPlayerView(
+          dependencies: coordinator.dependencies,
+          viewModel: viewModel
+        )
+      }
+
+      settingsLink("Push notifications", subtitle: "New video alerts") {
+        LiveNotificationSettingsView(dependencies: coordinator.dependencies)
+      }
+
+      settingsLink(
+        "Storage",
+        subtitle: "Cache, downloads, history limits"
+      ) {
+        LivePrivacyDataView(
+          history: coordinator.dependencies.historyService,
+          searchHistory: coordinator.dependencies.searchHistoryService,
+          subscriptions: coordinator.dependencies.subscriptionsService
+        )
+      }
+
+      settingsLink(
+        "Privacy",
+        subtitle: "Control history tracking and stored activity"
+      ) {
+        LiveSettingsPrivacyView(
+          dependencies: coordinator.dependencies,
+          viewModel: viewModel
+        )
+      }
+
+      settingsLink(
+        "Diagnostics",
+        subtitle: "Review redacted app and network activity"
+      ) {
+        LiveDiagnosticsView(
+          store: coordinator.dependencies.diagnosticsStore,
+          scopeProvider: {
+            coordinator.dependencies.diagnosticScope()
+          }
+        )
+      }
+
+      settingsLink(
+        "Blocked",
+        subtitle: "Manage blocked keywords, channels, and videos"
+      ) {
+        LiveContentControlsView(
+          service: coordinator.dependencies.contentControlsService,
+          canCreateGlobal: coordinator.currentUser?.role != .user
+        )
+      }
+
+      settingsLink("About", subtitle: "Version and credits") {
+        DemoAboutView()
+      }
+
+      Button("Sign out", role: .destructive) {
+        Task { await coordinator.signOut() }
+      }
+      .accessibilityIdentifier("live.settings.sign-out")
     }
+    .listStyle(.insetGrouped)
   }
 
-  private var errorBinding: Binding<Bool> {
-    Binding(
-      get: { viewModel.errorMessage != nil },
-      set: { if !$0 { viewModel.dismissError() } }
-    )
+  private func settingsLink<Destination: View>(
+    _ title: String,
+    subtitle: String,
+    @ViewBuilder destination: () -> Destination
+  ) -> some View {
+    NavigationLink {
+      destination()
+    } label: {
+      VStack(alignment: .leading, spacing: 3) {
+        Text(title)
+          .font(.body.weight(.medium))
+          .foregroundStyle(.primary)
+        Text(subtitle)
+          .font(.caption)
+          .foregroundStyle(.secondary)
+      }
+    }
   }
 }

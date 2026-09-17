@@ -48,7 +48,7 @@ extension LiveAccountView {
     Section("Preferences") {
       accountPreferences
       NavigationLink("Settings") {
-        LiveSettingsView(dependencies: coordinator.dependencies)
+        LiveSettingsView(coordinator: coordinator)
       }
       downloadsLink
       NavigationLink("Diagnostics") {
