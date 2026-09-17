@@ -16,7 +16,13 @@ extension LiveAuthenticatedAppView {
     .overlay(alignment: .bottom) {
       miniPlayer
     }
-    .fullScreenCover(isPresented: $presentsExpandedPlayback) {
+    .fullScreenCover(
+      isPresented: $presentsExpandedPlayback,
+      onDismiss: {
+        guard playbackCoordinator.presentation == .expanded else { return }
+        playbackCoordinator.minimize()
+      }
+    ) {
       expandedPlayback
     }
     .fullScreenCover(item: $incomingMediaLink) { link in
@@ -97,6 +103,7 @@ extension LiveAuthenticatedAppView {
           }
         }
       }
+      .presentationDragIndicator(.visible)
     }
   }
 

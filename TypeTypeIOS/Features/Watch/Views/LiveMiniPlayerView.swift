@@ -3,6 +3,7 @@ import SwiftUI
 struct LiveMiniPlayerView: View {
   @ObservedObject var coordinator: LivePlaybackCoordinator
   let onExpand: () -> Void
+  @State private var dragTranslation: CGFloat = 0
 
   var body: some View {
     if let video = coordinator.currentVideo,
@@ -82,8 +83,50 @@ struct LiveMiniPlayerView: View {
       .overlay(alignment: .top) {
         Divider()
       }
+      .offset(y: dragTranslation)
+      .opacity(dragOpacity)
+      .gesture(miniPlayerDragGesture)
       .accessibilityElement(children: .contain)
       .accessibilityIdentifier("live.miniplayer")
     }
+  }
+
+  private var dragOpacity: Double {
+    let distance = abs(dragTranslation)
+    guard distance > MiniPlayerDragGesture.activationDistance else {
+      return 1
+    }
+    return max(
+      0.35,
+      1 - (distance - MiniPlayerDragGesture.activationDistance) / 180
+    )
+  }
+
+  private var miniPlayerDragGesture: some Gesture {
+    DragGesture(minimumDistance: 12)
+      .onChanged { value in
+        let vertical = value.translation.height
+        dragTranslation = abs(vertical) > abs(value.translation.width)
+          ? vertical
+          : 0
+      }
+      .onEnded { value in
+        defer {
+          withAnimation(.snappy(duration: 0.18)) {
+            dragTranslation = 0
+          }
+        }
+
+        switch MiniPlayerDragGesture.action(
+          forTranslationHeight: value.translation.height
+        ) {
+        case .expand:
+          onExpand()
+        case .close:
+          coordinator.close()
+        case nil:
+          break
+        }
+      }
   }
 }
