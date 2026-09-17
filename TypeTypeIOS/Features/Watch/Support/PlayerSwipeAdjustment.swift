@@ -28,6 +28,12 @@ struct PlayerSwipeAdjustmentState: Equatable, Identifiable {
   }
 }
 
+enum PlayerHorizontalSeekEvent: Equatable {
+  case began(position: TimeInterval)
+  case updated(position: TimeInterval)
+  case ended(position: TimeInterval)
+}
+
 enum PlayerSwipeAdjustmentRules {
   static let activationDistance: CGFloat = 18
   static let verticalBias: CGFloat = 1.5

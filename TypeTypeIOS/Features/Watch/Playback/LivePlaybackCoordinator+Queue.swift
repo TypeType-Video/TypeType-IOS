@@ -77,14 +77,49 @@ extension LivePlaybackCoordinator {
       ? 0
       : LiveAppPreferencesStore.shared.preferences
         .playerAutoplayCountdownSeconds
-    Task { @MainActor in
-      if seconds > 0 {
-        try? await Task.sleep(for: .seconds(seconds))
-      }
-      guard queue.isActive, queue.currentIndex >= 0 else { return }
-      queue.currentIndex = nextIndex
-      touchAndPersist()
-      replacePlayback(with: queue.videos[nextIndex], autoplay: true)
+    guard seconds > 0 else {
+      commitAutoplayAdvance(to: nextIndex)
+      return
     }
+    pendingAutoplayIndex = nextIndex
+    autoplayCountdownRemaining = seconds
+    autoplayCountdownTask?.cancel()
+    autoplayCountdownTask = Task { @MainActor [weak self] in
+      var remaining = seconds
+      while remaining > 0, !Task.isCancelled {
+        guard let self else { return }
+        self.autoplayCountdownRemaining = remaining
+        try? await Task.sleep(for: .seconds(1))
+        guard !Task.isCancelled else { return }
+        remaining -= 1
+      }
+      guard let self, !Task.isCancelled else { return }
+      self.commitAutoplayAdvance(to: nextIndex)
+    }
+  }
+
+  func skipAutoplayCountdown() {
+    guard let index = pendingAutoplayIndex else { return }
+    commitAutoplayAdvance(to: index)
+  }
+
+  func cancelAutoplayCountdown() {
+    autoplayCountdownTask?.cancel()
+    autoplayCountdownTask = nil
+    pendingAutoplayIndex = nil
+    autoplayCountdownRemaining = nil
+  }
+
+  private func commitAutoplayAdvance(to index: Int) {
+    autoplayCountdownTask?.cancel()
+    autoplayCountdownTask = nil
+    pendingAutoplayIndex = nil
+    autoplayCountdownRemaining = nil
+    guard queue.isActive, queue.videos.indices.contains(index) else {
+      return
+    }
+    queue.currentIndex = index
+    touchAndPersist()
+    replacePlayback(with: queue.videos[index], autoplay: true)
   }
 }

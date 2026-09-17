@@ -11,6 +11,7 @@ struct LivePlayerView: View {
   @State private var swipeAdjustment: PlayerSwipeAdjustmentState?
   @State private var systemBrightnessBeforeSwipe: CGFloat?
   @State private var longPressBaseRate: Float?
+  @State private var horizontalSeekPreview: TimeInterval?
 
   var body: some View {
     GeometryReader { proxy in
@@ -22,6 +23,9 @@ struct LivePlayerView: View {
           controller: controller,
           onSwipeAdjustment: { event in
             handleSwipeAdjustment(event)
+          },
+          onHorizontalSeek: { event in
+            handleHorizontalSeek(event)
           },
           onPictureInPictureUIRestore: { completion in
             PictureInPictureRestore.restore(
@@ -54,6 +58,7 @@ struct LivePlayerView: View {
         }
 
         seekFeedbackOverlay
+        horizontalSeekOverlay
         swipeAdjustmentOverlay
         statusOverlay
         playbackStatusAccessibilityElement
@@ -105,6 +110,28 @@ struct LivePlayerView: View {
         style: .continuous
       )
     )
+    .overlay(alignment: .top) {
+      if let remaining = coordinator.autoplayCountdownRemaining {
+        HStack(spacing: 10) {
+          Text("Next video in \(remaining)s")
+            .font(.footnote.weight(.semibold))
+            .monospacedDigit()
+          Button("Play now") {
+            coordinator.skipAutoplayCountdown()
+          }
+          .font(.footnote.weight(.semibold))
+          Button("Cancel", role: .destructive) {
+            coordinator.cancelAutoplayCountdown()
+          }
+          .font(.footnote)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(.black.opacity(0.82), in: Capsule())
+        .padding(.top, 10)
+        .accessibilityIdentifier("live.player.autoplay-countdown")
+      }
+    }
     .onDisappear {
       restoreSystemBrightness()
     }
@@ -168,6 +195,20 @@ struct LivePlayerView: View {
       applySwipeAdjustment(kind: kind, fraction: fraction)
     case .ended:
       swipeAdjustment = nil
+    }
+  }
+
+  private func handleHorizontalSeek(
+    _ event: PlayerHorizontalSeekEvent
+  ) {
+    switch event {
+    case let .began(position):
+      horizontalSeekPreview = position
+    case let .updated(position):
+      horizontalSeekPreview = position
+    case let .ended(position):
+      horizontalSeekPreview = nil
+      controller.seek(to: position)
     }
   }
 
@@ -270,6 +311,26 @@ struct LivePlayerView: View {
           Spacer(minLength: 0)
         }
       }
+      .allowsHitTesting(false)
+      .transition(.opacity)
+      .accessibilityHidden(true)
+    }
+  }
+
+  @ViewBuilder
+  private var horizontalSeekOverlay: some View {
+    if let preview = horizontalSeekPreview {
+      VStack(spacing: 6) {
+        Text(LiveVideoMetadataFormatter.duration(Int64(preview.rounded())))
+          .font(.headline.weight(.semibold))
+          .monospacedDigit()
+        Text("Release to seek")
+          .font(.caption2)
+      }
+      .foregroundStyle(.white)
+      .padding(.horizontal, 16)
+      .padding(.vertical, 10)
+      .background(.black.opacity(0.72), in: Capsule())
       .allowsHitTesting(false)
       .transition(.opacity)
       .accessibilityHidden(true)

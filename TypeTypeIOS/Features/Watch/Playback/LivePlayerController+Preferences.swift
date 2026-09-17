@@ -22,6 +22,7 @@ extension LivePlayerController {
 
   func applyLoadedSettings() {
     autoplayEnabled = settings.autoplay
+      && LiveAppPreferencesStore.shared.preferences.playerAutoplayEnabled
     let serverPlaybackSpeed = settings.defaultPlaybackSpeed ?? 1
     if serverPlaybackSpeed != 1,
       UserDefaults.standard.object(

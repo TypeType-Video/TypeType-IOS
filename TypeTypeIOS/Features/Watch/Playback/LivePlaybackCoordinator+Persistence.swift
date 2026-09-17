@@ -12,6 +12,7 @@ extension LivePlaybackCoordinator {
   }
 
   func clearQueue() {
+    cancelAutoplayCountdown()
     queue = .empty
     if let activeScope {
       queueStore.clear(activeScope)
@@ -44,6 +45,7 @@ extension LivePlaybackCoordinator {
 
   func endRuntime(preservingPersistedQueue: Bool) {
     cancelSleepTimer()
+    cancelAutoplayCountdown()
     if preservingPersistedQueue {
       persistQueue()
     }

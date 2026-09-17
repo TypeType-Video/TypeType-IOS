@@ -20,10 +20,12 @@ final class LivePlayerLayerCoordinator:
   var sponsorCenterConstraint: NSLayoutConstraint?
   var sponsorTrailingConstraint: NSLayoutConstraint?
   var swipeGestureHandler: ((PlayerSwipeAdjustmentEvent) -> Void)?
+  var horizontalSeekHandler: ((PlayerHorizontalSeekEvent) -> Void)?
   var pictureInPictureUIRestoreHandler:
     (((@escaping (Bool) -> Void)) -> Void)? = nil
   private var swipeGestureKind: PlayerSwipeAdjustmentKind?
   private var swipeGestureBaseFraction: CGFloat = 0.5
+  private var horizontalSeekBasePosition: TimeInterval = 0
 
   init(controller: LivePlayerController) {
     self.controller = controller
@@ -145,6 +147,47 @@ final class LivePlayerLayerCoordinator:
     view.addGestureRecognizer(recognizer)
   }
 
+  func installHorizontalSeekGesture(in view: UIView) {
+    let recognizer = UIPanGestureRecognizer(
+      target: self,
+      action: #selector(handleHorizontalSeekGesture(_:))
+    )
+    recognizer.cancelsTouchesInView = false
+    recognizer.delegate = self
+    view.addGestureRecognizer(recognizer)
+  }
+
+  @objc private func handleHorizontalSeekGesture(
+    _ recognizer: UIPanGestureRecognizer
+  ) {
+    guard let view = recognizer.view,
+      view.bounds.width > 0,
+      controller.duration > 0
+    else { return }
+
+    let translation = recognizer.translation(in: view)
+    let progress = min(
+      max(translation.x / view.bounds.width, -0.45),
+      0.45
+    )
+    let target = min(
+      max(horizontalSeekBasePosition + progress * controller.duration, 0),
+      controller.duration
+    )
+
+    switch recognizer.state {
+    case .began:
+      horizontalSeekHandler?(.began(position: horizontalSeekBasePosition))
+    case .changed:
+      horizontalSeekHandler?(.updated(position: target))
+    case .ended, .cancelled, .failed:
+      horizontalSeekHandler?(.ended(position: target))
+      horizontalSeekBasePosition = controller.position
+    default:
+      break
+    }
+  }
+
   @objc private func handleSwipeGesture(
     _ recognizer: UIPanGestureRecognizer
   ) {
@@ -192,6 +235,15 @@ extension LivePlayerLayerCoordinator: UIGestureRecognizerDelegate {
 
     let startLocation = recognizer.location(in: view)
     let translation = recognizer.translation(in: view)
+    let isHorizontalSeek = abs(translation.x) > 14
+      && abs(translation.x) > abs(translation.y) * 1.25
+    if isHorizontalSeek {
+      guard LiveAppPreferencesStore.shared.preferences.playerSwipeSeekEnabled,
+        controller.duration > 0
+      else { return false }
+      horizontalSeekBasePosition = controller.position
+      return true
+    }
     guard let kind = PlayerSwipeAdjustmentRules.kind(
       startLocation: startLocation,
       size: view.bounds.size,

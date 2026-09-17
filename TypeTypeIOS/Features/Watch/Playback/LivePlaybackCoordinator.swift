@@ -18,6 +18,7 @@ final class LivePlaybackCoordinator: ObservableObject {
   @Published var presentation = Presentation.hidden
   @Published var queue = LivePlaybackQueueSnapshot.empty
   @Published var sleepTimer = LivePlaybackSleepTimerState()
+  @Published var autoplayCountdownRemaining: Int?
 
   let settingsService: LiveSettingsServiceProtocol
   let queueStore: LivePlaybackQueueStore
@@ -28,6 +29,8 @@ final class LivePlaybackCoordinator: ObservableObject {
   var persistenceEnabled = false
   var playbackGeneration = 0
   var sleepTimerTask: Task<Void, Never>?
+  var autoplayCountdownTask: Task<Void, Never>?
+  var pendingAutoplayIndex: Int?
 
   init(
     settingsService: LiveSettingsServiceProtocol,
