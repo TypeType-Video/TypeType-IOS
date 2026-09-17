@@ -20,6 +20,12 @@ struct LiveSettingsPlaybackSection: View {
           Text(quality == "auto" ? "Auto" : quality).tag(quality)
         }
       }
+      Picker("Default speed", selection: $settings.defaultPlaybackSpeed) {
+        ForEach([0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 2.0], id: \.self) {
+          speed in
+          Text("\(speed)x").tag(speed)
+        }
+      }
       Toggle(
         "High-quality playback",
         isOn: $settings.enableHighQualityPlayback

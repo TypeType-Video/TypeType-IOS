@@ -71,8 +71,20 @@ extension LivePlaybackCoordinator {
       }
       return
     }
-    queue.currentIndex = nextIndex
-    touchAndPersist()
-    replacePlayback(with: queue.videos[nextIndex], autoplay: true)
+    let skipDelay =
+      controller?.settings.skipPlaylistAutoplayScreen == true
+    let seconds = skipDelay
+      ? 0
+      : LiveAppPreferencesStore.shared.preferences
+        .playerAutoplayCountdownSeconds
+    Task { @MainActor in
+      if seconds > 0 {
+        try? await Task.sleep(for: .seconds(seconds))
+      }
+      guard queue.isActive, queue.currentIndex >= 0 else { return }
+      queue.currentIndex = nextIndex
+      touchAndPersist()
+      replacePlayback(with: queue.videos[nextIndex], autoplay: true)
+    }
   }
 }
