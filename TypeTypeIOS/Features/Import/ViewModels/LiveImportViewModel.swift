@@ -89,7 +89,8 @@ final class LiveImportViewModel: ObservableObject {
       let file = try Self.read(url)
       typeTypeRestoreSummary = try await service.restoreTypeTypeBackup(
         data: file.data,
-        fileName: file.name
+        fileName: file.name,
+        categories: selectedBackupCategories
       )
     } catch {
       errorMessage = Self.message(for: error)

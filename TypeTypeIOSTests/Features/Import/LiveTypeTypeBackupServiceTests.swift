@@ -62,7 +62,8 @@ final class LiveTypeTypeBackupServiceTests: XCTestCase {
         as: UTF8.self
       )
       XCTAssertTrue(body.contains("typetype-backup.json"))
-      XCTAssertTrue(body.contains(#"{"format":"typetype-backup","version":1}"#))
+      XCTAssertTrue(body.contains(#""format":"typetype-backup""#))
+      XCTAssertTrue(body.contains(#""version":1"#))
       return try Self.response(
         request,
         status: 200,
@@ -75,12 +76,56 @@ final class LiveTypeTypeBackupServiceTests: XCTestCase {
 
     let summary = try await service.restoreTypeTypeBackup(
       data: Data(#"{"format":"typetype-backup","version":1}"#.utf8),
-      fileName: "typetype-backup.json"
+      fileName: "typetype-backup.json",
+      categories: [
+        .subscriptions,
+        .history,
+        .playlists,
+        .watchLater,
+        .favorites,
+        .progress,
+        .searchHistory,
+        .savedPlaylists,
+        .settings,
+        .contentFilters,
+      ]
     )
 
     XCTAssertEqual(summary.restored["subscriptions"], 2)
     XCTAssertEqual(summary.restored["history"], 5)
     XCTAssertEqual(summary.total, 7)
+  }
+
+  func testRestoreFiltersSelectedCategories() throws {
+    let source = Data(
+      """
+      {
+        "format":"typetype-backup",
+        "version":1,
+        "exportedAt":1,
+        "categories":["history","subscriptions","settings"],
+        "subscriptions":[],
+        "history":[],
+        "settings":{}
+      }
+      """.utf8
+    )
+
+    let filtered = try LiveImportService.filterTypeTypeBackup(
+      data: source,
+      categories: [.history, .settings]
+    )
+    let object = try XCTUnwrap(
+      JSONSerialization.jsonObject(with: filtered) as? [String: Any]
+    )
+
+    XCTAssertEqual(object["categories"] as? [String], [
+      "history",
+      "settings",
+    ])
+    XCTAssertNotNil(object["history"])
+    XCTAssertNotNil(object["settings"])
+    XCTAssertNil(object["subscriptions"])
   }
 
   private static func makeService() -> LiveImportService {

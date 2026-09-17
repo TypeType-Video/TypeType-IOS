@@ -93,7 +93,8 @@ private final class NotificationBackupImportServiceStub: LiveImportServiceProtoc
 
   func restoreTypeTypeBackup(
     data: Data,
-    fileName: String
+    fileName: String,
+    categories: Set<LiveTypeTypeBackupCategory>
   ) async throws -> LiveTypeTypeRestoreSummary {
     restoreSummary
   }

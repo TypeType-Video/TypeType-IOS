@@ -22,7 +22,8 @@ protocol LiveImportServiceProtocol {
   ) async throws -> URL
   func restoreTypeTypeBackup(
     data: Data,
-    fileName: String
+    fileName: String,
+    categories: Set<LiveTypeTypeBackupCategory>
   ) async throws -> LiveTypeTypeRestoreSummary
 }
 
@@ -174,17 +175,64 @@ final class LiveImportService: LiveImportServiceProtocol {
 
   func restoreTypeTypeBackup(
     data: Data,
-    fileName: String
+    fileName: String,
+    categories: Set<LiveTypeTypeBackupCategory>
   ) async throws -> LiveTypeTypeRestoreSummary {
+    let filteredData = try Self.filterTypeTypeBackup(
+      data: data,
+      categories: categories
+    )
     let form = MultipartFormData(
       fieldName: "file",
       fileName: fileName,
       mediaType: "application/json",
-      data: data
+      data: filteredData
     )
     return try await apiClient.request(
       uploadEndpoint("/restore/typetype", form: form),
       as: LiveTypeTypeRestoreSummary.self
+    )
+  }
+
+  static func filterTypeTypeBackup(
+    data: Data,
+    categories: Set<LiveTypeTypeBackupCategory>
+  ) throws -> Data {
+    let object = try JSONSerialization.jsonObject(with: data)
+    guard var backup = object as? [String: Any] else {
+      throw NetworkError.decoding
+    }
+
+    let sourceCategories = Set(
+      (backup["categories"] as? [String] ?? []).compactMap {
+        LiveTypeTypeBackupCategory(rawValue: $0)
+      }
+    )
+    let selectedCategories = categories.intersection(sourceCategories)
+    backup["categories"] = selectedCategories
+      .map(\.rawValue)
+      .sorted()
+
+    let fieldNames: [LiveTypeTypeBackupCategory: String] = [
+      .subscriptions: "subscriptions",
+      .history: "history",
+      .playlists: "playlists",
+      .watchLater: "watchLater",
+      .favorites: "favorites",
+      .progress: "progress",
+      .searchHistory: "searchHistory",
+      .savedPlaylists: "savedPlaylists",
+      .settings: "settings",
+      .contentFilters: "contentFilters",
+    ]
+    for category in LiveTypeTypeBackupCategory.allCases
+    where !selectedCategories.contains(category) {
+      backup.removeValue(forKey: fieldNames[category] ?? category.rawValue)
+    }
+
+    return try JSONSerialization.data(
+      withJSONObject: backup,
+      options: [.sortedKeys]
     )
   }
 }
