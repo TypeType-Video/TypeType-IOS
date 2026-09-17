@@ -87,14 +87,6 @@ extension LiveAccountView {
           }
         }
       }
-      NavigationLink("YouTube session") {
-        LiveYouTubeSessionView(
-          baseURL: coordinator.selectedServer?.baseURL,
-          remoteLoginEnabled:
-            coordinator.instance?.youtubeRemoteLoginEnabled == true,
-          service: coordinator.dependencies.youtubeSessionService
-        )
-      }
       if coordinator.dependencies.rssEnabled,
         let rssFeedService = coordinator.dependencies.rssFeedService {
         NavigationLink("RSS feeds") {
