@@ -9,6 +9,7 @@ final class LiveNotificationCenter: ObservableObject {
   private var refreshTask: Task<Void, Never>?
   private var pollingTask: Task<Void, Never>?
   private var pollingGeneration = 0
+  private var refreshGeneration = 0
 
   init(service: LiveNotificationsServiceProtocol) {
     self.service = service
@@ -16,10 +17,14 @@ final class LiveNotificationCenter: ObservableObject {
 
   func refresh() async {
     refreshTask?.cancel()
+    refreshGeneration += 1
+    let generation = refreshGeneration
     let task = Task {
       do {
         let value = try await service.unreadCount()
-        guard !Task.isCancelled else { return }
+        guard !Task.isCancelled, refreshGeneration == generation else {
+          return
+        }
         unreadCount = max(value, 0)
       } catch {
         // A badge must never block the authenticated application.
@@ -32,12 +37,16 @@ final class LiveNotificationCenter: ObservableObject {
   func startPolling(interval: Duration = .seconds(60)) {
     guard pollingTask == nil else { return }
     isPolling = true
+    pollingGeneration += 1
+    let generation = pollingGeneration
     pollingTask = Task { [weak self] in
       guard let self else { return }
       await refresh()
       while !Task.isCancelled {
         try? await Task.sleep(for: interval)
-        guard !Task.isCancelled else { break }
+        guard !Task.isCancelled, pollingGeneration == generation else {
+          break
+        }
         await refresh()
       }
       isPolling = false
@@ -47,6 +56,8 @@ final class LiveNotificationCenter: ObservableObject {
 
   func stopPolling() {
     pollingTask?.cancel()
+    refreshTask?.cancel()
+    refreshGeneration += 1
     pollingTask = nil
     isPolling = false
     pollingGeneration += 1
