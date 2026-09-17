@@ -32,6 +32,7 @@ extension LiveDownloadSheet {
           Task { await viewModel.start() }
         }
         .disabled(!viewModel.canStart)
+        .accessibilityIdentifier("live.download.start")
       }
     }
   }

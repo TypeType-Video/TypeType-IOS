@@ -101,8 +101,14 @@ final class LiveDownloadCenter: ObservableObject {
 
 enum LiveDownloadCenterError: LocalizedError {
   case missingScope
+  case duplicateActiveDownload(mode: String)
 
   var errorDescription: String? {
-    "Sign in to an instance before starting a download."
+    switch self {
+    case .missingScope:
+      return "Sign in to an instance before starting a download."
+    case let .duplicateActiveDownload(mode):
+      return "A \(mode) download for this video is already active."
+    }
   }
 }

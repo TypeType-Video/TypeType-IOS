@@ -12,7 +12,10 @@ final class LiveDownloadViewModel: ObservableObject {
   }
 
   @Published var mode = LiveDownloadMode.video {
-    didSet { applyModeDefaults() }
+    didSet {
+      applyModeDefaults()
+      adoptExistingRecord()
+    }
   }
   @Published var quality = "1080p"
   @Published var format = "mp4"
@@ -35,6 +38,7 @@ final class LiveDownloadViewModel: ObservableObject {
   ) {
     self.video = video
     self.center = center
+    adoptExistingRecord()
     recordsObservation = center.$records.sink { [weak self] _ in
       Task { @MainActor [weak self] in
         self?.synchronize()
@@ -140,6 +144,19 @@ final class LiveDownloadViewModel: ObservableObject {
       state = .failed("The download was cancelled.")
     case .queued, .preparing, .downloading, .finalizing, .saving:
       state = .tracking
+    }
+  }
+
+  private func adoptExistingRecord() {
+    recordID = center.existingRecord(
+      forVideoURL: video.url,
+      mode: mode.rawValue
+    ).map(\.id)
+
+    if recordID != nil {
+      synchronize()
+    } else {
+      reset()
     }
   }
 

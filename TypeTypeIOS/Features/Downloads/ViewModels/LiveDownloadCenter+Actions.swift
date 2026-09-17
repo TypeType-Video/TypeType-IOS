@@ -9,6 +9,14 @@ extension LiveDownloadCenter {
     guard let scope = scopeProvider() else {
       throw LiveDownloadCenterError.missingScope
     }
+    if let active = activeRecord(
+      videoURL: video.url,
+      mode: options.mode
+    ) {
+      throw LiveDownloadCenterError.duplicateActiveDownload(
+        mode: active.options.mode
+      )
+    }
     let job = try await service.create(
       videoURL: video.url,
       options: options
@@ -33,6 +41,28 @@ extension LiveDownloadCenter {
       track(record.id)
     }
     return self.record(id: record.id) ?? record
+  }
+
+  func existingRecord(
+    forVideoURL videoURL: String,
+    mode: String
+  ) -> LiveManagedDownload? {
+    let matches = visibleRecords.filter {
+      $0.videoURL == videoURL
+        && $0.options.mode.caseInsensitiveCompare(mode) == .orderedSame
+    }
+    return matches.first(where: \.state.isActive) ?? matches.first
+  }
+
+  func activeRecord(
+    videoURL: String,
+    mode: String
+  ) -> LiveManagedDownload? {
+    visibleRecords.first {
+      $0.videoURL == videoURL
+        && $0.options.mode.caseInsensitiveCompare(mode) == .orderedSame
+        && $0.state.isActive
+    }
   }
 
   func refresh() async {
