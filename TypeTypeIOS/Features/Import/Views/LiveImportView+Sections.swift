@@ -33,12 +33,33 @@ extension LiveImportView {
       }
       .disabled(!viewModel.canExportTypeTypeBackup)
       .accessibilityIdentifier("live.import.typetype.export")
-      Button {
-        importsTypeTypeBackup = true
-      } label: {
-        Label("Restore TypeType backup", systemImage: "clock.arrow.circlepath")
+      if viewModel.isRestoringBackup {
+        VStack(alignment: .leading, spacing: 6) {
+          ProgressView(value: viewModel.backupProgress)
+          Text(Self.backupPhaseTitle(viewModel.backupPhase))
+            .font(.caption)
+            .foregroundStyle(.secondary)
+          Button("Cancel restore", role: .destructive) {
+            viewModel.cancelTypeTypeRestore()
+          }
+        }
+      } else if viewModel.hasResumableRestore {
+        VStack(alignment: .leading, spacing: 6) {
+          Text("An interrupted restore can be resumed.")
+            .font(.caption)
+            .foregroundStyle(.secondary)
+          Button("Resume restore") {
+            viewModel.resumeTypeTypeRestore()
+          }
+        }
+      } else {
+        Button {
+          importsTypeTypeBackup = true
+        } label: {
+          Label("Restore TypeType backup", systemImage: "clock.arrow.circlepath")
+        }
+        .disabled(viewModel.isRunning)
       }
-      .disabled(viewModel.isRunning)
       if let summary = viewModel.typeTypeRestoreSummary {
         LabeledContent("Items restored", value: String(summary.total))
         ForEach(summary.restored.sorted(by: { $0.key < $1.key }), id: \.key) { item in
@@ -59,6 +80,16 @@ extension LiveImportView {
       get: { viewModel.selectedBackupCategories.contains(category) },
       set: { _ in viewModel.toggleBackupCategory(category) }
     )
+  }
+
+  static func backupPhaseTitle(_ phase: LiveTypeTypeBackupPhase) -> String {
+    switch phase {
+    case .preparing: return "Preparing backup"
+    case .filtering: return "Selecting categories"
+    case .uploading: return "Uploading restore"
+    case .finalizing: return "Finalizing restore"
+    case .completed: return "Restore complete"
+    }
   }
 
   var pipePipeSection: some View {

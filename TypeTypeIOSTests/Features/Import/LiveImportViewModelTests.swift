@@ -161,6 +161,17 @@ private final class ImportServiceStub: LiveImportServiceProtocol {
     )
   }
 
+  func restoreTypeTypeBackup(
+    fileURL: URL,
+    originalName: String,
+    categories: Set<LiveTypeTypeBackupCategory>,
+    progress: @escaping @Sendable (LiveTypeTypeBackupPhase, Double) -> Void
+  ) async throws -> LiveTypeTypeRestoreSummary {
+    LiveTypeTypeRestoreSummary(
+      restored: ["subscriptions": 1, "history": 2]
+    )
+  }
+
   private var counts: LiveYouTubeImportCounts {
     LiveYouTubeImportCounts(
       subscriptions: 1,

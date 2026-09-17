@@ -58,6 +58,9 @@ struct LiveImportView: View {
     } message: {
       Text(viewModel.errorMessage ?? "")
     }
+    .task {
+      viewModel.loadResumableRestore()
+    }
     .accessibilityIdentifier("live.import.screen")
   }
 

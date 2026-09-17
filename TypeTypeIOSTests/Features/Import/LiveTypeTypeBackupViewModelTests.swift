@@ -98,4 +98,13 @@ private final class NotificationBackupImportServiceStub: LiveImportServiceProtoc
   ) async throws -> LiveTypeTypeRestoreSummary {
     restoreSummary
   }
+
+  func restoreTypeTypeBackup(
+    fileURL: URL,
+    originalName: String,
+    categories: Set<LiveTypeTypeBackupCategory>,
+    progress: @escaping @Sendable (LiveTypeTypeBackupPhase, Double) -> Void
+  ) async throws -> LiveTypeTypeRestoreSummary {
+    restoreSummary
+  }
 }

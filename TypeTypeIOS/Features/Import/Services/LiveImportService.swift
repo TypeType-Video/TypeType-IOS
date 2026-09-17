@@ -25,6 +25,12 @@ protocol LiveImportServiceProtocol {
     fileName: String,
     categories: Set<LiveTypeTypeBackupCategory>
   ) async throws -> LiveTypeTypeRestoreSummary
+  func restoreTypeTypeBackup(
+    fileURL: URL,
+    originalName: String,
+    categories: Set<LiveTypeTypeBackupCategory>,
+    progress: @escaping @Sendable (LiveTypeTypeBackupPhase, Double) -> Void
+  ) async throws -> LiveTypeTypeRestoreSummary
 }
 
 final class LiveImportService: LiveImportServiceProtocol {
@@ -192,6 +198,50 @@ final class LiveImportService: LiveImportServiceProtocol {
       uploadEndpoint("/restore/typetype", form: form),
       as: LiveTypeTypeRestoreSummary.self
     )
+  }
+
+  func restoreTypeTypeBackup(
+    fileURL: URL,
+    originalName: String,
+    categories: Set<LiveTypeTypeBackupCategory>,
+    progress: @escaping @Sendable (LiveTypeTypeBackupPhase, Double) -> Void
+  ) async throws -> LiveTypeTypeRestoreSummary {
+    progress(.filtering, 0.3)
+    let filteredURL = try await Task.detached(priority: .userInitiated) {
+      let sourceData = try Data(contentsOf: fileURL)
+      let filteredData = try Self.filterTypeTypeBackup(
+        data: sourceData,
+        categories: categories
+      )
+      let destination = FileManager.default.temporaryDirectory
+        .appendingPathComponent("typetype-filtered-\(UUID().uuidString).json")
+      try filteredData.write(to: destination, options: .atomic)
+      return destination
+    }.value
+    defer {
+      try? FileManager.default.removeItem(at: filteredURL)
+    }
+
+    progress(.uploading, 0.65)
+    let form = try MultipartFormFile(
+      sourceURL: filteredURL,
+      fieldName: "file",
+      fileName: originalName,
+      mediaType: "application/json"
+    )
+    let summary = try await apiClient.upload(
+      APIEndpoint(
+        path: "/restore/typetype",
+        method: .post,
+        headers: ["Content-Type": form.contentType],
+        requiresAuth: true,
+        timeoutInterval: 120
+      ),
+      from: form.fileURL,
+      as: LiveTypeTypeRestoreSummary.self
+    )
+    progress(.finalizing, 1)
+    return summary
   }
 
   static func filterTypeTypeBackup(
