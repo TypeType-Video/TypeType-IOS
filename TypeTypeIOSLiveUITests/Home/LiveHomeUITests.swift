@@ -144,6 +144,7 @@ final class LiveHomeUITests: XCTestCase {
       "live.settings.screen"
     ]
     XCTAssertTrue(settingsScreen.waitForExistence(timeout: 5))
+    capture(app, named: "Live settings · Android parity")
     let content = element(in: app, labelled: "Content")
     XCTAssertTrue(content.waitForExistence(timeout: 3))
     content.tap()
