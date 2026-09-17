@@ -44,6 +44,7 @@ struct LiveAuthenticatedAppView: View {
     .animation(.snappy, value: presentsSearch)
     .task {
       notificationCenter.startPolling()
+      LiveBackgroundRefreshCoordinator.shared.scheduleRefresh()
       await applyDefaultLandingPage()
     }
     .onDisappear {
@@ -80,12 +81,15 @@ struct LiveAuthenticatedAppView: View {
       }
     }
     .onChange(of: scenePhase) {
-      guard scenePhase == .active else { return }
-      Task {
-        try? await coordinator.dependencies.sessionActivityService
-          .report()
-        await downloadCenter.activate()
-        await coordinator.reconnectIfNeeded()
+      if scenePhase == .active {
+        Task {
+          try? await coordinator.dependencies.sessionActivityService
+            .report()
+          await downloadCenter.activate()
+          await coordinator.reconnectIfNeeded()
+        }
+      } else if scenePhase == .background {
+        LiveBackgroundRefreshCoordinator.shared.scheduleRefresh()
       }
     }
     .onChange(of: connectivityMonitor.status) {

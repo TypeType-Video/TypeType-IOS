@@ -10,6 +10,9 @@ struct TypeTypeLiveAppView: View {
 
   @MainActor
   init(dependencies: AppDependencies) {
+    LiveBackgroundRefreshCoordinator.shared.configure(
+      dependencies: dependencies
+    )
     _coordinator = StateObject(
       wrappedValue: RootCoordinator(dependencies: dependencies)
     )

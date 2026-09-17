@@ -50,6 +50,9 @@ targets:
           - UIInterfaceOrientationLandscapeRight
         UIBackgroundModes:
           - audio
+          - fetch
+        BGTaskSchedulerPermittedIdentifiers:
+          - dev.typetype.ios.notifications-refresh
         UIApplicationSceneManifest:
           UIApplicationSupportsMultipleScenes: false
     settings:

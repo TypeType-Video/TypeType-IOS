@@ -2,6 +2,10 @@ import SwiftUI
 
 @main
 struct TypeTypeApp: App {
+  init() {
+    LiveBackgroundRefreshCoordinator.shared.registerIfNeeded()
+  }
+
   var body: some Scene {
     WindowGroup {
       if MockAppConfiguration.isEnabled {
