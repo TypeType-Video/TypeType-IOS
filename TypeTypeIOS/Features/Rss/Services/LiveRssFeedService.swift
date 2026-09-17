@@ -25,7 +25,10 @@ final class LiveRssFeedService: LiveRssFeedServiceProtocol {
   }
 
   func feeds() async throws -> [LiveRssFeed] {
-    try await apiClient.request(endpoint("/rss/feeds", .get))
+    try await apiClient.request(
+      endpoint("/rss/feeds", .get),
+      as: [LiveRssFeed].self
+    )
   }
 
   func create(
@@ -46,7 +49,8 @@ final class LiveRssFeedService: LiveRssFeedServiceProtocol {
         "/rss/feeds/\(id)",
         .put,
         body: try APIEndpoint.jsonBody(draft)
-      )
+      ),
+      as: LiveRssFeed.self
     )
   }
 
@@ -61,7 +65,8 @@ final class LiveRssFeedService: LiveRssFeedServiceProtocol {
         body: try APIEndpoint.jsonBody(
           ["enabled": enabled]
         )
-      )
+      ),
+      as: LiveRssFeed.self
     )
   }
 

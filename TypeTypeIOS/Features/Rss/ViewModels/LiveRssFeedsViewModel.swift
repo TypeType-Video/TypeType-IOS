@@ -108,12 +108,18 @@ final class LiveRssFeedsViewModel: ObservableObject {
 
     do {
       if let editingFeedID {
-        _ = try await feedService.update(id: editingFeedID, draft: draft)
+        let updated = try await feedService.update(
+          id: editingFeedID,
+          draft: draft
+        )
+        await reload()
+        replace(updated)
       } else {
         let secret = try await feedService.create(draft: draft)
+        await reload()
         shareURL = URL(string: secret.feedURL)
+        replace(secret.feed)
       }
-      await reload()
       startCreate()
     } catch {
       errorMessage = Self.message(for: error)

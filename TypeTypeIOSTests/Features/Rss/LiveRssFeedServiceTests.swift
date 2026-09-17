@@ -55,7 +55,7 @@ final class LiveRssFeedServiceTests: XCTestCase {
     }
 
     let secret = try await LiveRssFeedService(apiClient: Self.makeClient())
-      .create(draft: Self.draft)
+      .create(draft: Self.draft())
 
     XCTAssertEqual(secret.feed.id, "feed-1")
     XCTAssertEqual(

@@ -33,6 +33,13 @@ struct LiveRssFeedDraft: Encodable, Equatable {
   var includeShorts: Bool
   var includeLive: Bool
   var includeUpcoming: Bool
+
+  private enum CodingKeys: String, CodingKey {
+    case name, scope
+    case channelURLs = "channelUrls"
+    case serviceIDs = "serviceIds"
+    case includeVideos, includeShorts, includeLive, includeUpcoming
+  }
 }
 
 struct LiveRssFeedSecret: Codable, Equatable {
