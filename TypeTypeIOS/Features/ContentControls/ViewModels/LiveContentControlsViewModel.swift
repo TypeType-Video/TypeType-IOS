@@ -15,7 +15,7 @@ final class LiveContentControlsViewModel: ObservableObject {
   @Published private(set) var isBusy = false
   @Published private(set) var errorMessage: String?
 
-  private let service: LiveContentControlsServiceProtocol
+  let service: LiveContentControlsServiceProtocol
 
   init(service: LiveContentControlsServiceProtocol) {
     self.service = service

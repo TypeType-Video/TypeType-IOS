@@ -30,7 +30,9 @@ struct LiveContentControlsView: View {
     .navigationBarTitleDisplayMode(.inline)
     .toolbar {
       ToolbarItem(placement: .topBarTrailing) {
-        Button("Add", systemImage: "plus") { addsItem = true }
+        if viewModel.kind != .blockedKeywords {
+          Button("Add", systemImage: "plus") { addsItem = true }
+        }
       }
     }
     .task { await viewModel.prepare() }
@@ -60,6 +62,9 @@ struct LiveContentControlsView: View {
         description: Text(message)
       )
     case .loaded:
+      if viewModel.kind == .blockedKeywords {
+        LiveBlockedKeywordsView(service: viewModel.service)
+      } else {
       if viewModel.items.isEmpty {
         ContentUnavailableView(
           "No \(viewModel.kind.title.lowercased())",
@@ -89,6 +94,7 @@ struct LiveContentControlsView: View {
         .listStyle(.plain)
         .refreshable { await viewModel.reload() }
       }
+    }
     }
   }
 

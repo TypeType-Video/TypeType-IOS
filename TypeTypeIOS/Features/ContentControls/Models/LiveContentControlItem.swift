@@ -61,6 +61,7 @@ struct LiveContentControlItem: Codable, Equatable, Hashable, Identifiable {
 enum LiveContentControlKind: String, CaseIterable, Identifiable {
   case blockedChannels
   case blockedVideos
+  case blockedKeywords
   case allowedChannels
 
   var id: String { rawValue }
@@ -69,6 +70,7 @@ enum LiveContentControlKind: String, CaseIterable, Identifiable {
     switch self {
     case .blockedChannels: return "Blocked channels"
     case .blockedVideos: return "Blocked videos"
+    case .blockedKeywords: return "Blocked keywords"
     case .allowedChannels: return "Allowed channels"
     }
   }
