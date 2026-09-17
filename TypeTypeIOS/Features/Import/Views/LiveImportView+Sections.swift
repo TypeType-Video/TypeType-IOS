@@ -84,11 +84,11 @@ extension LiveImportView {
 
   static func backupPhaseTitle(_ phase: LiveTypeTypeBackupPhase) -> String {
     switch phase {
-    case .preparing: return "Preparing backup"
-    case .filtering: return "Selecting categories"
-    case .uploading: return "Uploading restore"
-    case .finalizing: return "Finalizing restore"
-    case .completed: return "Restore complete"
+    case .preparing: return String(localized: "Preparing backup")
+    case .filtering: return String(localized: "Selecting categories")
+    case .uploading: return String(localized: "Uploading restore")
+    case .finalizing: return String(localized: "Finalizing restore")
+    case .completed: return String(localized: "Restore complete")
     }
   }
 

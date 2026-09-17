@@ -16,16 +16,16 @@ enum LiveTypeTypeBackupCategory: String, CaseIterable, Identifiable {
 
   var title: String {
     switch self {
-    case .subscriptions: return "Subscriptions"
-    case .history: return "History"
-    case .playlists: return "Playlists"
-    case .watchLater: return "Watch later"
-    case .favorites: return "Favorites"
-    case .progress: return "Playback progress"
-    case .searchHistory: return "Search history"
-    case .savedPlaylists: return "Saved playlists"
-    case .settings: return "Settings"
-    case .contentFilters: return "Content filters"
+    case .subscriptions: return String(localized: "Subscriptions")
+    case .history: return String(localized: "History")
+    case .playlists: return String(localized: "Playlists")
+    case .watchLater: return String(localized: "Watch later")
+    case .favorites: return String(localized: "Favorites")
+    case .progress: return String(localized: "Playback progress")
+    case .searchHistory: return String(localized: "Search history")
+    case .savedPlaylists: return String(localized: "Saved playlists")
+    case .settings: return String(localized: "Settings")
+    case .contentFilters: return String(localized: "Content filters")
     }
   }
 }
