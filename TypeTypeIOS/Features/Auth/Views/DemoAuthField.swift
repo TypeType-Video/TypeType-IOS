@@ -8,7 +8,7 @@ struct DemoAuthField: View {
     case password
   }
 
-  let placeholder: String
+  let placeholder: LocalizedStringKey
   let kind: Kind
   let palette: DemoAuthPalette
   @Binding var text: String

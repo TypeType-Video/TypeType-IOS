@@ -24,4 +24,14 @@ final class LocalizationCatalogTests: XCTestCase {
       XCTAssertEqual(translation, french[key])
     }
   }
+
+  func testCriticalCatalogHasNoDuplicatesAndCoversCoreSurfaces() {
+    let keys = LocalizationCatalog.criticalKeys
+
+    XCTAssertEqual(keys.count, Set(keys).count)
+    XCTAssertGreaterThanOrEqual(keys.count, 140)
+    XCTAssertTrue(keys.contains("Account identity"))
+    XCTAssertTrue(keys.contains("Continue as guest"))
+    XCTAssertTrue(keys.contains("Manage subscription groups"))
+  }
 }

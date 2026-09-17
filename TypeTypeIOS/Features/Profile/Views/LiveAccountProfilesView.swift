@@ -189,6 +189,15 @@ struct LiveAccountProfilesView: View {
         }
       }
     }
+    .accessibilityElement(children: .combine)
+    .accessibilityLabel(profile.name)
+    .accessibilityValue("Profile")
+    .accessibilityHint(
+      profile.isActive
+        ? LocalizedStringKey("This profile is active.")
+        : LocalizedStringKey("Switch to profile")
+    )
+    .accessibilityAddTraits(profile.isActive ? [] : .isButton)
   }
 
   private func switchProfile(_ profile: AccountProfileItem) async {
