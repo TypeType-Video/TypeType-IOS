@@ -47,6 +47,56 @@ enum DemoTheme {
     mangaPaper = preferences.mangaPaper
   }
 
+  static func applyUIKitAppearance(
+    _ preferences: LiveAppPreferences
+  ) {
+    let isDark = preferences.appearanceMode == .dark
+      || (preferences.appearanceMode == .system
+        && UITraitCollection.current.userInterfaceStyle == .dark)
+      || preferences.appearanceAmoled
+    let backgroundColor = themeUIColor(base: .systemBackground, isDark: isDark)
+    let surfaceColor = themeUIColor(
+      base: .secondarySystemBackground,
+      isDark: isDark
+    )
+
+    UITableView.appearance().backgroundColor = backgroundColor
+    UICollectionView.appearance().backgroundColor = backgroundColor
+    UITableViewCell.appearance().backgroundColor = .clear
+    UICollectionViewCell.appearance().backgroundColor = .clear
+    UITableViewHeaderFooterView.appearance().backgroundColor = surfaceColor
+  }
+
+  private static func themeUIColor(
+    base: UIColor,
+    isDark: Bool
+  ) -> UIColor {
+    if appearanceAmoled { return .black }
+    if appearancePersonality == .manga {
+      return mangaColor(isDark: isDark)
+    }
+    switch appearanceTheme {
+    case .typetype, .dynamic:
+      return base
+    case .nord:
+      return isDark
+        ? UIColor(red: 0.18, green: 0.20, blue: 0.25, alpha: 1)
+        : UIColor(red: 0.93, green: 0.94, blue: 0.96, alpha: 1)
+    case .cream:
+      return isDark
+        ? UIColor(red: 0.15, green: 0.10, blue: 0.07, alpha: 1)
+        : UIColor(red: 1, green: 0.97, blue: 0.93, alpha: 1)
+    case .forest:
+      return isDark
+        ? UIColor(red: 0.04, green: 0.12, blue: 0.08, alpha: 1)
+        : UIColor(red: 0.94, green: 0.99, blue: 0.96, alpha: 1)
+    case .plum:
+      return isDark
+        ? UIColor(red: 0.11, green: 0.06, blue: 0.16, alpha: 1)
+        : UIColor(red: 0.98, green: 0.96, blue: 1, alpha: 1)
+    }
+  }
+
   private static func themed(_ base: UIColor) -> Color {
     Color(
       uiColor: UIColor { traits in

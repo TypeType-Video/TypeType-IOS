@@ -20,6 +20,7 @@ struct TypeTypeLiveAppView: View {
       wrappedValue: RootCoordinator(dependencies: dependencies)
     )
     DemoTheme.update(preferences: preferences.preferences)
+    DemoTheme.applyUIKitAppearance(preferences.preferences)
   }
 
   var body: some View {
@@ -60,9 +61,7 @@ struct TypeTypeLiveAppView: View {
         preferences: newValue,
         colorScheme: systemColorScheme
       )
-    }
-    .onChange(of: preferences.preferences) { newValue in
-      DemoTheme.updateAccent(newValue.accentColor)
+      DemoTheme.applyUIKitAppearance(newValue)
     }
     .onChange(of: scenePhase) { phase in
       guard phase == .background,
