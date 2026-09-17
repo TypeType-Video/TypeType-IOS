@@ -43,14 +43,19 @@ extension LivePlayerOptionsSheet {
       Section("Quality") {
         Picker(
           "Video",
-          selection: binding(
-            \.selectedVideoSourceID,
-            setter: controller.selectVideoSource
+          selection: Binding(
+            get: { controller.selectedVideoResolution },
+            set: controller.selectVideoResolution
           )
         ) {
-          Text("Automatic").tag(String?.none)
-          ForEach(controller.availableVideoSources) { source in
-            Text(source.displayName).tag(Optional(source.selectionID))
+          Text("Automatic").tag(Int?.none)
+          ForEach(
+            LivePlaybackVideoCatalog.resolutionOptions(
+              from: controller.availableVideoSources
+            )
+          ) { source in
+            Text(LivePlaybackVideoCatalog.detailLabel(for: source))
+              .tag(Optional(source.height))
           }
         }
       }

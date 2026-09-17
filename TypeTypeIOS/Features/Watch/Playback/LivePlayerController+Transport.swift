@@ -166,6 +166,35 @@ extension LivePlayerController {
     restartAtCurrentPosition()
   }
 
+  var selectedVideoResolution: Int? {
+    let selectedID = selectedVideoSourceID
+      ?? preparation?.video?.selectionID
+    guard let selectedID,
+      let source = availableVideoSources.first(where: {
+        $0.selectionID == selectedID
+      })
+    else {
+      return nil
+    }
+    return source.height
+  }
+
+  func selectVideoResolution(_ height: Int?) {
+    guard let height else {
+      selectVideoSource(nil)
+      return
+    }
+    let candidates = availableVideoSources.filter {
+      $0.height == height
+    }
+    guard let best = candidates.max(by: {
+      ($0.bitrate ?? 0) < ($1.bitrate ?? 0)
+    }) else {
+      return
+    }
+    selectVideoSource(best.selectionID)
+  }
+
   func selectAudioTrack(_ trackID: String?) {
     guard selectedAudioTrackID != trackID else { return }
     selectedAudioTrackID = trackID
