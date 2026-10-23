@@ -16,14 +16,21 @@ final class SearchUITests: XCTestCase {
     search.tap()
     search.typeText("video")
 
-    XCTAssertTrue(
-      app.descendants(matching: .any)["demo.search.channel.typetype"]
-        .waitForExistence(timeout: 3)
-    )
-    XCTAssertTrue(
-      app.descendants(matching: .any)["demo.search.playlist.calm-design"]
-        .waitForExistence(timeout: 3)
-    )
+    // Channel and playlist rows sit below the fold in a lazy stack: they
+    // are not in the accessibility tree until scrolled into view. Match by
+    // identifier prefix instead of catalog ids so catalog rewrites do not
+    // break the contract being tested: search finds channels and playlists.
+    let channelRow = app.descendants(matching: .any).matching(
+      NSPredicate(format: "identifier BEGINSWITH 'demo.search.channel.'")
+    ).firstMatch
+    let playlistRow = app.descendants(matching: .any).matching(
+      NSPredicate(format: "identifier BEGINSWITH 'demo.search.playlist.'")
+    ).firstMatch
+    for _ in 0..<4 where !(channelRow.exists && playlistRow.exists) {
+      app.swipeUp()
+    }
+    XCTAssertTrue(channelRow.waitForExistence(timeout: 3))
+    XCTAssertTrue(playlistRow.waitForExistence(timeout: 3))
     XCTAssertTrue(
       app.buttons["demo.home.video.pipepipe-sabr"]
         .waitForExistence(timeout: 3)
