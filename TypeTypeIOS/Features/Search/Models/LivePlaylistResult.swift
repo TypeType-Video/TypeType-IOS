@@ -17,6 +17,24 @@ struct LivePlaylistResult: Decodable, Hashable, Identifiable {
     URL(string: thumbnailURL)
   }
 
+  init(
+    id: String,
+    title: String,
+    url: String,
+    thumbnailURL: String,
+    uploaderName: String,
+    streamCount: Int64,
+    playlistType: String
+  ) {
+    self.id = id
+    self.title = title
+    self.url = url
+    self.thumbnailURL = thumbnailURL
+    self.uploaderName = uploaderName
+    self.streamCount = streamCount
+    self.playlistType = playlistType
+  }
+
   // One hole in a playlist row must not fail the whole page decode.
   init(from decoder: Decoder) throws {
     let container = try decoder.container(keyedBy: CodingKeys.self)

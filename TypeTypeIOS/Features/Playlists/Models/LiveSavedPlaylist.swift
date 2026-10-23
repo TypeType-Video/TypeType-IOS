@@ -25,6 +25,28 @@ struct LiveSavedPlaylist: Decodable, Equatable, Hashable, Identifiable {
     )
   }
 
+  init(
+    id: String,
+    publicPlaylistID: String,
+    url: String,
+    title: String,
+    thumbnailURL: String,
+    uploaderName: String,
+    streamCount: Int64,
+    playlistType: String,
+    savedAt: Int64
+  ) {
+    self.id = id
+    self.publicPlaylistID = publicPlaylistID
+    self.url = url
+    self.title = title
+    self.thumbnailURL = thumbnailURL
+    self.uploaderName = uploaderName
+    self.streamCount = streamCount
+    self.playlistType = playlistType
+    self.savedAt = savedAt
+  }
+
   // A single null or missing field in a row must not fail the page decode:
   // playlist and channel responses carry deleted or members-only entries
   // with holes, and one bad row used to take the whole list down.

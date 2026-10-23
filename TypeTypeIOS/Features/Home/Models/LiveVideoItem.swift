@@ -44,6 +44,50 @@ struct LiveVideoItem: Codable, Hashable, Identifiable {
     return Date(timeIntervalSince1970: seconds)
   }
 
+  init(
+    id: String,
+    title: String,
+    url: String,
+    thumbnailURL: String,
+    uploaderName: String,
+    uploaderURL: String,
+    uploaderAvatarURL: String,
+    duration: Int64,
+    viewCount: Int64,
+    uploadDate: String,
+    uploaded: Int64,
+    streamType: String,
+    isShortFormContent: Bool,
+    uploaderVerified: Bool,
+    shortDescription: String? = nil,
+    publishedAt: Int64? = nil,
+    isLive: Bool,
+    isPostLive: Bool,
+    isLiveContent: Bool,
+    requiresMembership: Bool
+  ) {
+    self.id = id
+    self.title = title
+    self.url = url
+    self.thumbnailURL = thumbnailURL
+    self.uploaderName = uploaderName
+    self.uploaderURL = uploaderURL
+    self.uploaderAvatarURL = uploaderAvatarURL
+    self.duration = duration
+    self.viewCount = viewCount
+    self.uploadDate = uploadDate
+    self.uploaded = uploaded
+    self.streamType = streamType
+    self.isShortFormContent = isShortFormContent
+    self.uploaderVerified = uploaderVerified
+    self.shortDescription = shortDescription
+    self.publishedAt = publishedAt
+    self.isLive = isLive
+    self.isPostLive = isPostLive
+    self.isLiveContent = isLiveContent
+    self.requiresMembership = requiresMembership
+  }
+
   // A single null or missing field in a row must not fail the page decode:
   // playlist and channel responses carry deleted or members-only entries
   // with holes, and one bad row used to take the whole list down.
