@@ -49,7 +49,10 @@ final class LivePublicPlaylistViewModel: ObservableObject {
       playlist = page.playlist
       videos = uniqueVisible(page.videos)
       nextPage = page.nextPage
-      savedID = saved.first { $0.url == playlist.url }?.id
+      savedID = saved.first {
+        LiveChannelURLCanonicalizer.identity($0.url)
+          == LiveChannelURLCanonicalizer.identity(playlist.url)
+      }?.id
       state = .loaded
     } catch is CancellationError {
       return
@@ -98,7 +101,12 @@ final class LivePublicPlaylistViewModel: ObservableObject {
     isPreparingPlayback = true
     defer { isPreparingPlayback = false }
     do {
+      var seenTokens: Set<String> = []
       while let pageToken = nextPage, !pageToken.isEmpty {
+        // A cursor cycle (A -> B -> A) must not spin forever; tracking every
+        // token already used breaks any repeating chain, not just an
+        // immediate echo.
+        guard seenTokens.insert(pageToken).inserted else { break }
         let page = try await service.publicPlaylist(
           url: playlist.url,
           nextPage: pageToken
@@ -108,9 +116,6 @@ final class LivePublicPlaylistViewModel: ObservableObject {
           !existing.contains($0.canonicalID)
         })
         nextPage = page.nextPage
-        if nextPage == pageToken {
-          break
-        }
       }
       return videos
     } catch is CancellationError {
