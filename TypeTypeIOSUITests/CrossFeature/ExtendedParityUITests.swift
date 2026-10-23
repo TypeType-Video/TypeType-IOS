@@ -30,7 +30,7 @@ final class ExtendedParityUITests: XCTestCase {
     add(lightScreenshot)
     app.buttons["demo.oidc.authorize"].tap()
     XCTAssertTrue(
-      app.otherElements["demo.home.brand"].waitForExistence(timeout: 4)
+      app.descendants(matching: .any)["demo.home.brand"].waitForExistence(timeout: 4)
     )
   }
 
