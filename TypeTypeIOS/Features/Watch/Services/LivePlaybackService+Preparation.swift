@@ -5,11 +5,23 @@ extension LivePlaybackService {
     stream: LivePlaybackStream,
     preferences: LivePlaybackPreferences
   ) throws -> LivePlaybackPreparation {
-    let videos = stream.allVideoSources.filter {
+    var videos = stream.allVideoSources.filter {
       $0.isSABR && $0.isAppleH264 && $0.itag > 0
     }
-    let audios = stream.audioStreams.filter {
+    var audios = stream.audioStreams.filter {
       $0.isSABR && $0.isAppleAAC && $0.itag > 0
+    }
+    if preferences.audioOnly {
+      // In audio-only the video track is never decoded - its itag only
+      // echoes through the SABR session contract - so any SABR video will
+      // do when no H.264 one exists. Audio falls back to any SABR codec
+      // only as a last resort: AAC is what the platform decodes reliably.
+      if videos.isEmpty {
+        videos = stream.allVideoSources.filter { $0.isSABR && $0.itag > 0 }
+      }
+      if audios.isEmpty {
+        audios = stream.audioStreams.filter { $0.isSABR && $0.itag > 0 }
+      }
     }
     let video = selectVideo(
       from: videos,
@@ -54,7 +66,7 @@ extension LivePlaybackService {
         subtitles: stream.subtitles,
         resumeTime: TimeInterval(max(stream.startPosition, 0)),
         isSABR: false,
-        audioOnly: false
+        audioOnly: preferences.audioOnly
       )
     }
     let muxed = stream.videoStreams.filter {
@@ -78,7 +90,7 @@ extension LivePlaybackService {
         subtitles: stream.subtitles,
         resumeTime: TimeInterval(max(stream.startPosition, 0)),
         isSABR: false,
-        audioOnly: false
+        audioOnly: preferences.audioOnly
       )
     }
 
@@ -165,7 +177,7 @@ extension LivePlaybackService {
       subtitles: stream.subtitles,
       resumeTime: TimeInterval(max(stream.startPosition, 0)),
       isSABR: false,
-      audioOnly: false
+      audioOnly: preferences.audioOnly
     )
   }
 
