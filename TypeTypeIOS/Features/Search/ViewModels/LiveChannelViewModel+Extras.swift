@@ -182,7 +182,6 @@ extension LiveChannelViewModel {
   }
 
   private static func normalizedURL(_ value: String) -> String {
-    value.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
-      .lowercased()
+    LiveChannelURLCanonicalizer.identity(value)
   }
 }
