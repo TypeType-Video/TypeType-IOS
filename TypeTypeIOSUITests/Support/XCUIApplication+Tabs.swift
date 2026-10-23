@@ -5,10 +5,19 @@ extension XCUIApplication {
     frame.width >= 600
   }
 
+  private static let tabIdentifiers = [
+    "Home": "tab.home",
+    "Subscriptions": "tab.subscriptions",
+    "History": "tab.history",
+    "Playlists": "tab.playlists",
+    "More": "tab.more",
+  ]
+
   func tabItem(_ title: String) -> XCUIElement {
-    usesFloatingTabItems
-      ? buttons[title].firstMatch
-      : tabBars.buttons[title]
+    let key = Self.tabIdentifiers[title] ?? title
+    return usesFloatingTabItems
+      ? buttons[key].firstMatch
+      : tabBars.buttons[key]
   }
 
   func tapTab(_ title: String) {
