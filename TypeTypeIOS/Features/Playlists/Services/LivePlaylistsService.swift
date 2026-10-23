@@ -92,9 +92,16 @@ final class LivePlaylistsService: LivePlaylistsServiceProtocol {
   }
 
   func removeVideo(id: String, videoURL: String) async throws {
+    // The video URL must travel as one path segment: unencoded slashes
+    // split it into several segments and the DELETE route no longer
+    // matches, so entry removal fails with 404.
+    let encodedVideoURL = videoURL.addingPercentEncoding(
+      withAllowedCharacters: .urlPathAllowed
+        .subtracting(CharacterSet(charactersIn: "/"))
+    ) ?? videoURL
     try await apiClient.request(
       endpoint(
-        "/playlists/\(id)/videos/\(videoURL)",
+        "/playlists/\(id)/videos/\(encodedVideoURL)",
         .delete
       )
     )
