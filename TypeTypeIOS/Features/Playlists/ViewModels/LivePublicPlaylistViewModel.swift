@@ -50,8 +50,7 @@ final class LivePublicPlaylistViewModel: ObservableObject {
       videos = uniqueVisible(page.videos)
       nextPage = page.nextPage
       savedID = saved.first {
-        LiveChannelURLCanonicalizer.identity($0.url)
-          == LiveChannelURLCanonicalizer.identity(playlist.url)
+        Self.normalizedURL($0.url) == Self.normalizedURL(playlist.url)
       }?.id
       state = .loaded
     } catch is CancellationError {
@@ -128,6 +127,11 @@ final class LivePublicPlaylistViewModel: ObservableObject {
 
   func dismissError() {
     errorMessage = nil
+  }
+
+  private static func normalizedURL(_ value: String) -> String {
+    value.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+      .lowercased()
   }
 
   private func uniqueVisible(
