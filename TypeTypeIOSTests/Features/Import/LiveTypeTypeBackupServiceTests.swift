@@ -128,6 +128,66 @@ final class LiveTypeTypeBackupServiceTests: XCTestCase {
     XCTAssertNil(object["subscriptions"])
   }
 
+  func testRestoreKeepsSelectedCategoriesWhenMetadataIsMissing() throws {
+    // Backups without a "categories" metadata list used to be stripped to
+    // nothing: the empty intersection dropped every selected category and
+    // the server restored zero entries without reporting an error.
+    let source = Data(
+      """
+      {
+        "format":"typetype-backup",
+        "version":1,
+        "subscriptions":[],
+        "history":[],
+        "settings":{}
+      }
+      """.utf8
+    )
+
+    let filtered = try LiveImportService.filterTypeTypeBackup(
+      data: source,
+      categories: [.subscriptions, .history, .settings]
+    )
+    let object = try XCTUnwrap(
+      JSONSerialization.jsonObject(with: filtered) as? [String: Any]
+    )
+
+    XCTAssertEqual(
+      object["categories"] as? [String],
+      ["history", "settings", "subscriptions"]
+    )
+    XCTAssertNotNil(object["subscriptions"])
+    XCTAssertNotNil(object["history"])
+    XCTAssertNotNil(object["settings"])
+  }
+
+  func testRestoreWithoutMetadataKeepsOnlySelectedCategories() throws {
+    let source = Data(
+      """
+      {
+        "format":"typetype-backup",
+        "version":1,
+        "subscriptions":[],
+        "history":[],
+        "settings":{}
+      }
+      """.utf8
+    )
+
+    let filtered = try LiveImportService.filterTypeTypeBackup(
+      data: source,
+      categories: [.history]
+    )
+    let object = try XCTUnwrap(
+      JSONSerialization.jsonObject(with: filtered) as? [String: Any]
+    )
+
+    XCTAssertEqual(object["categories"] as? [String], ["history"])
+    XCTAssertNotNil(object["history"])
+    XCTAssertNil(object["subscriptions"])
+    XCTAssertNil(object["settings"])
+  }
+
   private static func makeService() -> LiveImportService {
     LiveImportService(
       apiClient: URLSessionAPIClient(

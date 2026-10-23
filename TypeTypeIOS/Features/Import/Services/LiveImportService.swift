@@ -253,16 +253,6 @@ final class LiveImportService: LiveImportServiceProtocol {
       throw NetworkError.decoding
     }
 
-    let sourceCategories = Set(
-      (backup["categories"] as? [String] ?? []).compactMap {
-        LiveTypeTypeBackupCategory(rawValue: $0)
-      }
-    )
-    let selectedCategories = categories.intersection(sourceCategories)
-    backup["categories"] = selectedCategories
-      .map(\.rawValue)
-      .sorted()
-
     let fieldNames: [LiveTypeTypeBackupCategory: String] = [
       .subscriptions: "subscriptions",
       .history: "history",
@@ -274,7 +264,34 @@ final class LiveImportService: LiveImportServiceProtocol {
       .savedPlaylists: "savedPlaylists",
       .settings: "settings",
       .contentFilters: "contentFilters",
+      .subscriptionGroups: "subscriptionGroups",
     ]
+
+    // The metadata list declares which categories the backup carries. When
+    // it is missing or unparseable the data fields themselves are the only
+    // truth: deriving an empty source set from absent metadata used to strip
+    // every selected category and upload an empty backup that the server
+    // then reported as zero restored without an error.
+    let declaredCategories = Set(
+      (backup["categories"] as? [String] ?? []).compactMap {
+        LiveTypeTypeBackupCategory(rawValue: $0)
+      }
+    )
+    let sourceCategories: Set<LiveTypeTypeBackupCategory>
+    if declaredCategories.isEmpty {
+      sourceCategories = Set(
+        LiveTypeTypeBackupCategory.allCases.filter { category in
+          backup[fieldNames[category] ?? category.rawValue] != nil
+        }
+      )
+    } else {
+      sourceCategories = declaredCategories
+    }
+
+    let selectedCategories = categories.intersection(sourceCategories)
+    backup["categories"] = selectedCategories
+      .map(\.rawValue)
+      .sorted()
     for category in LiveTypeTypeBackupCategory.allCases
     where !selectedCategories.contains(category) {
       backup.removeValue(forKey: fieldNames[category] ?? category.rawValue)
