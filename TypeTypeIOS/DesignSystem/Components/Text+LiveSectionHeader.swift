@@ -6,7 +6,7 @@ extension Text {
   /// rounded cards below) clashed with the page design.
   func liveSectionHeader() -> some View {
     self
-      .font(.title3.weight(.semibold))
+      .font(.headline)
       .textCase(nil)
       .foregroundStyle(.primary)
       .frame(maxWidth: .infinity, alignment: .leading)
