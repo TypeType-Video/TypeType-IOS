@@ -7,7 +7,7 @@ struct LivePlayerOptionsSheet: View {
   @ObservedObject var bulletCommentStore: LiveBulletCommentStore
   @Binding var cinemaMode: Bool
   @Environment(\.dismiss) private var dismiss
-  @State private var presentsReport = false
+  @State var presentsReport = false
 
   init(
     controller: LivePlayerController,
