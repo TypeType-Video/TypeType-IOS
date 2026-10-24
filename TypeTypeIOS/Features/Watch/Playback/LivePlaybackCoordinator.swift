@@ -16,6 +16,7 @@ final class LivePlaybackCoordinator: ObservableObject {
   @Published var currentVideo: LiveVideoItem?
   @Published var controller: LivePlayerController?
   @Published var presentation = Presentation.hidden
+  let pictureInPicture = LivePictureInPictureDriver()
   @Published var queue = LivePlaybackQueueSnapshot.empty
   @Published var sleepTimer = LivePlaybackSleepTimerState()
   @Published var autoplayCountdownRemaining: Int?
@@ -50,6 +51,7 @@ final class LivePlaybackCoordinator: ObservableObject {
 
   var showsMiniPlayer: Bool {
     hasActivePlayback && presentation == .mini
+   && !pictureInPicture.isEngaged
   }
 
   func restoreIfNeeded() async {

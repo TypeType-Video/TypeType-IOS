@@ -9,7 +9,24 @@ extension LivePlaybackCoordinator {
   func minimize() {
     guard hasActivePlayback else { return }
     controller?.flushHistory()
+    // Twitch-style: float the real system PiP window over the app. When PiP
+    // is unavailable or fails, isEngaged stays false and the in-app card
+    // shows instead.
+    startSystemPictureInPicture()
     presentation = .mini
+  }
+
+  /// Starts the system PiP window for the current playback.
+  func startSystemPictureInPicture() {
+    guard let player = controller?.player else { return }
+    pictureInPicture.onChange = { [weak self] in
+      self?.objectWillChange.send()
+    }
+    pictureInPicture.attach(player: player)
+    pictureInPicture.start(
+      onRestore: { [weak self] in self?.expand() },
+      onClose: { [weak self] in self?.close() }
+    )
   }
 
   func close() {

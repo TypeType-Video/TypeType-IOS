@@ -14,6 +14,12 @@ extension LiveAuthenticatedAppView {
       }
     }
     
+    .onChange(of: playbackCoordinator.presentation) { newValue in
+      // System PiP restore: bring the expanded player back.
+      if newValue == .expanded {
+        presentsExpandedPlayback = true
+      }
+    }
     .fullScreenCover(
       isPresented: $presentsExpandedPlayback,
       onDismiss: {
@@ -22,6 +28,7 @@ extension LiveAuthenticatedAppView {
       }
     ) {
       expandedPlayback
+        .simultaneousGesture(minimizePullDown)
     }
     .fullScreenCover(item: $incomingMediaLink) { link in
       LiveIncomingMediaLinkView(
@@ -161,5 +168,22 @@ private struct LiveTabBarTopKey: PreferenceKey {
 
   static func reduce(value: inout CGFloat?, nextValue: () -> CGFloat?) {
     value = nextValue() ?? value
+  }
+}
+
+private extension LiveAuthenticatedAppView {
+  /// Pull down on the player to minimize into Picture in Picture.
+  var minimizePullDown: some Gesture {
+    DragGesture(minimumDistance: 30)
+      .onEnded { value in
+        guard value.startLocation.y < 320,
+          value.translation.height > 120,
+          abs(value.translation.height) > abs(value.translation.width)
+        else {
+          return
+        }
+        playbackCoordinator.minimize()
+        presentsExpandedPlayback = false
+      }
   }
 }
