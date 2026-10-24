@@ -53,7 +53,7 @@ struct LiveSettingsAccountsView: View {
 
   var body: some View {
     List {
-      Section("Instances") {
+      Section {
         ForEach(coordinator.servers) { server in
           Button {
             Task { await coordinator.selectServer(server) }
@@ -78,10 +78,12 @@ struct LiveSettingsAccountsView: View {
         Button("Add instance") {
           coordinator.showServerSetup()
         }
+      } header: {
+        Text("Instances").liveSectionHeader()
       }
 
       if let user = coordinator.currentUser {
-        Section("Account") {
+        Section {
           LabeledContent(
             "Username",
             value: user.publicUsername ?? "Guest"
@@ -96,7 +98,9 @@ struct LiveSettingsAccountsView: View {
               }
             }
           }
-        }
+        } header: {
+        Text("Account").liveSectionHeader()
+      }
       }
     }
     .navigationTitle("Instances and accounts")
@@ -114,7 +118,7 @@ struct LiveSettingsAppearanceView: View {
       viewModel: viewModel,
       dependencies: dependencies
     ) {
-      Section("Appearance") {
+      Section {
         Picker(
           "Accent color",
           selection: preferences.binding(\.accentColor)
@@ -155,10 +159,12 @@ struct LiveSettingsAppearanceView: View {
             Text(motion.title).tag(motion)
           }
         }
+      } header: {
+        Text("Appearance").liveSectionHeader()
       }
 
       if preferences.preferences.appearancePersonality == .manga {
-        Section("Manga") {
+        Section {
           Picker("Paper", selection: preferences.binding(\.mangaPaper)) {
             ForEach(LiveMangaPaper.allCases) { paper in
               Text(paper.title).tag(paper)
@@ -192,10 +198,12 @@ struct LiveSettingsAppearanceView: View {
             "Panel tilt",
             isOn: preferences.binding(\.mangaPanelTilt)
           )
-        }
+        } header: {
+        Text("Manga").liveSectionHeader()
+      }
       }
 
-      Section("Preview") {
+      Section {
         Color.clear
           .accessibilityIdentifier("live.settings.appearance.preview")
           .frame(height: 0)
@@ -260,7 +268,9 @@ struct LiveSettingsAppearanceView: View {
               .font(.caption)
               .foregroundStyle(.secondary)
           }
-        }
+        } header: {
+        Text("Preview").liveSectionHeader()
+      }
     }
     .navigationTitle("Appearance")
     .navigationBarTitleDisplayMode(.inline)
@@ -281,8 +291,10 @@ struct LiveSettingsContentView: View {
         settings: $viewModel.draft,
         services: dependencies.serviceSelection.services
       )
-      Section("Visible surfaces") {
+      Section {
         Toggle("Hide Shorts", isOn: $viewModel.draft.hideShorts)
+      } header: {
+        Text("Visible surfaces").liveSectionHeader()
       }
     }
     .navigationTitle("Content")
@@ -302,7 +314,7 @@ struct LiveSettingsPlayerView: View {
     ) {
       LiveSettingsPlaybackSection(settings: $viewModel.draft)
       localPlaybackSection
-      Section("Gestures") {
+      Section {
         Toggle(
           "Accessible player controls",
           isOn: preferences.binding(\.playerAccessibleControlsEnabled)
@@ -337,8 +349,10 @@ struct LiveSettingsPlayerView: View {
           "Long-press to speed up",
           isOn: preferences.binding(\.playerLongPressSpeedEnabled)
         )
+      } header: {
+        Text("Gestures").liveSectionHeader()
       }
-      Section("Default codec") {
+      Section {
         Picker("Preferred codec", selection: preferences.binding(
           \.playerPreferredCodec
         )) {
@@ -347,8 +361,10 @@ struct LiveSettingsPlayerView: View {
           Text("VP9").tag("vp9")
           Text("H.264").tag("h264")
         }
+      } header: {
+        Text("Default codec").liveSectionHeader()
       }
-      Section("Bullet comments") {
+      Section {
         Toggle(
           "Show bullet comments",
           isOn: preferences.binding(\.danmakuEnabled)
@@ -371,6 +387,8 @@ struct LiveSettingsPlayerView: View {
             }
           }
         }
+      } header: {
+        Text("Bullet comments").liveSectionHeader()
       }
       LiveSettingsLanguageSection(settings: $viewModel.draft)
       LiveSettingsSponsorBlockSection(settings: $viewModel.draft)
@@ -380,7 +398,7 @@ struct LiveSettingsPlayerView: View {
   }
 
   private var localPlaybackSection: some View {
-    Section("Device playback") {
+    Section {
       Toggle(
         "Autoplay next video",
         isOn: preferences.binding(\.playerAutoplayEnabled)
@@ -406,7 +424,9 @@ struct LiveSettingsPlayerView: View {
         "Pause in background",
         isOn: preferences.binding(\.playerPauseInBackground)
       )
-    }
+    } header: {
+        Text("Device playback").liveSectionHeader()
+      }
   }
 }
 
@@ -420,7 +440,7 @@ struct LiveSettingsPrivacyView: View {
       dependencies: dependencies
     ) {
       LiveSettingsPrivacySection(settings: $viewModel.draft)
-      Section("Stored activity") {
+      Section {
         NavigationLink("Manage stored data") {
           LivePrivacyDataView(
             history: dependencies.historyService,
@@ -428,6 +448,8 @@ struct LiveSettingsPrivacyView: View {
             subscriptions: dependencies.subscriptionsService
           )
         }
+      } header: {
+        Text("Stored activity").liveSectionHeader()
       }
     }
     .navigationTitle("Privacy")

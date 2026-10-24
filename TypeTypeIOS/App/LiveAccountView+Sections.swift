@@ -2,7 +2,7 @@ import SwiftUI
 
 extension LiveAccountView {
   var accountSection: some View {
-    Section("Account") {
+    Section {
       LabeledContent(
         "Username",
         value: coordinator.currentUser?.publicUsername ?? "Guest"
@@ -22,10 +22,12 @@ extension LiveAccountView {
           }
         }
       }
-    }
+    } header: {
+        Text("Account").liveSectionHeader()
+      }
   }
   var instanceSection: some View {
-    Section("Instance") {
+    Section {
       LabeledContent(
         "Name",
         value: coordinator.instance?.name
@@ -42,10 +44,12 @@ extension LiveAccountView {
       if let version = coordinator.instance?.version {
         LabeledContent("Version", value: version)
       }
-    }
+    } header: {
+        Text("Instance").liveSectionHeader()
+      }
   }
   var preferencesSection: some View {
-    Section("Preferences") {
+    Section {
       accountPreferences
       NavigationLink {
         LiveSettingsView(coordinator: coordinator)
@@ -76,7 +80,9 @@ extension LiveAccountView {
       } label: {
         Label("Import data", systemImage: "square.and.arrow.up.fill")
       }
-    }
+    } header: {
+        Text("Preferences").liveSectionHeader()
+      }
   }
   @ViewBuilder private var accountPreferences: some View {
     if let user = coordinator.currentUser,
@@ -131,7 +137,7 @@ extension LiveAccountView {
   @ViewBuilder var supportSection: some View {
     if let user = coordinator.currentUser,
       !user.id.hasPrefix("guest:") {
-      Section("Support") {
+      Section {
         NavigationLink {
           LiveReportIssueView(
             service: coordinator.dependencies.bugReportsService
@@ -147,19 +153,23 @@ extension LiveAccountView {
             )
           }
         }
+      } header: {
+        Text("Support").liveSectionHeader()
       }
     }
   }
 
   @ViewBuilder var administrationSection: some View {
     if let user = coordinator.currentUser, user.role == .admin {
-      Section("Administration") {
+      Section {
         NavigationLink("Admin console") {
           LiveAdminConsoleView(
             dependencies: coordinator.dependencies,
             currentUserID: user.id
           )
         }
+      } header: {
+        Text("Administration").liveSectionHeader()
       }
     }
   }
