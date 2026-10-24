@@ -196,9 +196,9 @@ private extension View {
   @ViewBuilder
   func pipGlassBackground() -> some View {
     if #available(iOS 26.0, *) {
-      // Thin glass is more transparent; like all system glass it also
-      // follows the global "Reduce Transparency" accessibility setting.
-      self.glassEffect(.thin, in: Circle())
+      // Clear glass is the most transparent system glass; like all system
+      // glass it also follows the global "Reduce Transparency" setting.
+      self.glassEffect(.clear, in: Circle())
     } else {
       self.background(.ultraThinMaterial, in: Circle())
     }
