@@ -2,7 +2,7 @@ import SwiftUI
 
 extension LivePlayerOptionsSheet {
   var playbackSection: some View {
-    Section("Playback") {
+    Section {
       Toggle(
         "Audio only",
         systemImage: "headphones",
@@ -35,12 +35,12 @@ extension LivePlayerOptionsSheet {
         }
       }
       LivePlaybackSleepTimerLink(coordinator: coordinator)
-    }
+     header: { Text("Playback").liveSectionHeader() }}
   }
 
   @ViewBuilder var qualitySection: some View {
     if !controller.availableVideoSources.isEmpty {
-      Section("Quality") {
+      Section {
         Picker(
           "Video",
           selection: Binding(
@@ -58,12 +58,12 @@ extension LivePlayerOptionsSheet {
               .tag(Optional(source.height))
           }
         }
-      }
+       header: { Text("Quality").liveSectionHeader() }}
     }
   }
 
   var tracksSection: some View {
-    Section("Tracks") {
+    Section {
       if controller.availableAudioSources.count > 1 {
         Picker(
           "Audio",
@@ -89,12 +89,12 @@ extension LivePlayerOptionsSheet {
         !controller.availableSubtitles.isEmpty {
         subtitlePicker
       }
-    }
+     header: { Text("Tracks").liveSectionHeader() }}
   }
 
   @ViewBuilder var chaptersSection: some View {
     if !controller.availableChapters.isEmpty {
-      Section("Chapters") {
+      Section {
         NavigationLink {
           LivePlayerChaptersView(controller: controller)
         } label: {
@@ -104,7 +104,7 @@ extension LivePlayerOptionsSheet {
           )
         }
         .accessibilityIdentifier("live.player.chapters.link")
-      }
+       header: { Text("Chapters").liveSectionHeader() }}
     }
   }
 
@@ -124,7 +124,7 @@ extension LivePlayerOptionsSheet {
   }
 
   var communitySection: some View {
-    Section("Community enhancements") {
+    Section {
       NavigationLink {
         LivePlayerSponsorBlockOptionsView(controller: controller)
       } label: {
@@ -135,11 +135,11 @@ extension LivePlayerOptionsSheet {
           )?.title ?? "Off"
         )
       }
-    }
+     header: { Text("Community enhancements").liveSectionHeader() }}
   }
 
   var streamInformationSection: some View {
-    Section("Stream information") {
+    Section {
       LabeledContent("Delivery", value: controller.transportLabel)
       if let video = controller.preparation?.video {
         LabeledContent(
@@ -157,7 +157,7 @@ extension LivePlayerOptionsSheet {
             .joined(separator: " · ")
         )
       }
-    }
+     header: { Text("Stream information").liveSectionHeader() }}
   }
 
   func binding<Value>(

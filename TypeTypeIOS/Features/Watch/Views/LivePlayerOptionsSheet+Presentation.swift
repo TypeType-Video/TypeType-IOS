@@ -3,7 +3,7 @@ import SwiftUI
 
 extension LivePlayerOptionsSheet {
   var presentationSection: some View {
-    Section("Player presentation") {
+    Section {
       Picker("Image mode", selection: binding(
         \.imageMode,
         setter: controller.setImageMode
@@ -65,6 +65,6 @@ extension LivePlayerOptionsSheet {
           }
         }
       }
-    }
+     header: { Text("Player presentation").liveSectionHeader() }}
   }
 }
