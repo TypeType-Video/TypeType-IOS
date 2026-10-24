@@ -3,10 +3,12 @@ import SwiftUI
 struct LivePlayerView: View {
   @ObservedObject var controller: LivePlayerController
   @ObservedObject var coordinator: LivePlaybackCoordinator
+  let dependencies: AppDependencies
   @ObservedObject private var preferences = LiveAppPreferencesStore.shared
   let posterURL: URL?
   @Binding var cinemaMode: Bool
   @State private var showsOptions = false
+  @State private var presentsDownload = false
   @State private var seekFeedback: PlayerDoubleTapSeekFeedback?
   @State private var swipeAdjustment: PlayerSwipeAdjustmentState?
   @State private var systemBrightnessBeforeSwipe: CGFloat?
@@ -141,27 +143,44 @@ struct LivePlayerView: View {
         playbackStatusAccessibilityElement
         playbackPositionAccessibilityElement
 
-        Button {
-          showsOptions = true
-        } label: {
-          Image(systemName: "slider.horizontal.3")
-            .font(.body.weight(.semibold))
-            .foregroundStyle(.white)
-            .frame(width: 38, height: 38)
-            .background(.black.opacity(0.58), in: Circle())
-            .overlay {
-              Circle().stroke(.white.opacity(0.22), lineWidth: 0.5)
+        HStack(spacing: 10) {
+          if let video = coordinator.currentVideo,
+            let shareURL = LiveShareURLBuilder.video(
+              serverURL: dependencies.serverStore.selectedServer()?.baseURL,
+              sourceURL: video.url
+            ) {
+            ShareLink(item: shareURL) {
+              overlayIcon("square.and.arrow.up")
             }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Share")
+            .accessibilityIdentifier("live.player.share")
+
+            Button {
+              presentsDownload = true
+            } label: {
+              overlayIcon("arrow.down.circle")
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Download")
+            .accessibilityIdentifier("live.player.download")
+          }
+
+          Button {
+            showsOptions = true
+          } label: {
+            overlayIcon("slider.horizontal.3")
+          }
+          .buttonStyle(.plain)
+          .accessibilityLabel("Player options")
+          .accessibilityIdentifier("live.player.options")
         }
-        .buttonStyle(.plain)
         .frame(
           maxWidth: .infinity,
           maxHeight: .infinity,
           alignment: .topTrailing
         )
         .padding(10)
-        .accessibilityLabel("Player options")
-        .accessibilityIdentifier("live.player.options")
       }
     }
     .aspectRatio(16 / 9, contentMode: .fit)
@@ -196,8 +215,14 @@ struct LivePlayerView: View {
     .onDisappear {
       restoreSystemBrightness()
     }
+    .sheet(isPresented: $presentsDownload) {
+      if let video = coordinator.currentVideo {
+        LiveDownloadSheet(video: video, dependencies: dependencies)
+      }
+    }
     .sheet(isPresented: $showsOptions) {
       LivePlayerOptionsSheet(
+        dependencies: dependencies,
         controller: controller,
         coordinator: coordinator,
         cinemaMode: $cinemaMode
@@ -494,5 +519,18 @@ private struct LivePictureInPictureNotice: View {
       }
       .accessibilityIdentifier("live.player.pip.notice")
     }
+  }
+}
+
+private extension LivePlayerView {
+  func overlayIcon(_ symbol: String) -> some View {
+    Image(systemName: symbol)
+      .font(.body.weight(.semibold))
+      .foregroundStyle(.white)
+      .frame(width: 38, height: 38)
+      .background(.black.opacity(0.58), in: Circle())
+      .overlay {
+        Circle().stroke(.white.opacity(0.22), lineWidth: 0.5)
+      }
   }
 }

@@ -3,17 +3,21 @@ import SwiftUI
 struct LivePlayerOptionsSheet: View {
   @ObservedObject var controller: LivePlayerController
   @ObservedObject var coordinator: LivePlaybackCoordinator
+  let dependencies: AppDependencies
   @ObservedObject var bulletCommentStore: LiveBulletCommentStore
   @Binding var cinemaMode: Bool
   @Environment(\.dismiss) private var dismiss
+  @State private var presentsReport = false
 
   init(
     controller: LivePlayerController,
     coordinator: LivePlaybackCoordinator,
+    dependencies: AppDependencies,
     cinemaMode: Binding<Bool>
   ) {
     self.controller = controller
     self.coordinator = coordinator
+    self.dependencies = dependencies
     bulletCommentStore = controller.bulletCommentStore
     _cinemaMode = cinemaMode
   }
@@ -28,6 +32,7 @@ struct LivePlayerOptionsSheet: View {
         presentationSection
         communitySection
         streamInformationSection
+        reportSection
       }
       .accessibilityIdentifier("live.player.options-sheet")
       .navigationTitle("Player options")
@@ -35,6 +40,19 @@ struct LivePlayerOptionsSheet: View {
       .toolbar {
         ToolbarItem(placement: .confirmationAction) {
           Button("Done") { dismiss() }
+        }
+      }
+    }
+    .sheet(isPresented: $presentsReport) {
+      NavigationStack {
+        LiveReportIssueView(
+          bugReportsService: dependencies.bugReportsService,
+          videoURL: coordinator.currentVideo?.url ?? ""
+        )
+        .toolbar {
+          ToolbarItem(placement: .cancellationAction) {
+            Button("Close") { presentsReport = false }
+          }
         }
       }
     }

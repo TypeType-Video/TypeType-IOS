@@ -175,3 +175,19 @@ extension LivePlayerOptionsSheet {
     ("4×", 4),
   ]
 }
+
+extension LivePlayerOptionsSheet {
+  var reportSection: some View {
+    Section {
+      Button {
+        presentsReport = true
+      } label: {
+        Label("Report video", systemImage: "exclamationmark.bubble")
+      }
+      .buttonStyle(.plain)
+      .accessibilityIdentifier("live.player.options.report")
+    } header: {
+      Text("Support").liveSectionHeader()
+    }
+  }
+}
