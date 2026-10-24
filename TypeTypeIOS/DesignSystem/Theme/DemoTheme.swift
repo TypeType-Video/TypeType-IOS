@@ -64,7 +64,9 @@ enum DemoTheme {
     UICollectionView.appearance().backgroundColor = backgroundColor
     UITableViewCell.appearance().backgroundColor = .clear
     UICollectionViewCell.appearance().backgroundColor = .clear
-    UITableViewHeaderFooterView.appearance().backgroundColor = surfaceColor
+    // Transparent, not surfaceColor: painting this white put a square
+    // block behind every section header, clashing with the rounded cards.
+    UITableViewHeaderFooterView.appearance().backgroundColor = .clear
   }
 
   private static func themeUIColor(

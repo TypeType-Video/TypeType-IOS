@@ -88,7 +88,7 @@ struct LivePlayerView: View {
           fillsAvailableSpace: false
         )
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .padding(.top, 64)
+        .padding(.top, 10)
         playbackStatusAccessibilityElement
         playbackPositionAccessibilityElement
 
