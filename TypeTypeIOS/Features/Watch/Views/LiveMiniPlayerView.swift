@@ -5,104 +5,66 @@ struct LiveMiniPlayerView: View {
   @ObservedObject var coordinator: LivePlaybackCoordinator
   let onExpand: () -> Void
   @State private var dragTranslation: CGFloat = 0
-  @ScaledMetric(relativeTo: .body) private var playbackControlWidth = 34
-  @ScaledMetric(relativeTo: .body) private var playbackControlHeight = 40
-  @ScaledMetric(relativeTo: .body) private var closeControlWidth = 30
-  @ScaledMetric(relativeTo: .body) private var closeControlHeight = 40
 
   var body: some View {
     if let video = coordinator.currentVideo,
       let controller = coordinator.controller {
-      VStack(spacing: 0) {
-        ProgressView(
-          value: min(max(controller.position, 0), max(controller.duration, 1)),
-          total: max(controller.duration, 1)
-        )
-        .progressViewStyle(.linear)
-        .tint(DemoTheme.accent)
-        .frame(height: 2)
-
-        HStack(spacing: 11) {
-          Button(action: onExpand) {
-            ZStack {
-              LiveRemoteImage(url: video.thumbnail)
-                .frame(width: 80, height: 45)
-                .aspectRatio(16 / 9, contentMode: .fill)
-                .clipped()
-                .clipShape(
-                  RoundedRectangle(cornerRadius: 6, style: .continuous)
-                )
-              if controller.state == .playing, !controller.audioOnly {
-                LiveVideoPreviewLayer(player: controller.player)
-                  .frame(width: 80, height: 45)
-                  .clipShape(
-                    RoundedRectangle(cornerRadius: 6, style: .continuous)
-                  )
-                  .allowsHitTesting(false)
-              }
-            }
+      ZStack {
+        if controller.audioOnly {
+          ZStack {
+            LiveRemoteImage(url: video.thumbnail)
+              .scaledToFill()
+              .blur(radius: 18)
+              .opacity(0.5)
+            Image(systemName: "waveform")
+              .font(.system(size: 26, weight: .medium))
+              .foregroundStyle(.white)
           }
-          .buttonStyle(.plain)
-          .accessibilityLabel("Open \(video.title)")
+        } else if controller.state == .playing || controller.state == .paused {
+          LiveVideoPreviewLayer(player: controller.player)
+        } else {
+          LiveRemoteImage(url: video.thumbnail)
+            .scaledToFill()
+        }
+
+        // Tap surface below the controls: pressing play or close must not
+        // expand the player.
+        Color.clear
+          .contentShape(Rectangle())
+          .onTapGesture { onExpand() }
           .accessibilityIdentifier("live.miniplayer.open")
 
-          Button(action: onExpand) {
-            VStack(alignment: .leading, spacing: 3) {
-              Text(video.title)
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(.primary)
-                .lineLimit(2)
-                .minimumScaleFactor(0.8)
-              Text(video.uploaderName)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .lineLimit(1)
-                .minimumScaleFactor(0.8)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
+        HStack(spacing: 8) {
+          Button(action: { controller.togglePlayback() }) {
+            Image(systemName: controller.state == .playing ? "pause.fill" : "play.fill")
+              .font(.system(size: 14, weight: .bold))
+              .foregroundStyle(.white)
+              .frame(width: 34, height: 34)
+              .background(.black.opacity(0.55), in: Circle())
           }
-          .buttonStyle(.plain)
-
-          if coordinator.sleepTimer.isActive {
-            Image(systemName: "moon.zzz.fill")
-              .font(.caption)
-              .foregroundStyle(.tint)
-              .accessibilityLabel(
-                "Sleep timer \(coordinator.sleepTimer.summary)"
-              )
-          }
-
-          Button(action: controller.togglePlayback) {
-            Image(
-              systemName: controller.state == .playing
-                ? "pause.fill"
-                : "play.fill"
-            )
-            .frame(
-              width: playbackControlWidth,
-              height: playbackControlHeight
-            )
-          }
-          .accessibilityLabel(
-            controller.state == .playing ? "Pause" : "Play"
-          )
+          .accessibilityLabel(controller.state == .playing ? "Pause" : "Play")
           .accessibilityIdentifier("live.miniplayer.playback")
 
-          Button(action: coordinator.close) {
+          Button(action: { coordinator.close() }) {
             Image(systemName: "xmark")
-              .frame(width: closeControlWidth, height: closeControlHeight)
+              .font(.system(size: 12, weight: .bold))
+              .foregroundStyle(.white)
+              .frame(width: 30, height: 30)
+              .background(.black.opacity(0.55), in: Circle())
           }
           .accessibilityLabel("Close player")
           .accessibilityIdentifier("live.miniplayer.close")
         }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 8)
+        .padding(8)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
       }
-      .frame(maxWidth: .infinity)
-      .background(.regularMaterial)
-      .overlay(alignment: .top) {
-        Divider()
+      .frame(width: 240, height: 135)
+      .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+      .overlay {
+        RoundedRectangle(cornerRadius: 14, style: .continuous)
+          .strokeBorder(.white.opacity(0.14), lineWidth: 1)
       }
+      .shadow(color: .black.opacity(0.28), radius: 10, y: 4)
       .offset(y: dragTranslation)
       .opacity(dragOpacity)
       .gesture(miniPlayerDragGesture)

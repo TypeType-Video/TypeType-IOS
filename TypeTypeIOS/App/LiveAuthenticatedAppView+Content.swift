@@ -69,7 +69,13 @@ extension LiveAuthenticatedAppView {
     // bar actually has on this device. The old hardcoded 49pt clearance
     // overlapped the bar on modern devices and on the iPhone SE.
     .safeAreaInset(edge: .bottom, spacing: 0) {
-      miniPlayer
+      // PiP-style: a compact card floating at the trailing edge instead of
+      // a full-width bar.
+      HStack {
+        Spacer()
+        miniPlayer
+          .padding(.trailing, 14)
+      }
     }
   }
 
