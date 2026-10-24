@@ -72,7 +72,6 @@ struct LivePlayerView: View {
             Image(systemName: "waveform")
               .font(.system(size: 44, weight: .medium))
               .foregroundStyle(.white)
-              .symbolEffect(.variableColor.iterative)
           }
           .allowsHitTesting(false)
         }
