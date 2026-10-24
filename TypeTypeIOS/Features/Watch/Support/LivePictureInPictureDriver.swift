@@ -54,6 +54,12 @@ final class LivePictureInPictureDriver: NSObject, ObservableObject {
     CATransaction.commit()
   }
 
+  /// Marks the controls for a forced refresh (e.g. when the player surface
+  /// reappears after a PiP round trip).
+  func markControlsRefresh() {
+    controlsRefreshPending = true
+  }
+
   /// True once after every PiP stop: AVKit can leave its controls hidden
   /// after a hand-back, the player layer uses this to force them back.
   func consumeControlsRefresh() -> Bool {

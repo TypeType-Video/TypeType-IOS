@@ -87,6 +87,11 @@ struct LivePlayerView: View {
           } action: { frame in
             evaluateAutoPictureInPicture(frame)
           }
+          .onAppear {
+            // A surface that reappears after a PiP round trip must not come
+            // back with hidden controls.
+            controller.pictureInPicture.markControlsRefresh()
+          }
           // Seek and speed gestures live on the video surface only: as
           // container-level simultaneous gestures they also fired when
           // tapping controls, so double-tapping pause sought -10s.

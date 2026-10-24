@@ -88,6 +88,12 @@ extension LivePlayerLayerCoordinator {
     restoreUserInterfaceForPictureInPictureStopWithCompletionHandler
       completionHandler: @escaping (Bool) -> Void
   ) {
+    // Force AVKit's controls back before the hand-back animation lands.
+    playerViewController.showsPlaybackControls = false
+    DispatchQueue.main.async {
+      playerViewController.showsPlaybackControls = true
+      playerViewController.view.setNeedsLayout()
+    }
     guard let handler = pictureInPictureUIRestoreHandler else {
       completionHandler(false)
       return
