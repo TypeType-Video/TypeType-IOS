@@ -199,10 +199,23 @@ actor LiveSABRPlaybackSession {
     guard let control else {
       throw LivePlaybackFailure.invalidSABRContract
     }
-    let requiredAudioSegment = audio?.segments.map(\.sequence).max() ?? 0
+    let audioSequences = audio?.segments.map(\.sequence) ?? []
+    let videoSequences = video?.segments.map(\.sequence) ?? []
+    let requiredAudioSegment = audioSequences.max() ?? 0
     let requiredVideoSegment = preparation.audioOnly
       ? 0
-      : video?.segments.map(\.sequence).max() ?? 0
+      : videoSequences.max() ?? 0
+    // Playback may start once the window's first segments are published;
+    // the rest streams in as it arrives. Waiting for the entire window made
+    // the first seek after a skip time out while warming segments that the
+    // second attempt then found already published.
+    let startableAudio = audioSequences.min().map {
+      value.tracks.audio.maxSegment >= min(requiredAudioSegment, $0 + 2)
+    } ?? true
+    let startableVideo = preparation.audioOnly
+      || (videoSequences.min().map {
+        value.tracks.video.maxSegment >= min(requiredVideoSegment, $0 + 2)
+      } ?? true)
     for attempt in 0..<Self.maximumAttempts {
       let value = try await service.loadSABRIndex(
         videoID: control.videoID,
@@ -216,11 +229,7 @@ actor LiveSABRPlaybackSession {
         throw LivePlaybackFailure.invalidSABRContract
       }
       let published = value.live
-        || value.tracks.audio.maxSegment >= requiredAudioSegment
-          && (
-            preparation.audioOnly
-              || value.tracks.video.maxSegment >= requiredVideoSegment
-          )
+        || startableAudio && startableVideo
       if published {
         index = value
         guard let currentSnapshot else {
