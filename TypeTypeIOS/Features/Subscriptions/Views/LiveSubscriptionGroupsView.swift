@@ -112,7 +112,7 @@ struct LiveSubscriptionGroupsView: View {
 
   @ViewBuilder
   private var newGroupSection: some View {
-    Section("Create group") {
+    Section {
       TextField("Group name", text: $newGroupName)
         .textInputAutocapitalization(.words)
         .submitLabel(.done)
@@ -132,12 +132,12 @@ struct LiveSubscriptionGroupsView: View {
             in: .whitespacesAndNewlines
           ).isEmpty
       )
-    }
+    } header: { Text("Create group").liveSectionHeader() }
   }
 
   @ViewBuilder
   private var groupsSection: some View {
-    Section("Groups") {
+    Section {
       if viewModel.sortedGroups.isEmpty {
         Text("No groups yet")
           .foregroundStyle(.secondary)
@@ -146,16 +146,16 @@ struct LiveSubscriptionGroupsView: View {
           groupRow(group)
         }
       }
-    }
+    } header: { Text("Groups").liveSectionHeader() }
   }
 
   @ViewBuilder
   private var channelsSection: some View {
-    Section("Channels") {
+    Section {
       ForEach(viewModel.channels) { channel in
         channelRow(channel)
       }
-    }
+    } header: { Text("Channels").liveSectionHeader() }
   }
 
   private func groupRow(
@@ -220,7 +220,7 @@ struct LiveSubscriptionGroupsView: View {
       }
       Spacer()
       Menu {
-        Section("Groups") {
+        Section {
           ForEach(viewModel.sortedGroups) { group in
             let isMember = memberIDs.contains(group.id)
             Button {
@@ -241,7 +241,7 @@ struct LiveSubscriptionGroupsView: View {
               }
             }
           }
-        }
+        } header: { Text("Groups").liveSectionHeader() }
       } label: {
         Image(systemName: "rectangle.stack.badge.plus")
           .font(.body)
