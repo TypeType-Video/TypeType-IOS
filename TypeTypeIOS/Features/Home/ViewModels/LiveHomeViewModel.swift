@@ -48,36 +48,26 @@ final class LiveHomeViewModel: ObservableObject {
       .store(in: &cancellables)
   }
 
-  /// Runs one fetch under a time budget. The first of {result, deadline}
-  /// wins; a timed-out operation is cancelled so the page always resolves.
+  /// Runs one fetch under a time budget: the operation or the deadline,
+  /// whichever comes first. A stalled request becomes a normal error so the
+  /// page can never hang on it; callers pick their own fallback.
   private static func withTimeout<T: Sendable>(
     seconds: Double,
-    fallback: T,
     operation: @escaping @Sendable () async throws -> T
-  ) async -> T {
-    let outcome = await withTaskGroup(
-      of: Result<T, Error>.self
-    ) { group -> Result<T, Error> in
+  ) async throws -> T {
+    try await withThrowingTaskGroup(of: T.self) { group in
       group.addTask {
-        do {
-          return .success(try await operation())
-        } catch {
-          return .failure(error)
-        }
+        try await operation()
       }
       group.addTask {
-        try? await Task.sleep(for: .seconds(seconds))
-        return .failure(NetworkError.transport)
+        try await Task.sleep(for: .seconds(seconds))
+        throw NetworkError.transport
       }
-      let first = await group.next() ?? .failure(NetworkError.transport)
+      guard let first = try await group.next() else {
+        throw NetworkError.transport
+      }
       group.cancelAll()
       return first
-    }
-    switch outcome {
-    case let .success(value):
-      return value
-    case .failure:
-      return fallback
     }
   }
 
@@ -92,16 +82,16 @@ final class LiveHomeViewModel: ObservableObject {
     // Every fetch here is time-boxed: one stalled request (settings,
     // recommendations or history) used to leave the page spinning forever
     // because reload() never reached its state transition.
-    let settings = await Self.withTimeout(
-      seconds: 4,
-      fallback: LiveSettings()
-    ) { [settingsService] in
+    let settingsService = self.settingsService
+    let settings = (try? await Self.withTimeout(seconds: 4) {
       try await settingsService.settings()
-    }
+    }) ?? LiveSettings()
     showsRecommendations = !settings.hideHomeRecommendations
     showsContinueWatching = !settings.hideContinueWatching
 
     let serviceID = selectedServiceID
+    let service = self.service
+    let limit = pageSize
     let task = Task {
       guard !settings.hideHomeRecommendations else {
         return HomeRecommendationsPage(
@@ -110,31 +100,22 @@ final class LiveHomeViewModel: ObservableObject {
           hasMore: false
         )
       }
-      return await Self.withTimeout(
-        seconds: 15,
-        fallback: HomeRecommendationsPage(
-          items: [],
-          nextCursor: nil,
-          hasMore: false
-        )
-      ) { [service] in
+      return try await Self.withTimeout(seconds: 15) {
         try await service.recommendations(
           serviceID: serviceID,
           intent: "auto",
-          limit: pageSize,
+          limit: limit,
           cursor: nil
         )
       }
     }
     loadTask = task
-    let historyTask = Task { [historyService] in
+    let historyService = self.historyService
+    let historyTask = Task {
       guard !settings.hideContinueWatching else {
         return [LiveHistoryItem]()
       }
-      return await Self.withTimeout(
-        seconds: 8,
-        fallback: [LiveHistoryItem]()
-      ) {
+      return (try? await Self.withTimeout(seconds: 8) {
         try await historyService.history(
           query: nil,
           from: nil,
@@ -142,7 +123,7 @@ final class LiveHomeViewModel: ObservableObject {
           limit: 30,
           offset: 0
         )
-      }
+      }) ?? []
     }
 
     let recommendationsResult = await task.result
