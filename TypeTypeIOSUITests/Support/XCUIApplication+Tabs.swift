@@ -14,10 +14,15 @@ extension XCUIApplication {
   ]
 
   func tabItem(_ title: String) -> XCUIElement {
-    let key = Self.tabIdentifiers[title] ?? title
+    let identifier = Self.tabIdentifiers[title] ?? title
+    let predicate = NSPredicate(
+      format: "identifier == %@ OR label == %@",
+      identifier,
+      title
+    )
     return usesFloatingTabItems
-      ? buttons[key].firstMatch
-      : tabBars.buttons[key]
+      ? buttons.matching(predicate).firstMatch
+      : tabBars.buttons.matching(predicate).firstMatch
   }
 
   func tapTab(_ title: String) {
