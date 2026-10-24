@@ -23,15 +23,16 @@ final class LivePictureInPictureDriver: NSObject {
   }
 
   func attach(player: AVPlayer) {
-    if let pipController {
+    if pipController != nil {
       contentLayer?.player = player
-      _ = pipController
       return
     }
     let layer = AVPlayerLayer()
     layer.player = player
     contentLayer = layer
-    let controller = AVPictureInPictureController(playerLayer: layer)
+    guard let controller = AVPictureInPictureController(playerLayer: layer) else {
+      return
+    }
     controller.delegate = self
     controller.canStartPictureInPictureAutomaticallyFromInline = false
     pipController = controller
