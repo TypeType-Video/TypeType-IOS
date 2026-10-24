@@ -63,11 +63,12 @@ struct LiveSearchView: View {
         .onChange(of: viewModel.query) {
           viewModel.queryDidChange()
         }
-        .navigationDestination(item: $selectedVideo) { video in
-          LiveVideoMetadataView(
-            video: video,
-            dependencies: coordinator.dependencies
-          )
+        .onChange(of: selectedVideo) { _, video in
+          guard let video else { return }
+          selectedVideo = nil
+          // Videos open in the canonical PiP-aware player cover;
+          // the navigation push slid a second player page in.
+          coordinator.dependencies.playbackCoordinator.open(video)
         }
         .navigationDestination(
           item: $selectedVideoChannelURL

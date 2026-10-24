@@ -23,11 +23,12 @@ struct LivePublicPlaylistView: View {
     content
       .navigationTitle("Playlist")
       .navigationBarTitleDisplayMode(.inline)
-      .navigationDestination(item: $selectedVideo) { video in
-        LiveVideoMetadataView(
-          video: video,
-          dependencies: dependencies
-        )
+      .onChange(of: selectedVideo) { _, video in
+        guard let video else { return }
+        selectedVideo = nil
+        // Videos open in the canonical PiP-aware player cover;
+        // the navigation push slid a second player page in.
+        dependencies.playbackCoordinator.open(video)
       }
       .navigationDestination(item: $selectedChannelURL) { channelURL in
         LiveChannelView(
