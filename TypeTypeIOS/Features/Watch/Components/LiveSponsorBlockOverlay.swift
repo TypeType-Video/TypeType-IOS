@@ -27,7 +27,7 @@ struct LiveSponsorBlockOverlay: View {
     TimelineView(
       .animation(
         minimumInterval: 0.25,
-        paused: controller.state != .playing
+        paused: controller.state != .playing && controller.state != .paused
       )
     ) { _ in
       if controller.sponsorBlockShowCurrentSegment,
