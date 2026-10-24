@@ -10,7 +10,9 @@ final class HomeUITests: XCTestCase {
       app.descendants(matching: .any)["demo.home.brand"].waitForExistence(timeout: 3)
     )
     XCTAssertTrue(
-      app.descendants(matching: .any)["demo.home.player"].exists
+      app.descendants(matching: .any).matching(
+        NSPredicate(format: "identifier BEGINSWITH 'demo.home.video.'")
+      ).firstMatch.exists
     )
     XCTAssertTrue(app.tabItem("Home").exists)
     XCTAssertTrue(app.tabItem("Subscriptions").exists)
