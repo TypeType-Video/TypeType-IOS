@@ -109,7 +109,7 @@ struct LiveVideoLibraryActionsView: View {
         createsPlaylist = true
       }
     } label: {
-      Label("Save to playlist", systemImage: "rectangle.stack.badge.plus")
+      Label("+ Playlist", systemImage: "rectangle.stack.badge.plus")
         .frame(maxWidth: .infinity)
     }
     .buttonStyle(LiveChipButtonStyle())

@@ -170,8 +170,8 @@ struct LiveChipButtonStyle: ButtonStyle {
       .lineLimit(1)
       .minimumScaleFactor(0.8)
       .padding(.horizontal, 14)
-      .padding(.vertical, 10)
-      .frame(minHeight: 48)
+      .padding(.vertical, 6)
+      .frame(minHeight: 38)
       .background(
         Capsule(style: .continuous)
           .fill(background)
