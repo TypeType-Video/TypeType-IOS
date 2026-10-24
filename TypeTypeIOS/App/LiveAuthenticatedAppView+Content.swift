@@ -68,27 +68,32 @@ extension LiveAuthenticatedAppView {
     // Layout-aware: the mini player sits above whatever height the tab
     // bar actually has on this device. The old hardcoded 49pt clearance
     // overlapped the bar on modern devices and on the iPhone SE.
-    .safeAreaInset(edge: .bottom, spacing: 0) {
-      // PiP-style: a compact card floating at the trailing edge instead of
-      // a full-width bar.
-      HStack {
-        Spacer()
-        miniPlayer
-          .padding(.trailing, 14)
+    .overlay {
+      // PiP-style free-floating card; the view clamps itself above the tab
+      // bar so it never collides with navigation or menus.
+      GeometryReader { geo in
+        miniPlayer(
+          containerSize: geo.size,
+          bottomInset: geo.safeAreaInsets.bottom
+        )
       }
     }
   }
 
-  @ViewBuilder private var miniPlayer: some View {
+  @ViewBuilder private func miniPlayer(
+    containerSize: CGSize,
+    bottomInset: CGFloat
+  ) -> some View {
     if playbackCoordinator.showsMiniPlayer {
       LiveMiniPlayerView(
         coordinator: playbackCoordinator,
         onExpand: {
           playbackCoordinator.expand()
           presentsExpandedPlayback = true
-        }
+        },
+        containerSize: containerSize,
+        bottomInset: bottomInset
       )
-      .padding(.bottom, 4)
       .transition(.move(edge: .bottom).combined(with: .opacity))
       .zIndex(2)
     }

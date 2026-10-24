@@ -1,10 +1,27 @@
 import AVFoundation
 import SwiftUI
 
+/// Picture-in-picture style mini player: a compact, freely movable video
+/// card with system-PiP-like controls. It is clamped to the area above the
+/// tab bar so it never collides with navigation or menus.
 struct LiveMiniPlayerView: View {
   @ObservedObject var coordinator: LivePlaybackCoordinator
   let onExpand: () -> Void
-  @State private var dragTranslation: CGFloat = 0
+  let containerSize: CGSize
+  let bottomInset: CGFloat
+
+  @State private var dragOffset: CGSize = .zero
+  @State private var dragStart: CGSize = .zero
+  @State private var isDragging = false
+  @State private var isScrubbing = false
+  @State private var scrubValue: Double = 0
+
+  private static let cardWidth: CGFloat = 260
+  private static let cardHeight: CGFloat = 146
+  private static let margin: CGFloat = 12
+  /// The tab bar band: home-indicator inset plus the bar itself. The card
+  /// may never enter it.
+  private var tabBarBand: CGFloat { bottomInset + 49 }
 
   var body: some View {
     if let video = coordinator.currentVideo,
@@ -27,47 +44,77 @@ struct LiveMiniPlayerView: View {
             .scaledToFill()
         }
 
-        // Tap surface below the controls: pressing play or close must not
-        // expand the player.
         Color.clear
           .contentShape(Rectangle())
           .onTapGesture { onExpand() }
           .accessibilityIdentifier("live.miniplayer.open")
 
-        HStack(spacing: 8) {
-          Button(action: { controller.togglePlayback() }) {
-            Image(systemName: controller.state == .playing ? "pause.fill" : "play.fill")
-              .font(.system(size: 14, weight: .bold))
-              .foregroundStyle(.white)
-              .frame(width: 34, height: 34)
-              .background(.black.opacity(0.55), in: Circle())
+        VStack(spacing: 0) {
+          HStack {
+            controlButton(
+              systemName: "xmark",
+              label: "Close player",
+              identifier: "live.miniplayer.close",
+              diameter: 36
+            ) {
+              coordinator.close()
+            }
+            Spacer()
+            controlButton(
+              systemName: "arrow.up.left.and.arrow.down.right",
+              label: "Expand player",
+              identifier: "live.miniplayer.expand",
+              diameter: 36
+            ) {
+              onExpand()
+            }
           }
-          .accessibilityLabel(controller.state == .playing ? "Pause" : "Play")
-          .accessibilityIdentifier("live.miniplayer.playback")
 
-          Button(action: { coordinator.close() }) {
-            Image(systemName: "xmark")
-              .font(.system(size: 12, weight: .bold))
-              .foregroundStyle(.white)
-              .frame(width: 30, height: 30)
-              .background(.black.opacity(0.55), in: Circle())
+          Spacer()
+
+          HStack(spacing: 18) {
+            controlButton(
+              systemName: "gobackward.10",
+              label: "Seek backward 10 seconds",
+              identifier: "live.miniplayer.rewind",
+              diameter: 48
+            ) {
+              controller.seek(to: controller.position - 10)
+            }
+            controlButton(
+              systemName: controller.state == .playing ? "pause.fill" : "play.fill",
+              label: controller.state == .playing ? "Pause" : "Play",
+              identifier: "live.miniplayer.playback",
+              diameter: 64
+            ) {
+              controller.togglePlayback()
+            }
+            controlButton(
+              systemName: "goforward.10",
+              label: "Seek forward 10 seconds",
+              identifier: "live.miniplayer.forward",
+              diameter: 48
+            ) {
+              controller.seek(to: controller.position + 10)
+            }
           }
-          .accessibilityLabel("Close player")
-          .accessibilityIdentifier("live.miniplayer.close")
+          .frame(maxWidth: .infinity)
+
+          Spacer()
+
+          scrubber(controller: controller)
         }
-        .padding(8)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
+        .padding(12)
       }
-      .frame(width: 240, height: 135)
-      .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+      .frame(width: Self.cardWidth, height: Self.cardHeight)
+      .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
       .overlay {
-        RoundedRectangle(cornerRadius: 14, style: .continuous)
+        RoundedRectangle(cornerRadius: 16, style: .continuous)
           .strokeBorder(.white.opacity(0.14), lineWidth: 1)
       }
-      .shadow(color: .black.opacity(0.28), radius: 10, y: 4)
-      .offset(y: dragTranslation)
-      .opacity(dragOpacity)
-      .gesture(miniPlayerDragGesture)
+      .shadow(color: .black.opacity(0.3), radius: 12, y: 5)
+      .position(clampedPosition)
+      .gesture(freeDrag)
       .accessibilityElement(children: .contain)
       .accessibilityAction(named: "Expand player") {
         onExpand()
@@ -79,42 +126,74 @@ struct LiveMiniPlayerView: View {
     }
   }
 
-  private var dragOpacity: Double {
-    let distance = abs(dragTranslation)
-    guard distance > MiniPlayerDragGesture.activationDistance else {
-      return 1
+  private func controlButton(
+    systemName: String,
+    label: String,
+    identifier: String,
+    diameter: CGFloat,
+    action: @escaping () -> Void
+  ) -> some View {
+    Button(action: action) {
+      Image(systemName: systemName)
+        .font(.system(size: diameter * 0.38, weight: .bold))
+        .foregroundStyle(.white)
+        .frame(width: diameter, height: diameter)
+        .background(.ultraThinMaterial, in: Circle())
     }
-    return max(
-      0.35,
-      1 - (distance - MiniPlayerDragGesture.activationDistance) / 180
-    )
+    .buttonStyle(.plain)
+    .accessibilityLabel(label)
+    .accessibilityIdentifier(identifier)
   }
 
-  private var miniPlayerDragGesture: some Gesture {
-    DragGesture(minimumDistance: 12)
-      .onChanged { value in
-        let vertical = value.translation.height
-        dragTranslation = abs(vertical) > abs(value.translation.width)
-          ? vertical
-          : 0
+  private func scrubber(controller: LivePlayerController) -> some View {
+    Slider(
+      value: Binding(
+        get: { isScrubbing ? scrubValue : controller.position },
+        set: { scrubValue = $0 }
+      ),
+      in: 0...max(controller.duration, 1)
+    ) { editing in
+      isScrubbing = editing
+      if !editing {
+        controller.seek(to: scrubValue)
       }
-      .onEnded { value in
-        defer {
-          withAnimation(.snappy(duration: 0.18)) {
-            dragTranslation = 0
-          }
-        }
+    }
+    .tint(.white)
+  }
 
-        switch MiniPlayerDragGesture.action(
-          forTranslationHeight: value.translation.height
-        ) {
-        case .expand:
-          onExpand()
-        case .close:
-          coordinator.close()
-        case nil:
-          break
+  // MARK: - Free movement
+
+  private var clampedPosition: CGPoint {
+    let halfW = Self.cardWidth / 2
+    let halfH = Self.cardHeight / 2
+    let baseX = containerSize.width - halfW - Self.margin
+    let baseY = containerSize.height - tabBarBand - halfH - Self.margin
+    let x = min(
+      max(baseX + dragOffset.width, halfW + Self.margin),
+      containerSize.width - halfW - Self.margin
+    )
+    let y = min(
+      max(baseY + dragOffset.height, halfH + Self.margin),
+      containerSize.height - tabBarBand - halfH - Self.margin
+    )
+    return CGPoint(x: x, y: y)
+  }
+
+  private var freeDrag: some Gesture {
+    DragGesture(minimumDistance: 8)
+      .onChanged { value in
+        if !isDragging {
+          dragStart = dragOffset
+          isDragging = true
         }
+        dragOffset = CGSize(
+          width: dragStart.width + value.translation.width,
+          height: dragStart.height + value.translation.height
+        )
+      }
+      .onEnded { _ in
+        isDragging = false
+        dragStart = dragOffset
       }
   }
 }
