@@ -40,7 +40,6 @@ struct DemoHomeShellView: View {
         )
         .tabItem {
           Label("Home", systemImage: "house")
-            .accessibilityIdentifier("tab.home")
         }
         .tag(Tab.home)
 
@@ -50,28 +49,24 @@ struct DemoHomeShellView: View {
       )
         .tabItem {
           Label("Subscriptions", systemImage: "bell")
-            .accessibilityIdentifier("tab.subscriptions")
         }
         .tag(Tab.subscriptions)
 
       DemoHistoryView()
         .tabItem {
           Label("History", systemImage: "clock")
-            .accessibilityIdentifier("tab.history")
         }
         .tag(Tab.history)
 
       DemoPlaylistsView(initialPlaylistID: landingPlaylistID)
         .tabItem {
           Label("Playlists", systemImage: "rectangle.stack.badge.play")
-            .accessibilityIdentifier("tab.playlists")
         }
         .tag(Tab.playlists)
 
       DemoMoreView(onSignOut: onSignOut)
         .tabItem {
           Label("More", systemImage: "line.3.horizontal")
-            .accessibilityIdentifier("tab.more")
         }
         .tag(Tab.more)
     }
