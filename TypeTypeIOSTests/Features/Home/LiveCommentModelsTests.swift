@@ -27,9 +27,17 @@ final class LiveCommentModelsTests: XCTestCase {
     XCTAssertFalse(item.publishedDisplay.isEmpty)
   }
 
-  func testPublishedDisplayIsEmptyWithoutTimestamp() {
-    XCTAssertEqual(comment(publishedAt: nil, text: "hi").publishedDisplay, "")
-    XCTAssertEqual(comment(publishedAt: -1, text: "hi").publishedDisplay, "")
+  func testPublishedDisplayFallsBackToTextWithoutTimestamp() {
+    // Replies carry no timestamp at all: the upstream text is the only
+    // clock on offer and must stay visible.
+    XCTAssertEqual(
+      comment(publishedAt: nil, text: "hi").publishedDisplay,
+      "emahoreni angu-5 edlule"
+    )
+    XCTAssertEqual(
+      comment(publishedAt: -1, text: "hi").publishedDisplay,
+      "emahoreni angu-5 edlule"
+    )
   }
 
   func testDisplayTextConvertsBreaksAndEntities() {

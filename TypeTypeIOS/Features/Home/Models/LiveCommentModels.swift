@@ -20,20 +20,23 @@ struct LiveCommentItem: Decodable, Equatable, Hashable, Identifiable {
     URL(string: authorAvatarURL)
   }
 
-  /// Publication display derived from the epoch timestamp only: the
-  /// extractor's textual date arrives in whatever locale upstream chose
-  /// (isiZulu in the field) and is never shown.
+  /// Publication display: the epoch timestamp wins (formatted in the
+  /// device's locale); the extractor's textual date is only a fallback for
+  /// replies, where no timestamp arrives at all — a visible, if
+  /// foreign-language, time beats none.
   var publishedDisplay: String {
-    guard let publishedAt, publishedAt > 0 else { return "" }
-    let seconds = publishedAt > 10_000_000_000
-      ? TimeInterval(publishedAt) / 1_000
-      : TimeInterval(publishedAt)
-    let formatter = RelativeDateTimeFormatter()
-    formatter.unitsStyle = .full
-    return formatter.localizedString(
-      for: Date(timeIntervalSince1970: seconds),
-      relativeTo: .now
-    )
+    if let publishedAt, publishedAt > 0 {
+      let seconds = publishedAt > 10_000_000_000
+        ? TimeInterval(publishedAt) / 1_000
+        : TimeInterval(publishedAt)
+      let formatter = RelativeDateTimeFormatter()
+      formatter.unitsStyle = .full
+      return formatter.localizedString(
+        for: Date(timeIntervalSince1970: seconds),
+        relativeTo: .now
+      )
+    }
+    return publishedTime
   }
 
   /// Comment text with upstream markup made readable: line breaks become
