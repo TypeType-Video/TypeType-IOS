@@ -165,6 +165,11 @@ struct LivePlayerView: View {
     else {
       return
     }
+    // The transport controls sit in the middle band: a double tap there is
+    // meant for the buttons and must never seek.
+    guard location.x < width * 0.35 || location.x > width * 0.65 else {
+      return
+    }
     guard let direction = PlayerDoubleTapSeek.direction(
       x: location.x,
       width: width
