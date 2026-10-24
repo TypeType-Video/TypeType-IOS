@@ -16,6 +16,6 @@ extension Text {
       // Paints over whatever chrome iOS draws behind the header slot: the
       // page colour in the header's own bounds, so the system's square
       // block cannot show through.
-      .background(DemoTheme.background)
+      .background(DemoTheme.pageBackground)
   }
 }

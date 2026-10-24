@@ -17,6 +17,11 @@ enum DemoTheme {
     themed(.secondarySystemGroupedBackground)
   }
 
+  /// The grey page colour behind grouped cards.
+  static var pageBackground: Color {
+    themed(.systemGroupedBackground)
+  }
+
   static var surface: Color {
     themed(.secondarySystemBackground)
   }
