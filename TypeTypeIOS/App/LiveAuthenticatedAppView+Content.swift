@@ -68,30 +68,30 @@ extension LiveAuthenticatedAppView {
     // Layout-aware: the mini player sits above whatever height the tab
     // bar actually has on this device. The old hardcoded 49pt clearance
     // overlapped the bar on modern devices and on the iPhone SE.
-    .background(
-      // Measures the true content height below the tabs; the difference to
-      // the full height is the real tab bar band (varies per system), so the
-      // mini player can never collide with the tab bar or its menus.
-      GeometryReader { geo in
+    .safeAreaInset(edge: .bottom, spacing: 0) {
+      // Zero-height probe directly above the tab bar: its bottom edge in
+      // global coordinates is exactly the tab bar top.
+      GeometryReader { probe in
         Color.clear.preference(
-          key: LiveTabContentHeightKey.self,
-          value: geo.size.height
+          key: LiveTabBarTopKey.self,
+          value: probe.frame(in: .global).maxY
         )
       }
-    )
-    .onPreferenceChange(LiveTabContentHeightKey.self) { value in
-      tabContentHeight = value
+      .frame(height: 0)
+    }
+    .onPreferenceChange(LiveTabBarTopKey.self) { value in
+      tabBarTopY = value
     }
     .overlay {
       // PiP-style free-floating card; the view clamps itself above the tab
       // bar so it never collides with navigation or menus.
       GeometryReader { geo in
-        let measuredBand = tabContentHeight.map {
-          geo.size.height - $0
+        let measuredBand = tabBarTopY.map {
+          geo.frame(in: .global).maxY - $0
         } ?? (geo.safeAreaInsets.bottom + 49)
         miniPlayer(
           containerSize: geo.size,
-          tabBarBand: max(measuredBand, geo.safeAreaInsets.bottom)
+          tabBarBand: max(measuredBand, 0)
         )
       }
     }
@@ -156,10 +156,10 @@ extension LiveAuthenticatedAppView {
   }
 }
 
-private struct LiveTabContentHeightKey: PreferenceKey {
-  static var defaultValue: CGFloat = 0
+private struct LiveTabBarTopKey: PreferenceKey {
+  static var defaultValue: CGFloat?
 
-  static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
-    value = nextValue()
+  static func reduce(value: inout CGFloat?, nextValue: () -> CGFloat?) {
+    value = nextValue() ?? value
   }
 }

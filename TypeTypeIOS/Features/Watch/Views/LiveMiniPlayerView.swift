@@ -2,13 +2,14 @@ import AVFoundation
 import SwiftUI
 
 /// Picture-in-picture style mini player: a compact, freely movable video
-/// card that snaps to the nearest edge like the system PiP window. The
-/// card moves as one piece (offset-based placement), and it is clamped
-/// above the tab bar so it can never collide with navigation or menus.
+/// card that snaps to the nearest edge like the system PiP window. The card
+/// moves as one piece and is clamped above the tab bar at all times.
 struct LiveMiniPlayerView: View {
   @ObservedObject var coordinator: LivePlaybackCoordinator
   let onExpand: () -> Void
   let containerSize: CGSize
+  /// Distance from the container's bottom edge up to the tab bar top; the
+  /// card may never enter this band.
   let tabBarBand: CGFloat
 
   @State private var dragOffset: CGSize = .zero
@@ -77,14 +78,7 @@ struct LiveMiniPlayerView: View {
             ) {
               controller.seek(to: controller.position - 10)
             }
-            glassButton(
-              systemName: controller.state == .playing ? "pause.fill" : "play.fill",
-              label: controller.state == .playing ? "Pause" : "Play",
-              identifier: "live.miniplayer.playback",
-              diameter: 64
-            ) {
-              controller.togglePlayback()
-            }
+            MiniPlayPauseButton(controller: controller, diameter: 64)
             glassButton(
               systemName: "goforward.10",
               label: "Seek forward 10 seconds",
@@ -97,8 +91,8 @@ struct LiveMiniPlayerView: View {
           .frame(maxWidth: .infinity)
         }
         .padding(12)
-        // One rasterized layer while dragging: re-compositing glass and
-        // shadows every drag frame is what made the movement stutter.
+        // One rasterized layer: re-compositing glass every drag frame is
+        // what made the movement stutter.
         .compositingGroup()
       }
       .frame(width: Self.cardWidth, height: Self.cardHeight)
@@ -111,8 +105,10 @@ struct LiveMiniPlayerView: View {
       // Offset-based placement keeps the card and its controls one atomic
       // piece; absolute positioning let the buttons detach while dragging.
       .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
-      .offset(x: clampedOffset.width, y: clampedOffset.height)
-      .gesture(freeDrag)
+      .offset(clampedOffset)
+      // simultaneousGesture: the drag must work no matter which child
+      // (tap surface, buttons) is under the finger.
+      .simultaneousGesture(freeDrag)
       .accessibilityElement(children: .contain)
       .accessibilityAction(named: "Expand player") {
         onExpand()
@@ -145,22 +141,24 @@ struct LiveMiniPlayerView: View {
 
   // MARK: - Free movement with edge snapping
 
-  private var baseX: CGFloat {
-    containerSize.width - Self.cardWidth / 2 - Self.margin
+  /// Offset from the flush bottom-trailing placement to the resting slot
+  /// (bottom trailing, inside the margins, above the tab bar band).
+  private var restingOffset: CGSize {
+    CGSize(width: -Self.margin, height: -(tabBarBand + Self.margin))
   }
 
-  private var baseY: CGFloat {
-    containerSize.height - tabBarBand - Self.cardHeight / 2 - Self.margin
+  private var minOffsetX: CGFloat {
+    -(containerSize.width - Self.cardWidth - 2 * Self.margin)
   }
-
-
 
   private var clampedOffset: CGSize {
-    let minX = -(containerSize.width - Self.cardWidth - 2 * Self.margin)
-    let minY = -(baseY - Self.cardHeight / 2 - Self.margin)
+    // Total offset from the flush corner; the card stays inside the margins
+    // and above the tab bar band at all times.
+    let minOffsetY = -(containerSize.height - Self.cardHeight - 2 * Self.margin)
+    let maxOffsetY = -(tabBarBand + Self.margin)
     return CGSize(
-      width: min(max(dragOffset.width, minX), 0),
-      height: min(max(dragOffset.height, minY), 0)
+      width: min(max(restingOffset.width + dragOffset.width, minOffsetX), 0),
+      height: min(max(restingOffset.height + dragOffset.height, minOffsetY), maxOffsetY)
     )
   }
 
@@ -178,16 +176,38 @@ struct LiveMiniPlayerView: View {
       }
       .onEnded { _ in
         isDragging = false
-        dragStart = dragOffset
-        // Snap to the nearest edge like the system PiP window.
+        // Snap to the nearest horizontal edge like the system PiP window;
+        // the vertical position is kept.
         withAnimation(.snappy(duration: 0.22)) {
-          let leftEdge = -(containerSize.width - Self.cardWidth - 2 * Self.margin)
-          dragOffset.width = abs(dragOffset.width - leftEdge / 2) > abs(leftEdge) / 2
-            ? 0
-            : leftEdge
+          let totalX = restingOffset.width + dragOffset.width
+          let midX = minOffsetX / 2
+          let snappedTotalX = totalX > midX ? 0 : minOffsetX
+          dragOffset.width = snappedTotalX - restingOffset.width
           dragStart = dragOffset
         }
       }
+  }
+}
+
+/// Play/pause with instant icon feedback: this view observes the player
+/// controller directly, so the symbol flips the moment the state changes.
+private struct MiniPlayPauseButton: View {
+  @ObservedObject var controller: LivePlayerController
+  let diameter: CGFloat
+
+  var body: some View {
+    Button {
+      controller.togglePlayback()
+    } label: {
+      Image(systemName: controller.state == .playing ? "pause.fill" : "play.fill")
+        .font(.system(size: diameter * 0.38, weight: .bold))
+        .foregroundStyle(.white)
+        .frame(width: diameter, height: diameter)
+        .pipGlassBackground()
+    }
+    .buttonStyle(.plain)
+    .accessibilityLabel(controller.state == .playing ? "Pause" : "Play")
+    .accessibilityIdentifier("live.miniplayer.playback")
   }
 }
 
