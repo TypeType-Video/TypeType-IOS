@@ -59,7 +59,11 @@ struct LiveVideoMetadataContentView: View {
           video: resolvedVideo,
           stream: playerController.stream,
           allowsSubscription: hasPersistentAccount,
-          service: dependencies.subscriptionsService
+          service: dependencies.subscriptionsService,
+          subscriberCount: subscriberCount,
+          onChannel: {
+            selectedChannelURL = resolvedVideo.uploaderURL
+          }
         )
         .id(engagementIdentity)
 
@@ -88,6 +92,7 @@ struct LiveVideoMetadataContentView: View {
         if !(playerController.settings.hideRelatedVideos),
           let related = playerController.stream?.relatedStreams {
           LiveRelatedVideosSection(
+            playerController: playerController,
             videos: related,
             deArrowStore: deArrowStore,
             dependencies: dependencies,

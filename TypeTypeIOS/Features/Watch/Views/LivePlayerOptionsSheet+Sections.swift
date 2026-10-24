@@ -9,13 +9,6 @@ extension LivePlayerOptionsSheet {
         isOn: binding(\.audioOnly, setter: controller.setAudioOnly)
       )
       Toggle(
-        "Autoplay next video",
-        isOn: binding(
-          \.autoplayEnabled,
-          setter: controller.setAutoplay
-        )
-      )
-      Toggle(
         "Loop video",
         isOn: binding(\.loopsPlayback, setter: controller.setLooping)
       )

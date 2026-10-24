@@ -15,41 +15,6 @@ struct LiveVideoMetadataHeader: View {
         .font(.title2.weight(.bold))
         .textSelection(.enabled)
 
-      Button(action: onChannel) {
-        HStack(spacing: 8) {
-          LiveRemoteImage(url: video.uploaderAvatar)
-            .frame(width: 40, height: 40)
-            .clipShape(Circle())
-          VStack(alignment: .leading, spacing: 2) {
-            HStack(spacing: 4) {
-              Text(video.uploaderName)
-                .font(.subheadline.weight(.semibold))
-              if video.uploaderVerified {
-                Image(systemName: "checkmark.seal.fill")
-                  .font(.caption)
-                  .foregroundStyle(DemoTheme.accent)
-                  .accessibilityLabel("Verified")
-              }
-            }
-            if let subscriberCount {
-              Text(
-                LiveVideoMetadataFormatter.subscribers(
-                  subscriberCount
-                )
-              )
-              .font(.caption)
-              .foregroundStyle(.secondary)
-              .accessibilityIdentifier(
-                "live.video.channel.subscribers"
-              )
-            }
-          }
-          Spacer()
-          Image(systemName: "chevron.right")
-            .font(.caption.weight(.semibold))
-            .foregroundStyle(.tertiary)
-        }
-      }
       .buttonStyle(.plain)
       .disabled(video.uploaderURL.isEmpty)
 

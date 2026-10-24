@@ -1,17 +1,33 @@
 import SwiftUI
 
 struct LiveRelatedVideosSection: View {
+  let playerController: LivePlayerController
   let videos: [LiveVideoItem]
   let deArrowStore: LiveDeArrowStore
   let dependencies: AppDependencies
   let onSelect: (LiveVideoItem) -> Void
   @State private var visibleCount = 6
 
+  private var autoplayBinding: Binding<Bool> {
+    Binding(
+      get: { playerController.autoplayEnabled },
+      set: { playerController.setAutoplay($0) }
+    )
+  }
+
   var body: some View {
     if !videos.isEmpty {
       VStack(alignment: .leading, spacing: 14) {
-        Text("Up next")
-          .font(.title3.weight(.bold))
+        HStack(alignment: .firstTextBaseline) {
+          Text("Up next")
+            .font(.title3.weight(.bold))
+          Spacer()
+          Toggle("Autoplay", isOn: autoplayBinding)
+            .toggleStyle(.switch)
+            .controlSize(.small)
+            .font(.subheadline)
+            .accessibilityIdentifier("live.video.upnext.autoplay")
+        }
 
         LazyVStack(spacing: 14) {
           ForEach(Array(videos.prefix(visibleCount))) { video in

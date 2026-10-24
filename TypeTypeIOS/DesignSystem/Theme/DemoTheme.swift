@@ -164,11 +164,11 @@ struct LiveChipButtonStyle: ButtonStyle {
 
   func makeBody(configuration: Configuration) -> some View {
     configuration.label
-      .font(.subheadline.weight(isFilled ? .medium : .regular))
+      .font(.footnote.weight(isFilled ? .medium : .regular))
       .foregroundStyle(foreground)
-      .padding(.horizontal, 12)
-      .padding(.vertical, 6)
-      .frame(minHeight: 44)
+      .padding(.horizontal, 10)
+      .padding(.vertical, 4)
+      .frame(minHeight: 40)
       .background(
         RoundedRectangle(cornerRadius: isFilled ? 999 : 8, style: .continuous)
           .fill(background)
