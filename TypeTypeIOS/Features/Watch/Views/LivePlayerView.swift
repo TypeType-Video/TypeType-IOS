@@ -42,6 +42,25 @@ struct LivePlayerView: View {
           }
         )
           .accessibilityIdentifier("live.player.surface")
+          // Seek and speed gestures live on the video surface only: as
+          // container-level simultaneous gestures they also fired when
+          // tapping controls, so double-tapping pause sought -10s.
+          .simultaneousGesture(
+            SpatialTapGesture(count: 2)
+              .onEnded { value in
+                handleDoubleTap(
+                  at: value.location,
+                  width: proxy.size.width
+                )
+              }
+          )
+          .onLongPressGesture(
+            minimumDuration: 0.35,
+            perform: {},
+            onPressingChanged: { pressing in
+              setLongPressBoost(active: pressing)
+            }
+          )
 
         if controller.audioOnly {
           ZStack {
@@ -87,22 +106,6 @@ struct LivePlayerView: View {
         .accessibilityLabel("Player options")
         .accessibilityIdentifier("live.player.options")
       }
-      .simultaneousGesture(
-        SpatialTapGesture(count: 2)
-          .onEnded { value in
-            handleDoubleTap(
-              at: value.location,
-              width: proxy.size.width
-            )
-          }
-      )
-      .onLongPressGesture(
-        minimumDuration: 0.35,
-        perform: {},
-        onPressingChanged: { pressing in
-          setLongPressBoost(active: pressing)
-        }
-      )
     }
     .aspectRatio(16 / 9, contentMode: .fit)
     .clipShape(
