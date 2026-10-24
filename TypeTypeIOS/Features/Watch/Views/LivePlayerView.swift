@@ -9,6 +9,8 @@ struct LivePlayerView: View {
   @Binding var cinemaMode: Bool
   @State private var showsOptions = false
   @State private var presentsDownload = false
+  @State private var overlayChromeVisible = true
+  @State private var overlayChromeTask: Task<Void, Never>?
   @State private var seekFeedback: PlayerDoubleTapSeekFeedback?
   @State private var swipeAdjustment: PlayerSwipeAdjustmentState?
   @State private var systemBrightnessBeforeSwipe: CGFloat?
@@ -93,7 +95,11 @@ struct LivePlayerView: View {
             // A surface that reappears after a PiP round trip must not come
             // back with hidden controls.
             controller.pictureInPicture.markControlsRefresh()
+            showOverlayChrome()
           }
+          .simultaneousGesture(
+            TapGesture().onEnded { showOverlayChrome() }
+          )
           // Seek and speed gestures live on the video surface only: as
           // container-level simultaneous gestures they also fired when
           // tapping controls, so double-tapping pause sought -10s.
@@ -181,6 +187,8 @@ struct LivePlayerView: View {
           alignment: .topTrailing
         )
         .padding(10)
+        .opacity(overlayChromeVisible ? 1 : 0)
+        .allowsHitTesting(overlayChromeVisible)
       }
     }
     .aspectRatio(16 / 9, contentMode: .fit)
@@ -532,5 +540,20 @@ private extension LivePlayerView {
       .overlay {
         Circle().stroke(.white.opacity(0.22), lineWidth: 0.5)
       }
+  }
+}
+
+private extension LivePlayerView {
+  /// Shows the overlay buttons and fades them out with the player chrome.
+  @MainActor
+  func showOverlayChrome() {
+    overlayChromeVisible = true
+    overlayChromeTask?.cancel()
+    overlayChromeTask = Task {
+      try? await Task.sleep(for: .seconds(4))
+      if !Task.isCancelled {
+        overlayChromeVisible = false
+      }
+    }
   }
 }

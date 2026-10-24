@@ -74,13 +74,6 @@ struct LiveVideoMetadataContentView: View {
         )
         .id(libraryActionsIdentity)
 
-        LiveVideoUtilityActionsView(
-          video: resolvedVideo,
-          dependencies: dependencies,
-          playerController: playerController
-        )
-        .id(resolvedVideo.canonicalID)
-
         LivePlaybackQueueView(coordinator: playbackCoordinator)
 
         if !displayedChapters.isEmpty {
