@@ -154,39 +154,41 @@ enum DemoTheme {
   }
 }
 
-/// Flat chip button in the TypeType web design language: transparent
-/// surface, muted 14pt label, 8pt corners, pill only for primary actions.
-/// Toggled-on states use the accent for icon and label, no filled pills.
+/// Bubble button in the YouTube-style action language: dark grey capsule
+/// with subtle shading and white label, or the light capsule (dark label)
+/// for the primary action like Subscribe. Toggled-on states keep the
+/// bubble and tint icon and label with the accent.
 struct LiveChipButtonStyle: ButtonStyle {
   var isFilled = false
   var isActive = false
 
   func makeBody(configuration: Configuration) -> some View {
     configuration.label
-      .font(.subheadline.weight(isFilled ? .medium : .regular))
+      .font(.subheadline.weight(.medium))
       .foregroundStyle(foreground)
-      .padding(.horizontal, 12)
-      .padding(.vertical, 6)
+      .padding(.horizontal, 16)
+      .padding(.vertical, 8)
       .frame(minHeight: 44)
       .background(
-        RoundedRectangle(cornerRadius: isFilled ? 999 : 8, style: .continuous)
+        Capsule(style: .continuous)
           .fill(background)
+          .shadow(color: .black.opacity(0.18), radius: 2, y: 1)
       )
       .contentShape(Rectangle())
-      .opacity(configuration.isPressed ? 0.6 : 1)
+      .opacity(configuration.isPressed ? 0.65 : 1)
   }
 
   private var foreground: Color {
     if isFilled {
-      return isActive ? .white : DemoTheme.background
+      return DemoTheme.background
     }
-    return isActive ? DemoTheme.accent : .secondary
+    return isActive ? DemoTheme.accent : .primary
   }
 
   private var background: Color {
     if isFilled {
       return isActive ? DemoTheme.accent : Color.primary.opacity(0.92)
     }
-    return isActive ? DemoTheme.accent.opacity(0.12) : .clear
+    return DemoTheme.elevatedSurface
   }
 }
