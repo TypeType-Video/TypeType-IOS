@@ -48,13 +48,20 @@ final class LivePlayerLayerCoordinator:
     .makeContentView()
     danmakuView.backgroundColor = .clear
     danmakuView.isUserInteractionEnabled = false
-    // Frame-based layout on purpose: NSLayoutConstraint pins inside AVKit's
-    // overlay subtree fight AVKit's own control-container layout and were
-    // observed leaving the controls hidden after PiP hand-backs.
-    danmakuView.translatesAutoresizingMaskIntoConstraints = true
-    danmakuView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-    danmakuView.frame = overlay.bounds
+    danmakuView.translatesAutoresizingMaskIntoConstraints = false
     overlay.addSubview(danmakuView)
+    // Priority 999 on purpose: required pins inside AVKit's overlay subtree
+    // fight AVKit's control-container layout; full-size autoresizing in turn
+    // covered the controls with the (clear) hosting view. Soft pins keep the
+    // danmaku matched to the video without either failure mode.
+    let danmakuPins = [
+      danmakuView.leadingAnchor.constraint(equalTo: overlay.leadingAnchor),
+      danmakuView.trailingAnchor.constraint(equalTo: overlay.trailingAnchor),
+      danmakuView.topAnchor.constraint(equalTo: overlay.topAnchor),
+      danmakuView.bottomAnchor.constraint(equalTo: overlay.bottomAnchor),
+    ]
+    danmakuPins.forEach { $0.priority = .init(999) }
+    NSLayoutConstraint.activate(danmakuPins)
 
     hostedViews = [danmakuView]
   }
