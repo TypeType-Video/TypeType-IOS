@@ -10,7 +10,6 @@ extension Text {
       .textCase(nil)
       .foregroundStyle(.primary)
       .frame(maxWidth: .infinity, alignment: .leading)
-      .padding(.horizontal, 20)
       .padding(.top, 26)
       .padding(.bottom, 10)
       // The system paints its own block around the header slot; this
