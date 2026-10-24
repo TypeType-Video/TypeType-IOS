@@ -46,8 +46,10 @@ struct LiveAuthenticatedAppView: View {
     .task {
       LiveVideoCard.onPrewarm = { video in
         Task {
-          _ = try? await coordinator.dependencies.playbackService
-            .stream(for: video.url)
+          guard let service = coordinator.dependencies.playbackService else {
+            return
+          }
+          _ = try? await service.stream(for: video.url)
         }
       }
       notificationCenter.startPolling()
