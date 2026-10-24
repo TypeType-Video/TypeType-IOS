@@ -222,9 +222,9 @@ struct LivePlayerView: View {
     }
     .sheet(isPresented: $showsOptions) {
       LivePlayerOptionsSheet(
-        dependencies: dependencies,
         controller: controller,
         coordinator: coordinator,
+        dependencies: dependencies,
         cinemaMode: $cinemaMode
       )
     }
