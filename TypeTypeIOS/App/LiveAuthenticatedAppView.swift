@@ -136,6 +136,13 @@ struct LiveAuthenticatedAppView: View {
     else {
       return
     }
+    // Video links open in the canonical PiP-aware player cover. Presenting
+    // the incoming-link page as well slid a second player page in and opened
+    // every video twice. Channels and playlists keep the incoming page.
+    if case let .video(video) = link.destination {
+      playbackCoordinator.open(video)
+      return
+    }
     incomingMediaLink = link
   }
 
