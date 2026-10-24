@@ -35,7 +35,7 @@ extension LivePlayerOptionsSheet {
         }
       }
       LivePlaybackSleepTimerLink(coordinator: coordinator)
-     header: { Text("Playback").liveSectionHeader() }}
+    } header: { Text("Playback").liveSectionHeader() }
   }
 
   @ViewBuilder var qualitySection: some View {
@@ -58,7 +58,7 @@ extension LivePlayerOptionsSheet {
               .tag(Optional(source.height))
           }
         }
-       header: { Text("Quality").liveSectionHeader() }}
+      } header: { Text("Quality").liveSectionHeader() }
     }
   }
 
@@ -89,7 +89,7 @@ extension LivePlayerOptionsSheet {
         !controller.availableSubtitles.isEmpty {
         subtitlePicker
       }
-     header: { Text("Tracks").liveSectionHeader() }}
+    } header: { Text("Tracks").liveSectionHeader() }
   }
 
   @ViewBuilder var chaptersSection: some View {
@@ -104,7 +104,7 @@ extension LivePlayerOptionsSheet {
           )
         }
         .accessibilityIdentifier("live.player.chapters.link")
-       header: { Text("Chapters").liveSectionHeader() }}
+      } header: { Text("Chapters").liveSectionHeader() }
     }
   }
 
@@ -135,7 +135,7 @@ extension LivePlayerOptionsSheet {
           )?.title ?? "Off"
         )
       }
-     header: { Text("Community enhancements").liveSectionHeader() }}
+    } header: { Text("Community enhancements").liveSectionHeader() }
   }
 
   var streamInformationSection: some View {
@@ -157,7 +157,7 @@ extension LivePlayerOptionsSheet {
             .joined(separator: " · ")
         )
       }
-     header: { Text("Stream information").liveSectionHeader() }}
+    } header: { Text("Stream information").liveSectionHeader() }
   }
 
   func binding<Value>(

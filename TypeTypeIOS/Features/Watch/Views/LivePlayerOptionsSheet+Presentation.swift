@@ -65,6 +65,6 @@ extension LivePlayerOptionsSheet {
           }
         }
       }
-     header: { Text("Player presentation").liveSectionHeader() }}
+    } header: { Text("Player presentation").liveSectionHeader() }
   }
 }
