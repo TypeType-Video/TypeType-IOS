@@ -123,3 +123,21 @@ extension LivePlaybackCoordinator {
     replacePlayback(with: queue.videos[index], autoplay: true)
   }
 }
+
+extension LivePlaybackCoordinator {
+  /// Warms the next queue entry's stream metadata so advancing (autoplay or
+  /// manual) starts without the fetch round trip.
+  func prewarmNextQueueEntry() {
+    guard queue.isActive,
+      let nextIndex = queue.nextIndex,
+      queue.videos.indices.contains(nextIndex)
+    else {
+      return
+    }
+    let url = queue.videos[nextIndex].url
+    let service = controller?.service
+    Task { [weak service] in
+      _ = try? await service?.stream(for: url)
+    }
+  }
+}

@@ -72,7 +72,24 @@ final class LivePlaybackService: LivePlaybackServiceProtocol {
     self.serverURLProvider = serverURLProvider
   }
 
+  /// Stream metadata is stable for minutes: reopening a video or advancing
+  /// the queue re-uses the last response instead of re-fetching.
+  private let streamCache = LiveStreamMetadataCache()
+  private static let streamCacheTTL: TimeInterval = 600
+
   func stream(for videoURL: String) async throws -> LivePlaybackStream {
+    if let cached = streamCache.stream(
+      for: videoURL,
+      ttl: Self.streamCacheTTL
+    ) {
+      return cached
+    }
+    let loaded = try await loadStream(for: videoURL)
+    streamCache.store(loaded, for: videoURL)
+    return loaded
+  }
+
+  private func loadStream(for videoURL: String) async throws -> LivePlaybackStream {
     let path = streamPath(for: videoURL)
     if path == "/streams/youtube/sabr/bootstrap" {
       do {
@@ -234,5 +251,33 @@ final class LivePlaybackService: LivePlaybackServiceProtocol {
         timeoutInterval: 120
       )
     )
+  }
+}
+
+/// Short-lived, thread-safe cache for stream metadata.
+private final class LiveStreamMetadataCache: @unchecked Sendable {
+  private struct Entry {
+    let stream: LivePlaybackStream
+    let date: Date
+  }
+
+  private let lock = NSLock()
+  private var entries: [String: Entry] = [:]
+
+  func stream(for key: String, ttl: TimeInterval) -> LivePlaybackStream? {
+    lock.lock()
+    defer { lock.unlock() }
+    let cutoff = Date().addingTimeInterval(-ttl)
+    entries = entries.filter { $0.value.date > cutoff }
+    guard let entry = entries[key], entry.date > cutoff else {
+      return nil
+    }
+    return entry.stream
+  }
+
+  func store(_ stream: LivePlaybackStream, for key: String) {
+    lock.lock()
+    defer { lock.unlock() }
+    entries[key] = Entry(stream: stream, date: Date())
   }
 }

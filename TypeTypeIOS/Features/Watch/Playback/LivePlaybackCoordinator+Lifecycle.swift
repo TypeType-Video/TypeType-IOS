@@ -52,6 +52,7 @@ extension LivePlaybackCoordinator {
     playbackGeneration += 1
     let generation = playbackGeneration
     controller?.stop()
+    prewarmNextQueueEntry()
     let next = playerFactory(video, autoplay)
     next.onPlaybackEnded = { [weak self, weak next] in
       guard let self, self.controller === next,
