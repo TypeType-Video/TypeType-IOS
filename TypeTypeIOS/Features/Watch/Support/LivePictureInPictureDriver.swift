@@ -64,8 +64,9 @@ extension LivePictureInPictureDriver: AVPictureInPictureControllerDelegate {
     }
   }
 
-  nonisolated func pictureInPictureControllerFailedToStartPictureInPicture(
-    _ pictureInPictureController: AVPictureInPictureController
+  nonisolated func pictureInPictureController(
+    _ pictureInPictureController: AVPictureInPictureController,
+    failedToStartPictureInPictureWithError error: Error
   ) {
     Task { @MainActor [weak self] in
       guard let self else { return }

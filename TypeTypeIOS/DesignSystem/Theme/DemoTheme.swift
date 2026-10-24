@@ -60,16 +60,11 @@ enum DemoTheme {
         && UITraitCollection.current.userInterfaceStyle == .dark)
       || preferences.appearanceAmoled
     let backgroundColor = themeUIColor(base: .systemBackground, isDark: isDark)
-    let surfaceColor = themeUIColor(
-      base: .secondarySystemBackground,
-      isDark: isDark
-    )
-
     UITableView.appearance().backgroundColor = backgroundColor
     UICollectionView.appearance().backgroundColor = backgroundColor
     UITableViewCell.appearance().backgroundColor = .clear
     UICollectionViewCell.appearance().backgroundColor = .clear
-    // Transparent, not surfaceColor: painting this white put a square
+    // Transparent, not a surface color: painting this white put a square
     // block behind every section header, clashing with the rounded cards.
     UITableViewHeaderFooterView.appearance().backgroundColor = .clear
     // iOS 27 paints header chrome through backgroundView (a blur material),

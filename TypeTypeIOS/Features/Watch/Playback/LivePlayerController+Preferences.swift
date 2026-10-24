@@ -168,7 +168,7 @@ extension LivePlayerController {
   private static let loopPreferenceKey =
     "typetype.player.loop-playback"
 
-  static let playbackRatePreferenceKey =
+  nonisolated static let playbackRatePreferenceKey =
     "typetype.player.playback-rate"
 
   nonisolated static func normalizePlaybackRate(_ rate: Float) -> Float {

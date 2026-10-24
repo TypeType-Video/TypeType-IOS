@@ -14,7 +14,7 @@ extension LiveAuthenticatedAppView {
       }
     }
     
-    .onChange(of: playbackCoordinator.presentation) { newValue in
+    .onChange(of: playbackCoordinator.presentation) { _, newValue in
       // System PiP restore: bring the expanded player back.
       if newValue == .expanded {
         presentsExpandedPlayback = true
