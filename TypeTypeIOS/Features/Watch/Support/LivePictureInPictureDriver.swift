@@ -7,8 +7,8 @@ import UIKit
 /// PiP content layer must live in the visible player view hierarchy — a
 /// detached layer renders no frames and the system window stays empty.
 @MainActor
-final class LivePictureInPictureDriver: NSObject {
-  private(set) var isEngaged = false
+final class LivePictureInPictureDriver: NSObject, ObservableObject {
+  @Published private(set) var isEngaged = false
   /// Fired whenever engagement changes (started, failed, stopped).
   var onChange: (() -> Void)?
 
@@ -66,6 +66,14 @@ final class LivePictureInPictureDriver: NSObject {
   }
 
   func stop() {
+    pipController?.stopPictureInPicture()
+  }
+
+  /// Returns the video to the app surface: stops PiP but keeps playback
+  /// running (the stop handler is told this is a restore, not a close).
+  func bringInline() {
+    guard isEngaged else { return }
+    isRestoring = true
     pipController?.stopPictureInPicture()
   }
 }
