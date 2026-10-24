@@ -84,9 +84,15 @@ final class PlayerInteractionUITests: XCTestCase {
     let blockChannel = app.descendants(matching: .any).matching(
       NSPredicate(format: "label CONTAINS 'Block channel' OR label CONTAINS 'Unblock channel'")
     ).firstMatch
-    XCTAssertTrue(watchLater.waitForExistence(timeout: 3))
-    XCTAssertTrue(blockVideo.exists)
-    XCTAssertTrue(blockChannel.exists)
+    let diagnostic =
+      "menuItems=\(app.menuItems.count) buttons=\(app.buttons.count) "
+        + "menuLabels=\(app.menuItems.allElementsBoundByIndex.prefix(5).map(\.label))"
+    XCTAssertTrue(
+      watchLater.waitForExistence(timeout: 3),
+      diagnostic
+    )
+    XCTAssertTrue(blockVideo.exists, diagnostic)
+    XCTAssertTrue(blockChannel.exists, diagnostic)
   }
 
   func testPlaylistEndUsesTheConfiguredAutoplayCountdown() {
