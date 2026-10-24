@@ -22,9 +22,17 @@ extension LivePlayerController {
     if player.timeControlStatus == .playing {
       providerRecoveryDesiredAutoplay = false
       player.pause()
+      // Optimistic feedback: controls update instantly, the player state
+      // observer confirms or corrects afterwards.
+      if state == .playing {
+        state = .paused
+      }
     } else {
       providerRecoveryDesiredAutoplay = true
       player.playImmediately(atRate: playbackRate)
+      if state == .paused {
+        state = .playing
+      }
     }
   }
 

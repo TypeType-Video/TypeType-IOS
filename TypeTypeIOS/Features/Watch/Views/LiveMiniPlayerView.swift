@@ -9,7 +9,7 @@ struct LiveMiniPlayerView: View {
   @ObservedObject var coordinator: LivePlaybackCoordinator
   let onExpand: () -> Void
   let containerSize: CGSize
-  let bottomInset: CGFloat
+  let tabBarBand: CGFloat
 
   @State private var dragOffset: CGSize = .zero
   @State private var dragStart: CGSize = .zero
@@ -18,10 +18,6 @@ struct LiveMiniPlayerView: View {
   private static let cardWidth: CGFloat = 260
   private static let cardHeight: CGFloat = 146
   private static let margin: CGFloat = 12
-
-  /// The tab bar band (home-indicator inset plus the bar itself) the card
-  /// must stay above.
-  private var tabBarBand: CGFloat { bottomInset + 49 }
 
   var body: some View {
     if let video = coordinator.currentVideo,
@@ -101,6 +97,9 @@ struct LiveMiniPlayerView: View {
           .frame(maxWidth: .infinity)
         }
         .padding(12)
+        // One rasterized layer while dragging: re-compositing glass and
+        // shadows every drag frame is what made the movement stutter.
+        .compositingGroup()
       }
       .frame(width: Self.cardWidth, height: Self.cardHeight)
       .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
@@ -154,6 +153,8 @@ struct LiveMiniPlayerView: View {
     containerSize.height - tabBarBand - Self.cardHeight / 2 - Self.margin
   }
 
+
+
   private var clampedOffset: CGSize {
     let minX = -(containerSize.width - Self.cardWidth - 2 * Self.margin)
     let minY = -(baseY - Self.cardHeight / 2 - Self.margin)
@@ -195,7 +196,9 @@ private extension View {
   @ViewBuilder
   func pipGlassBackground() -> some View {
     if #available(iOS 26.0, *) {
-      self.glassEffect(.regular, in: Circle())
+      // Thin glass is more transparent; like all system glass it also
+      // follows the global "Reduce Transparency" accessibility setting.
+      self.glassEffect(.thin, in: Circle())
     } else {
       self.background(.ultraThinMaterial, in: Circle())
     }

@@ -12,6 +12,7 @@ struct LiveAuthenticatedAppView: View {
   @State var didApplyDefaultLandingPage = false
   @State var presentsSearch = false
   @State var presentsExpandedPlayback = false
+  @State var tabContentHeight: CGFloat?
   @State var incomingMediaLink: LiveIncomingMediaLink?
   @State var presentsOfflineDownloads = false
   @State var observedConnectivityOutage = false

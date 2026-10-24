@@ -68,13 +68,30 @@ extension LiveAuthenticatedAppView {
     // Layout-aware: the mini player sits above whatever height the tab
     // bar actually has on this device. The old hardcoded 49pt clearance
     // overlapped the bar on modern devices and on the iPhone SE.
+    .background(
+      // Measures the true content height below the tabs; the difference to
+      // the full height is the real tab bar band (varies per system), so the
+      // mini player can never collide with the tab bar or its menus.
+      GeometryReader { geo in
+        Color.clear.preference(
+          key: LiveTabContentHeightKey.self,
+          value: geo.size.height
+        )
+      }
+    )
+    .onPreferenceChange(LiveTabContentHeightKey.self) { value in
+      tabContentHeight = value
+    }
     .overlay {
       // PiP-style free-floating card; the view clamps itself above the tab
       // bar so it never collides with navigation or menus.
       GeometryReader { geo in
+        let measuredBand = tabContentHeight.map {
+          geo.size.height - $0
+        } ?? (geo.safeAreaInsets.bottom + 49)
         miniPlayer(
           containerSize: geo.size,
-          bottomInset: geo.safeAreaInsets.bottom
+          tabBarBand: max(measuredBand, geo.safeAreaInsets.bottom)
         )
       }
     }
@@ -82,7 +99,7 @@ extension LiveAuthenticatedAppView {
 
   @ViewBuilder private func miniPlayer(
     containerSize: CGSize,
-    bottomInset: CGFloat
+    tabBarBand: CGFloat
   ) -> some View {
     if playbackCoordinator.showsMiniPlayer {
       LiveMiniPlayerView(
@@ -92,7 +109,7 @@ extension LiveAuthenticatedAppView {
           presentsExpandedPlayback = true
         },
         containerSize: containerSize,
-        bottomInset: bottomInset
+        tabBarBand: tabBarBand
       )
       .transition(.move(edge: .bottom).combined(with: .opacity))
       .zIndex(2)
@@ -136,5 +153,13 @@ extension LiveAuthenticatedAppView {
         }
       }
     }
+  }
+}
+
+private struct LiveTabContentHeightKey: PreferenceKey {
+  static var defaultValue: CGFloat = 0
+
+  static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+    value = nextValue()
   }
 }
