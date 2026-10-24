@@ -16,29 +16,27 @@ final class SearchUITests: XCTestCase {
     search.tap()
     search.typeText("video")
 
-    // Channel and playlist rows sit below the fold in a lazy stack: they
-    // are not in the accessibility tree until scrolled into view. Match by
-    // identifier prefix instead of catalog ids so catalog rewrites do not
-    // break the contract being tested: search finds channels and playlists.
+    // Assert each kind under its own scope: the mixed list stacks channels
+    // and playlists below the fold in a lazy stack, while a scoped list
+    // shows them at the top. Match by identifier prefix so catalog rewrites
+    // do not break the contract being tested: search finds every kind.
+    app.buttons["demo.search.scope.channels"].tap()
     let channelRow = app.descendants(matching: .any).matching(
       NSPredicate(format: "identifier BEGINSWITH 'demo.search.channel.'")
     ).firstMatch
+    XCTAssertTrue(channelRow.waitForExistence(timeout: 3))
+
+    app.buttons["demo.search.scope.playlists"].tap()
     let playlistRow = app.descendants(matching: .any).matching(
       NSPredicate(format: "identifier BEGINSWITH 'demo.search.playlist.'")
     ).firstMatch
-    for _ in 0..<4 where !(channelRow.exists && playlistRow.exists) {
-      app.swipeUp()
-    }
-    XCTAssertTrue(channelRow.waitForExistence(timeout: 3))
     XCTAssertTrue(playlistRow.waitForExistence(timeout: 3))
-    XCTAssertTrue(
-      app.buttons["demo.home.video.pipepipe-sabr"]
-        .waitForExistence(timeout: 3)
-    )
 
     app.buttons["demo.search.scope.videos"].tap()
     XCTAssertFalse(
-      app.descendants(matching: .any)["demo.search.channel.typetype"].exists
+      app.descendants(matching: .any).matching(
+        NSPredicate(format: "identifier BEGINSWITH 'demo.search.channel.'")
+      ).firstMatch.exists
     )
     XCTAssertTrue(app.buttons["demo.home.video.pipepipe-sabr"].exists)
   }
