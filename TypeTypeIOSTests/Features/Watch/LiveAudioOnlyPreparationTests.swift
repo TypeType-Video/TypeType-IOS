@@ -112,7 +112,10 @@ final class LiveAudioOnlyPreparationTests: XCTestCase {
     )
   }
 
-  private func sabrAudio(codec: String, mimeType: String) -> LivePlaybackAudioSource {
+  private func sabrAudio(
+    codec: String,
+    mimeType: String = "audio/mp4"
+  ) -> LivePlaybackAudioSource {
     LivePlaybackAudioSource(
       url: "https://sabr.example.com/audio.m4s",
       mimeType: mimeType,
