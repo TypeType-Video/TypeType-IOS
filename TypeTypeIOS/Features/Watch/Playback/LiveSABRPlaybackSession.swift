@@ -99,7 +99,16 @@ actor LiveSABRPlaybackSession {
     recoveryCount = 0
     attemptedVideoItags = [current.videoItag]
     _ = try await loadWindow()
-    let snapshot = try await loadIndexedSnapshot()
+    let snapshot: LiveSABRPlaybackSnapshot
+    do {
+      snapshot = try await loadIndexedSnapshot()
+    } catch {
+      // A seek's fresh window can publish slower than one index budget;
+      // one warm retry replaces the second manual tap that used to make
+      // the skip finally work.
+      try await Task.sleep(for: .milliseconds(Self.minimumRetryMS))
+      snapshot = try await loadIndexedSnapshot()
+    }
     startMaintenanceIfNeeded()
     return snapshot
   }
@@ -199,24 +208,10 @@ actor LiveSABRPlaybackSession {
     guard let control else {
       throw LivePlaybackFailure.invalidSABRContract
     }
-    let audioSequences = audio?.segments.map(\.sequence) ?? []
-    let videoSequences = video?.segments.map(\.sequence) ?? []
-    let requiredAudioSegment = audioSequences.max() ?? 0
+    let requiredAudioSegment = audio?.segments.map(\.sequence).max() ?? 0
     let requiredVideoSegment = preparation.audioOnly
       ? 0
-      : videoSequences.max() ?? 0
-    // Playback may start once the window's first segments are published;
-    // the rest streams in as it arrives. Waiting for the entire window made
-    // the first seek after a skip time out while warming segments that the
-    // second attempt then found already published.
-    let audioStartSegment = audioSequences.min().map {
-      min(requiredAudioSegment, $0 + 2)
-    } ?? requiredAudioSegment
-    let videoStartSegment = preparation.audioOnly
-      ? 0
-      : (videoSequences.min().map {
-        min(requiredVideoSegment, $0 + 2)
-      } ?? requiredVideoSegment)
+      : video?.segments.map(\.sequence).max() ?? 0
     for attempt in 0..<Self.maximumAttempts {
       let value = try await service.loadSABRIndex(
         videoID: control.videoID,
@@ -230,10 +225,10 @@ actor LiveSABRPlaybackSession {
         throw LivePlaybackFailure.invalidSABRContract
       }
       let published = value.live
-        || value.tracks.audio.maxSegment >= audioStartSegment
+        || value.tracks.audio.maxSegment >= requiredAudioSegment
           && (
             preparation.audioOnly
-              || value.tracks.video.maxSegment >= videoStartSegment
+              || value.tracks.video.maxSegment >= requiredVideoSegment
           )
       if published {
         index = value
