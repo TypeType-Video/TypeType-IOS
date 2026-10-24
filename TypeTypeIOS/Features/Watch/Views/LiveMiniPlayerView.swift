@@ -2,8 +2,9 @@ import AVFoundation
 import SwiftUI
 
 /// Picture-in-picture style mini player: a compact, freely movable video
-/// card with system-PiP-like controls. It is clamped to the area above the
-/// tab bar so it never collides with navigation or menus.
+/// card that snaps to the nearest edge like the system PiP window. The
+/// card moves as one piece (offset-based placement), and it is clamped
+/// above the tab bar so it can never collide with navigation or menus.
 struct LiveMiniPlayerView: View {
   @ObservedObject var coordinator: LivePlaybackCoordinator
   let onExpand: () -> Void
@@ -13,14 +14,13 @@ struct LiveMiniPlayerView: View {
   @State private var dragOffset: CGSize = .zero
   @State private var dragStart: CGSize = .zero
   @State private var isDragging = false
-  @State private var isScrubbing = false
-  @State private var scrubValue: Double = 0
 
   private static let cardWidth: CGFloat = 260
   private static let cardHeight: CGFloat = 146
   private static let margin: CGFloat = 12
-  /// The tab bar band: home-indicator inset plus the bar itself. The card
-  /// may never enter it.
+
+  /// The tab bar band (home-indicator inset plus the bar itself) the card
+  /// must stay above.
   private var tabBarBand: CGFloat { bottomInset + 49 }
 
   var body: some View {
@@ -51,7 +51,7 @@ struct LiveMiniPlayerView: View {
 
         VStack(spacing: 0) {
           HStack {
-            controlButton(
+            glassButton(
               systemName: "xmark",
               label: "Close player",
               identifier: "live.miniplayer.close",
@@ -60,7 +60,7 @@ struct LiveMiniPlayerView: View {
               coordinator.close()
             }
             Spacer()
-            controlButton(
+            glassButton(
               systemName: "arrow.up.left.and.arrow.down.right",
               label: "Expand player",
               identifier: "live.miniplayer.expand",
@@ -73,7 +73,7 @@ struct LiveMiniPlayerView: View {
           Spacer()
 
           HStack(spacing: 18) {
-            controlButton(
+            glassButton(
               systemName: "gobackward.10",
               label: "Seek backward 10 seconds",
               identifier: "live.miniplayer.rewind",
@@ -81,7 +81,7 @@ struct LiveMiniPlayerView: View {
             ) {
               controller.seek(to: controller.position - 10)
             }
-            controlButton(
+            glassButton(
               systemName: controller.state == .playing ? "pause.fill" : "play.fill",
               label: controller.state == .playing ? "Pause" : "Play",
               identifier: "live.miniplayer.playback",
@@ -89,7 +89,7 @@ struct LiveMiniPlayerView: View {
             ) {
               controller.togglePlayback()
             }
-            controlButton(
+            glassButton(
               systemName: "goforward.10",
               label: "Seek forward 10 seconds",
               identifier: "live.miniplayer.forward",
@@ -99,10 +99,6 @@ struct LiveMiniPlayerView: View {
             }
           }
           .frame(maxWidth: .infinity)
-
-          Spacer()
-
-          scrubber(controller: controller)
         }
         .padding(12)
       }
@@ -113,7 +109,10 @@ struct LiveMiniPlayerView: View {
           .strokeBorder(.white.opacity(0.14), lineWidth: 1)
       }
       .shadow(color: .black.opacity(0.3), radius: 12, y: 5)
-      .position(clampedPosition)
+      // Offset-based placement keeps the card and its controls one atomic
+      // piece; absolute positioning let the buttons detach while dragging.
+      .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
+      .offset(x: clampedOffset.width, y: clampedOffset.height)
       .gesture(freeDrag)
       .accessibilityElement(children: .contain)
       .accessibilityAction(named: "Expand player") {
@@ -126,7 +125,7 @@ struct LiveMiniPlayerView: View {
     }
   }
 
-  private func controlButton(
+  private func glassButton(
     systemName: String,
     label: String,
     identifier: String,
@@ -138,45 +137,30 @@ struct LiveMiniPlayerView: View {
         .font(.system(size: diameter * 0.38, weight: .bold))
         .foregroundStyle(.white)
         .frame(width: diameter, height: diameter)
-        .background(.ultraThinMaterial, in: Circle())
+        .pipGlassBackground()
     }
     .buttonStyle(.plain)
     .accessibilityLabel(label)
     .accessibilityIdentifier(identifier)
   }
 
-  private func scrubber(controller: LivePlayerController) -> some View {
-    Slider(
-      value: Binding(
-        get: { isScrubbing ? scrubValue : controller.position },
-        set: { scrubValue = $0 }
-      ),
-      in: 0...max(controller.duration, 1)
-    ) { editing in
-      isScrubbing = editing
-      if !editing {
-        controller.seek(to: scrubValue)
-      }
-    }
-    .tint(.white)
+  // MARK: - Free movement with edge snapping
+
+  private var baseX: CGFloat {
+    containerSize.width - Self.cardWidth / 2 - Self.margin
   }
 
-  // MARK: - Free movement
+  private var baseY: CGFloat {
+    containerSize.height - tabBarBand - Self.cardHeight / 2 - Self.margin
+  }
 
-  private var clampedPosition: CGPoint {
-    let halfW = Self.cardWidth / 2
-    let halfH = Self.cardHeight / 2
-    let baseX = containerSize.width - halfW - Self.margin
-    let baseY = containerSize.height - tabBarBand - halfH - Self.margin
-    let x = min(
-      max(baseX + dragOffset.width, halfW + Self.margin),
-      containerSize.width - halfW - Self.margin
+  private var clampedOffset: CGSize {
+    let minX = -(containerSize.width - Self.cardWidth - 2 * Self.margin)
+    let minY = -(baseY - Self.cardHeight / 2 - Self.margin)
+    return CGSize(
+      width: min(max(dragOffset.width, minX), 0),
+      height: min(max(dragOffset.height, minY), 0)
     )
-    let y = min(
-      max(baseY + dragOffset.height, halfH + Self.margin),
-      containerSize.height - tabBarBand - halfH - Self.margin
-    )
-    return CGPoint(x: x, y: y)
   }
 
   private var freeDrag: some Gesture {
@@ -194,7 +178,27 @@ struct LiveMiniPlayerView: View {
       .onEnded { _ in
         isDragging = false
         dragStart = dragOffset
+        // Snap to the nearest edge like the system PiP window.
+        withAnimation(.snappy(duration: 0.22)) {
+          let leftEdge = -(containerSize.width - Self.cardWidth - 2 * Self.margin)
+          dragOffset.width = abs(dragOffset.width - leftEdge / 2) > abs(leftEdge) / 2
+            ? 0
+            : leftEdge
+          dragStart = dragOffset
+        }
       }
+  }
+}
+
+private extension View {
+  /// Liquid-Glass look on iOS 26 and later, translucent material below.
+  @ViewBuilder
+  func pipGlassBackground() -> some View {
+    if #available(iOS 26.0, *) {
+      self.glassEffect(.regular, in: Circle())
+    } else {
+      self.background(.ultraThinMaterial, in: Circle())
+    }
   }
 }
 
