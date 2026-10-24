@@ -3,7 +3,11 @@ import XCTest
 final class PlayerInteractionUITests: XCTestCase {
   func testCommentsLoadIncrementallyWhileScrolling() {
     let app = XCUIApplication()
-    app.launchArguments = ["--typetype-demo-player"]
+    app.launchArguments = [
+      "-AppleLanguages", "(en)",
+      "-AppleLocale", "en_US",
+      "--typetype-demo-player",
+    ]
     app.launch()
 
     let firstDeferredComment = app.staticTexts["@captionnerd"]
@@ -24,7 +28,11 @@ final class PlayerInteractionUITests: XCTestCase {
 
   func testPlaybackQueueUsesANativeSheet() {
     let app = XCUIApplication()
-    app.launchArguments = ["--typetype-demo-player"]
+    app.launchArguments = [
+      "-AppleLanguages", "(en)",
+      "-AppleLocale", "en_US",
+      "--typetype-demo-player",
+    ]
     app.launch()
 
     let queue = app.descendants(matching: .any)["demo.watch.queue"]
@@ -49,7 +57,11 @@ final class PlayerInteractionUITests: XCTestCase {
 
   func testMoreActionUsesAnAnchoredNativeMenu() {
     let app = XCUIApplication()
-    app.launchArguments = ["--typetype-demo-player"]
+    app.launchArguments = [
+      "-AppleLanguages", "(en)",
+      "-AppleLocale", "en_US",
+      "--typetype-demo-player",
+    ]
     app.launch()
 
     let actions = app.descendants(matching: .any)["demo.watch.actions"]
@@ -69,7 +81,11 @@ final class PlayerInteractionUITests: XCTestCase {
 
   func testPlaylistEndUsesTheConfiguredAutoplayCountdown() {
     let app = XCUIApplication()
-    app.launchArguments = ["--typetype-demo-player"]
+    app.launchArguments = [
+      "-AppleLanguages", "(en)",
+      "-AppleLocale", "en_US",
+      "--typetype-demo-player",
+    ]
     app.launchEnvironment["TYPETYPE_UI_TEST_PLAYER_ENDED"] = "1"
     app.launch()
 
@@ -87,7 +103,11 @@ final class PlayerInteractionUITests: XCTestCase {
 
   func testPlayerReturnsToTopAfterRotation() {
     let app = XCUIApplication()
-    app.launchArguments = ["--typetype-demo-player"]
+    app.launchArguments = [
+      "-AppleLanguages", "(en)",
+      "-AppleLocale", "en_US",
+      "--typetype-demo-player",
+    ]
     app.launch()
 
     let player = app.descendants(matching: .any)["demo.player.surface"]
