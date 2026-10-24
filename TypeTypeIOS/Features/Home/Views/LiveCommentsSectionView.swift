@@ -213,7 +213,7 @@ private struct LiveCommentRow: View {
         authorLine
 
         InteractiveText(
-          text: comment.text,
+          text: comment.displayText,
           font: .body,
           lineLimit: nil,
           onSeekTimestamp: onSeekTimestamp,
@@ -264,9 +264,11 @@ private struct LiveCommentRow: View {
 
       Spacer(minLength: 4)
 
-      Text(comment.publishedTime)
-        .font(.caption)
-        .foregroundStyle(.secondary)
+      if !comment.publishedDisplay.isEmpty {
+        Text(comment.publishedDisplay)
+          .font(.caption)
+          .foregroundStyle(.secondary)
+      }
     }
   }
 
@@ -395,7 +397,7 @@ private struct LiveCommentReplyRow: View {
         .buttonStyle(.plain)
         .disabled(comment.authorURL.isEmpty)
         InteractiveText(
-          text: comment.text,
+          text: comment.displayText,
           font: .subheadline,
           lineLimit: nil,
           onSeekTimestamp: onSeekTimestamp,

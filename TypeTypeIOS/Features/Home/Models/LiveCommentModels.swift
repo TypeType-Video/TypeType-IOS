@@ -20,6 +20,54 @@ struct LiveCommentItem: Decodable, Equatable, Hashable, Identifiable {
     URL(string: authorAvatarURL)
   }
 
+  /// Publication display derived from the epoch timestamp only: the
+  /// extractor's textual date arrives in whatever locale upstream chose
+  /// (isiZulu in the field) and is never shown.
+  var publishedDisplay: String {
+    guard let publishedAt, publishedAt > 0 else { return "" }
+    let seconds = publishedAt > 10_000_000_000
+      ? TimeInterval(publishedAt) / 1_000
+      : TimeInterval(publishedAt)
+    let formatter = RelativeDateTimeFormatter()
+    formatter.unitsStyle = .full
+    return formatter.localizedString(
+      for: Date(timeIntervalSince1970: seconds),
+      relativeTo: .now
+    )
+  }
+
+  /// Comment text with upstream markup made readable: line breaks become
+  /// newlines and entities are decoded, so no literal `<br>` or `&quot;`
+  /// ever reaches the screen.
+  var displayText: String {
+    Self.readable(text)
+  }
+
+  private static func readable(_ raw: String) -> String {
+    var value = raw
+    for breakTag in ["<br/>", "<br />", "<br>", "<BR>"] {
+      value = value.replacingOccurrences(of: breakTag, with: "\n")
+    }
+    value = value.replacingOccurrences(
+      of: "<[^>]+>",
+      with: "",
+      options: .regularExpression
+    )
+    let entities: [(String, String)] = [
+      ("&nbsp;", " "),
+      ("&quot;", "\""),
+      ("&#39;", "'"),
+      ("&apos;", "'"),
+      ("&lt;", "<"),
+      ("&gt;", ">"),
+      ("&amp;", "&"),
+    ]
+    for (entity, replacement) in entities {
+      value = value.replacingOccurrences(of: entity, with: replacement)
+    }
+    return value
+  }
+
   private enum CodingKeys: String, CodingKey {
     case id, text, author, likeCount, textualLikeCount, publishedTime
     case authorURL = "authorUrl"
