@@ -163,16 +163,31 @@ struct LiveMiniPlayerView: View {
 private struct LiveVideoPreviewLayer: UIViewRepresentable {
   let player: AVPlayer
 
-  func makeUIView(context: Context) -> UIView {
-    let view = UIView()
-    view.backgroundColor = .clear
-    let layer = AVPlayerLayer(player: player)
-    layer.videoGravity = .resizeAspect
-    layer.frame = view.bounds
-    layer.autoresizingMask = [.layerWidthSizable, .layerHeightSizable]
-    view.layer.addSublayer(layer)
-    return view
+  func makeUIView(context: Context) -> PlayerPreviewView {
+    PlayerPreviewView(player: player)
   }
 
-  func updateUIView(_ uiView: UIView, context: Context) {}
+  func updateUIView(_ uiView: PlayerPreviewView, context: Context) {}
+}
+
+private final class PlayerPreviewView: UIView {
+  private let playerLayer = AVPlayerLayer()
+
+  init(player: AVPlayer) {
+    super.init(frame: .zero)
+    backgroundColor = .clear
+    playerLayer.player = player
+    playerLayer.videoGravity = .resizeAspect
+    layer.addSublayer(playerLayer)
+  }
+
+  @available(*, unavailable)
+  required init?(coder: NSCoder) {
+    nil
+  }
+
+  override func layoutSubviews() {
+    super.layoutSubviews()
+    playerLayer.frame = bounds
+  }
 }
