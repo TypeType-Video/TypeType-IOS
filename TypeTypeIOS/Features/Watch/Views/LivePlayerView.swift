@@ -81,6 +81,14 @@ struct LivePlayerView: View {
         horizontalSeekOverlay
         swipeAdjustmentOverlay
         statusOverlay
+        // Above the transport controls on purpose: the UIKit player overlay
+        // sits under the SwiftUI controls and never received taps on Skip.
+        LiveSponsorBlockOverlay(
+          controller: controller,
+          fillsAvailableSpace: false
+        )
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .padding(.top, 64)
         playbackStatusAccessibilityElement
         playbackPositionAccessibilityElement
 

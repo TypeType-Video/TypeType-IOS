@@ -58,10 +58,10 @@ final class LivePlayerLayerCoordinator:
     ])
 
     let sponsorView = UIHostingConfiguration {
-      LiveSponsorBlockOverlay(
-        controller: controller,
-        fillsAvailableSpace: false
-      )
+      // Rendered in LivePlayerView's SwiftUI stack instead, above the
+      // transport controls: this UIKit overlay sits under them and never
+      // received taps on Skip.
+      EmptyView()
     }
     .margins(.all, 0)
     .makeContentView()
