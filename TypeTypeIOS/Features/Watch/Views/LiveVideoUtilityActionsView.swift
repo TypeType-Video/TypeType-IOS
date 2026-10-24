@@ -66,11 +66,11 @@ struct LiveVideoUtilityActionsView: View {
     _ title: String,
     symbol: String
   ) -> some View {
-    VStack(spacing: 5) {
+    HStack(spacing: 6) {
       Image(systemName: symbol)
-        .font(.title3.weight(.medium))
+        .font(.body.weight(.regular))
       Text(title)
-        .font(.caption.weight(.semibold))
+        .font(.subheadline.weight(.regular))
         .lineLimit(1)
         .minimumScaleFactor(0.8)
     }

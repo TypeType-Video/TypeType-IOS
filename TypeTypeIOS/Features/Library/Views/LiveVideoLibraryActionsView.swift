@@ -20,25 +20,29 @@ struct LiveVideoLibraryActionsView: View {
         ProgressView("Loading library actions")
           .frame(maxWidth: .infinity, alignment: .leading)
       } else {
-        HStack(spacing: 10) {
-          actionButton(
-            title: viewModel.isFavorite ? "Favorited" : "Favorite",
-            symbol: viewModel.isFavorite ? "heart.fill" : "heart",
-            isActive: viewModel.isFavorite
-          ) {
-            Task { await viewModel.toggleFavorite() }
-          }
-          actionButton(
-            title: viewModel.isInWatchLater ? "Saved for later" : "Watch later",
-            symbol: viewModel.isInWatchLater
-              ? "clock.badge.checkmark"
-              : "clock",
-            isActive: viewModel.isInWatchLater
-          ) {
-            Task { await viewModel.toggleWatchLater() }
+        ScrollView(.horizontal, showsIndicators: false) {
+          HStack(spacing: 8) {
+            actionButton(
+              title: viewModel.isFavorite ? "Favorited" : "Favorite",
+              symbol: viewModel.isFavorite ? "heart.fill" : "heart",
+              isActive: viewModel.isFavorite
+            ) {
+              Task { await viewModel.toggleFavorite() }
+            }
+            actionButton(
+              title: viewModel.isInWatchLater ? "Saved for later" : "Watch later",
+              symbol: viewModel.isInWatchLater
+                ? "clock.badge.checkmark"
+                : "clock",
+              isActive: viewModel.isInWatchLater
+            ) {
+              Task { await viewModel.toggleWatchLater() }
+            }
+            saveToPlaylistChip
           }
         }
 
+        if false {
         Menu {
           if viewModel.playlists.isEmpty {
             Text("No custom playlists")
@@ -62,11 +66,11 @@ struct LiveVideoLibraryActionsView: View {
           }
         } label: {
           Label("Save to playlist", systemImage: "rectangle.stack.badge.plus")
-            .frame(maxWidth: .infinity)
         }
         .buttonStyle(LiveChipButtonStyle())
         .disabled(viewModel.isBusy)
         .accessibilityIdentifier("live.video.save-playlist")
+        }
       }
 
       if let message = viewModel.message {
@@ -108,10 +112,39 @@ struct LiveVideoLibraryActionsView: View {
   ) -> some View {
     Button(action: action) {
       Label(title, systemImage: symbol)
-        .frame(maxWidth: .infinity)
     }
     .buttonStyle(LiveChipButtonStyle(isActive: isActive))
     .disabled(viewModel.isBusy)
+  }
+
+  private var saveToPlaylistChip: some View {
+    Menu {
+      if viewModel.playlists.isEmpty {
+        Text("No custom playlists")
+      } else {
+        ForEach(viewModel.playlists) { playlist in
+          Button {
+            Task { await viewModel.toggle(playlist) }
+          } label: {
+            Label(
+              playlist.name,
+              systemImage: viewModel.contains(playlist)
+                ? "checkmark.circle.fill"
+                : "circle"
+            )
+          }
+        }
+      }
+      Divider()
+      Button("New playlist...", systemImage: "plus") {
+        createsPlaylist = true
+      }
+    } label: {
+      Label("Save to playlist", systemImage: "rectangle.stack.badge.plus")
+    }
+    .buttonStyle(LiveChipButtonStyle())
+    .disabled(viewModel.isBusy)
+    .accessibilityIdentifier("live.video.save-playlist")
   }
 
   private var errorBinding: Binding<Bool> {
