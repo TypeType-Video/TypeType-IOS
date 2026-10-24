@@ -68,6 +68,9 @@ extension LivePlaybackCoordinator {
   ) {
     playbackGeneration += 1
     let generation = playbackGeneration
+    // A new video must not stack on a running PiP window (two scenes and
+    // two streams): close the old window silently, playback is replaced.
+    controller?.pictureInPicture.bringInline()
     controller?.stop()
     prewarmNextQueueEntry()
     let next = playerFactory(video, autoplay)

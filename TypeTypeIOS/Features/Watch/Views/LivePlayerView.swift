@@ -14,6 +14,7 @@ struct LivePlayerView: View {
   @State private var longPressBoostTask: Task<Void, Never>?
   @State private var horizontalSeekPreview: TimeInterval?
   @State private var autoPictureInPictureArmed = true
+  @State private var autoPictureInPictureActive = false
 
   /// YouTube-style: when the player scrolls away (reading comments), float
   /// it into Picture in Picture automatically. Edge-triggered: one start per
@@ -22,6 +23,14 @@ struct LivePlayerView: View {
     let isAway = frame.maxY < frame.height * 0.3
     if !isAway {
       autoPictureInPictureArmed = true
+      // Scrolled back to the player: return auto-started PiP inline. Only
+      // auto-started windows restore here — a manual mini player stays.
+      if autoPictureInPictureActive {
+        autoPictureInPictureActive = false
+        if controller.pictureInPicture.isEngaged {
+          controller.pictureInPicture.bringInline()
+        }
+      }
       return
     }
     guard autoPictureInPictureArmed else { return }
@@ -31,6 +40,7 @@ struct LivePlayerView: View {
     else {
       return
     }
+    autoPictureInPictureActive = true
     coordinator.startSystemPictureInPicture()
   }
 
