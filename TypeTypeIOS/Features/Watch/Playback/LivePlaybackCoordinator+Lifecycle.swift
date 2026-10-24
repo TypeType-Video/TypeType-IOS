@@ -16,14 +16,14 @@ extension LivePlaybackCoordinator {
     presentation = .mini
   }
 
-  /// Starts the system PiP window for the current playback.
+  /// Starts the system PiP window for the current playback. The content
+  /// layer was installed into the live player view by LivePlayerLayerView.
   func startSystemPictureInPicture() {
-    guard let player = controller?.player else { return }
-    pictureInPicture.onChange = { [weak self] in
+    guard let controller else { return }
+    controller.pictureInPicture.onChange = { [weak self] in
       self?.objectWillChange.send()
     }
-    pictureInPicture.attach(player: player)
-    pictureInPicture.start(
+    controller.pictureInPicture.start(
       onRestore: { [weak self] in self?.expand() },
       onClose: { [weak self] in self?.close() }
     )

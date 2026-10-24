@@ -50,6 +50,7 @@ final class LivePlayerController: ObservableObject {
 
   let video: LiveVideoItem
   let initialAutoplay: Bool
+  let pictureInPicture = LivePictureInPictureDriver()
   let service: LivePlaybackServiceProtocol?
   let settingsService: LiveSettingsServiceProtocol
   let historyService: LiveHistoryServiceProtocol

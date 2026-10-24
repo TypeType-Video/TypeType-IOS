@@ -1,11 +1,11 @@
 import AVFoundation
 import AVKit
-import Foundation
+import UIKit
 
 /// Twitch-style in-app Picture in Picture: on minimize the app hides its
-/// video surface and floats the real system PiP window over the app. Falls
-/// back to the in-app mini player card when PiP is unavailable or fails to
-/// start (isEngaged stays false in that case).
+/// video surface and floats the real system PiP window over the app. The
+/// PiP content layer must live in the visible player view hierarchy — a
+/// detached layer renders no frames and the system window stays empty.
 @MainActor
 final class LivePictureInPictureDriver: NSObject {
   private(set) var isEngaged = false
@@ -14,6 +14,7 @@ final class LivePictureInPictureDriver: NSObject {
 
   private var pipController: AVPictureInPictureController?
   private var contentLayer: AVPlayerLayer?
+  private weak var hostView: UIView?
   private var isRestoring = false
   private var onRestore: (() -> Void)?
   private var onClose: (() -> Void)?
@@ -22,20 +23,34 @@ final class LivePictureInPictureDriver: NSObject {
     AVPictureInPictureController.isPictureInPictureSupported()
   }
 
-  func attach(player: AVPlayer) {
-    if pipController != nil {
-      contentLayer?.player = player
-      return
+  /// Installs the PiP content layer into the live player view (kept behind
+  /// the player's own controls) and keeps it sized to the host.
+  func installContentLayer(on view: UIView, player: AVPlayer) {
+    if contentLayer == nil {
+      let layer = AVPlayerLayer()
+      layer.videoGravity = .resizeAspect
+      contentLayer = layer
+      if isAvailable, let controller = AVPictureInPictureController(playerLayer: layer) {
+        controller.delegate = self
+        controller.canStartPictureInPictureAutomaticallyFromInline = false
+        pipController = controller
+      }
     }
-    let layer = AVPlayerLayer()
-    layer.player = player
-    contentLayer = layer
-    guard let controller = AVPictureInPictureController(playerLayer: layer) else {
-      return
+    contentLayer?.player = player
+    if contentLayer?.superlayer !== view.layer {
+      contentLayer?.removeFromSuperlayer()
+      view.layer.insertSublayer(contentLayer ?? CALayer(), at: 0)
     }
-    controller.delegate = self
-    controller.canStartPictureInPictureAutomaticallyFromInline = false
-    pipController = controller
+    hostView = view
+    relayout()
+  }
+
+  func relayout() {
+    guard let hostView, let contentLayer else { return }
+    CATransaction.begin()
+    CATransaction.setDisableActions(true)
+    contentLayer.frame = hostView.bounds
+    CATransaction.commit()
   }
 
   func start(

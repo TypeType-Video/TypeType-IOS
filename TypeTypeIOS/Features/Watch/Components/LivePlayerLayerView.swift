@@ -55,6 +55,10 @@ struct LivePlayerLayerView: UIViewControllerRepresentable {
       coordinator?.preservePlayback(across: transitionCoordinator)
     }
     context.coordinator.install(in: playerController)
+    controller.pictureInPicture.installContentLayer(
+      on: playerController.view,
+      player: player
+    )
     return playerController
   }
 
@@ -67,6 +71,10 @@ struct LivePlayerLayerView: UIViewControllerRepresentable {
     }
     playerController.videoGravity = controller.imageMode.videoGravity
     context.coordinator.update(controller, in: playerController)
+    controller.pictureInPicture.installContentLayer(
+      on: playerController.view,
+      player: player
+    )
     context.coordinator.swipeGestureHandler = onSwipeAdjustment
     context.coordinator.horizontalSeekHandler = onHorizontalSeek
     context.coordinator.pictureInPictureUIRestoreHandler =

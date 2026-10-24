@@ -47,6 +47,7 @@ extension LiveAuthenticatedAppView {
         coordinator: coordinator,
         onPresentSearch: { presentsSearch = true }
       )
+      .background(tabBarTopProbe)
       .tabItem { Label("Home", systemImage: "house") }
       .tag(LiveAuthenticatedTab.home)
 
@@ -75,17 +76,6 @@ extension LiveAuthenticatedAppView {
     // Layout-aware: the mini player sits above whatever height the tab
     // bar actually has on this device. The old hardcoded 49pt clearance
     // overlapped the bar on modern devices and on the iPhone SE.
-    .safeAreaInset(edge: .bottom, spacing: 0) {
-      // Zero-height probe directly above the tab bar: its bottom edge in
-      // global coordinates is exactly the tab bar top.
-      GeometryReader { probe in
-        Color.clear.preference(
-          key: LiveTabBarTopKey.self,
-          value: probe.frame(in: .global).maxY
-        )
-      }
-      .frame(height: 0)
-    }
     .onPreferenceChange(LiveTabBarTopKey.self) { value in
       tabBarTopY = value
     }
@@ -185,5 +175,18 @@ private extension LiveAuthenticatedAppView {
         playbackCoordinator.minimize()
         presentsExpandedPlayback = false
       }
+  }
+}
+
+private extension LiveAuthenticatedAppView {
+  /// Measures the real tab bar top from inside a tab's content: the content
+  /// safe area knows the bar's height even when it floats.
+  var tabBarTopProbe: some View {
+    GeometryReader { probe in
+      Color.clear.preference(
+        key: LiveTabBarTopKey.self,
+        value: probe.frame(in: .global).maxY - probe.safeAreaInsets.bottom
+      )
+    }
   }
 }
