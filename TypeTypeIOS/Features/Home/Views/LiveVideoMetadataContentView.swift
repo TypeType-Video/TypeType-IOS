@@ -36,9 +36,9 @@ struct LiveVideoMetadataContentView: View {
     ScrollView {
       VStack(alignment: .leading, spacing: 18) {
         LivePlayerView(
-          dependencies: dependencies,
           controller: playerController,
           coordinator: playbackCoordinator,
+          dependencies: dependencies,
           posterURL: posterURL,
           cinemaMode: $cinemaMode
         )
