@@ -168,7 +168,10 @@ private extension LiveAuthenticatedAppView {
       .onEnded { value in
         guard value.startLocation.y < 320,
           value.translation.height > 120,
-          abs(value.translation.height) > abs(value.translation.width)
+          abs(value.translation.height) > abs(value.translation.width),
+          // Only from the top of the page: scrolling through the content
+          // (even upward) must never minimize the player.
+          playbackCoordinator.controller?.isPlayerSurfaceFullyVisible == true
         else {
           return
         }

@@ -51,6 +51,9 @@ final class LivePlayerController: ObservableObject {
   let video: LiveVideoItem
   let initialAutoplay: Bool
   let pictureInPicture = LivePictureInPictureDriver()
+  /// Whether the player surface sits at the top of the page (page not
+  /// scrolled). Gates the pull-down-to-mini gesture.
+  var isPlayerSurfaceFullyVisible = true
   let service: LivePlaybackServiceProtocol?
   let settingsService: LiveSettingsServiceProtocol
   let historyService: LiveHistoryServiceProtocol

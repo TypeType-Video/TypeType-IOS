@@ -20,6 +20,11 @@ struct LivePlayerView: View {
   /// it into Picture in Picture automatically. Edge-triggered: one start per
   /// scroll-away, re-armed when the player is visible again.
   private func evaluateAutoPictureInPicture(_ frame: CGRect) {
+    // Pull-down is only allowed while the page is at the top: the player
+    // must sit below the status bar and well above the bottom edge.
+    let screenH = UIScreen.main.bounds.height
+    controller.isPlayerSurfaceFullyVisible =
+      frame.minY >= 44 && frame.maxY <= screenH - 100
     let isAway = frame.maxY < frame.height * 0.3
     if !isAway {
       autoPictureInPictureArmed = true

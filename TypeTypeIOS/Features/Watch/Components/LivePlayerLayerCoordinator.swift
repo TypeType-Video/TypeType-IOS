@@ -57,53 +57,7 @@ final class LivePlayerLayerCoordinator:
       danmakuView.bottomAnchor.constraint(equalTo: overlay.bottomAnchor),
     ])
 
-    let sponsorView = UIHostingConfiguration {
-      // Rendered in LivePlayerView's SwiftUI stack instead, above the
-      // transport controls: this UIKit overlay sits under them and never
-      // received taps on Skip.
-      EmptyView()
-    }
-    .margins(.all, 0)
-    .makeContentView()
-    sponsorView.backgroundColor = .clear
-    sponsorView.setContentCompressionResistancePriority(
-      .required,
-      for: .horizontal
-    )
-    sponsorView.setContentCompressionResistancePriority(
-      .required,
-      for: .vertical
-    )
-    sponsorView.translatesAutoresizingMaskIntoConstraints = false
-    overlay.addSubview(sponsorView)
-    let center = sponsorView.centerXAnchor.constraint(
-      equalTo: overlay.centerXAnchor
-    )
-    let trailing = sponsorView.trailingAnchor.constraint(
-      equalTo: overlay.trailingAnchor,
-      constant: -10
-    )
-    NSLayoutConstraint.activate([
-      center,
-      sponsorView.topAnchor.constraint(
-        equalTo: overlay.topAnchor,
-        constant: 10
-      ),
-      sponsorView.leadingAnchor.constraint(
-        greaterThanOrEqualTo: overlay.leadingAnchor,
-        constant: 10
-      ),
-      sponsorView.trailingAnchor.constraint(
-        lessThanOrEqualTo: overlay.trailingAnchor,
-        constant: -10
-      ),
-      sponsorView.bottomAnchor.constraint(
-        lessThanOrEqualTo: overlay.bottomAnchor
-      ),
-    ])
-    sponsorCenterConstraint = center
-    sponsorTrailingConstraint = trailing
-    hostedViews = [danmakuView, sponsorView]
+    hostedViews = [danmakuView]
   }
 
   func update(
