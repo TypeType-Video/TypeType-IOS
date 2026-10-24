@@ -65,6 +65,11 @@ final class LivePictureInPictureDriver: NSObject, ObservableObject {
   /// layer.
   func loadPoster(url: URL?) async {
     guard let url else { return }
+    let posterStart = DispatchTime.now()
+    defer {
+      let ms = Int(Double(DispatchTime.now().uptimeNanoseconds - posterStart.uptimeNanoseconds) / 1e6)
+      AppLogger.playback.info("pip timing: poster took \(ms, privacy: .public)ms")
+    }
     // A slow poster download must not hold the PiP start hostage: race the
     // fetch against a short budget and start regardless (an empty layer
     // falls back to the in-app card, which is an acceptable degradation).
@@ -145,10 +150,13 @@ final class LivePictureInPictureDriver: NSObject, ObservableObject {
     return controlsRefreshPending
   }
 
+  private var startRequestedAt: DispatchTime?
+
   func start(
     onRestore: @escaping () -> Void,
     onClose: @escaping () -> Void
   ) {
+    startRequestedAt = DispatchTime.now()
     guard isAvailable, let pipController, !isEngaged, !isPendingStart else {
       return
     }
@@ -191,7 +199,13 @@ final class LivePictureInPictureDriver: NSObject, ObservableObject {
     isEngaged = true
     didStartConfirmed = false
     onChange?()
+    let startCall = DispatchTime.now()
     pipController.startPictureInPicture()
+    let startMs = Int(
+      Double(DispatchTime.now().uptimeNanoseconds - startCall.uptimeNanoseconds) / 1e6
+    )
+    AppLogger.playback
+      .info("pip timing: startPictureInPicture blocked \(startMs, privacy: .public)ms")
     // If neither didStart nor failedToStart arrives, the window never came
     // up: release the engagement so the in-app card can show instead.
     startVerificationTask?.cancel()
@@ -241,7 +255,11 @@ extension LivePictureInPictureDriver: AVPictureInPictureControllerDelegate {
     Task { @MainActor [weak self] in
       guard let self else { return }
       didStartConfirmed = true
-      AppLogger.playback.info("pip driver: did start confirmed")
+      if let requestedAt = startRequestedAt {
+        let ms = Int(Double(DispatchTime.now().uptimeNanoseconds - requestedAt.uptimeNanoseconds) / 1e6)
+        AppLogger.playback
+          .info("pip timing: request to confirmed took \(ms, privacy: .public)ms")
+      }
       onChange?()
     }
   }
