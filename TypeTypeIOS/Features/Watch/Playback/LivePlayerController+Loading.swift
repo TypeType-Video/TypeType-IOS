@@ -10,7 +10,7 @@ extension LivePlayerController {
       return
     }
     state = .loading
-    configureAudioSession()
+    await configureAudioSession()
     sabrStallRecoveryTask?.cancel()
     sabrStallRecoveryTask = nil
     sabrRecoveryBudgetResetTask?.cancel()
