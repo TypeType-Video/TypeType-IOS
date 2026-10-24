@@ -20,28 +20,25 @@ struct LiveVideoLibraryActionsView: View {
         ProgressView("Loading library actions")
           .frame(maxWidth: .infinity, alignment: .leading)
       } else {
-        ScrollView(.horizontal, showsIndicators: false) {
-          HStack(spacing: 8) {
-            actionButton(
-              title: viewModel.isFavorite ? "Favorited" : "Favorite",
-              symbol: viewModel.isFavorite ? "heart.fill" : "heart",
-              isActive: viewModel.isFavorite
-            ) {
-              Task { await viewModel.toggleFavorite() }
-            }
-            actionButton(
-              title: viewModel.isInWatchLater ? "Saved for later" : "Watch later",
-              symbol: viewModel.isInWatchLater
-                ? "clock.badge.checkmark"
-                : "clock",
-              isActive: viewModel.isInWatchLater
-            ) {
-              Task { await viewModel.toggleWatchLater() }
-            }
-            saveToPlaylistChip
+        HStack(spacing: 10) {
+          actionButton(
+            title: viewModel.isFavorite ? "Favorited" : "Favorite",
+            symbol: viewModel.isFavorite ? "heart.fill" : "heart",
+            isActive: viewModel.isFavorite
+          ) {
+            Task { await viewModel.toggleFavorite() }
           }
+          actionButton(
+            title: viewModel.isInWatchLater ? "Saved for later" : "Watch later",
+            symbol: viewModel.isInWatchLater
+              ? "clock.badge.checkmark"
+              : "clock",
+            isActive: viewModel.isInWatchLater
+          ) {
+            Task { await viewModel.toggleWatchLater() }
+          }
+          saveToPlaylistChip
         }
-
       }
 
       if let message = viewModel.message {
@@ -83,6 +80,7 @@ struct LiveVideoLibraryActionsView: View {
   ) -> some View {
     Button(action: action) {
       Label(title, systemImage: symbol)
+        .frame(maxWidth: .infinity)
     }
     .buttonStyle(LiveChipButtonStyle(isActive: isActive))
     .disabled(viewModel.isBusy)
@@ -112,6 +110,7 @@ struct LiveVideoLibraryActionsView: View {
       }
     } label: {
       Label("Save to playlist", systemImage: "rectangle.stack.badge.plus")
+        .frame(maxWidth: .infinity)
     }
     .buttonStyle(LiveChipButtonStyle())
     .disabled(viewModel.isBusy)

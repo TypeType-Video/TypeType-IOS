@@ -123,11 +123,13 @@ struct LiveVideoEngagementView: View {
     symbol: String
   ) -> some View {
     let formatted = LiveVideoMetadataFormatter.compactCount(count)
-    return Label(
-      formatted,
-      systemImage: symbol
-    )
+    return Label {
+      Text(formatted)
+        .foregroundStyle(.primary)
+    } icon: {
+      Image(systemName: symbol)
+        .foregroundStyle(.secondary)
+    }
     .font(.subheadline)
-    .foregroundStyle(.secondary)
   }
 }

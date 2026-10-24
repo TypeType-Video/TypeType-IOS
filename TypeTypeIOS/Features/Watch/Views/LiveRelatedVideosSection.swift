@@ -18,15 +18,20 @@ struct LiveRelatedVideosSection: View {
   var body: some View {
     if !videos.isEmpty {
       VStack(alignment: .leading, spacing: 14) {
-        HStack(alignment: .firstTextBaseline) {
+        HStack(alignment: .center) {
           Text("Up next")
             .font(.title3.weight(.bold))
           Spacer()
-          Toggle("Autoplay", isOn: autoplayBinding)
-            .toggleStyle(.switch)
-            .controlSize(.small)
-            .font(.subheadline)
-            .accessibilityIdentifier("live.video.upnext.autoplay")
+          HStack(spacing: 8) {
+            Text("Autoplay")
+              .font(.subheadline)
+              .foregroundStyle(.secondary)
+            Toggle("Autoplay", isOn: autoplayBinding)
+              .toggleStyle(.switch)
+              .controlSize(.small)
+              .labelsHidden()
+          }
+          .accessibilityIdentifier("live.video.upnext.autoplay")
         }
 
         LazyVStack(spacing: 14) {

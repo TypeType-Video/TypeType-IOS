@@ -154,23 +154,25 @@ enum DemoTheme {
   }
 }
 
-/// Action chip in the TypeType web design language: flat, transparent
-/// surface, muted 14pt label, 8pt corners. The primary action (Subscribe)
-/// is the light capsule with dark label. Toggled-on states tint icon and
-/// label with the accent instead of using filled pills.
+/// Action chip in the TypeType web design language: translucent surface
+/// against the dark page, white label, 8pt corners — visible without
+/// filled pills. The primary action (Subscribe) is the light capsule;
+/// toggled-on states tint surface and label with the accent.
 struct LiveChipButtonStyle: ButtonStyle {
   var isFilled = false
   var isActive = false
 
   func makeBody(configuration: Configuration) -> some View {
     configuration.label
-      .font(.footnote.weight(isFilled ? .medium : .regular))
+      .font(.footnote.weight(isFilled ? .semibold : .medium))
       .foregroundStyle(foreground)
-      .padding(.horizontal, 10)
-      .padding(.vertical, 4)
-      .frame(minHeight: 40)
+      .lineLimit(1)
+      .minimumScaleFactor(0.8)
+      .padding(.horizontal, 12)
+      .padding(.vertical, 8)
+      .frame(minHeight: 42)
       .background(
-        RoundedRectangle(cornerRadius: isFilled ? 999 : 8, style: .continuous)
+        RoundedRectangle(cornerRadius: isFilled ? 999 : 10, style: .continuous)
           .fill(background)
       )
       .contentShape(Rectangle())
@@ -181,13 +183,13 @@ struct LiveChipButtonStyle: ButtonStyle {
     if isFilled {
       return DemoTheme.background
     }
-    return isActive ? DemoTheme.accent : .secondary
+    return isActive ? DemoTheme.accent : .primary
   }
 
   private var background: Color {
     if isFilled {
       return isActive ? DemoTheme.accent : Color.primary.opacity(0.92)
     }
-    return .clear
+    return isActive ? DemoTheme.accent.opacity(0.16) : DemoTheme.elevatedSurface
   }
 }
