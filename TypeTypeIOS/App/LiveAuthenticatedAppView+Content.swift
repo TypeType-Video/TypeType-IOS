@@ -13,9 +13,7 @@ extension LiveAuthenticatedAppView {
         .zIndex(1)
       }
     }
-    .overlay(alignment: .bottom) {
-      miniPlayer
-    }
+    
     .fullScreenCover(
       isPresented: $presentsExpandedPlayback,
       onDismiss: {
@@ -67,6 +65,12 @@ extension LiveAuthenticatedAppView {
         .badge(notificationCenter.unreadCount)
         .tag(LiveAuthenticatedTab.more)
     }
+    // Layout-aware: the mini player sits above whatever height the tab
+    // bar actually has on this device. The old hardcoded 49pt clearance
+    // overlapped the bar on modern devices and on the iPhone SE.
+    .safeAreaInset(edge: .bottom, spacing: 0) {
+      miniPlayer
+    }
   }
 
   @ViewBuilder private var miniPlayer: some View {
@@ -78,7 +82,7 @@ extension LiveAuthenticatedAppView {
           presentsExpandedPlayback = true
         }
       )
-      .padding(.bottom, presentsSearch ? 0 : 49)
+      .padding(.bottom, 4)
       .transition(.move(edge: .bottom).combined(with: .opacity))
       .zIndex(2)
     }
