@@ -13,6 +13,26 @@ struct LivePlayerView: View {
   @State private var longPressBaseRate: Float?
   @State private var longPressBoostTask: Task<Void, Never>?
   @State private var horizontalSeekPreview: TimeInterval?
+  @State private var autoPictureInPictureArmed = true
+
+  /// YouTube-style: when the player scrolls away (reading comments), float
+  /// it into Picture in Picture automatically. Edge-triggered: one start per
+  /// scroll-away, re-armed when the player is visible again.
+  private func evaluateAutoPictureInPicture(_ frame: CGRect) {
+    let isAway = frame.maxY < frame.height * 0.3
+    if !isAway {
+      autoPictureInPictureArmed = true
+      return
+    }
+    guard autoPictureInPictureArmed else { return }
+    autoPictureInPictureArmed = false
+    guard coordinator.hasActivePlayback,
+      !controller.pictureInPicture.isEngaged
+    else {
+      return
+    }
+    coordinator.startSystemPictureInPicture()
+  }
 
   var body: some View {
     GeometryReader { proxy in
@@ -46,6 +66,11 @@ struct LivePlayerView: View {
             LivePictureInPictureNotice(
               pictureInPicture: controller.pictureInPicture
             )
+          }
+          .onGeometryChange(for: CGRect.self) { proxy in
+            proxy.frame(in: .global)
+          } action: { frame in
+            evaluateAutoPictureInPicture(frame)
           }
           // Seek and speed gestures live on the video surface only: as
           // container-level simultaneous gestures they also fired when
@@ -431,7 +456,7 @@ private struct LivePictureInPictureNotice: View {
   var body: some View {
     if pictureInPicture.isEngaged {
       ZStack {
-        Color.black.opacity(0.72)
+        Color.black
         VStack(spacing: 12) {
           Image(systemName: "pip")
             .font(.system(size: 34, weight: .medium))
