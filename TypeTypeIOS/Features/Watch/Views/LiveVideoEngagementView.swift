@@ -107,12 +107,7 @@ struct LiveVideoEngagementView: View {
           Text(viewModel.isSubscribed ? "Subscribed" : "Subscribe")
         }
       }
-      .buttonStyle(
-        LiveChipButtonStyle(
-          isFilled: !viewModel.isSubscribed,
-          isActive: viewModel.isSubscribed
-        )
-      )
+      .buttonStyle(LiveChipButtonStyle(isFilled: true))
       .disabled(viewModel.isLoading || viewModel.isChanging)
       .accessibilityIdentifier("live.video.subscribe")
     }

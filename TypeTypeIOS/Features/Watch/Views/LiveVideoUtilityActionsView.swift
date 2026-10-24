@@ -69,13 +69,13 @@ struct LiveVideoUtilityActionsView: View {
     HStack(spacing: 6) {
       Image(systemName: symbol)
         .font(.body.weight(.regular))
+
       Text(title)
-        .font(.subheadline.weight(.regular))
+        .font(.footnote.weight(.medium))
         .lineLimit(1)
         .minimumScaleFactor(0.8)
     }
-      .frame(maxWidth: .infinity)
-      .frame(minHeight: 48)
+    .frame(maxWidth: .infinity)
   }
 
   private var shareURL: URL? {

@@ -154,10 +154,11 @@ enum DemoTheme {
   }
 }
 
-/// Action chip in the TypeType web design language: translucent surface
-/// against the dark page, white label, 8pt corners — visible without
-/// filled pills. The primary action (Subscribe) is the light capsule;
-/// toggled-on states tint surface and label with the accent.
+/// Pill button in the Apple-TV-style action language: fully rounded
+/// capsules. The primary action is the white pill with dark label; all
+/// other actions are translucent dark pills with white labels. Toggled-on
+/// states tint surface and label with the accent. Height is uniform so
+/// every cell in the action grid matches.
 struct LiveChipButtonStyle: ButtonStyle {
   var isFilled = false
   var isActive = false
@@ -168,11 +169,11 @@ struct LiveChipButtonStyle: ButtonStyle {
       .foregroundStyle(foreground)
       .lineLimit(1)
       .minimumScaleFactor(0.8)
-      .padding(.horizontal, 12)
-      .padding(.vertical, 8)
-      .frame(minHeight: 42)
+      .padding(.horizontal, 14)
+      .padding(.vertical, 10)
+      .frame(minHeight: 48)
       .background(
-        RoundedRectangle(cornerRadius: isFilled ? 999 : 10, style: .continuous)
+        Capsule(style: .continuous)
           .fill(background)
       )
       .contentShape(Rectangle())
