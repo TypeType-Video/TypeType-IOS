@@ -56,15 +56,15 @@ struct TypeTypeLiveAppView: View {
     .environment(\.font, preferences.preferences.appearanceFont == .expressive
       ? Font.system(.body, design: .rounded)
       : nil)
-    .onChange(of: preferences.preferences) { newValue in
+    .onChange(of: preferences.preferences) {
       DemoTheme.update(
-        preferences: newValue,
+        preferences: preferences.preferences,
         colorScheme: systemColorScheme
       )
-      DemoTheme.applyUIKitAppearance(newValue)
+      DemoTheme.applyUIKitAppearance(preferences.preferences)
     }
-    .onChange(of: scenePhase) { phase in
-      guard phase == .background,
+    .onChange(of: scenePhase) {
+      guard scenePhase == .background,
         preferences.preferences.playerPauseInBackground
       else { return }
       coordinator.dependencies.playbackCoordinator.controller?.pause()

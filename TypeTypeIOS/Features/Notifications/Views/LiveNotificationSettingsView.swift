@@ -37,7 +37,7 @@ struct LiveNotificationSettingsView: View {
     .navigationTitle("Channel notifications")
     .navigationBarTitleDisplayMode(.inline)
     .task { await viewModel.prepare() }
-    .onChange(of: viewModel.permissionStatus) { _ in }
+    .onChange(of: viewModel.permissionStatus) { }
     .alert(
       "Notification settings",
       isPresented: errorBinding
