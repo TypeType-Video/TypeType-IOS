@@ -44,6 +44,12 @@ struct LiveAuthenticatedAppView: View {
     .animation(.snappy.delay(0.25), value: playbackCoordinator.showsMiniPlayer)
     .animation(.snappy, value: presentsSearch)
     .task {
+      LiveVideoCard.onPrewarm = { video in
+        Task {
+          _ = try? await coordinator.dependencies.playbackService
+            .stream(for: video.url)
+        }
+      }
       notificationCenter.startPolling()
       LiveBackgroundRefreshCoordinator.shared.scheduleRefresh()
       await applyDefaultLandingPage()

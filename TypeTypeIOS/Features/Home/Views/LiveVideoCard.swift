@@ -1,6 +1,12 @@
 import SwiftUI
 
 struct LiveVideoCard: View {
+  /// Touch-down prewarm hook (configured once by the shell): loads stream
+  /// metadata while the finger is still on the card, so the tap-to-open
+  /// latency hides behind the press.
+  static var onPrewarm: ((LiveVideoItem) -> Void)?
+  @State private var didPrewarm = false
+
   let video: LiveVideoItem
   @ObservedObject private var deArrowStore: LiveDeArrowStore
   let onChannel: (() -> Void)?
@@ -32,7 +38,15 @@ struct LiveVideoCard: View {
         channelAvatar
         metadata
       }
-    }
+    
+      .simultaneousGesture(
+        DragGesture(minimumDistance: 0)
+          .onChanged { _ in
+            guard !didPrewarm else { return }
+            didPrewarm = true
+            Self.onPrewarm?(video)
+          }
+      )}
     .task { await deArrowStore.prepare(video) }
     .contentShape(Rectangle())
   }

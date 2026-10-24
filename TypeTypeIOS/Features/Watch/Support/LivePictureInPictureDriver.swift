@@ -30,6 +30,10 @@ final class LivePictureInPictureDriver: NSObject, ObservableObject {
     if contentLayer == nil {
       let layer = AVPlayerLayer()
       layer.videoGravity = .resizeAspect
+      // Hidden unless PiP runs: a live player layer inside the player view
+      // corrupts the blur/backdrop AVKit's controls are drawn on ("invalid
+      // image bits/pixel") — the controls end up invisible but tappable.
+      layer.isHidden = true
       contentLayer = layer
       if isAvailable, let controller = AVPictureInPictureController(playerLayer: layer) {
         controller.delegate = self
@@ -38,6 +42,7 @@ final class LivePictureInPictureDriver: NSObject, ObservableObject {
       }
     }
     contentLayer?.player = player
+    contentLayer?.isHidden = !isEngaged
     if contentLayer?.superlayer !== view.layer {
       contentLayer?.removeFromSuperlayer()
       view.layer.insertSublayer(contentLayer ?? CALayer(), at: 0)
@@ -73,8 +78,9 @@ final class LivePictureInPictureDriver: NSObject, ObservableObject {
   ) {
     guard isAvailable, let pipController, !isEngaged else { return }
     // The system animates the window from the layer's rect: make sure the
-    // layer is laid out before starting.
+    // layer is laid out and rendering before starting.
     relayout()
+    contentLayer?.isHidden = false
     self.onRestore = onRestore
     self.onClose = onClose
     isEngaged = true
@@ -117,6 +123,7 @@ extension LivePictureInPictureDriver: AVPictureInPictureControllerDelegate {
       guard let self else { return }
       // Fall back to the in-app mini player card.
       isEngaged = false
+      contentLayer?.isHidden = true
       onChange?()
     }
   }
@@ -144,6 +151,7 @@ extension LivePictureInPictureDriver: AVPictureInPictureControllerDelegate {
     Task { @MainActor [weak self] in
       guard let self else { return }
       isEngaged = false
+      contentLayer?.isHidden = true
       controlsRefreshPending = true
       let wasRestoring = isRestoring
       isRestoring = false
