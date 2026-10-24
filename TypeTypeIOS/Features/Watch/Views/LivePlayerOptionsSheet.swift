@@ -46,7 +46,7 @@ struct LivePlayerOptionsSheet: View {
     .sheet(isPresented: $presentsReport) {
       NavigationStack {
         LiveReportIssueView(
-          bugReportsService: dependencies.bugReportsService,
+          service: dependencies.bugReportsService,
           videoURL: coordinator.currentVideo?.url ?? ""
         )
         .toolbar {
