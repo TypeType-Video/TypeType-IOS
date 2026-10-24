@@ -31,14 +31,17 @@ final class LiveOfflinePlaybackController: ObservableObject {
   }
 
   func start() {
-    do {
-      try DemoAudioSessionConfigurator.configure(
-        backgroundAudio: true
-      )
-      player.play()
-      isPlaying = true
-    } catch {
-      errorMessage = "The audio session could not be configured."
+    Task { [weak self] in
+      do {
+        try await DemoAudioSessionConfigurator.configure(
+          backgroundAudio: true
+        )
+      } catch {
+        self?.errorMessage = "The audio session could not be configured."
+        return
+      }
+      self?.player.play()
+      self?.isPlaying = true
     }
   }
 

@@ -103,10 +103,12 @@ final class DemoPlayerController: ObservableObject {
   }
 
   func setBackgroundAudioEnabled(_ enabled: Bool) {
-    do {
-      try DemoAudioSessionConfigurator.configure(backgroundAudio: enabled)
-    } catch {
-      state = .failed("The audio session could not be configured.")
+    Task { [weak self] in
+      do {
+        try await DemoAudioSessionConfigurator.configure(backgroundAudio: enabled)
+      } catch {
+        self?.state = .failed("The audio session could not be configured.")
+      }
     }
   }
 

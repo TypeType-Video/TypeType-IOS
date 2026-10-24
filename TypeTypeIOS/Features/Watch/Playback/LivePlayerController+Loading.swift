@@ -230,12 +230,8 @@ extension LivePlayerController {
     observe(item, autoplay: autoplay)
     player.replaceCurrentItem(with: item)
     player.defaultRate = playbackRate
-    do {
-      try DemoAudioSessionConfigurator.configure(
-        backgroundAudio: true
-      )
-    } catch {
-      state = .failed("The audio session could not be configured.")
-    }
+    // The audio session is configured and awaited in load() before any
+    // playback; reconfiguring it here ran on the main thread and tripped
+    // the system's unresponsiveness warnings.
   }
 }
