@@ -386,16 +386,23 @@ private struct LiveCommentReplyRow: View {
         .frame(width: 30, height: 30)
         .clipShape(Circle())
       VStack(alignment: .leading, spacing: 4) {
-        Button {
-          guard !comment.authorURL.isEmpty else { return }
-          onChannel(comment.authorURL)
-        } label: {
-          Text(comment.author)
-            .font(.caption.weight(.semibold))
-            .foregroundStyle(.primary)
+        HStack(spacing: 6) {
+          Button {
+            guard !comment.authorURL.isEmpty else { return }
+            onChannel(comment.authorURL)
+          } label: {
+            Text(comment.author)
+              .font(.caption.weight(.semibold))
+              .foregroundStyle(.primary)
+          }
+          .buttonStyle(.plain)
+          .disabled(comment.authorURL.isEmpty)
+          if !comment.publishedDisplay.isEmpty {
+            Text(comment.publishedDisplay)
+              .font(.caption2)
+              .foregroundStyle(.secondary)
+          }
         }
-        .buttonStyle(.plain)
-        .disabled(comment.authorURL.isEmpty)
         InteractiveText(
           text: comment.displayText,
           font: .subheadline,
