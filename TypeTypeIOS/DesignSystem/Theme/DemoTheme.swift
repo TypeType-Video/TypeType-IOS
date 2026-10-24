@@ -67,6 +67,9 @@ enum DemoTheme {
     // Transparent, not surfaceColor: painting this white put a square
     // block behind every section header, clashing with the rounded cards.
     UITableViewHeaderFooterView.appearance().backgroundColor = .clear
+    // iOS 27 paints header chrome through backgroundView (a blur material),
+    // which backgroundColor alone does not replace.
+    UITableViewHeaderFooterView.appearance().backgroundView = UIView()
   }
 
   private static func themeUIColor(
