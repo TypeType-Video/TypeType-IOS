@@ -72,11 +72,21 @@ final class PlayerInteractionUITests: XCTestCase {
     }
     XCTAssertTrue(more.isHittable)
     more.tap()
-    XCTAssertTrue(
-      app.buttons["Add to Watch later"].waitForExistence(timeout: 3)
-    )
-    XCTAssertTrue(app.buttons["Block video"].exists)
-    XCTAssertTrue(app.buttons["Block channel"].exists)
+    // Native menu entries surface under different accessibility classes
+    // (buttons or menu items) depending on iOS version, so match by label
+    // anywhere in the hierarchy instead of one element class.
+    let watchLater = app.descendants(matching: .any).matching(
+      NSPredicate(format: "label CONTAINS 'Watch later'")
+    ).firstMatch
+    let blockVideo = app.descendants(matching: .any).matching(
+      NSPredicate(format: "label CONTAINS 'Block video' OR label CONTAINS 'Unblock video'")
+    ).firstMatch
+    let blockChannel = app.descendants(matching: .any).matching(
+      NSPredicate(format: "label CONTAINS 'Block channel' OR label CONTAINS 'Unblock channel'")
+    ).firstMatch
+    XCTAssertTrue(watchLater.waitForExistence(timeout: 3))
+    XCTAssertTrue(blockVideo.exists)
+    XCTAssertTrue(blockChannel.exists)
   }
 
   func testPlaylistEndUsesTheConfiguredAutoplayCountdown() {
