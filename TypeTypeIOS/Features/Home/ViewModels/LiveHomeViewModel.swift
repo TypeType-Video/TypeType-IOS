@@ -128,7 +128,16 @@ final class LiveHomeViewModel: ObservableObject {
 
     let recommendationsResult = await task.result
     let historyResult = await historyTask.result
-    guard requestID == currentRequest, !Task.isCancelled else {
+    guard requestID == currentRequest else {
+      return
+    }
+    if Task.isCancelled {
+      // A restarted view task cancels reload() mid-flight; without this the
+      // page is stranded in .loading and loadIfNeeded() (which only starts
+      // from .idle) never retries — one fetch, spinner forever.
+      if state == .loading {
+        state = .idle
+      }
       return
     }
 
