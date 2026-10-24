@@ -1,3 +1,4 @@
+import AVFoundation
 import SwiftUI
 
 struct LiveMiniPlayerView: View {
@@ -23,13 +24,23 @@ struct LiveMiniPlayerView: View {
 
         HStack(spacing: 11) {
           Button(action: onExpand) {
-            LiveRemoteImage(url: video.thumbnail)
-              .frame(width: 80, height: 45)
-              .aspectRatio(16 / 9, contentMode: .fill)
-              .clipped()
-              .clipShape(
-                RoundedRectangle(cornerRadius: 6, style: .continuous)
-              )
+            ZStack {
+              LiveRemoteImage(url: video.thumbnail)
+                .frame(width: 80, height: 45)
+                .aspectRatio(16 / 9, contentMode: .fill)
+                .clipped()
+                .clipShape(
+                  RoundedRectangle(cornerRadius: 6, style: .continuous)
+                )
+              if controller.state == .playing, !controller.audioOnly {
+                LiveVideoPreviewLayer(player: controller.player)
+                  .frame(width: 80, height: 45)
+                  .clipShape(
+                    RoundedRectangle(cornerRadius: 6, style: .continuous)
+                  )
+                  .allowsHitTesting(false)
+              }
+            }
           }
           .buttonStyle(.plain)
           .accessibilityLabel("Open \(video.title)")
@@ -144,4 +155,24 @@ struct LiveMiniPlayerView: View {
         }
       }
   }
+}
+
+/// Renders the playing video in the mini player: the same AVPlayer can back
+/// several layers, so the small preview shows live video while the full
+/// surface is off screen. Audio-only keeps the poster instead.
+private struct LiveVideoPreviewLayer: UIViewRepresentable {
+  let player: AVPlayer
+
+  func makeUIView(context: Context) -> UIView {
+    let view = UIView()
+    view.backgroundColor = .clear
+    let layer = AVPlayerLayer(player: player)
+    layer.videoGravity = .resizeAspect
+    layer.frame = view.bounds
+    layer.autoresizingMask = [.layerWidthSizable, .layerHeightSizable]
+    view.layer.addSublayer(layer)
+    return view
+  }
+
+  func updateUIView(_ uiView: UIView, context: Context) {}
 }
