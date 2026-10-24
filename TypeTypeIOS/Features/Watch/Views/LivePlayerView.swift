@@ -11,6 +11,7 @@ struct LivePlayerView: View {
   @State private var swipeAdjustment: PlayerSwipeAdjustmentState?
   @State private var systemBrightnessBeforeSwipe: CGFloat?
   @State private var longPressBaseRate: Float?
+  @State private var longPressBoostTask: Task<Void, Never>?
   @State private var horizontalSeekPreview: TimeInterval?
 
   var body: some View {
@@ -233,9 +234,19 @@ struct LivePlayerView: View {
 
   private func setLongPressBoost(active: Bool) {
     guard preferences.preferences.playerLongPressSpeedEnabled else { return }
+    longPressBoostTask?.cancel()
+    longPressBoostTask = nil
     if active {
-      longPressBaseRate = controller.playbackRate
-      controller.setPlaybackRate(2)
+      // The press callback fires at touch-down, while the long press only
+      // counts after its threshold. Starting the boost immediately made
+      // every tap change the playback rate twice — a visible stall — and
+      // swallowed taps on overlay buttons such as SponsorBlock prompts.
+      longPressBoostTask = Task {
+        try? await Task.sleep(nanoseconds: 350_000_000)
+        guard !Task.isCancelled else { return }
+        self.longPressBaseRate = self.controller.playbackRate
+        self.controller.setPlaybackRate(2)
+      }
     } else if let baseRate = longPressBaseRate {
       controller.setPlaybackRate(baseRate)
       longPressBaseRate = nil
