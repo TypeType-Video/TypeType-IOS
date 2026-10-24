@@ -36,18 +36,22 @@ enum LiveVideoMetadataFormatter {
     count.formatted(.number.notation(.compactName))
   }
 
+  /// Publication display derived from the epoch timestamp only. The
+  /// extractor's textual date arrives in whatever locale upstream chose to
+  /// answer with (isiZulu, in the field), so it is never shown: without a
+  /// timestamp the date line is simply omitted.
   static func publication(_ video: LiveVideoItem) -> String {
-    if let date = video.publicationDate {
-      let formatter = RelativeDateTimeFormatter()
-      formatter.unitsStyle = .full
-      return formatter.localizedString(for: date, relativeTo: .now)
+    guard let date = video.publicationDate else {
+      return ""
     }
-    return video.uploadDate
+    let formatter = RelativeDateTimeFormatter()
+    formatter.unitsStyle = .full
+    return formatter.localizedString(for: date, relativeTo: .now)
   }
 
   static func fullPublication(_ video: LiveVideoItem) -> String {
     guard let date = video.publicationDate else {
-      return video.uploadDate
+      return ""
     }
     return date.formatted(date: .long, time: .omitted)
   }
