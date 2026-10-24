@@ -6,13 +6,13 @@ extension Text {
   /// rounded cards below) clashed with the page design.
   func liveSectionHeader() -> some View {
     self
-      .font(.footnote.weight(.semibold))
+      .font(.title3.weight(.semibold))
       .textCase(nil)
-      .foregroundStyle(.secondary)
+      .foregroundStyle(.primary)
       .frame(maxWidth: .infinity, alignment: .leading)
       .padding(.horizontal, 20)
-      .padding(.top, 18)
-      .padding(.bottom, 8)
+      .padding(.top, 26)
+      .padding(.bottom, 10)
       // The system paints its own block around the header slot; this
       // background bleeds past the slot's insets so nothing shows around
       // the title — the header sits directly on the page colour.
