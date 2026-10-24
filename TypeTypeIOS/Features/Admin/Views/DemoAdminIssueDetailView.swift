@@ -8,21 +8,21 @@ struct DemoAdminIssueDetailView: View {
   var body: some View {
     Form {
       if let issue {
-        Section("Report") {
+        Section {
           LabeledContent("Reporter", value: issue.reporter)
           LabeledContent("Category", value: issue.category)
           Text(issue.detail)
-        }
+        } header: { Text("Report").liveSectionHeader() }
 
-        Section("Status") {
+        Section {
           Picker("Status", selection: statusBinding) {
             Text("Open").tag("Open")
             Text("Triaged").tag("Triaged")
             Text("Resolved").tag("Resolved")
           }
-        }
+        } header: { Text("Status").liveSectionHeader() }
 
-        Section("GitHub") {
+        Section {
           if let githubIssue = issue.githubIssue {
             LabeledContent("Issue", value: githubIssue)
               .textSelection(.enabled)
@@ -31,15 +31,15 @@ struct DemoAdminIssueDetailView: View {
               createGitHubIssue()
             }
           }
-        }
+        } header: { Text("GitHub").liveSectionHeader() }
 
-        Section("Diagnostics") {
+        Section {
           Text(issue.diagnostics)
             .font(.caption.monospaced())
           Button("Copy diagnostics") {
             UIPasteboard.general.string = issue.diagnostics
           }
-        }
+        } header: { Text("Diagnostics").liveSectionHeader() }
       }
     }
     .navigationTitle(issue?.title ?? "Issue")

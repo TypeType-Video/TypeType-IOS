@@ -44,13 +44,13 @@ struct LiveAdminBugReportView: View {
     case .loaded:
       if let detail = viewModel.detail {
         Form {
-          Section("Report") {
+          Section {
             LabeledContent("Category", value: detail.category)
             LabeledContent("User", value: detail.userEmail)
             Text(detail.description)
               .textSelection(.enabled)
-          }
-          Section("Context") {
+          } header: { Text("Report").liveSectionHeader() }
+          Section {
             LabeledContent("Route", value: detail.context.route)
             LabeledContent(
               "Language",
@@ -62,8 +62,8 @@ struct LiveAdminBugReportView: View {
                 .font(.caption.monospaced())
                 .textSelection(.enabled)
             }
-          }
-          Section("Workflow") {
+          } header: { Text("Context").liveSectionHeader() }
+          Section {
             Picker("Status", selection: $viewModel.status) {
               Text("New").tag("new")
               Text("Triaged").tag("triaged")
@@ -75,8 +75,8 @@ struct LiveAdminBugReportView: View {
               Task { await viewModel.saveStatus() }
             }
             .disabled(viewModel.isBusy)
-          }
-          Section("GitHub") {
+          } header: { Text("Workflow").liveSectionHeader() }
+          Section {
             if let url = viewModel.githubURL {
               Link("Open GitHub issue", destination: url)
             } else if canCreateGitHubIssue {
@@ -88,7 +88,7 @@ struct LiveAdminBugReportView: View {
               Text("Only administrators can create GitHub issues.")
                 .foregroundStyle(.secondary)
             }
-          }
+          } header: { Text("GitHub").liveSectionHeader() }
         }
       }
     }

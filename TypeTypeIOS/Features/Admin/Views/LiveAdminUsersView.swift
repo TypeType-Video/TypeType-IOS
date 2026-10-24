@@ -54,7 +54,7 @@ struct LiveAdminUsersView: View {
       }
     case .loaded:
       List {
-        Section("\(viewModel.total) users") {
+        Section {
           ForEach(viewModel.users) { user in
             Button {
               selectedUser = user
@@ -71,7 +71,7 @@ struct LiveAdminUsersView: View {
           ) {
             Task { await viewModel.loadMore() }
           }
-        }
+        } header: { Text("\(viewModel.total) users").liveSectionHeader() }
       }
       .listStyle(.plain)
       .refreshable { await viewModel.reload() }

@@ -3,7 +3,7 @@ import SwiftUI
 extension LiveDownloadSheet {
   var options: some View {
     Group {
-      Section("Media") {
+      Section {
         Picker("Type", selection: $viewModel.mode) {
           ForEach(LiveDownloadMode.allCases) { mode in
             Text(mode.title).tag(mode)
@@ -25,7 +25,7 @@ extension LiveDownloadSheet {
             }
           }
         }
-      }
+      } header: { Text("Media").liveSectionHeader() }
       processingOptions
       Section {
         Button("Start download", systemImage: "arrow.down.circle") {
@@ -39,7 +39,7 @@ extension LiveDownloadSheet {
 
   @ViewBuilder private var processingOptions: some View {
     if viewModel.mode != .thumbnail {
-      Section("Processing") {
+      Section {
         Toggle("Apply SponsorBlock", isOn: $viewModel.sponsorBlock)
         Toggle("Include subtitles", isOn: $viewModel.includesSubtitles)
         if viewModel.includesSubtitles {
@@ -50,7 +50,7 @@ extension LiveDownloadSheet {
           .textInputAutocapitalization(.never)
           .autocorrectionDisabled()
         }
-      }
+      } header: { Text("Processing").liveSectionHeader() }
     }
   }
 

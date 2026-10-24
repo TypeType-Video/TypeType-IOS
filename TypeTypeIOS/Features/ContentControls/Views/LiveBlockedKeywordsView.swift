@@ -70,7 +70,7 @@ struct LiveBlockedKeywordsView: View {
             .foregroundStyle(.secondary)
         }
       } else {
-        Section("Keywords") {
+        Section {
           ForEach(viewModel.keywords) { item in
             HStack {
               VStack(alignment: .leading, spacing: 2) {
@@ -88,7 +88,7 @@ struct LiveBlockedKeywordsView: View {
               .disabled(viewModel.isBusy)
             }
           }
-        }
+        } header: { Text("Keywords").liveSectionHeader() }
       }
     }
     .listStyle(.plain)

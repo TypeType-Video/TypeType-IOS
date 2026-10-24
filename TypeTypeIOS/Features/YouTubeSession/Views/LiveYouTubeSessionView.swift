@@ -20,7 +20,7 @@ struct LiveYouTubeSessionView: View {
 
   var body: some View {
     Form {
-      Section("Status") {
+      Section {
         LabeledContent(
           "YouTube",
           value: viewModel.status?.status
@@ -37,10 +37,10 @@ struct LiveYouTubeSessionView: View {
             )
           )
         }
-      }
+      } header: { Text("Status").liveSectionHeader() }
 
       if viewModel.browserSession != nil {
-        Section("Remote sign-in") {
+        Section {
           LiveYouTubeRemoteBrowserView(browser: browser)
           Text("Tap the browser, then use the text field to type.")
             .font(.caption)
@@ -50,9 +50,9 @@ struct LiveYouTubeSessionView: View {
             browser.close()
             Task { await viewModel.cancelBrowser() }
           }
-        }
+        } header: { Text("Remote sign-in").liveSectionHeader() }
       } else {
-        Section("Connection") {
+        Section {
           Text(
             "TypeType opens a temporary remote browser. Credentials stay between that browser and YouTube."
           )
@@ -76,7 +76,7 @@ struct LiveYouTubeSessionView: View {
             }
             .disabled(viewModel.isBusy)
           }
-        }
+        } header: { Text("Connection").liveSectionHeader() }
       }
 
       if case let .failed(message) = viewModel.state {

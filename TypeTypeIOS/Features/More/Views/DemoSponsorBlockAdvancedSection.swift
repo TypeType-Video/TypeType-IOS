@@ -4,7 +4,7 @@ struct DemoSponsorBlockAdvancedSection: View {
   @EnvironmentObject private var session: DemoSessionStore
 
   var body: some View {
-    Section("Advanced display") {
+    Section {
       Stepper(
         "Minimum segment: \(session.preferences.sponsorBlockMinimumDuration)s",
         value: binding(\.sponsorBlockMinimumDuration),
@@ -16,7 +16,7 @@ struct DemoSponsorBlockAdvancedSection: View {
       Toggle("Manual skip for full-video labels", isOn: binding(\.sponsorBlockManualFullVideoSkip))
       Toggle("Non-music only on music videos", isOn: binding(\.sponsorBlockMusicOnly))
       Toggle("Mute segments instead of skipping", isOn: binding(\.sponsorBlockMutesInsteadOfSkips))
-    }
+    } header: { Text("Advanced display").liveSectionHeader() }
   }
 
   private func binding<Value>(

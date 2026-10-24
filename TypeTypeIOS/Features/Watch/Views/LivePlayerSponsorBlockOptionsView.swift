@@ -5,7 +5,7 @@ struct LivePlayerSponsorBlockOptionsView: View {
 
   var body: some View {
     Form {
-      Section("Behavior") {
+      Section {
         Picker("Global behavior", selection: modeBinding) {
           ForEach(LiveSponsorBlockMode.allCases) { mode in
             Text(mode.title).tag(mode.rawValue)
@@ -40,9 +40,9 @@ struct LivePlayerSponsorBlockOptionsView: View {
           "Non-music only on music videos",
           isOn: musicOnlyBinding
         )
-      }
+      } header: { Text("Behavior").liveSectionHeader() }
 
-      Section("Categories") {
+      Section {
         ForEach(Self.categories, id: \.id) { category in
           Picker(
             category.title,
@@ -53,12 +53,12 @@ struct LivePlayerSponsorBlockOptionsView: View {
             Text("Hide").tag("disabled")
           }
         }
-      }
+      } header: { Text("Categories").liveSectionHeader() }
 
       if let count = controller.stream?.sponsorBlockSegments.count {
-        Section("Current video") {
+        Section {
           LabeledContent("Segments received", value: "\(count)")
-        }
+        } header: { Text("Current video").liveSectionHeader() }
       }
     }
     .navigationTitle("SponsorBlock")

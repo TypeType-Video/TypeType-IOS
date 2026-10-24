@@ -20,7 +20,7 @@ struct LiveProfileAvatarSection: View {
   ]
 
   var body: some View {
-    Section("Avatar") {
+    Section {
       HStack(spacing: 16) {
         LiveRemoteImage(url: user?.avatarURL)
           .frame(width: 72, height: 72)
@@ -64,6 +64,6 @@ struct LiveProfileAvatarSection: View {
 
       Button("Clear avatar", role: .destructive, action: onClear)
         .disabled(isBusy)
-    }
+    } header: { Text("Avatar").liveSectionHeader() }
   }
 }

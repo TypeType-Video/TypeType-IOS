@@ -36,7 +36,7 @@ struct LiveSettingsCaptionAppearanceView: View {
 
   var body: some View {
     Form {
-      Section("Text") {
+      Section {
         Picker("Font", selection: $styles.fontFamily) {
           ForEach(fonts, id: \.1) { Text($0.0).tag($0.1) }
         }
@@ -52,15 +52,15 @@ struct LiveSettingsCaptionAppearanceView: View {
         Picker("Edge style", selection: $styles.textShadow) {
           ForEach(shadows, id: \.1) { Text($0.0).tag($0.1) }
         }
-      }
-      Section("Text background") {
+      } header: { Text("Text").liveSectionHeader() }
+      Section {
         Picker("Color", selection: $styles.textBackground) {
           colorLabels
         }
         Picker("Opacity", selection: $styles.textBackgroundOpacity) {
           optionLabels(opacities)
         }
-      }
+      } header: { Text("Text background").liveSectionHeader() }
       Section {
         Picker("Color", selection: $styles.displayBackground) {
           colorLabels

@@ -44,7 +44,7 @@ struct LiveAccountIdentityView: View {
             )
           }
         }
-        Section("Identity") {
+        Section {
           TextField("Name", text: $viewModel.name)
             .textContentType(.name)
           TextField("Email", text: $viewModel.email)
@@ -56,7 +56,7 @@ struct LiveAccountIdentityView: View {
             text: $viewModel.currentPassword
           )
           .textContentType(.password)
-        }
+        } header: { Text("Identity").liveSectionHeader() }
         Section {
           Button {
             Task { await viewModel.save() }

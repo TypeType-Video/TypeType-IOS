@@ -28,7 +28,7 @@ struct LiveReportIssueView: View {
           )
         }
       } else {
-        Section("Issue") {
+        Section {
           Picker("Category", selection: $viewModel.category) {
             Text("Player").tag("player")
             Text("Audio language").tag("audio_language")
@@ -48,7 +48,7 @@ struct LiveReportIssueView: View {
           )
           .keyboardType(.URL)
           .textInputAutocapitalization(.never)
-        }
+        } header: { Text("Issue").liveSectionHeader() }
         Section {
           Button {
             Task { await viewModel.submit() }

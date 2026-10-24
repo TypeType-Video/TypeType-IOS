@@ -38,14 +38,14 @@ struct LiveDiagnosticsView: View {
           )
         }
       } else {
-        Section("Recent requests") {
+        Section {
           ForEach(entries) { entry in
             LiveDiagnosticRow(
               entry: entry,
               copiedRequestID: $copiedRequestID
             )
           }
-        }
+        } header: { Text("Recent requests").liveSectionHeader() }
       }
     }
     .navigationTitle("Diagnostics")

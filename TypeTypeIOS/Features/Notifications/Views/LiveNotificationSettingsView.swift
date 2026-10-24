@@ -87,7 +87,7 @@ struct LiveNotificationSettingsView: View {
 
   @ViewBuilder
   private var permissionSection: some View {
-    Section("iOS permissions") {
+    Section {
       switch viewModel.permissionStatus {
       case .unknown:
         LabeledContent("Status", value: "Unavailable")
@@ -119,7 +119,7 @@ struct LiveNotificationSettingsView: View {
           }
         }
       }
-    }
+    } header: { Text("iOS permissions").liveSectionHeader() }
   }
 
   @ViewBuilder

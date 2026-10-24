@@ -70,19 +70,19 @@ struct LivePortabilityView: View {
   }
 
   private var modeSection: some View {
-    Section("Direction") {
+    Section {
       Picker("Direction", selection: modeBinding) {
         ForEach(LivePortabilityViewModel.Mode.allCases) { mode in
           Text(mode.title).tag(mode)
         }
       }
       .pickerStyle(.segmented)
-    }
+    } header: { Text("Direction").liveSectionHeader() }
   }
 
   @ViewBuilder
   private var setupSection: some View {
-    Section("Format") {
+    Section {
       if viewModel.state == .loadingFormats {
         HStack {
           Text("Loading formats")
@@ -97,10 +97,10 @@ struct LivePortabilityView: View {
         }
         LabeledContent("Adapter", value: "v\(format.adapterVersion)")
       }
-    }
+    } header: { Text("Format").liveSectionHeader() }
 
     if !viewModel.activeCategories.isEmpty {
-      Section("Categories") {
+      Section {
         Button("Select all") {
           viewModel.selectedCategories = Set(
             viewModel.activeCategories.map(\.rawValue)
@@ -109,7 +109,7 @@ struct LivePortabilityView: View {
         ForEach(viewModel.activeCategories) { category in
           Toggle(category.title, isOn: categoryBinding(category))
         }
-      }
+      } header: { Text("Categories").liveSectionHeader() }
     }
 
     actionSection
@@ -118,14 +118,14 @@ struct LivePortabilityView: View {
   @ViewBuilder
   private var actionSection: some View {
     if viewModel.mode == .import {
-      Section("Backup file") {
+      Section {
         Button("Choose or drop a backup file") {
           showsFilePicker = true
         }
         if let name = viewModel.selectedFileName {
           LabeledContent("Selected", value: name)
         }
-      }
+      } header: { Text("Backup file").liveSectionHeader() }
     }
 
     Section {
@@ -165,7 +165,7 @@ struct LivePortabilityView: View {
   @ViewBuilder
   private var jobSection: some View {
     if let job = viewModel.job {
-      Section("Job") {
+      Section {
         LabeledContent("Status", value: stateTitle(job))
         if let progress = job.progress {
           ProgressView(
@@ -183,10 +183,10 @@ struct LivePortabilityView: View {
           Text(job.errorMessage ?? "The operation failed.")
             .foregroundStyle(.red)
         }
-      }
+      } header: { Text("Job").liveSectionHeader() }
 
       if let preview = job.preview {
-        Section("Preview") {
+        Section {
           LabeledContent(
             "Detected format",
             value: portabilityFormatTitle(
@@ -205,9 +205,9 @@ struct LivePortabilityView: View {
                 .foregroundStyle(.secondary)
             }
           }
-        }
+        } header: { Text("Preview").liveSectionHeader() }
 
-        Section("Categories") {
+        Section {
           ForEach(viewModel.previewCategories) { category in
             LabeledContent(
               category.title,
@@ -219,11 +219,11 @@ struct LivePortabilityView: View {
             Task { await viewModel.apply() }
           }
           .disabled(viewModel.isApplying || viewModel.selectedCategories.isEmpty)
-        }
+        } header: { Text("Categories").liveSectionHeader() }
       }
 
       if !job.result.isEmpty {
-        Section("Result") {
+        Section {
           ForEach(job.result.sorted(by: { $0.key < $1.key }), id: \.key) {
             item in
             LabeledContent(
@@ -231,10 +231,10 @@ struct LivePortabilityView: View {
               value: String(item.value)
             )
           }
-        }
+        } header: { Text("Result").liveSectionHeader() }
       }
 
-      Section("Actions") {
+      Section {
         if !job.isTerminal {
           Button("Cancel job", role: .destructive) {
             Task { await viewModel.cancel() }
@@ -258,9 +258,9 @@ struct LivePortabilityView: View {
         Button("Start another", role: .destructive) {
           Task { await viewModel.reset() }
         }
-      }
+      } header: { Text("Actions").liveSectionHeader() }
 
-      Section("Diagnostics") {
+      Section {
         LabeledContent("Job ID", value: job.id)
         if let requestID = job.requestId {
           LabeledContent("Request ID", value: requestID)
@@ -268,7 +268,7 @@ struct LivePortabilityView: View {
         if let errorCode = job.errorCode {
           LabeledContent("Error code", value: errorCode)
         }
-      }
+      } header: { Text("Diagnostics").liveSectionHeader() }
     }
   }
 

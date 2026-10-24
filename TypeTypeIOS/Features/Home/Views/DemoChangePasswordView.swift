@@ -12,11 +12,11 @@ struct DemoChangePasswordView: View {
   var body: some View {
     NavigationStack {
       Form {
-        Section("Password") {
+        Section {
           SecureField("Current password", text: $currentPassword)
           SecureField("New password", text: $newPassword)
           SecureField("Confirm new password", text: $confirmation)
-        }
+        } header: { Text("Password").liveSectionHeader() }
         if let errorMessage {
           Section {
             Label(errorMessage, systemImage: "exclamationmark.circle")

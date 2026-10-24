@@ -9,7 +9,7 @@ struct DemoBugReportView: View {
 
   var body: some View {
     Form {
-      Section("Problem") {
+      Section {
         Picker("Category", selection: $category) {
           Text("Playback").tag("Playback")
           Text("Audio language").tag("Audio language")
@@ -21,13 +21,13 @@ struct DemoBugReportView: View {
         }
         TextField("What happened?", text: $details, axis: .vertical)
           .lineLimit(4...8)
-      }
+      } header: { Text("Problem").liveSectionHeader() }
 
-      Section("Diagnostics") {
+      Section {
         Toggle("Include privacy-safe diagnostics", isOn: $includesDiagnostics)
         LabeledContent("App", value: "TypeType iOS mock")
         LabeledContent("Device", value: "iPhone simulator")
-      }
+      } header: { Text("Diagnostics").liveSectionHeader() }
 
       Section {
         Button {

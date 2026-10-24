@@ -46,7 +46,7 @@ struct LiveAdminUserAccessView: View {
 
   private var list: some View {
     List {
-      Section("User") {
+      Section {
         LabeledContent("Name", value: viewModel.list?.user.name ?? "")
         Toggle(
           "Use a personal allow list",
@@ -58,7 +58,7 @@ struct LiveAdminUserAccessView: View {
           )
         )
         .disabled(viewModel.isBusy)
-      }
+      } header: { Text("User").liveSectionHeader() }
 
       channels(
         "Inherited global channels",

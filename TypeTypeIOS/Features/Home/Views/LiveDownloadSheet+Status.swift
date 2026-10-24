@@ -23,7 +23,7 @@ extension LiveDownloadSheet {
   }
 
   private var trackingStatus: some View {
-    Section("Progress") {
+    Section {
       VStack(alignment: .leading, spacing: 10) {
         HStack {
           Text(stageTitle)
@@ -50,11 +50,11 @@ extension LiveDownloadSheet {
         Task { await viewModel.cancel() }
       }
       .disabled(viewModel.isCancelling)
-    }
+    } header: { Text("Progress").liveSectionHeader() }
   }
 
   private var readyStatus: some View {
-    Section("Ready") {
+    Section {
       Label(
         viewModel.job?.resolved?.fileName ?? "Download completed",
         systemImage: "checkmark.circle.fill"
@@ -69,11 +69,11 @@ extension LiveDownloadSheet {
         Task { await viewModel.clear() }
       }
       .disabled(viewModel.isClearing)
-    }
+    } header: { Text("Ready").liveSectionHeader() }
   }
 
   private func failedStatus(_ message: String) -> some View {
-    Section("Download failed") {
+    Section {
       Label(message, systemImage: "exclamationmark.triangle.fill")
         .foregroundStyle(.red)
       if viewModel.job != nil {
@@ -86,7 +86,7 @@ extension LiveDownloadSheet {
         }
         .disabled(viewModel.isClearing)
       }
-    }
+    } header: { Text("Download failed").liveSectionHeader() }
   }
 
   private var stageTitle: String {

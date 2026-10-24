@@ -93,7 +93,7 @@ extension LiveImportView {
   }
 
   var pipePipeSection: some View {
-    Section("PipePipe") {
+    Section {
       Picker("Timestamp handling", selection: $timeMode) {
         Text("Normalized").tag("normalized")
         Text("Raw").tag("raw")
@@ -105,7 +105,7 @@ extension LiveImportView {
       if let result = viewModel.pipePipeResult {
         LivePipePipeImportSummary(result: result)
       }
-    }
+    } header: { Text("PipePipe").liveSectionHeader() }
   }
 
   var youTubeSection: some View {

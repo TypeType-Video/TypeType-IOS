@@ -4,7 +4,7 @@ struct LiveSettingsLanguageSection: View {
   @Binding var settings: LiveSettings
 
   var body: some View {
-    Section("Language and captions") {
+    Section {
       Toggle(
         "Enable subtitles by default",
         isOn: $settings.subtitlesEnabled
@@ -28,6 +28,6 @@ struct LiveSettingsLanguageSection: View {
           styles: $settings.captionStyles
         )
       }
-    }
+    } header: { Text("Language and captions").liveSectionHeader() }
   }
 }

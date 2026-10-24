@@ -9,7 +9,7 @@ struct DemoPlayerOptionsSheet: View {
   var body: some View {
     NavigationStack {
       Form {
-        Section("Playback") {
+        Section {
           Picker("Quality", selection: binding(\.defaultQuality)) {
             Text("Best available").tag("Best available")
             Text("2160p").tag("2160p")
@@ -52,9 +52,9 @@ struct DemoPlayerOptionsSheet: View {
             .onChange(of: session.preferences.loopPlayback) {
               controller.setLooping(session.preferences.loopPlayback)
             }
-        }
+        } header: { Text("Playback").liveSectionHeader() }
 
-        Section("Tracks") {
+        Section {
           Picker("Audio", selection: binding(\.audioLanguage)) {
             Text("Original · English").tag("Original")
             Text("French").tag("French")
@@ -78,9 +78,9 @@ struct DemoPlayerOptionsSheet: View {
           NavigationLink("Caption appearance") {
             DemoCaptionSettingsView()
           }
-        }
+        } header: { Text("Tracks").liveSectionHeader() }
 
-        Section("Player presentation") {
+        Section {
           Toggle("Cinema mode", isOn: binding(\.cinemaMode))
           Toggle("Bullet comments", isOn: binding(\.bulletComments))
           if session.preferences.bulletComments {
@@ -111,9 +111,9 @@ struct DemoPlayerOptionsSheet: View {
               Text($0).tag($0)
             }
           }
-        }
+        } header: { Text("Player presentation").liveSectionHeader() }
 
-        Section("Community enhancements") {
+        Section {
           Toggle("SponsorBlock", isOn: binding(\.sponsorBlock))
             .accessibilityIdentifier("demo.player.options.sponsorblock")
           Toggle("DeArrow", isOn: binding(\.deArrow))
@@ -126,9 +126,9 @@ struct DemoPlayerOptionsSheet: View {
             "Title and thumbnail",
             value: session.preferences.deArrow ? "Community" : "Original"
           )
-        }
+        } header: { Text("Community enhancements").liveSectionHeader() }
 
-        Section("Stream information") {
+        Section {
           LabeledContent("Delivery", value: "SABR")
           LabeledContent(
             "Video",
@@ -139,7 +139,7 @@ struct DemoPlayerOptionsSheet: View {
             value: "\(effectiveAudioLanguage) · AAC · 48 kHz"
           )
           LabeledContent("Buffer", value: "Healthy")
-        }
+        } header: { Text("Stream information").liveSectionHeader() }
       }
       .navigationTitle("Player options")
       .navigationBarTitleDisplayMode(.inline)

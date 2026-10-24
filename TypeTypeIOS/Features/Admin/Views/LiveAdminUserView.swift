@@ -25,7 +25,7 @@ struct LiveAdminUserView: View {
 
   var body: some View {
     Form {
-      Section("Identity") {
+      Section {
         TextField("Name", text: $viewModel.name)
         TextField("Email", text: $viewModel.email)
           .keyboardType(.emailAddress)
@@ -34,9 +34,9 @@ struct LiveAdminUserView: View {
           Task { await viewModel.saveIdentity() }
         }
         .disabled(viewModel.isBusy)
-      }
+      } header: { Text("Identity").liveSectionHeader() }
 
-      Section("Permissions") {
+      Section {
         Picker("Role", selection: $viewModel.role) {
           Text("User").tag("user")
           Text("Moderator").tag("moderator")
@@ -62,9 +62,9 @@ struct LiveAdminUserView: View {
             service: accessService
           )
         }
-      }
+      } header: { Text("Permissions").liveSectionHeader() }
 
-      Section("Security") {
+      Section {
         Button(
           viewModel.user.suspended ? "Restore user" : "Suspend user",
           role: viewModel.user.suspended ? nil : .destructive
@@ -76,17 +76,17 @@ struct LiveAdminUserView: View {
           confirmsReset = true
         }
         .disabled(viewModel.isBusy)
-      }
+      } header: { Text("Security").liveSectionHeader() }
 
       if let token = viewModel.resetToken {
-        Section("Password reset token") {
+        Section {
           Text(token)
             .font(.caption.monospaced())
             .textSelection(.enabled)
           Text("This token is sensitive and should only be shared securely.")
             .font(.caption)
             .foregroundStyle(.secondary)
-        }
+        } header: { Text("Password reset token").liveSectionHeader() }
       }
 
       if let message = viewModel.message {

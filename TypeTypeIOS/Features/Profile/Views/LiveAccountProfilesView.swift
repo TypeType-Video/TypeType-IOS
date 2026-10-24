@@ -31,7 +31,7 @@ struct LiveAccountProfilesView: View {
         }
       }
 
-      Section("New profile") {
+      Section {
         TextField("Name", text: $viewModel.newName)
           .textInputAutocapitalization(.words)
           .submitLabel(.done)
@@ -53,7 +53,7 @@ struct LiveAccountProfilesView: View {
               in: .whitespacesAndNewlines
             ).isEmpty
         )
-      }
+      } header: { Text("New profile").liveSectionHeader() }
     }
     .navigationTitle("Profiles")
     .overlay(alignment: .bottom) {

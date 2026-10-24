@@ -21,13 +21,13 @@ struct DemoAboutView: View {
         .padding(.vertical, 18)
       }
 
-      Section("Build") {
+      Section {
         LabeledContent("Version", value: "0.1.0 mock")
         LabeledContent("Data source", value: "Local fixtures")
         LabeledContent("Network", value: "Disabled")
-      }
+      } header: { Text("Build").liveSectionHeader() }
 
-      Section("Open source") {
+      Section {
         externalButton(
           "TypeType on GitHub",
           symbol: "chevron.left.forwardslash.chevron.right",
@@ -44,7 +44,7 @@ struct DemoAboutView: View {
           symbol: "heart.fill",
           url: "https://github.com/sponsors/Priveetee"
         )
-      }
+      } header: { Text("Open source").liveSectionHeader() }
     }
     .navigationTitle("About TypeType")
     .navigationBarTitleDisplayMode(.inline)

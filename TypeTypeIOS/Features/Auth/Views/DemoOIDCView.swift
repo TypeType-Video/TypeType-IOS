@@ -28,7 +28,7 @@ struct DemoOIDCView: View {
             .frame(maxWidth: .infinity)
         }
 
-        Section("Identity provider") {
+        Section {
           Picker("Provider", selection: $provider) {
             Text("TypeType SSO").tag("TypeType SSO")
             Text("Community ID").tag("Community ID")
@@ -37,7 +37,7 @@ struct DemoOIDCView: View {
           TextField("Email", text: $email)
             .textInputAutocapitalization(.never)
             .keyboardType(.emailAddress)
-        }
+        } header: { Text("Identity provider").liveSectionHeader() }
 
         Section {
           Button(action: authorize) {

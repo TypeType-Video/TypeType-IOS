@@ -18,7 +18,7 @@ struct LiveSettingsSponsorBlockSection: View {
   ]
 
   var body: some View {
-    Section("SponsorBlock") {
+    Section {
       Picker("Global behavior", selection: $settings.sponsorBlockMode) {
         ForEach(LiveSponsorBlockMode.allCases) { mode in
           Text(mode.title).tag(mode.rawValue)
@@ -60,7 +60,7 @@ struct LiveSettingsSponsorBlockSection: View {
         "Mute instead of skip",
         isOn: $settings.sponsorBlockMuteInsteadOfSkip
       )
-    }
+    } header: { Text("SponsorBlock").liveSectionHeader() }
   }
 
   private func categoryBinding(_ key: String) -> Binding<String> {

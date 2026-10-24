@@ -5,7 +5,7 @@ struct LiveSettingsDiscoverySection: View {
   let services: [VideoService]
 
   var body: some View {
-    Section("Interface and discovery") {
+    Section {
       Picker(
         "Default landing page",
         selection: $settings.defaultLandingPage
@@ -36,7 +36,7 @@ struct LiveSettingsDiscoverySection: View {
         isOn: $settings.hideRelatedVideos
       )
       Toggle("Hide comments and danmaku", isOn: $settings.hideComments)
-    }
+    } header: { Text("Interface and discovery").liveSectionHeader() }
 
     if settings.hideSubscriptionLiveStreams != nil {
       Section {
@@ -52,7 +52,7 @@ struct LiveSettingsDiscoverySection: View {
       }
     }
 
-    Section("DeArrow") {
+    Section {
       Toggle("Enable DeArrow", isOn: $settings.deArrowEnabled)
       Picker("Titles", selection: $settings.deArrowTitleMode) {
         Text("DeArrow").tag("dearrow")
@@ -71,6 +71,6 @@ struct LiveSettingsDiscoverySection: View {
         Text("Accepted").tag("accepted")
         Text("Locked entries only").tag("locked")
       }
-    }
+    } header: { Text("DeArrow").liveSectionHeader() }
   }
 }

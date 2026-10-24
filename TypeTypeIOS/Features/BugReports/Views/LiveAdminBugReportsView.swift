@@ -73,7 +73,7 @@ struct LiveAdminBugReportsView: View {
       )
     case .loaded:
       List {
-        Section("\(viewModel.total) reports") {
+        Section {
           ForEach(viewModel.reports) { report in
             Button {
               selected = report
@@ -90,7 +90,7 @@ struct LiveAdminBugReportsView: View {
           ) {
             Task { await viewModel.loadMore() }
           }
-        }
+        } header: { Text("\(viewModel.total) reports").liveSectionHeader() }
       }
       .listStyle(.plain)
       .refreshable { await viewModel.reload() }

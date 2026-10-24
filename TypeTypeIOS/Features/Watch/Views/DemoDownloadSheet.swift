@@ -48,14 +48,14 @@ struct DemoDownloadSheet: View {
           Toggle("Show all formats", isOn: $showsAllFormats)
         }
 
-        Section("Estimated file") {
+        Section {
           LabeledContent("Container", value: mode == "Video" ? "MP4" : "M4A")
           LabeledContent("Size", value: mode == "Video" ? "142 MB" : "14 MB")
           LabeledContent("Destination", value: "Files / TypeType")
-        }
+        } header: { Text("Estimated file").liveSectionHeader() }
 
         if isDownloading {
-          Section("Preparing offline copy") {
+          Section {
             ProgressView(value: progress)
             Text(progress < 1 ? "Downloading and packaging…" : "Ready to open in Files")
               .font(.caption)
@@ -63,18 +63,18 @@ struct DemoDownloadSheet: View {
             Button("Cancel download", role: .destructive) {
               cancelDownload()
             }
-          }
+          } header: { Text("Preparing offline copy").liveSectionHeader() }
         }
 
         if let errorMessage {
-          Section("Download failed") {
+          Section {
             Label(errorMessage, systemImage: "externaldrive.badge.exclamationmark")
               .foregroundStyle(.red)
             Button("Clear error") {
               self.errorMessage = nil
               quality = "Recommended (1080p)"
             }
-          }
+          } header: { Text("Download failed").liveSectionHeader() }
         }
       }
       .navigationTitle("Download")

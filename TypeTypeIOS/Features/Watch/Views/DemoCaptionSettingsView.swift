@@ -5,7 +5,7 @@ struct DemoCaptionSettingsView: View {
 
   var body: some View {
     Form {
-      Section("Caption appearance") {
+      Section {
         Picker("Font", selection: binding(\.captionFont)) {
           ForEach(["System", "Rounded", "Monospaced"], id: \.self) {
             Text($0).tag($0)
@@ -25,9 +25,9 @@ struct DemoCaptionSettingsView: View {
           Slider(value: binding(\.captionBackgroundOpacity), in: 0...1)
             .frame(width: 150)
         }
-      }
+      } header: { Text("Caption appearance").liveSectionHeader() }
 
-      Section("Preview") {
+      Section {
         Text("Open video, open protocol, open community")
           .font(previewFont)
           .foregroundStyle(previewColor)
@@ -35,7 +35,7 @@ struct DemoCaptionSettingsView: View {
           .padding(.vertical, 6)
           .background(.black.opacity(session.preferences.captionBackgroundOpacity))
           .frame(maxWidth: .infinity)
-      }
+      } header: { Text("Preview").liveSectionHeader() }
     }
     .navigationTitle("Captions")
     .navigationBarTitleDisplayMode(.inline)

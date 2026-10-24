@@ -54,15 +54,15 @@ struct LiveAboutView: View {
   }
 
   private var applicationSection: some View {
-    Section("Application") {
+    Section {
       LabeledContent("Name", value: "TypeType")
       LabeledContent("Version", value: appVersion)
       LabeledContent("License", value: "GPL v3")
-    }
+    } header: { Text("Application").liveSectionHeader() }
   }
 
   private var licensesSection: some View {
-    Section("Open source") {
+    Section {
       externalLink(
         "TypeType on GitHub",
         symbol: "chevron.left.forwardslash.chevron.right",
@@ -78,7 +78,7 @@ struct LiveAboutView: View {
         symbol: "heart.fill",
         urlString: "https://github.com/sponsors/Priveetee"
       )
-    }
+    } header: { Text("Open source").liveSectionHeader() }
   }
 
   @ViewBuilder
@@ -110,7 +110,7 @@ struct LiveAboutView: View {
 
   @ViewBuilder
   private var serverSection: some View {
-    Section("Server") {
+    Section {
       LabeledContent(
         "URL",
         value: coordinator.selectedServer?.baseURLString
@@ -127,7 +127,7 @@ struct LiveAboutView: View {
           value: user.role.rawValue.capitalized
         )
       }
-    }
+    } header: { Text("Server").liveSectionHeader() }
   }
 
   private func versionRow(

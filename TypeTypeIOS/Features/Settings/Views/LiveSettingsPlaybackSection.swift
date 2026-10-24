@@ -9,7 +9,7 @@ struct LiveSettingsPlaybackSection: View {
   ]
 
   var body: some View {
-    Section("Playback") {
+    Section {
       Toggle("Autoplay next video", isOn: $settings.autoplay)
       Toggle(
         "Skip playlist autoplay screen",
@@ -41,6 +41,6 @@ struct LiveSettingsPlaybackSection: View {
         }
         Slider(value: $settings.volume, in: 0...1)
       }
-    }
+    } header: { Text("Playback").liveSectionHeader() }
   }
 }

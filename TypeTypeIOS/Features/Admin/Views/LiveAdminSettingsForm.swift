@@ -6,7 +6,7 @@ struct LiveAdminSettingsForm: View {
 
   var body: some View {
     Form {
-      Section("Branding") {
+      Section {
         TextField("Instance name", text: $settings.name)
         TextField(
           "Tagline",
@@ -24,9 +24,9 @@ struct LiveAdminSettingsForm: View {
         )
         .keyboardType(.URL)
         .textInputAutocapitalization(.never)
-      }
+      } header: { Text("Branding").liveSectionHeader() }
 
-      Section("Authentication") {
+      Section {
         Toggle("Allow registration", isOn: $settings.allowRegistration)
         Toggle("Allow guests", isOn: $settings.allowGuest)
         Toggle(
@@ -35,9 +35,9 @@ struct LiveAdminSettingsForm: View {
         )
         Toggle("Local login", isOn: $settings.localLoginEnabled)
         Toggle("OIDC auto redirect", isOn: $settings.oidcAutoRedirect)
-      }
+      } header: { Text("Authentication").liveSectionHeader() }
 
-      Section("Services") {
+      Section {
         Toggle(
           "Active session visibility",
           isOn: $settings.activeSessionsEnabled
@@ -54,7 +54,7 @@ struct LiveAdminSettingsForm: View {
           Text("Unrestricted").tag("unrestricted")
           Text("Allow list").tag("allow_list")
         }
-      }
+      } header: { Text("Services").liveSectionHeader() }
 
       if let message {
         Section {

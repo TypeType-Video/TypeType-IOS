@@ -36,7 +36,7 @@ struct DemoPodcastsView: View {
         .padding(.vertical, 8)
       }
 
-      Section("Episodes") {
+      Section {
         ForEach(episodes.prefix(visibleCount)) { episode in
           DemoVideoCard(video: episode.video(creator: creator, artwork: artwork)) {
             selectedVideo = $0
@@ -53,7 +53,7 @@ struct DemoPodcastsView: View {
           identifier: "demo.podcasts.loading",
           action: loadMore
         )
-      }
+      } header: { Text("Episodes").liveSectionHeader() }
     }
     .navigationTitle("Podcasts")
     .navigationBarTitleDisplayMode(.inline)

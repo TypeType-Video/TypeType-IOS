@@ -68,7 +68,7 @@ struct LiveAdminAllowListView: View {
 
   private var list: some View {
     List {
-      Section("Entire instance") {
+      Section {
         Toggle(
           "Restrict to allow list",
           isOn: Binding(
@@ -79,11 +79,11 @@ struct LiveAdminAllowListView: View {
           )
         )
         .disabled(viewModel.isBusy)
-      }
+      } header: { Text("Entire instance").liveSectionHeader() }
 
       usersSection
 
-      Section("Global channels") {
+      Section {
         ForEach(viewModel.channels) { item in
           LiveAdminAllowedChannelRow(item: item)
             .swipeActions {
@@ -95,9 +95,9 @@ struct LiveAdminAllowListView: View {
         Button("Add channel", systemImage: "plus") {
           editor = .channel
         }
-      }
+      } header: { Text("Global channels").liveSectionHeader() }
 
-      Section("Global playlists") {
+      Section {
         ForEach(viewModel.playlists) { item in
           LiveAdminAllowedPlaylistRow(item: item)
             .swipeActions {
@@ -109,7 +109,7 @@ struct LiveAdminAllowListView: View {
         Button("Add playlist", systemImage: "plus") {
           editor = .playlist
         }
-      }
+      } header: { Text("Global playlists").liveSectionHeader() }
     }
     .refreshable { await viewModel.reload() }
   }

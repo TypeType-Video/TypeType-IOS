@@ -46,7 +46,7 @@ struct LiveSubscriptionsView: View {
               Label("Ungrouped", systemImage: "tray")
             }
             if !viewModel.groups.isEmpty {
-              Section("Groups") {
+              Section {
                 ForEach(viewModel.groups) { group in
                   Button(group.name) {
                     Task {
@@ -57,7 +57,7 @@ struct LiveSubscriptionsView: View {
                     }
                   }
                 }
-              }
+              } header: { Text("Groups").liveSectionHeader() }
             }
           } label: {
             Image(systemName: "folder.badge.gearshape")
@@ -228,7 +228,7 @@ struct LiveSubscriptionsView: View {
   private func groupQuickActions(
     for channel: LiveSubscription
   ) -> some View {
-    Section("Groups") {
+    Section {
       if viewModel.groups.isEmpty {
         Text("No groups")
       } else {
@@ -254,6 +254,6 @@ struct LiveSubscriptionsView: View {
           }
         }
       }
-    }
+    } header: { Text("Groups").liveSectionHeader() }
   }
 }

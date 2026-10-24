@@ -5,7 +5,7 @@ struct DemoVideoSettingsView: View {
 
   var body: some View {
     Form {
-      Section("Community enhancements") {
+      Section {
         NavigationLink {
           DemoSponsorBlockSettingsView()
         } label: {
@@ -39,13 +39,13 @@ struct DemoVideoSettingsView: View {
             values: ["Accepted entries", "Locked entries only"]
           )
         }
-      }
+      } header: { Text("Community enhancements").liveSectionHeader() }
 
-      Section("Watch page") {
+      Section {
         Toggle("Autoplay next video", isOn: binding(\.autoplay))
         Toggle("Related videos", isOn: binding(\.showsRelated))
         Toggle("Comments and danmaku", isOn: binding(\.loadsComments))
-      }
+      } header: { Text("Watch page").liveSectionHeader() }
     }
     .navigationTitle("Video")
     .navigationBarTitleDisplayMode(.inline)

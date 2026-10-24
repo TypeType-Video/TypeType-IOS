@@ -4,7 +4,7 @@ struct LiveProfileDetailsSection: View {
   @ObservedObject var viewModel: LiveProfileViewModel
 
   var body: some View {
-    Section("Public profile") {
+    Section {
       TextField("Public username", text: $viewModel.publicUsername)
         .textInputAutocapitalization(.never)
         .autocorrectionDisabled()
@@ -45,6 +45,6 @@ struct LiveProfileDetailsSection: View {
           || viewModel.bio.count > 500
       )
       .accessibilityIdentifier("live.profile.save")
-    }
+    } header: { Text("Public profile").liveSectionHeader() }
   }
 }

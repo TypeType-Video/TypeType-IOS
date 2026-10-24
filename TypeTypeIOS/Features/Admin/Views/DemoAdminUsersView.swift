@@ -20,7 +20,7 @@ struct DemoAdminUsersView: View {
         }
       }
 
-      Section("\(filteredUsers.count) users") {
+      Section {
         ForEach(pagedUsers) { user in
           NavigationLink {
             DemoAdminUserDetailView(userID: user.id)
@@ -49,7 +49,7 @@ struct DemoAdminUsersView: View {
         if filteredUsers.count > pageSize {
           pagination
         }
-      }
+      } header: { Text("\(filteredUsers.count) users").liveSectionHeader() }
     }
     .searchable(text: $query, prompt: "Name, email, or ID")
     .onChange(of: query) { page = 0 }

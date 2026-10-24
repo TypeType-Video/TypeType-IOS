@@ -68,7 +68,7 @@ extension LivePlaylistDetailView {
               .buttonStyle(.bordered)
             }
           }
-          Section("\(playlist.videoCount) videos") {
+          Section {
             ForEach(viewModel.videos) { video in
               LivePlaylistVideoRow(
                 video: video,
@@ -89,7 +89,7 @@ extension LivePlaylistDetailView {
                 )
               }
             }
-          }
+          } header: { Text("\(playlist.videoCount) videos").liveSectionHeader() }
         }
         .listStyle(.plain)
         .refreshable { await viewModel.reload() }
