@@ -69,6 +69,12 @@ extension LivePlayerLayerCoordinator {
     _ playerViewController: AVPlayerViewController
   ) {
     completePictureInPictureTransition()
+    // AVKit can leave its controls hidden after the hand-back; the toggle
+    // must cross a runloop tick to take effect.
+    playerViewController.showsPlaybackControls = false
+    DispatchQueue.main.async {
+      playerViewController.showsPlaybackControls = true
+    }
   }
 
   func playerViewControllerShouldAutomaticallyDismissAtPictureInPictureStart(

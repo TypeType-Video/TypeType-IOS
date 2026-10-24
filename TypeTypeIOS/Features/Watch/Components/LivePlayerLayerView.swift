@@ -76,9 +76,12 @@ struct LivePlayerLayerView: UIViewControllerRepresentable {
       player: player
     )
     if controller.pictureInPicture.consumeControlsRefresh() {
-      // AVKit can leave its controls hidden after a PiP hand-back.
+      // AVKit can leave its controls hidden after a PiP hand-back. The
+      // toggle must cross a runloop tick to take effect.
       playerController.showsPlaybackControls = false
-      playerController.showsPlaybackControls = true
+      DispatchQueue.main.async {
+        playerController.showsPlaybackControls = true
+      }
     }
     context.coordinator.swipeGestureHandler = onSwipeAdjustment
     context.coordinator.horizontalSeekHandler = onHorizontalSeek

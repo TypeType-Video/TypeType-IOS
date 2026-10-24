@@ -41,7 +41,7 @@ struct LiveAuthenticatedAppView: View {
         )
       }
     }
-    .animation(.snappy, value: playbackCoordinator.showsMiniPlayer)
+    .animation(.snappy.delay(0.25), value: playbackCoordinator.showsMiniPlayer)
     .animation(.snappy, value: presentsSearch)
     .task {
       notificationCenter.startPolling()
