@@ -209,13 +209,14 @@ actor LiveSABRPlaybackSession {
     // the rest streams in as it arrives. Waiting for the entire window made
     // the first seek after a skip time out while warming segments that the
     // second attempt then found already published.
-    let startableAudio = audioSequences.min().map {
-      value.tracks.audio.maxSegment >= min(requiredAudioSegment, $0 + 2)
-    } ?? true
-    let startableVideo = preparation.audioOnly
-      || (videoSequences.min().map {
-        value.tracks.video.maxSegment >= min(requiredVideoSegment, $0 + 2)
-      } ?? true)
+    let audioStartSegment = audioSequences.min().map {
+      min(requiredAudioSegment, $0 + 2)
+    } ?? requiredAudioSegment
+    let videoStartSegment = preparation.audioOnly
+      ? 0
+      : (videoSequences.min().map {
+        min(requiredVideoSegment, $0 + 2)
+      } ?? requiredVideoSegment)
     for attempt in 0..<Self.maximumAttempts {
       let value = try await service.loadSABRIndex(
         videoID: control.videoID,
@@ -229,7 +230,11 @@ actor LiveSABRPlaybackSession {
         throw LivePlaybackFailure.invalidSABRContract
       }
       let published = value.live
-        || startableAudio && startableVideo
+        || value.tracks.audio.maxSegment >= audioStartSegment
+          && (
+            preparation.audioOnly
+              || value.tracks.video.maxSegment >= videoStartSegment
+          )
       if published {
         index = value
         guard let currentSnapshot else {
