@@ -153,3 +153,40 @@ enum DemoTheme {
     }
   }
 }
+
+/// Flat chip button in the TypeType web design language: transparent
+/// surface, muted 14pt label, 8pt corners, pill only for primary actions.
+/// Toggled-on states use the accent for icon and label, no filled pills.
+struct LiveChipButtonStyle: ButtonStyle {
+  var isFilled = false
+  var isActive = false
+
+  func makeBody(configuration: Configuration) -> some View {
+    configuration.label
+      .font(.subheadline.weight(isFilled ? .medium : .regular))
+      .foregroundStyle(foreground)
+      .padding(.horizontal, 12)
+      .padding(.vertical, 6)
+      .frame(minHeight: 44)
+      .background(
+        RoundedRectangle(cornerRadius: isFilled ? 999 : 8, style: .continuous)
+          .fill(background)
+      )
+      .contentShape(Rectangle())
+      .opacity(configuration.isPressed ? 0.6 : 1)
+  }
+
+  private var foreground: Color {
+    if isFilled {
+      return isActive ? .white : DemoTheme.background
+    }
+    return isActive ? DemoTheme.accent : .secondary
+  }
+
+  private var background: Color {
+    if isFilled {
+      return isActive ? DemoTheme.accent : Color.primary.opacity(0.92)
+    }
+    return isActive ? DemoTheme.accent.opacity(0.12) : .clear
+  }
+}

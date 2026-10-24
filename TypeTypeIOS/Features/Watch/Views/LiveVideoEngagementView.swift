@@ -53,7 +53,12 @@ struct LiveVideoEngagementView: View {
               )
             }
           }
-          .buttonStyle(.borderedProminent)
+          .buttonStyle(
+            LiveChipButtonStyle(
+              isFilled: !viewModel.isSubscribed,
+              isActive: viewModel.isSubscribed
+            )
+          )
           .tint(
             viewModel.isSubscribed
               ? DemoTheme.surface

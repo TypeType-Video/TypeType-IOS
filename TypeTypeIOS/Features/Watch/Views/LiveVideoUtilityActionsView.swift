@@ -13,7 +13,7 @@ struct LiveVideoUtilityActionsView: View {
         ShareLink(item: shareURL) {
           actionLabel("Share", symbol: "square.and.arrow.up")
         }
-        .buttonStyle(.bordered)
+        .buttonStyle(LiveChipButtonStyle())
       }
 
       Button {
@@ -21,7 +21,7 @@ struct LiveVideoUtilityActionsView: View {
       } label: {
         actionLabel("Download", symbol: "arrow.down.circle")
       }
-      .buttonStyle(.bordered)
+      .buttonStyle(LiveChipButtonStyle())
 
       if canReport {
         Button {
@@ -32,7 +32,7 @@ struct LiveVideoUtilityActionsView: View {
             symbol: "exclamationmark.bubble"
           )
         }
-        .buttonStyle(.bordered)
+        .buttonStyle(LiveChipButtonStyle())
       }
 
       if playerController.supportsBulletComments {

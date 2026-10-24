@@ -23,7 +23,8 @@ struct LiveVideoLibraryActionsView: View {
         HStack(spacing: 10) {
           actionButton(
             title: viewModel.isFavorite ? "Favorited" : "Favorite",
-            symbol: viewModel.isFavorite ? "heart.fill" : "heart"
+            symbol: viewModel.isFavorite ? "heart.fill" : "heart",
+            isActive: viewModel.isFavorite
           ) {
             Task { await viewModel.toggleFavorite() }
           }
@@ -31,7 +32,8 @@ struct LiveVideoLibraryActionsView: View {
             title: viewModel.isInWatchLater ? "Saved for later" : "Watch later",
             symbol: viewModel.isInWatchLater
               ? "clock.badge.checkmark"
-              : "clock"
+              : "clock",
+            isActive: viewModel.isInWatchLater
           ) {
             Task { await viewModel.toggleWatchLater() }
           }
@@ -62,7 +64,7 @@ struct LiveVideoLibraryActionsView: View {
           Label("Save to playlist", systemImage: "rectangle.stack.badge.plus")
             .frame(maxWidth: .infinity)
         }
-        .buttonStyle(.bordered)
+        .buttonStyle(LiveChipButtonStyle())
         .disabled(viewModel.isBusy)
         .accessibilityIdentifier("live.video.save-playlist")
       }
@@ -101,13 +103,14 @@ struct LiveVideoLibraryActionsView: View {
   private func actionButton(
     title: String,
     symbol: String,
+    isActive: Bool = false,
     action: @escaping () -> Void
   ) -> some View {
     Button(action: action) {
       Label(title, systemImage: symbol)
         .frame(maxWidth: .infinity)
     }
-    .buttonStyle(.bordered)
+    .buttonStyle(LiveChipButtonStyle(isActive: isActive))
     .disabled(viewModel.isBusy)
   }
 

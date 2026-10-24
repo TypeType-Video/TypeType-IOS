@@ -58,8 +58,7 @@ private struct LiveRelatedVideoRow: View {
   var body: some View {
     HStack(alignment: .top, spacing: 12) {
       LiveRemoteImage(url: branding.thumbnailURL)
-        .frame(width: 148)
-        .aspectRatio(16 / 9, contentMode: .fit)
+        .frame(width: 148, height: 148 * 9 / 16)
         .clipped()
         .overlay(alignment: .bottomTrailing) {
           if !video.isLive {
