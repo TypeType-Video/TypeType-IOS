@@ -42,35 +42,6 @@ struct LiveVideoLibraryActionsView: View {
           }
         }
 
-        if false {
-        Menu {
-          if viewModel.playlists.isEmpty {
-            Text("No custom playlists")
-          } else {
-            ForEach(viewModel.playlists) { playlist in
-              Button {
-                Task { await viewModel.toggle(playlist) }
-              } label: {
-                Label(
-                  playlist.name,
-                  systemImage: viewModel.contains(playlist)
-                    ? "checkmark.circle.fill"
-                    : "circle"
-                )
-              }
-            }
-          }
-          Divider()
-          Button("New playlist...", systemImage: "plus") {
-            createsPlaylist = true
-          }
-        } label: {
-          Label("Save to playlist", systemImage: "rectangle.stack.badge.plus")
-        }
-        .buttonStyle(LiveChipButtonStyle())
-        .disabled(viewModel.isBusy)
-        .accessibilityIdentifier("live.video.save-playlist")
-        }
       }
 
       if let message = viewModel.message {
