@@ -91,14 +91,18 @@ enum DemoTheme {
     _ preferences: LiveAppPreferences
   ) {
     // The pages paint their own backgrounds through SwiftUI's dynamic
-    // theme colors; painting UIKit table backgrounds here fought them and
-    // cached stale colours per trait (AMOLED toggles never showed).
-    // Rows are painted in the PAGE colour so they sit flat on the page,
-    // like Android's settings screens (no cards — plain rows and hairline
-    // dividers). Opaque, so the system's insetGrouped section chrome
-    // behind the rows stays covered.
-    UITableViewCell.appearance().backgroundColor = dynamicColor(role: .background)
-    UICollectionViewCell.appearance().backgroundColor = dynamicColor(role: .background)
+    // theme colors. iOS 26/27 paints default fills on list rows AND on the
+    // table behind them (the white boxes that swallowed the page colour),
+    // and those sit in front of SwiftUI's `listRowBackground`. Neutralise
+    // every UIKit layer so the rows show the page colour behind them:
+    // transparent cell backgrounds, empty background views (kills the
+    // Liquid Glass row fill), clear table backgrounds.
+    UITableViewCell.appearance().backgroundColor = .clear
+    UITableViewCell.appearance().backgroundView = UIView()
+    UICollectionViewCell.appearance().backgroundColor = .clear
+    UICollectionViewCell.appearance().backgroundView = UIView()
+    UITableView.appearance().backgroundColor = .clear
+    UICollectionView.appearance().backgroundColor = .clear
     // Transparent, not a surface color: painting this white put a square
     // block behind every section header, clashing with the rounded cards.
     UITableViewHeaderFooterView.appearance().backgroundColor = .clear
@@ -691,7 +695,11 @@ struct LiveOptionMenu<Option: Hashable>: View {
       .frame(maxWidth: .infinity, minHeight: 20, alignment: .leading)
     }
     .buttonStyle(.plain)
-    .popover(isPresented: $isPresented) {
+    .popover(
+      isPresented: $isPresented,
+      attachmentAnchor: .rect(.bounds),
+      attachmentEdge: .top
+    ) {
       VStack(alignment: .leading, spacing: 0) {
         ForEach(options.indices, id: \.self) { index in
           Button {

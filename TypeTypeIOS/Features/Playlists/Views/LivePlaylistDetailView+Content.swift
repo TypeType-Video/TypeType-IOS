@@ -91,8 +91,8 @@ extension LivePlaylistDetailView {
             }
           } header: { Text("\(playlist.videoCount) videos").liveSectionHeader() }
         }
+          .liveThemedList()
           .liveThemeRepaint()
-        .listStyle(.plain)
         .refreshable { await viewModel.reload() }
       }
     }
