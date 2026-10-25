@@ -45,12 +45,14 @@ The Android settings screens have no cards (`InfoCard`/`AccountSettingsCards`
 are plain `Column`s; rows + `HorizontalDivider` on `background`). Therefore:
 
 - Rows and UIKit cells are painted in the **page** colour (`background` role),
-  opaque, so the insetGrouped section chrome behind them stays covered.
+  so they sit flat on the page.
   Painting them with `surface` turns every section into a "rounded pile" —
   a regression the user rejects by name.
-- Container recipe: `List` + `.listStyle(.insetGrouped)` +
+- Container recipe: `List` + `.listStyle(.plain)` +
   `.scrollContentBackground(.hidden)` + `.liveThemedList()` +
-  `.liveThemeRepaint()`.
+  `.liveThemeRepaint()`. Never `.insetGrouped`: the grouped style draws
+  white rounded section cards on iOS 26/27 (the "rounded pills") that row
+  backgrounds cannot cover — only the list style removes them.
 - `liveSectionHeader()` = small uppercase caption (kerning 1.5, secondary) +
   `liveSectionSlotChrome()`: iOS 27 renders a system background into
   header/footer slots that UIKit appearance proxies cannot remove; the page
