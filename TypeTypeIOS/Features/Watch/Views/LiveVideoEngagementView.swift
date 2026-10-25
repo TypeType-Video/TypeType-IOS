@@ -32,20 +32,6 @@ struct LiveVideoEngagementView: View {
 
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
-      // Views next to likes, like the Android player page.
-      HStack(spacing: 14) {
-        if video.viewCount > 0 {
-          metric(count: video.viewCount, symbol: "eye")
-        }
-        if likeCount >= 0 {
-          metric(count: likeCount, symbol: "hand.thumbsup")
-        }
-        if dislikeCount >= 0 {
-          metric(count: dislikeCount, symbol: "hand.thumbsdown")
-        }
-        Spacer(minLength: 0)
-      }
-
       channelBanner
 
       if let message = viewModel.message {

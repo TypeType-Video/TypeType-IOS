@@ -72,6 +72,7 @@ struct LiveVideoMetadataContentView: View {
           LiveVideoDescriptionCard(
             video: resolvedVideo,
             text: playbackDescription,
+            likeCount: playerController.stream?.likeCount ?? -1,
             onSeekTimestamp: playerController.seek,
             onOpenURL: routeLink
           )

@@ -3,11 +3,34 @@ import SwiftUI
 struct LiveVideoChaptersView: View {
   let chapters: [LivePlaybackChapter]
   let onSeek: (TimeInterval) -> Void
+  @State private var isExpanded = false
 
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
-      Text("Chapters")
-        .font(.title3.weight(.bold))
+      Button {
+        withAnimation(.snappy(duration: 0.22)) {
+          isExpanded.toggle()
+        }
+      } label: {
+        HStack {
+          Text("Chapters")
+            .font(.title3.weight(.bold))
+          Spacer()
+          Text("\(chapters.count)")
+            .font(.subheadline)
+            .foregroundStyle(.secondary)
+          Image(
+            systemName: isExpanded ? "chevron.up" : "chevron.down"
+          )
+          .font(.subheadline.weight(.semibold))
+          .foregroundStyle(.secondary)
+        }
+        .contentShape(Rectangle())
+      }
+      .buttonStyle(.plain)
+      .accessibilityIdentifier("live.video.chapters.toggle")
+
+      if isExpanded {
       ScrollView(.horizontal, showsIndicators: false) {
         HStack(spacing: 10) {
           ForEach(chapters) { chapter in
@@ -41,6 +64,7 @@ struct LiveVideoChaptersView: View {
         }
       }
       .accessibilityIdentifier("live.video.chapters")
+      }
     }
   }
 }

@@ -3,6 +3,7 @@ import SwiftUI
 struct LiveVideoDescriptionCard: View {
   let video: LiveVideoItem
   let text: String
+  let likeCount: Int64
   let onSeekTimestamp: (TimeInterval) -> Void
   let onOpenURL: (URL) -> Void
   @State private var isExpanded = false
@@ -71,8 +72,13 @@ struct LiveVideoDescriptionCard: View {
   private var summary: String {
     var values = [
       LiveVideoMetadataFormatter.views(video.viewCount),
-      LiveVideoMetadataFormatter.publication(video),
     ]
+    if likeCount >= 0 {
+      values.append(
+        LiveVideoMetadataFormatter.compactCount(likeCount) + " likes"
+      )
+    }
+    values.append(LiveVideoMetadataFormatter.publication(video))
     if video.isLive {
       values.insert(String(localized: "Live"), at: 0)
     }
