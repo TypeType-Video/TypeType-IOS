@@ -129,67 +129,55 @@ struct LiveSettingsAppearanceView: View {
       dependencies: dependencies
     ) {
       Section {
-        Picker(
+        LiveOptionMenu(
           "Accent color",
-          selection: preferences.binding(\.accentColor)
-        ) {
-          ForEach(LiveAccentColor.allCases) { color in
-            Text(color.title).tag(color)
-          }
-        }
-        Picker(
+          selection: preferences.binding(\.accentColor),
+          options: LiveAccentColor.allCases.map { ($0, $0.title) }
+        )
+        LiveOptionMenu(
           "Personality",
-          selection: preferences.binding(\.appearancePersonality)
-        ) {
-          ForEach(LiveAppearancePersonality.allCases) { personality in
-            Text(personality.title).tag(personality)
-          }
-        }
-        Picker(
+          selection: preferences.binding(\.appearancePersonality),
+          options: LiveAppearancePersonality.allCases.map { ($0, $0.title) }
+        )
+        LiveOptionMenu(
           "Color scheme",
-          selection: preferences.binding(\.appearanceMode)
-        ) {
-          ForEach(LiveAppearanceMode.allCases) { mode in
-            Text(mode.title).tag(mode)
-          }
-        }
+          selection: preferences.binding(\.appearanceMode),
+          options: LiveAppearanceMode.allCases.map { ($0, $0.title) }
+        )
         if isEffectivelyDark {
           Toggle("AMOLED black", isOn: preferences.binding(\.appearanceAmoled))
         }
-        Picker("Theme", selection: preferences.binding(\.appearanceTheme)) {
-          ForEach(LiveAppearanceTheme.allCases) { theme in
-            Text(theme.title).tag(theme)
-          }
-        }
-        Picker("Font", selection: preferences.binding(\.appearanceFont)) {
-          ForEach(LiveAppearanceFont.allCases) { font in
-            Text(font.title).tag(font)
-          }
-        }
-        Picker("Motion", selection: preferences.binding(\.appearanceMotion)) {
-          ForEach(LiveAppearanceMotion.allCases) { motion in
-            Text(motion.title).tag(motion)
-          }
-        }
+        LiveOptionMenu(
+          "Theme",
+          selection: preferences.binding(\.appearanceTheme),
+          options: LiveAppearanceTheme.allCases.map { ($0, $0.title) }
+        )
+        LiveOptionMenu(
+          "Font",
+          selection: preferences.binding(\.appearanceFont),
+          options: LiveAppearanceFont.allCases.map { ($0, $0.title) }
+        )
+        LiveOptionMenu(
+          "Motion",
+          selection: preferences.binding(\.appearanceMotion),
+          options: LiveAppearanceMotion.allCases.map { ($0, $0.title) }
+        )
       } header: {
         Text("Appearance").liveSectionHeader()
       }
 
       if preferences.preferences.appearancePersonality == .manga {
         Section {
-          Picker("Paper", selection: preferences.binding(\.mangaPaper)) {
-            ForEach(LiveMangaPaper.allCases) { paper in
-              Text(paper.title).tag(paper)
-            }
-          }
-          Picker(
+          LiveOptionMenu(
+            "Paper",
+            selection: preferences.binding(\.mangaPaper),
+            options: LiveMangaPaper.allCases.map { ($0, $0.title) }
+          )
+          LiveOptionMenu(
             "Headline marker",
-            selection: preferences.binding(\.mangaHeadlineMarker)
-          ) {
-            ForEach(LiveMangaHeadlineMarker.allCases) { marker in
-              Text(marker.title).tag(marker)
-            }
-          }
+            selection: preferences.binding(\.mangaHeadlineMarker),
+            options: LiveMangaHeadlineMarker.allCases.map { ($0, $0.title) }
+          )
           Toggle(
             "Screentone",
             isOn: preferences.binding(\.mangaScreentone)
@@ -221,7 +209,7 @@ struct LiveSettingsAppearanceView: View {
           .frame(height: 0)
         ZStack {
           RoundedRectangle(cornerRadius: 16, style: .continuous)
-            .fill(DemoTheme.background)
+            .fill(DemoTheme.surface)
             .overlay {
               if preferences.preferences.appearancePersonality == .manga,
                 preferences.preferences.mangaScreentone {
@@ -336,16 +324,11 @@ struct LiveSettingsPlayerView: View {
           isOn: preferences.binding(\.playerDoubleTapSeekEnabled)
         )
         if preferences.preferences.playerDoubleTapSeekEnabled {
-          Picker(
+          LiveOptionMenu(
             "Double-tap seek time",
-            selection: preferences.binding(
-              \.playerDoubleTapSeekSeconds
-            )
-          ) {
-            ForEach([5, 10, 15, 20, 30], id: \.self) { seconds in
-              Text("\(seconds)s").tag(seconds)
-            }
-          }
+            selection: preferences.binding(\.playerDoubleTapSeekSeconds),
+            options: [5, 10, 15, 20, 30].map { ($0, "\($0)s") }
+          )
         }
         Toggle(
           "Swipe to seek",
@@ -365,14 +348,16 @@ struct LiveSettingsPlayerView: View {
         Text("Gestures").liveSectionHeader()
       }
       Section {
-        Picker("Preferred codec", selection: preferences.binding(
-          \.playerPreferredCodec
-        )) {
-          Text("Smart").tag("recommended")
-          Text("AV1").tag("av1")
-          Text("VP9").tag("vp9")
-          Text("H.264").tag("h264")
-        }
+        LiveOptionMenu(
+          "Preferred codec",
+          selection: preferences.binding(\.playerPreferredCodec),
+          options: [
+            ("recommended", "Smart"),
+            ("av1", "AV1"),
+            ("vp9", "VP9"),
+            ("h264", "H.264"),
+          ]
+        )
       } header: {
         Text("Default codec").liveSectionHeader()
       }
@@ -382,22 +367,17 @@ struct LiveSettingsPlayerView: View {
           isOn: preferences.binding(\.danmakuEnabled)
         )
         if preferences.preferences.danmakuEnabled {
-          Picker(
+          LiveOptionMenu(
             "Danmaku speed",
-            selection: preferences.binding(\.danmakuSpeed)
-          ) {
-            ForEach([0.5, 0.75, 1.0, 1.25, 1.5, 2.0], id: \.self) { value in
-              Text("\(value)x").tag(value)
-            }
-          }
-          Picker(
+            selection: preferences.binding(\.danmakuSpeed),
+            options: [0.5, 0.75, 1.0, 1.25, 1.5, 2.0].map { ($0, "\($0)x") }
+          )
+          LiveOptionMenu(
             "Danmaku size",
-            selection: preferences.binding(\.danmakuSize)
-          ) {
-            ForEach([0.5, 0.75, 1.0, 1.25, 1.5, 2.0], id: \.self) { value in
-              Text("\(Int(value * 100))%").tag(value)
-            }
-          }
+            selection: preferences.binding(\.danmakuSize),
+            options: [0.5, 0.75, 1.0, 1.25, 1.5, 2.0]
+              .map { ($0, "\(Int($0 * 100))%") }
+          )
         }
       } header: {
         Text("Bullet comments").liveSectionHeader()
@@ -416,17 +396,12 @@ struct LiveSettingsPlayerView: View {
         isOn: preferences.binding(\.playerAutoplayEnabled)
       )
       if preferences.preferences.playerAutoplayEnabled {
-        Picker(
+        LiveOptionMenu(
           "Autoplay countdown",
-          selection: preferences.binding(
-            \.playerAutoplayCountdownSeconds
-          )
-        ) {
-          Text("Immediate").tag(0)
-          ForEach([3, 5, 10, 15, 20, 30], id: \.self) { seconds in
-            Text("\(seconds)s").tag(seconds)
-          }
-        }
+          selection: preferences.binding(\.playerAutoplayCountdownSeconds),
+          options: [(0, "Immediate")]
+            + [3, 5, 10, 15, 20, 30].map { ($0, "\($0)s") }
+        )
       }
       Toggle(
         "Audio-only playback",
