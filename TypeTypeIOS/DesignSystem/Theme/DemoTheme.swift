@@ -159,14 +159,18 @@ enum DemoTheme {
     }
   }
 
+  /// The system surfaces for the classic themes (Android: the classic
+  /// scheme keeps system surfaces — grey grouped page, white grouped
+  /// cards). Mapping background AND surface to `.systemBackground` made
+  /// page and cards identical.
   private static func lightBase(_ role: SurfaceRole) -> UIColor {
     switch role {
-    case .background, .surface:
-      return .systemBackground
+    case .background, .pageBackground:
+      return .systemGroupedBackground
+    case .surface:
+      return .secondarySystemGroupedBackground
     case .groupedBackground:
       return .secondarySystemGroupedBackground
-    case .pageBackground:
-      return .systemGroupedBackground
     case .groupedSurface, .elevatedSurface:
       return .secondarySystemBackground
     }
@@ -323,8 +327,8 @@ extension DemoTheme {
     case .typetype, .dynamic:
       // Never reached through `dynamicColor` (the system surfaces win
       // there); kept total so the function stays non-optional.
-      return (Color(uiColor: .systemBackground),
-              Color(uiColor: .systemBackground),
+      return (Color(uiColor: .systemGroupedBackground),
+              Color(uiColor: .secondarySystemGroupedBackground),
               Color(uiColor: .secondarySystemBackground),
               Color(uiColor: .secondarySystemBackground))
     case .nord:
