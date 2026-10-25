@@ -66,14 +66,9 @@ enum DemoTheme {
   static func applyUIKitAppearance(
     _ preferences: LiveAppPreferences
   ) {
-    let isDark = preferences.appearanceMode == .dark
-      || (preferences.appearanceMode == .system
-        && (systemColorScheme == .dark
-          || (systemColorScheme == nil
-            && UITraitCollection.current.userInterfaceStyle == .dark)))
-    let backgroundColor = themeUIColor(base: .systemBackground, isDark: isDark)
-    UITableView.appearance().backgroundColor = backgroundColor
-    UICollectionView.appearance().backgroundColor = backgroundColor
+    // The pages paint their own backgrounds through SwiftUI's dynamic
+    // theme colors; painting UIKit table backgrounds here fought them and
+    // cached stale colours per trait (AMOLED toggles never showed).
     UITableViewCell.appearance().backgroundColor = .clear
     UICollectionViewCell.appearance().backgroundColor = .clear
     // Transparent, not a surface color: painting this white put a square
