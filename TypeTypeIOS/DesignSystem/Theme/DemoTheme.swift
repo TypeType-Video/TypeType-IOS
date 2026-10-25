@@ -109,6 +109,15 @@ enum DemoTheme {
     // iOS 27 paints header chrome through backgroundView (a blur material),
     // which backgroundColor alone does not replace.
     UITableViewHeaderFooterView.appearance().backgroundView = UIView()
+    // iOS 26 paints the navigation bar through `_UIBarBackground`, which
+    // SwiftUI's `toolbarBackground` does not reach (the white strip at the
+    // top of every page). Bind the UIKit appearance to the same resolver.
+    let navAppearance = UINavigationBarAppearance()
+    navAppearance.configureWithOpaqueBackground()
+    navAppearance.backgroundColor = dynamicColor(role: .background)
+    UINavigationBar.appearance().standardAppearance = navAppearance
+    UINavigationBar.appearance().scrollEdgeAppearance = navAppearance
+    UINavigationBar.appearance().compactAppearance = navAppearance
   }
 
   /// Resolves immediately (no dynamic provider): UIKit caches dynamic
