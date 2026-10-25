@@ -13,28 +13,33 @@ enum DemoTheme {
   static var mangaPaper = LiveMangaPaper.day
 
   static var background: Color {
-    themed(.systemBackground)
+    themed(.background)
   }
 
   static var groupedBackground: Color {
-    themed(.secondarySystemGroupedBackground)
+    themed(.groupedBackground)
   }
 
   /// The grey page colour behind grouped cards.
   static var pageBackground: Color {
-    themed(.systemGroupedBackground)
+    themed(.pageBackground)
   }
 
   static var surface: Color {
-    themed(.secondarySystemBackground)
+    themed(.surface)
   }
 
   static var groupedSurface: Color {
-    themed(.tertiarySystemGroupedBackground)
+    themed(.groupedSurface)
   }
 
   static var elevatedSurface: Color {
-    themed(.tertiarySystemBackground)
+    themed(.elevatedSurface)
+  }
+
+  enum SurfaceRole {
+    case background, groupedBackground, pageBackground
+    case surface, groupedSurface, elevatedSurface
   }
 
   static let separator = Color(uiColor: .separator)
@@ -83,13 +88,13 @@ enum DemoTheme {
     base: UIColor,
     isDark: Bool
   ) -> UIColor {
-    dynamicColor(base: base, fallbackIsDark: isDark)
+    dynamicColor(role: .background, fallbackIsDark: isDark)
   }
 
-  /// Resolves on every draw: already-visible and lazy pages alike pick the
-  /// theme up without a reload, and no navigation state is rebuilt.
+  /// Resolves on every draw: visible and lazy pages alike pick the theme up
+  /// without a reload, and no navigation state is rebuilt.
   private static func dynamicColor(
-    base: UIColor,
+    role: SurfaceRole,
     fallbackIsDark: Bool
   ) -> UIColor {
     UIColor { trait in
@@ -108,11 +113,21 @@ enum DemoTheme {
       }
       switch appearanceTheme {
       case .typetype, .dynamic:
-        return base.resolvedColor(
-          with: UITraitCollection(
-            userInterfaceStyle: isDark ? .dark : .light
+        // Light: the system base colours. Dark: the Android Zinc greys so
+        // AMOLED pure black reads as a real change.
+        if !isDark {
+          return lightBase(role).resolvedColor(
+            with: UITraitCollection(userInterfaceStyle: .light)
           )
-        )
+        }
+        switch role {
+        case .background, .pageBackground:
+          return UIColor(red: 0.035, green: 0.035, blue: 0.043, alpha: 1)
+        case .groupedBackground, .surface:
+          return UIColor(red: 0.094, green: 0.094, blue: 0.106, alpha: 1)
+        case .groupedSurface, .elevatedSurface:
+          return UIColor(red: 0.153, green: 0.153, blue: 0.165, alpha: 1)
+        }
       case .nord:
         return isDark
           ? UIColor(red: 0.18, green: 0.20, blue: 0.25, alpha: 1)
@@ -130,10 +145,27 @@ enum DemoTheme {
           ? UIColor(red: 0.11, green: 0.06, blue: 0.16, alpha: 1)
           : UIColor(red: 0.98, green: 0.96, blue: 1, alpha: 1)
       }
-      }
     }
+  }
 
-  private static func themed(_ base: UIColor) -> Color {
+  private static func lightBase(_ role: SurfaceRole) -> UIColor {
+    switch role {
+    case .background:
+      return .systemBackground
+    case .groupedBackground:
+      return .secondarySystemGroupedBackground
+    case .pageBackground:
+      return .systemGroupedBackground
+    case .surface:
+      return .secondarySystemBackground
+    case .groupedSurface:
+      return .tertiarySystemGroupedBackground
+    case .elevatedSurface:
+      return .tertiarySystemBackground
+    }
+  }
+
+  private static func themed(_ role: SurfaceRole) -> Color {
     let isDark: Bool
     switch appearanceMode {
     case .dark:
@@ -147,23 +179,14 @@ enum DemoTheme {
         isDark = UITraitCollection.current.userInterfaceStyle == .dark
       }
     }
-    // Android semantics: AMOLED black forces the dark scheme (see
-    // AppearanceColorSchemes.kt: `isDark || amoled`).
-    // AMOLED only recolours an already-dark UI to pure black. Light mode
-    // and System-in-light stay light no matter the switch.
-    let darkMode = isDark
-    if appearancePersonality == .manga,
-      appearanceTheme == .typetype || appearanceTheme == .dynamic {
-      return Color(uiColor: mangaColor(isDark: darkMode))
-    }
-    return Color(uiColor: resolvedUIColor(base, isDark: darkMode))
+    return Color(uiColor: dynamicColor(role: role, fallbackIsDark: isDark))
   }
 
   private static func resolvedUIColor(
     _ base: UIColor,
     isDark: Bool
   ) -> UIColor {
-    dynamicColor(base: base, fallbackIsDark: isDark)
+    dynamicColor(role: .background, fallbackIsDark: isDark)
   }
 
   private static func mangaColor(isDark: Bool) -> UIColor {
