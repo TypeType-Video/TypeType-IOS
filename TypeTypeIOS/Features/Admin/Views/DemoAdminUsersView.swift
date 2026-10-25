@@ -51,6 +51,7 @@ struct DemoAdminUsersView: View {
         }
       } header: { Text("\(filteredUsers.count) users").liveSectionHeader() }
     }
+      .listStyle(.insetGrouped)
     .searchable(text: $query, prompt: "Name, email, or ID")
     .onChange(of: query) { page = 0 }
     .onChange(of: role) { page = 0 }

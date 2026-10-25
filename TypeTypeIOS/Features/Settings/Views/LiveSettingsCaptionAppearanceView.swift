@@ -75,6 +75,7 @@ struct LiveSettingsCaptionAppearanceView: View {
         )
       }
     }
+      .listStyle(.insetGrouped)
     .navigationTitle("Caption appearance")
     .navigationBarTitleDisplayMode(.inline)
     .accessibilityIdentifier("live.settings.caption-appearance")

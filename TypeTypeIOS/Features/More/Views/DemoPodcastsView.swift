@@ -55,6 +55,7 @@ struct DemoPodcastsView: View {
         )
       } header: { Text("Episodes").liveSectionHeader() }
     }
+      .listStyle(.insetGrouped)
     .navigationTitle("Podcasts")
     .navigationBarTitleDisplayMode(.inline)
     .navigationDestination(item: $selectedVideo) { video in

@@ -55,6 +55,7 @@ struct DemoImportQueueBuilder: View {
           .disabled(queue.isEmpty)
         }
       }
+      .listStyle(.insetGrouped)
       .navigationTitle("YouTube archive queue")
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {

@@ -81,6 +81,7 @@ struct LiveAdminUserAccessView: View {
         removable: true
       )
     }
+      .listStyle(.insetGrouped)
     .toolbar {
       ToolbarItem(placement: .topBarTrailing) {
         Menu("Add", systemImage: "plus") {

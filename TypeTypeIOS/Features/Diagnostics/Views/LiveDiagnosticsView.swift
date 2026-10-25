@@ -48,6 +48,7 @@ struct LiveDiagnosticsView: View {
         } header: { Text("Recent requests").liveSectionHeader() }
       }
     }
+      .listStyle(.insetGrouped)
     .navigationTitle("Diagnostics")
     .navigationBarTitleDisplayMode(.inline)
     .toolbar {

@@ -62,6 +62,7 @@ struct TypeTypeLiveAppView: View {
         colorScheme: systemColorScheme
       )
       DemoTheme.applyUIKitAppearance(preferences.preferences)
+      DemoTheme.applyUIKitAppearance(preferences.preferences)
     }
     .onChange(of: scenePhase) {
       guard scenePhase == .background,

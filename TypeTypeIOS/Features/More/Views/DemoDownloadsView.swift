@@ -13,6 +13,7 @@ struct DemoDownloadsView: View {
         Text("All files and progress on this screen are local mock data.")
       }
     }
+      .listStyle(.insetGrouped)
     .navigationTitle("Downloads")
     .navigationBarTitleDisplayMode(.inline)
     .toolbar {

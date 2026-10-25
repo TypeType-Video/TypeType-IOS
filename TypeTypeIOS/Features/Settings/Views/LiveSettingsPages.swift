@@ -16,6 +16,7 @@ struct LiveSettingsEditingPage<Content: View>: View {
         }
       }
     }
+      .listStyle(.insetGrouped)
     .toolbar {
       ToolbarItemGroup(placement: .topBarTrailing) {
         if viewModel.hasChanges {

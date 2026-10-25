@@ -46,6 +46,7 @@ struct DemoAboutView: View {
         )
       } header: { Text("Open source").liveSectionHeader() }
     }
+      .listStyle(.insetGrouped)
     .navigationTitle("About TypeType")
     .navigationBarTitleDisplayMode(.inline)
     .externalLinkAlert(pendingURL: $pendingURL)

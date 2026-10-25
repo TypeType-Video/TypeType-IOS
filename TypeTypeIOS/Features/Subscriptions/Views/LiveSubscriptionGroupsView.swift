@@ -20,6 +20,7 @@ struct LiveSubscriptionGroupsView: View {
         channelsSection
       }
     }
+      .listStyle(.insetGrouped)
     .navigationTitle("Groups")
     .navigationBarTitleDisplayMode(.inline)
     .overlay {

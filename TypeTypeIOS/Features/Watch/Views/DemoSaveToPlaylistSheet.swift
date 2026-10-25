@@ -54,6 +54,7 @@ struct DemoSaveToPlaylistSheet: View {
           }
         } header: { Text("Save to playlist").liveSectionHeader() }
       }
+      .listStyle(.insetGrouped)
       .navigationTitle("Save")
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {

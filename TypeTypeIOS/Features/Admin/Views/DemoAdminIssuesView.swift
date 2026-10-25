@@ -50,6 +50,7 @@ struct DemoAdminIssuesView: View {
         }
       } header: { Text("\(filteredIssues.count) issues").liveSectionHeader() }
     }
+      .listStyle(.insetGrouped)
     .searchable(text: $query, prompt: "Search issues")
     .onChange(of: query) { page = 0 }
     .onChange(of: status) { page = 0 }
