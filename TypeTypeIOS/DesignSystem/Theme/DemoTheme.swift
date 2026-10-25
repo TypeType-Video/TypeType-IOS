@@ -58,8 +58,6 @@ enum DemoTheme {
     let isDark = preferences.appearanceMode == .dark
       || (preferences.appearanceMode == .system
         && UITraitCollection.current.userInterfaceStyle == .dark)
-      || (preferences.appearanceAmoled
-        && preferences.appearanceMode != .light)
     let backgroundColor = themeUIColor(base: .systemBackground, isDark: isDark)
     UITableView.appearance().backgroundColor = backgroundColor
     UICollectionView.appearance().backgroundColor = backgroundColor
@@ -122,10 +120,9 @@ enum DemoTheme {
     }
     // Android semantics: AMOLED black forces the dark scheme (see
     // AppearanceColorSchemes.kt: `isDark || amoled`).
-    // Light mode: the AMOLED switch does nothing. System/Dark: it forces
-    // the pure-black dark scheme.
+    // AMOLED only recolours an already-dark UI to pure black. Light mode
+    // and System-in-light stay light no matter the switch.
     let darkMode = isDark
-      || (appearanceAmoled && appearanceMode != .light)
     if appearancePersonality == .manga,
       appearanceTheme == .typetype || appearanceTheme == .dynamic {
       return Color(uiColor: mangaColor(isDark: darkMode))
