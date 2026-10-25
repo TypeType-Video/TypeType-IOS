@@ -698,7 +698,7 @@ struct LiveOptionMenu<Option: Hashable>: View {
     .popover(
       isPresented: $isPresented,
       attachmentAnchor: .rect(.bounds),
-      attachmentEdge: .top
+      arrowEdge: .top
     ) {
       VStack(alignment: .leading, spacing: 0) {
         ForEach(options.indices, id: \.self) { index in
