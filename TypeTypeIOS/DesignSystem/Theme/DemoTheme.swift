@@ -164,31 +164,7 @@ enum DemoTheme {
     _ base: UIColor,
     isDark: Bool
   ) -> UIColor {
-    if appearanceAmoled, isDark { return .black }
-    switch appearanceTheme {
-    case .typetype, .dynamic:
-      return base.resolvedColor(
-        with: UITraitCollection(
-          userInterfaceStyle: isDark ? .dark : .light
-        )
-      )
-    case .nord:
-      return isDark
-        ? UIColor(red: 0.18, green: 0.20, blue: 0.25, alpha: 1)
-        : UIColor(red: 0.93, green: 0.94, blue: 0.96, alpha: 1)
-    case .cream:
-      return isDark
-        ? UIColor(red: 0.15, green: 0.10, blue: 0.07, alpha: 1)
-        : UIColor(red: 1, green: 0.97, blue: 0.93, alpha: 1)
-    case .forest:
-      return isDark
-        ? UIColor(red: 0.04, green: 0.12, blue: 0.08, alpha: 1)
-        : UIColor(red: 0.94, green: 0.99, blue: 0.96, alpha: 1)
-    case .plum:
-      return isDark
-        ? UIColor(red: 0.11, green: 0.06, blue: 0.16, alpha: 1)
-        : UIColor(red: 0.98, green: 0.96, blue: 1, alpha: 1)
-    }
+    dynamicColor(base: base, fallbackIsDark: isDark)
   }
 
   private static func mangaColor(isDark: Bool) -> UIColor {
