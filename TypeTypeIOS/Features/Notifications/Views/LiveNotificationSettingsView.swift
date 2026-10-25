@@ -3,8 +3,10 @@ import SwiftUI
 struct LiveNotificationSettingsView: View {
   @State private var channelNames: [String: String] = [:]
   @StateObject private var viewModel: LiveNotificationSettingsViewModel
+  private let subscriptionsService: LiveSubscriptionsServiceProtocol
 
   init(dependencies: AppDependencies) {
+    subscriptionsService = dependencies.subscriptionsService
     _viewModel = StateObject(
       wrappedValue: LiveNotificationSettingsViewModel(
         service: dependencies.pushNotificationsService
@@ -38,7 +40,7 @@ struct LiveNotificationSettingsView: View {
     .navigationTitle("Channel notifications")
     .navigationBarTitleDisplayMode(.inline)
     .task { await viewModel.prepare()
-      if let subscriptions = try? await dependencies.subscriptionsService
+      if let subscriptions = try? await subscriptionsService
         .subscriptions() {
         channelNames = Dictionary(
           subscriptions.map { ($0.channelURL, $0.name) },
