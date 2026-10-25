@@ -5,7 +5,9 @@ import SwiftUI
 final class LivePlayerLayerCoordinator:
   NSObject, @preconcurrency AVPlayerViewControllerDelegate
 {
-  var hostedViews: [UIView] = []
+  var hostedViews: [UIView] = []   // ... weiter
+  private var chromePollTask: Task<Void, Never>?
+  private weak var chromeContainer: UIView?
   var controller: LivePlayerController
   var orientationObservation: NSObjectProtocol?
   var playbackIntentObservation: NSKeyValueObservation?
@@ -64,6 +66,7 @@ final class LivePlayerLayerCoordinator:
     NSLayoutConstraint.activate(danmakuPins)
 
     hostedViews = [danmakuView]
+    startChromePolling(in: playerController)
   }
 
   func update(
@@ -95,6 +98,8 @@ final class LivePlayerLayerCoordinator:
     hostedViews.removeAll()
     sponsorCenterConstraint = nil
     sponsorTrailingConstraint = nil
+    chromePollTask?.cancel()
+    chromePollTask = nil
   }
 
   func installSwipeGesture(in view: UIView) {
@@ -226,5 +231,58 @@ extension LivePlayerLayerCoordinator: UIGestureRecognizerDelegate {
       UIGestureRecognizer
   ) -> Bool {
     true
+  }
+}
+
+extension LivePlayerLayerCoordinator {
+  /// AVKit does not publish its chrome visibility; mirror it by watching the
+  /// controls container (the one hosting the scrubber) once per half second.
+  /// If the container cannot be found, the chrome stays visible.
+  func startChromePolling(in playerController: AVPlayerViewController) {
+    chromePollTask?.cancel()
+    chromePollTask = Task { [weak self, weak playerController] in
+      while !Task.isCancelled {
+        guard let self, let playerController else { return }
+        if chromeContainer == nil {
+          chromeContainer = Self.locateChrome(in: playerController.view)
+        }
+        if let chrome = chromeContainer {
+          let visible = Self.effectiveAlpha(of: chrome) > 0.05
+          if controller.playerChromeVisible != visible {
+            controller.playerChromeVisible = visible
+          }
+        }
+        try? await Task.sleep(for: .milliseconds(500))
+      }
+    }
+  }
+
+  private static func locateChrome(in view: UIView) -> UIView? {
+    for subview in view.subviews {
+      if containsSlider(subview) {
+        return subview
+      }
+      if let found = locateChrome(in: subview) {
+        return found
+      }
+    }
+    return nil
+  }
+
+  private static func containsSlider(_ view: UIView) -> Bool {
+    if view is UISlider {
+      return true
+    }
+    return view.subviews.contains { containsSlider($0) }
+  }
+
+  private static func effectiveAlpha(of view: UIView) -> CGFloat {
+    var alpha: CGFloat = 1
+    var current: UIView? = view
+    while let layer = current {
+      alpha *= layer.alpha
+      current = layer.superview
+    }
+    return alpha
   }
 }
