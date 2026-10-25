@@ -264,60 +264,6 @@ struct LiveSettingsCard<Content: View>: View {
 
 /// Pads every row in a settings card to the Android row metrics
 /// (20 horizontal, 12 vertical, 44pt minimum height) so pages can be swept
-/// onto the primitives without touching each row.
-private struct SettingsRowLayout: Layout {
-  func sizeThatFits(
-    proposal: ProposedViewSize,
-    subviews: Subviews,
-    cache: inout ()
-  ) -> CGSize {
-    let width = proposal.width ?? 0
-    var height: CGFloat = 0
-    for subview in subviews {
-      let size = subview.sizeThatFits(
-        ProposedViewSize(width: width - 40, height: nil)
-      )
-      // Hairline children (dividers) stay hairlines.
-      if size.height <= 2 {
-        height += 1
-      } else {
-        height += max(size.height + 24, 44)
-      }
-    }
-    return CGSize(width: width, height: height)
-  }
-
-  func placeSubviews(
-    in bounds: CGRect,
-    proposal: ProposedViewSize,
-    subviews: Subviews,
-    cache: inout ()
-  ) {
-    var y = bounds.minY
-    for subview in subviews {
-      let size = subview.sizeThatFits(
-        ProposedViewSize(width: bounds.width - 40, height: nil)
-      )
-      if size.height <= 2 {
-        subview.place(
-          at: CGPoint(x: bounds.minX, y: y),
-          anchor: .topLeading,
-          proposal: ProposedViewSize(width: bounds.width, height: 1)
-        )
-        y += 1
-        continue
-      }
-      let rowHeight = max(size.height + 24, 44)
-      subview.place(
-        at: CGPoint(x: bounds.minX + 20, y: y + (rowHeight - size.height) / 2),
-        anchor: .topLeading,
-        proposal: ProposedViewSize(width: bounds.width - 40, height: size.height)
-      )
-      y += rowHeight
-    }
-  }
-}
-
 /// Settings row in the Android design: 20/12 padding, body title,
 /// muted trailing value.
 struct LiveSettingsRow<Trailing: View>: View {
