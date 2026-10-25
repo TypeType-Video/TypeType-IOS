@@ -51,6 +51,7 @@ final class LivePlaybackCoordinator: ObservableObject {
   var showsMiniPlayer: Bool {
     hasActivePlayback && presentation == .mini
    && !(controller?.pictureInPicture.isEngaged ?? false)
+    && !(controller?.pictureInPicture.isPendingStart ?? false)
   }
 
   func restoreIfNeeded() async {

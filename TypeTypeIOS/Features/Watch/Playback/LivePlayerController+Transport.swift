@@ -107,6 +107,7 @@ extension LivePlayerController {
 
   func stop() {
     isTornDown = true
+    pictureInPicture.cancelPendingStart()
     presentationResumeTask?.cancel()
     presentationResumeTask = nil
     sabrStallRecoveryTask?.cancel()

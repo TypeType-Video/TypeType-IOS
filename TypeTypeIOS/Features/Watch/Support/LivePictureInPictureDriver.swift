@@ -9,6 +9,9 @@ import UIKit
 @MainActor
 final class LivePictureInPictureDriver: NSObject, ObservableObject {
   @Published private(set) var isEngaged = false
+  /// True while waiting for the system to allow a PiP start (during loading
+  /// the window cannot open yet). Suppresses the fallback card.
+  @Published private(set) var isPendingStart = false
   /// Fired whenever engagement changes (started, failed, stopped).
   var onChange: (() -> Void)?
 
@@ -19,6 +22,7 @@ final class LivePictureInPictureDriver: NSObject, ObservableObject {
   private var controlsRefreshPending = false
   private var didStartConfirmed = false
   private var startVerificationTask: Task<Void, Never>?
+  private var pendingStartTask: Task<Void, Never>?
   private var onRestore: (() -> Void)?
   private var onClose: (() -> Void)?
 
@@ -95,13 +99,40 @@ final class LivePictureInPictureDriver: NSObject, ObservableObject {
     onRestore: @escaping () -> Void,
     onClose: @escaping () -> Void
   ) {
-    guard isAvailable, let pipController, !isEngaged else { return }
-    // The system animates the window from the layer's rect: make sure the
-    // layer is laid out and rendering before starting.
-    relayout()
-    contentLayer?.isHidden = false
+    guard isAvailable, let pipController, !isEngaged, !isPendingStart else {
+      return
+    }
     self.onRestore = onRestore
     self.onClose = onClose
+    // The system refuses a PiP start while the player is still loading; wait
+    // for the moment it becomes possible instead of failing silently.
+    if pipController.isPictureInPicturePossible {
+      performStart()
+    } else {
+      isPendingStart = true
+      onChange?()
+      pendingStartTask?.cancel()
+      pendingStartTask = Task { @MainActor [weak self] in
+        for _ in 0..<75 {
+          try? await Task.sleep(for: .milliseconds(200))
+          guard let self, isPendingStart else { return }
+          if pipController.isPictureInPicturePossible {
+            isPendingStart = false
+            performStart()
+            return
+          }
+        }
+        // Never became possible: release and let the card show.
+        isPendingStart = false
+        onChange?()
+      }
+    }
+  }
+
+  private func performStart() {
+    guard let pipController else { return }
+    relayout()
+    contentLayer?.isHidden = false
     isEngaged = true
     didStartConfirmed = false
     onChange?()
@@ -116,6 +147,14 @@ final class LivePictureInPictureDriver: NSObject, ObservableObject {
       contentLayer?.isHidden = true
       onChange?()
     }
+  }
+
+  /// Aborts a pending start (e.g. the playback was closed meanwhile).
+  func cancelPendingStart() {
+    isPendingStart = false
+    pendingStartTask?.cancel()
+    pendingStartTask = nil
+    onChange?()
   }
 
   func stop() {
