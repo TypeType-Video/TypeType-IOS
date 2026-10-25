@@ -228,6 +228,7 @@ extension LivePlayerController {
       item.automaticallyPreservesTimeOffsetFromLive = true
     }
     observe(item, autoplay: autoplay)
+    guard !isTornDown else { return }
     player.replaceCurrentItem(with: item)
     player.defaultRate = playbackRate
     // The audio session is configured and awaited in load() before any

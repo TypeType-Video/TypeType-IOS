@@ -246,7 +246,7 @@ extension LivePlayerController {
     Self.savePlaybackRate(playbackRate)
     player.defaultRate = playbackRate
     if player.timeControlStatus == .playing {
-      player.rate = playbackRate
+      playIfActive(rate: playbackRate)
     }
     playbackServer?.updatePlaybackRate(playbackRate)
   }
