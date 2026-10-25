@@ -68,6 +68,9 @@ struct LiveNotificationSettingsView: View {
         emptyPreferencesSection
       }
       .listStyle(.insetGrouped)
+      .scrollContentBackground(.hidden)
+      .background(DemoTheme.background)
+      .listStyle(.insetGrouped)
     } else {
       List {
         permissionSection

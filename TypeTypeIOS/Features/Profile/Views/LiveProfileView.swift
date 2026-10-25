@@ -85,6 +85,9 @@ struct LiveProfileView: View {
         }
       }
     }
+      .listStyle(.insetGrouped)
+      .scrollContentBackground(.hidden)
+      .background(DemoTheme.background)
   }
 
   private func importPhoto(_ item: PhotosPickerItem) async {

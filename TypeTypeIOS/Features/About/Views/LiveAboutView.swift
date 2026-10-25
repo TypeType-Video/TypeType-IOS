@@ -26,6 +26,8 @@ struct LiveAboutView: View {
       }
     }
       .listStyle(.insetGrouped)
+      .scrollContentBackground(.hidden)
+      .background(DemoTheme.background)
     .navigationTitle("About")
     .navigationBarTitleDisplayMode(.inline)
     .externalLinkAlert(pendingURL: $pendingURL)

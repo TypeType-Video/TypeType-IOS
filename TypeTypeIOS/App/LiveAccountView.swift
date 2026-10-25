@@ -21,6 +21,9 @@ struct LiveAccountView: View {
         administrationSection
         signOutSection
       }
+      .listStyle(.insetGrouped)
+      .scrollContentBackground(.hidden)
+      .background(DemoTheme.background)
       .navigationTitle("More")
     }
     .accessibilityIdentifier("live.account.screen")
