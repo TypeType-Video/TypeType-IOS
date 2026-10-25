@@ -67,7 +67,7 @@ extension LiveImportView {
         }
       }
     } header: { Text("TypeType backup").liveSectionHeader() } footer: {
-      Text("Restore replaces matching data in this TypeType account. Export and restore use the selected categories.")
+      Text("Restore replaces matching data in this TypeType account. Export and restore use the selected categories.").liveSectionSlotChrome()
     }
   }
 
@@ -122,6 +122,7 @@ extension LiveImportView {
           + "Subscriptions, playlists, favorites, Watch later, "
           + "and history are synchronized with this TypeType account."
       )
+        .liveSectionSlotChrome()
     }
   }
 

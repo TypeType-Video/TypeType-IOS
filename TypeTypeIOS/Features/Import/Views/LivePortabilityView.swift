@@ -159,7 +159,7 @@ struct LivePortabilityView: View {
       }
     } footer: {
       if viewModel.selectedCategories.isEmpty {
-        Text("Select at least one category.")
+        Text("Select at least one category.").liveSectionSlotChrome()
       }
     }
   }

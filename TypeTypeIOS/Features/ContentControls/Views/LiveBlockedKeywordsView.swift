@@ -61,7 +61,7 @@ struct LiveBlockedKeywordsView: View {
           .disabled(!viewModel.canAdd)
         }
       } footer: {
-        Text("Videos whose title contains a blocked keyword are hidden.")
+        Text("Videos whose title contains a blocked keyword are hidden.").liveSectionSlotChrome()
       }
 
       if viewModel.keywords.isEmpty {

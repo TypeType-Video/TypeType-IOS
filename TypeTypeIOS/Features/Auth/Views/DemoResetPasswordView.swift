@@ -21,7 +21,7 @@ struct DemoResetPasswordView: View {
             .keyboardType(.emailAddress)
             .accessibilityIdentifier("demo.auth.reset.email")
         } header: { Text("Account").liveSectionHeader() } footer: {
-          Text("A mock reset link will be created locally. No message is sent.")
+          Text("A mock reset link will be created locally. No message is sent.").liveSectionSlotChrome()
         }
 
         if didSubmit {
@@ -43,7 +43,7 @@ struct DemoResetPasswordView: View {
                 .foregroundStyle(.red)
             }
           } header: { Text("Complete reset").liveSectionHeader() } footer: {
-            Text("The local token is prefilled so the complete Web flow can be exercised.")
+            Text("The local token is prefilled so the complete Web flow can be exercised.").liveSectionSlotChrome()
           }
         }
 

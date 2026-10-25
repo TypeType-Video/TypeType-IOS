@@ -73,6 +73,7 @@ struct LiveSettingsCaptionAppearanceView: View {
           "These preferences style native subtitles. System keeps "
             + "your iOS accessibility appearance when a value is not set."
         )
+          .liveSectionSlotChrome()
       }
     }
       .liveThemedList()

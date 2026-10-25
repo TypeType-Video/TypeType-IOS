@@ -41,7 +41,7 @@ struct DemoAdminAllowListView: View {
           )
         }
       } header: { Text("User access").liveSectionHeader() } footer: {
-        Text("Enabled means this user has a user-specific allow list.")
+        Text("Enabled means this user has a user-specific allow list.").liveSectionSlotChrome()
       }
 
       Section {

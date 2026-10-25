@@ -101,6 +101,7 @@ struct LiveAboutView: View {
       }
       .frame(maxWidth: .infinity, alignment: .leading)
       .padding(.top, 8)
+      .liveSectionSlotChrome()
     }
   }
 
@@ -126,6 +127,7 @@ struct LiveAboutView: View {
       Button("Refresh versions") {
         Task { await refreshVersions() }
       }
+      .liveSectionSlotChrome()
     }
   }
 

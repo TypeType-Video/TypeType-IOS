@@ -49,7 +49,7 @@ struct DemoDiscoverySettingsView: View {
       Section {
         DemoHideEverythingControl()
       } footer: {
-        Text("The four-step confirmation and zen scene are fully local.")
+        Text("The four-step confirmation and zen scene are fully local.").liveSectionSlotChrome()
       }
 
       Section {

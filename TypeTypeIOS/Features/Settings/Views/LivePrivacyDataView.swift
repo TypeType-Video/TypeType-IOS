@@ -76,7 +76,7 @@ struct LivePrivacyDataView: View {
           action: .subscriptions
         )
       } footer: {
-        Text("These actions update the selected TypeType instance.")
+        Text("These actions update the selected TypeType instance.").liveSectionSlotChrome()
       }
       if let message = viewModel.message {
         Section {

@@ -13,7 +13,7 @@ struct DemoPlaylistCreateSheet: View {
             .textInputAutocapitalization(.sentences)
             .accessibilityIdentifier("demo.playlists.name")
         } footer: {
-          Text("This playlist is stored only for the current mock session.")
+          Text("This playlist is stored only for the current mock session.").liveSectionSlotChrome()
         }
       }
       .navigationTitle("New playlist")

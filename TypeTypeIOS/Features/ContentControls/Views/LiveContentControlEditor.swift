@@ -24,7 +24,7 @@ struct LiveContentControlEditor: View {
             Toggle("Apply globally", isOn: $global)
           }
         } footer: {
-          Text("The server validates and normalizes supported URLs.")
+          Text("The server validates and normalizes supported URLs.").liveSectionSlotChrome()
         }
       }
         .liveThemedList()
