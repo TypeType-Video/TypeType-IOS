@@ -69,10 +69,10 @@ struct LiveReportIssueView: View {
         }
       }
     }
-      .id(DemoTheme.renderToken)
       .listStyle(.insetGrouped)
       .scrollContentBackground(.hidden)
       .background(DemoTheme.background)
+      .id(DemoTheme.renderToken)
     .navigationTitle("Report a problem")
     .navigationBarTitleDisplayMode(.inline)
     .alert("Bug report", isPresented: errorBinding) {

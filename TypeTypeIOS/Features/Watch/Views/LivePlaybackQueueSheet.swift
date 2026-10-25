@@ -31,10 +31,10 @@ struct LivePlaybackQueueSheet: View {
           header
         }
       }
-        .id(DemoTheme.renderToken)
         .listStyle(.insetGrouped)
         .scrollContentBackground(.hidden)
         .background(DemoTheme.background)
+      .id(DemoTheme.renderToken)
       .listStyle(.plain)
       .navigationTitle("Playback queue")
       .navigationBarTitleDisplayMode(.inline)

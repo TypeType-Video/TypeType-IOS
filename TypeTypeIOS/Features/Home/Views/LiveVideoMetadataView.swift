@@ -25,6 +25,7 @@ struct LiveVideoMetadataView: View {
         ProgressView("Preparing video")
           .frame(maxWidth: .infinity, maxHeight: .infinity)
           .background(DemoTheme.background)
+      .id(DemoTheme.renderToken)
       }
     }
     .task(id: video.url) {

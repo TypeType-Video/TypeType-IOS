@@ -105,6 +105,7 @@ struct LivePodcastEpisodesView: View {
     }
     .refreshable { await viewModel.reload() }
     .background(DemoTheme.background)
+      .id(DemoTheme.renderToken)
   }
 
   private var header: some View {

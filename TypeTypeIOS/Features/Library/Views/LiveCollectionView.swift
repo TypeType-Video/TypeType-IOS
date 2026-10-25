@@ -120,6 +120,7 @@ struct LiveCollectionView: View {
       }
       .refreshable { await viewModel.reload() }
       .background(DemoTheme.background)
+      .id(DemoTheme.renderToken)
     }
   }
 

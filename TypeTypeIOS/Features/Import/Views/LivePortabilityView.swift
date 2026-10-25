@@ -22,10 +22,10 @@ struct LivePortabilityView: View {
         setupSection
       }
     }
-      .id(DemoTheme.renderToken)
       .listStyle(.insetGrouped)
       .scrollContentBackground(.hidden)
       .background(DemoTheme.background)
+      .id(DemoTheme.renderToken)
     .navigationTitle("Data and backups")
     .navigationBarTitleDisplayMode(.inline)
     .task { await viewModel.prepare() }

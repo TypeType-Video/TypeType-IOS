@@ -16,7 +16,6 @@ struct LiveSettingsEditingPage<Content: View>: View {
         }
       }
     }
-      .id(DemoTheme.renderToken)
       .listStyle(.insetGrouped)
     .toolbar {
       ToolbarItemGroup(placement: .topBarTrailing) {
@@ -40,6 +39,7 @@ struct LiveSettingsEditingPage<Content: View>: View {
     }
     .scrollContentBackground(.hidden)
     .background(DemoTheme.background)
+      .id(DemoTheme.renderToken)
   }
 
   private var errorBinding: Binding<Bool> {
@@ -105,10 +105,10 @@ struct LiveSettingsAccountsView: View {
       }
       }
     }
-      .id(DemoTheme.renderToken)
       .listStyle(.insetGrouped)
       .scrollContentBackground(.hidden)
       .background(DemoTheme.background)
+      .id(DemoTheme.renderToken)
     .navigationTitle("Instances and accounts")
     .navigationBarTitleDisplayMode(.inline)
   }

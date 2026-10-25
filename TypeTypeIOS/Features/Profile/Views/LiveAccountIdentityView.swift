@@ -83,10 +83,10 @@ struct LiveAccountIdentityView: View {
           }
         }
       }
-        .id(DemoTheme.renderToken)
         .listStyle(.insetGrouped)
         .scrollContentBackground(.hidden)
         .background(DemoTheme.background)
+      .id(DemoTheme.renderToken)
     }
   }
 

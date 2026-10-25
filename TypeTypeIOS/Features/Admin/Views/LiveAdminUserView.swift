@@ -96,10 +96,10 @@ struct LiveAdminUserView: View {
         }
       }
     }
-      .id(DemoTheme.renderToken)
       .listStyle(.insetGrouped)
       .scrollContentBackground(.hidden)
       .background(DemoTheme.background)
+      .id(DemoTheme.renderToken)
     .navigationTitle(viewModel.user.name)
     .navigationBarTitleDisplayMode(.inline)
     .confirmationDialog(

@@ -119,10 +119,10 @@ struct LiveNotificationsView: View {
           }
         }
       }
-        .id(DemoTheme.renderToken)
         .listStyle(.insetGrouped)
         .scrollContentBackground(.hidden)
         .background(DemoTheme.background)
+      .id(DemoTheme.renderToken)
       .listStyle(.plain)
       .refreshable { await viewModel.reload() }
     }

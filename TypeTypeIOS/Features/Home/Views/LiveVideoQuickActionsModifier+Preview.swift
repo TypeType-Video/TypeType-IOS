@@ -12,6 +12,7 @@ extension LiveVideoQuickActionsModifier {
     }
     .frame(width: 320)
     .background(DemoTheme.background)
+      .id(DemoTheme.renderToken)
   }
 
   private var branding: LiveVideoBranding {

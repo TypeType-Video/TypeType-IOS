@@ -18,6 +18,7 @@ struct LiveSearchHistoryView: View {
       .padding(16)
     }
     .background(DemoTheme.background)
+      .id(DemoTheme.renderToken)
     .refreshable {
       async let history: Void = viewModel.loadHistory()
       async let trending: Void = viewModel.loadTrending()

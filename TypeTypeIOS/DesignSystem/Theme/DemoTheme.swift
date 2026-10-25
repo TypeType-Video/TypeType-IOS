@@ -8,6 +8,7 @@ enum DemoTheme {
   /// Bumped on every theme change; lists re-create their cells through
   /// `.id(renderToken)` so UIKit-painted cards pick the new palette up.
   static var renderToken = UUID()
+  private static var lastThemeSignature = ""
   /// The environment colour scheme (system light/dark); used for the
   /// `.system` mode instead of UITraitCollection so system changes react.
   static var systemColorScheme: ColorScheme?
@@ -58,9 +59,20 @@ enum DemoTheme {
     accent = preferences.accentColor.color
     appearanceMode = preferences.appearanceMode
     appearanceAmoled = preferences.appearanceAmoled
-    renderToken = UUID()
-    if let colorScheme {
-      systemColorScheme = colorScheme
+    // Rebuild token only on real theme changes: bumping it every render
+    // thrashed the lists and still left stale colours behind.
+    let signature = [
+      preferences.accentColor.rawValue,
+      preferences.appearanceMode.rawValue,
+      preferences.appearanceAmoled.description,
+      preferences.appearanceTheme.rawValue,
+      preferences.appearancePersonality.rawValue,
+      preferences.appearanceFont.rawValue,
+      preferences.mangaPaper.rawValue,
+    ].joined(separator: "|")
+    if signature != lastThemeSignature {
+      lastThemeSignature = signature
+      renderToken = UUID()
     }
     appearanceTheme = preferences.appearanceTheme
     appearancePersonality = preferences.appearancePersonality

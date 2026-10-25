@@ -48,10 +48,10 @@ struct LiveDiagnosticsView: View {
         } header: { Text("Recent requests").liveSectionHeader() }
       }
     }
-      .id(DemoTheme.renderToken)
       .listStyle(.insetGrouped)
       .scrollContentBackground(.hidden)
       .background(DemoTheme.background)
+      .id(DemoTheme.renderToken)
       .listStyle(.insetGrouped)
     .navigationTitle("Diagnostics")
     .navigationBarTitleDisplayMode(.inline)

@@ -85,10 +85,10 @@ struct LiveProfileView: View {
         }
       }
     }
-      .id(DemoTheme.renderToken)
       .listStyle(.insetGrouped)
       .scrollContentBackground(.hidden)
       .background(DemoTheme.background)
+      .id(DemoTheme.renderToken)
   }
 
   private func importPhoto(_ item: PhotosPickerItem) async {

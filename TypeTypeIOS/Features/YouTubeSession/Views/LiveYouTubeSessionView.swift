@@ -89,10 +89,10 @@ struct LiveYouTubeSessionView: View {
         }
       }
     }
-      .id(DemoTheme.renderToken)
       .listStyle(.insetGrouped)
       .scrollContentBackground(.hidden)
       .background(DemoTheme.background)
+      .id(DemoTheme.renderToken)
     .navigationTitle("YouTube session")
     .navigationBarTitleDisplayMode(.inline)
     .task { await viewModel.prepare() }

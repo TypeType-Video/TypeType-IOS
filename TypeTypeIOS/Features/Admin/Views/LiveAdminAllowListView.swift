@@ -111,10 +111,10 @@ struct LiveAdminAllowListView: View {
         }
       } header: { Text("Global playlists").liveSectionHeader() }
     }
-      .id(DemoTheme.renderToken)
       .listStyle(.insetGrouped)
       .scrollContentBackground(.hidden)
       .background(DemoTheme.background)
+      .id(DemoTheme.renderToken)
       .listStyle(.insetGrouped)
     .refreshable { await viewModel.reload() }
   }
