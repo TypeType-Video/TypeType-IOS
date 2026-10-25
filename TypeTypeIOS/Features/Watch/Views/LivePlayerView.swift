@@ -8,7 +8,7 @@ struct LivePlayerView: View {
   let posterURL: URL?
   @Binding var cinemaMode: Bool
   @State private var showsOptions = false
-  @State private var presentsDownload = false
+
 
   @State private var seekFeedback: PlayerDoubleTapSeekFeedback?
   @State private var swipeAdjustment: PlayerSwipeAdjustmentState?
@@ -144,46 +144,20 @@ struct LivePlayerView: View {
         playbackStatusAccessibilityElement
         playbackPositionAccessibilityElement
 
-        HStack(spacing: 10) {
-          if let video = coordinator.currentVideo,
-            let shareURL = LiveShareURLBuilder.video(
-              serverURL: dependencies.serverStore.selectedServer()?.baseURL,
-              sourceURL: video.url
-            ) {
-            ShareLink(item: shareURL) {
-              overlayIcon("square.and.arrow.up")
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel("Share")
-            .accessibilityIdentifier("live.player.share")
-
-            Button {
-              presentsDownload = true
-            } label: {
-              overlayIcon("arrow.down.circle")
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel("Download")
-            .accessibilityIdentifier("live.player.download")
-          }
-
-          Button {
-            showsOptions = true
-          } label: {
-            overlayIcon("slider.horizontal.3")
-          }
-          .buttonStyle(.plain)
-          .accessibilityLabel("Player options")
-          .accessibilityIdentifier("live.player.options")
+        Button {
+          showsOptions = true
+        } label: {
+          overlayIcon("slider.horizontal.3")
         }
+        .buttonStyle(.plain)
         .frame(
           maxWidth: .infinity,
           maxHeight: .infinity,
           alignment: .topTrailing
         )
         .padding(10)
-        .opacity(controller.playerChromeVisible ? 1 : 0)
-        .allowsHitTesting(controller.playerChromeVisible)
+        .accessibilityLabel("Player options")
+        .accessibilityIdentifier("live.player.options")
       }
     }
     .aspectRatio(16 / 9, contentMode: .fit)
@@ -218,11 +192,7 @@ struct LivePlayerView: View {
     .onDisappear {
       restoreSystemBrightness()
     }
-    .sheet(isPresented: $presentsDownload) {
-      if let video = coordinator.currentVideo {
-        LiveDownloadSheet(video: video, dependencies: dependencies)
-      }
-    }
+
     .sheet(isPresented: $showsOptions) {
       LivePlayerOptionsSheet(
         controller: controller,

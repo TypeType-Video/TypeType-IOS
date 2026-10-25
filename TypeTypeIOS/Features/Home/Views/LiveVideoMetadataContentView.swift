@@ -68,6 +68,15 @@ struct LiveVideoMetadataContentView: View {
         )
         .id(engagementIdentity)
 
+        if let playbackDescription, !playbackDescription.isEmpty {
+          LiveVideoDescriptionCard(
+            video: resolvedVideo,
+            text: playbackDescription,
+            onSeekTimestamp: playerController.seek,
+            onOpenURL: routeLink
+          )
+        }
+
         LiveVideoLibraryActionsView(
           video: resolvedVideo,
           dependencies: dependencies

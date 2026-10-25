@@ -54,8 +54,6 @@ final class LivePlayerController: ObservableObject {
   /// Whether the player surface sits at the top of the page (page not
   /// scrolled). Gates the pull-down-to-mini gesture.
   var isPlayerSurfaceFullyVisible = true
-  /// Mirror of the AVKit chrome visibility; overlay buttons bind to this.
-  @Published var playerChromeVisible = true
   let service: LivePlaybackServiceProtocol?
   let settingsService: LiveSettingsServiceProtocol
   let historyService: LiveHistoryServiceProtocol
