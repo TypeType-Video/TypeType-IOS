@@ -62,7 +62,6 @@ struct TypeTypeLiveAppView: View {
         colorScheme: systemColorScheme
       )
       DemoTheme.applyUIKitAppearance(preferences.preferences)
-      DemoTheme.applyUIKitAppearance(preferences.preferences)
     }
     .onChange(of: scenePhase) {
       guard scenePhase == .background,
@@ -103,7 +102,7 @@ struct TypeTypeLiveAppView: View {
     case .light: return .light
     case .dark: return .dark
     case .system:
-      return preferences.preferences.appearanceAmoled ? .dark : nil
+      return nil
     }
   }
 }
