@@ -21,6 +21,9 @@ struct LiveSubscriptionGroupsView: View {
       }
     }
       .listStyle(.insetGrouped)
+      .scrollContentBackground(.hidden)
+      .background(DemoTheme.background)
+      .listStyle(.insetGrouped)
     .navigationTitle("Groups")
     .navigationBarTitleDisplayMode(.inline)
     .overlay {

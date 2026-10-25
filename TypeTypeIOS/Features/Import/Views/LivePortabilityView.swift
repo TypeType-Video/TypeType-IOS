@@ -22,6 +22,9 @@ struct LivePortabilityView: View {
         setupSection
       }
     }
+      .listStyle(.insetGrouped)
+      .scrollContentBackground(.hidden)
+      .background(DemoTheme.background)
     .navigationTitle("Data and backups")
     .navigationBarTitleDisplayMode(.inline)
     .task { await viewModel.prepare() }

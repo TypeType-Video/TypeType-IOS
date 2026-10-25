@@ -73,6 +73,9 @@ struct LiveAdminUsersView: View {
           }
         } header: { Text("\(viewModel.total) users").liveSectionHeader() }
       }
+        .listStyle(.insetGrouped)
+        .scrollContentBackground(.hidden)
+        .background(DemoTheme.background)
       .listStyle(.plain)
       .refreshable { await viewModel.reload() }
     }

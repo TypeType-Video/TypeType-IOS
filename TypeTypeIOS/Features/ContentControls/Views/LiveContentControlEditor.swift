@@ -27,6 +27,9 @@ struct LiveContentControlEditor: View {
           Text("The server validates and normalizes supported URLs.")
         }
       }
+        .listStyle(.insetGrouped)
+        .scrollContentBackground(.hidden)
+        .background(DemoTheme.background)
       .navigationTitle("Add \(kind.title.lowercased())")
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {

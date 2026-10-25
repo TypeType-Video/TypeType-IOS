@@ -82,6 +82,9 @@ struct LiveAdminUserAccessView: View {
       )
     }
       .listStyle(.insetGrouped)
+      .scrollContentBackground(.hidden)
+      .background(DemoTheme.background)
+      .listStyle(.insetGrouped)
     .toolbar {
       ToolbarItem(placement: .topBarTrailing) {
         Menu("Add", systemImage: "plus") {

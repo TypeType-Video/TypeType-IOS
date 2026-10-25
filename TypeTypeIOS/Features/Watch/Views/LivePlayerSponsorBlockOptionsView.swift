@@ -61,6 +61,9 @@ struct LivePlayerSponsorBlockOptionsView: View {
         } header: { Text("Current video").liveSectionHeader() }
       }
     }
+      .listStyle(.insetGrouped)
+      .scrollContentBackground(.hidden)
+      .background(DemoTheme.background)
     .navigationTitle("SponsorBlock")
     .navigationBarTitleDisplayMode(.inline)
   }

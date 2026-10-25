@@ -32,6 +32,9 @@ struct LiveDownloadSheet: View {
 
         status
       }
+        .listStyle(.insetGrouped)
+        .scrollContentBackground(.hidden)
+        .background(DemoTheme.background)
       .navigationTitle("Download")
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {

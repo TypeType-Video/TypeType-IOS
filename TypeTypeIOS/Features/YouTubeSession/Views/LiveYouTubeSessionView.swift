@@ -89,6 +89,9 @@ struct LiveYouTubeSessionView: View {
         }
       }
     }
+      .listStyle(.insetGrouped)
+      .scrollContentBackground(.hidden)
+      .background(DemoTheme.background)
     .navigationTitle("YouTube session")
     .navigationBarTitleDisplayMode(.inline)
     .task { await viewModel.prepare() }

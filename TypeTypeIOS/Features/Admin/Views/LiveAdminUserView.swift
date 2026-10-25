@@ -96,6 +96,9 @@ struct LiveAdminUserView: View {
         }
       }
     }
+      .listStyle(.insetGrouped)
+      .scrollContentBackground(.hidden)
+      .background(DemoTheme.background)
     .navigationTitle(viewModel.user.name)
     .navigationBarTitleDisplayMode(.inline)
     .confirmationDialog(
