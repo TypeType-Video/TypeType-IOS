@@ -20,6 +20,9 @@ final class LiveHistoryViewModel: ObservableObject {
   private let service: LiveHistoryServiceProtocol
   private let pageSize = 20
   private var queryTask: Task<Void, Never>?
+  /// Raw items fetched from the server. The display collapses duplicates,
+  /// so pagination must never advance by the visible count.
+  private var fetchedCount = 0
 
   init(service: LiveHistoryServiceProtocol) {
     self.service = service
@@ -57,10 +60,10 @@ final class LiveHistoryViewModel: ObservableObject {
     do {
       let page = try await request(offset: 0)
       try Task.checkCancellation()
-      // History lists watch EVENTS: re-watching a video is real history and
-      // must stay. Deduping by URL froze the pagination offset once only
-      // repeats remained, so the old entries were never reached.
-      items = page
+      fetchedCount = page.count
+      // One row per video, stamped with the LAST watch (like the web). The
+      // raw offset above keeps pagination correct regardless of collapsing.
+      items = collapsedToLatest(page)
       canLoadMore = !page.isEmpty
       state = .loaded
     } catch is CancellationError {
@@ -75,8 +78,9 @@ final class LiveHistoryViewModel: ObservableObject {
     isLoadingMore = true
     defer { isLoadingMore = false }
     do {
-      let page = try await request(offset: items.count)
-      items.append(contentsOf: page)
+      let page = try await request(offset: fetchedCount)
+      fetchedCount += page.count
+      items = collapsedToLatest(items + page)
       canLoadMore = !page.isEmpty
     } catch is CancellationError {
       return
@@ -119,6 +123,26 @@ final class LiveHistoryViewModel: ObservableObject {
       limit: pageSize,
       offset: offset
     )
+  }
+
+  /// Keeps one entry per video: the most recent watch wins.
+  private func collapsedToLatest(
+    _ candidates: [LiveHistoryItem]
+  ) -> [LiveHistoryItem] {
+    var best: [String: LiveHistoryItem] = [:]
+    for item in candidates {
+      if let existing = best[item.url], existing.watchedAt >= item.watchedAt {
+        continue
+      }
+      best[item.url] = item
+    }
+    return candidates
+      .compactMap { best[$0.url] }
+      .enumerated()
+      .filter { index, item in
+        candidates.firstIndex { $0.url == item.url } == index
+      }
+      .map(\.element)
   }
 
   private func message(for error: Error) -> String {
