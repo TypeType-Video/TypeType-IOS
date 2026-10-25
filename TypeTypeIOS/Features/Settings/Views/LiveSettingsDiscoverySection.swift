@@ -6,23 +6,23 @@ struct LiveSettingsDiscoverySection: View {
 
   var body: some View {
     Section {
-      Picker(
+      LiveOptionMenu(
         "Default landing page",
-        selection: $settings.defaultLandingPage
-      ) {
-        Text("Home").tag("home")
-        Text("Subscriptions").tag("subscriptions")
-        Text("History").tag("history")
-        Text("Playlists").tag("playlists")
-        Text("Watch later").tag("watch-later")
-        Text("Favorites").tag("favorites")
-      }
-      Picker("Default service", selection: $settings.defaultService) {
-        ForEach(services) { service in
-          Text(service.name)
-            .tag(service.id)
-        }
-      }
+        selection: $settings.defaultLandingPage,
+        options: [
+          ("home", "Home"),
+          ("subscriptions", "Subscriptions"),
+          ("history", "History"),
+          ("playlists", "Playlists"),
+          ("watch-later", "Watch later"),
+          ("favorites", "Favorites"),
+        ]
+      )
+      LiveOptionMenu(
+        "Default service",
+        selection: $settings.defaultService,
+        options: services.map { ($0.id, $0.name) }
+      )
       Toggle(
         "Hide Continue watching",
         isOn: $settings.hideContinueWatching
@@ -54,23 +54,26 @@ struct LiveSettingsDiscoverySection: View {
 
     Section {
       Toggle("Enable DeArrow", isOn: $settings.deArrowEnabled)
-      Picker("Titles", selection: $settings.deArrowTitleMode) {
-        Text("DeArrow").tag("dearrow")
-        Text("Original").tag("original")
-      }
-      Picker(
+      LiveOptionMenu(
+        "Titles",
+        selection: $settings.deArrowTitleMode,
+        options: [("dearrow", "DeArrow"), ("original", "Original")]
+      )
+      LiveOptionMenu(
         "Thumbnails",
-        selection: $settings.deArrowThumbnailMode
-      ) {
-        Text("DeArrow or random").tag("dearrow_or_random")
-        Text("DeArrow").tag("dearrow")
-        Text("Random").tag("random")
-        Text("Original").tag("original")
-      }
-      Picker("Trust", selection: $settings.deArrowTrustMode) {
-        Text("Accepted").tag("accepted")
-        Text("Locked entries only").tag("locked")
-      }
+        selection: $settings.deArrowThumbnailMode,
+        options: [
+          ("dearrow_or_random", "DeArrow or random"),
+          ("dearrow", "DeArrow"),
+          ("random", "Random"),
+          ("original", "Original"),
+        ]
+      )
+      LiveOptionMenu(
+        "Trust",
+        selection: $settings.deArrowTrustMode,
+        options: [("accepted", "Accepted"), ("locked", "Locked entries only")]
+      )
     } header: { Text("DeArrow").liveSectionHeader() }
   }
 }

@@ -37,37 +37,55 @@ struct LiveSettingsCaptionAppearanceView: View {
   var body: some View {
     List {
       Section {
-        Picker("Font", selection: $styles.fontFamily) {
-          ForEach(fonts, id: \.1) { Text($0.0).tag($0.1) }
-        }
-        Picker("Size", selection: $styles.fontSize) {
-          optionLabels(sizes)
-        }
-        Picker("Color", selection: $styles.textColor) {
-          colorLabels
-        }
-        Picker("Opacity", selection: $styles.textOpacity) {
-          optionLabels(opacities)
-        }
-        Picker("Edge style", selection: $styles.textShadow) {
-          ForEach(shadows, id: \.1) { Text($0.0).tag($0.1) }
-        }
+        LiveOptionMenu(
+          "Font",
+          selection: $styles.fontFamily,
+          options: fonts.map { ($0.1, $0.0) }
+        )
+        LiveOptionMenu(
+          "Size",
+          selection: $styles.fontSize,
+          options: sizes.map { ($0, $0.isEmpty ? "System" : $0) }
+        )
+        LiveOptionMenu(
+          "Color",
+          selection: $styles.textColor,
+          options: colors.map { ($0.1, $0.0) }
+        )
+        LiveOptionMenu(
+          "Opacity",
+          selection: $styles.textOpacity,
+          options: opacities.map { ($0, $0.isEmpty ? "System" : $0) }
+        )
+        LiveOptionMenu(
+          "Edge style",
+          selection: $styles.textShadow,
+          options: shadows.map { ($0.1, $0.0) }
+        )
       } header: { Text("Text").liveSectionHeader() }
       Section {
-        Picker("Color", selection: $styles.textBackground) {
-          colorLabels
-        }
-        Picker("Opacity", selection: $styles.textBackgroundOpacity) {
-          optionLabels(opacities)
-        }
+        LiveOptionMenu(
+          "Color",
+          selection: $styles.textBackground,
+          options: colors.map { ($0.1, $0.0) }
+        )
+        LiveOptionMenu(
+          "Opacity",
+          selection: $styles.textBackgroundOpacity,
+          options: opacities.map { ($0, $0.isEmpty ? "System" : $0) }
+        )
       } header: { Text("Text background").liveSectionHeader() }
       Section {
-        Picker("Color", selection: $styles.displayBackground) {
-          colorLabels
-        }
-        Picker("Opacity", selection: $styles.displayBackgroundOpacity) {
-          optionLabels(opacities)
-        }
+        LiveOptionMenu(
+          "Color",
+          selection: $styles.displayBackground,
+          options: colors.map { ($0.1, $0.0) }
+        )
+        LiveOptionMenu(
+          "Opacity",
+          selection: $styles.displayBackgroundOpacity,
+          options: opacities.map { ($0, $0.isEmpty ? "System" : $0) }
+        )
       } header: { Text("Caption area").liveSectionHeader() } footer: {
         Text(
           "These preferences style native subtitles. System keeps "
