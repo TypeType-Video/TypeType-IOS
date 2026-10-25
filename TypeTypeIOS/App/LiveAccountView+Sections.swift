@@ -214,6 +214,9 @@ extension LiveAccountView {
       Text(title)
         .foregroundStyle(.primary)
       Spacer(minLength: 12)
+      Image(systemName: "chevron.right")
+        .font(.caption.weight(.semibold))
+        .foregroundStyle(.tertiary)
     }
     .liveSettingsRow()
     .contentShape(Rectangle())

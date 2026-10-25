@@ -10,8 +10,9 @@ struct LiveDiagnosticsView: View {
   @State private var copiedRequestID: String?
 
   var body: some View {
-    List {
-      Section {
+    ScrollView {
+      VStack(alignment: .leading, spacing: 24) {
+      LiveSettingsCard {
         Text(
           "Recent requests are stored only on this device. Routes are sanitized and never include query values, media URLs, tokens, or passwords."
         )
@@ -20,7 +21,7 @@ struct LiveDiagnosticsView: View {
       }
 
       if isLoading {
-        Section {
+        LiveSettingsCard {
           HStack {
             Spacer()
             ProgressView("Loading diagnostics")
@@ -28,7 +29,7 @@ struct LiveDiagnosticsView: View {
           }
         }
       } else if entries.isEmpty {
-        Section {
+        LiveSettingsCard {
           ContentUnavailableView(
             "No diagnostics yet",
             systemImage: "checkmark.shield",
@@ -38,15 +39,17 @@ struct LiveDiagnosticsView: View {
           )
         }
       } else {
-        Section {
+        LiveSettingsSection("Recent requests") {
           ForEach(entries) { entry in
             LiveDiagnosticRow(
               entry: entry,
               copiedRequestID: $copiedRequestID
             )
           }
-        } header: { Text("Recent requests").liveSectionHeader() }
+        }
       }
+    }
+      .background(DemoTheme.pageBackground)
     }
       .listStyle(.insetGrouped)
     .navigationTitle("Diagnostics")
