@@ -41,9 +41,6 @@ struct TypeTypeLiveAppView: View {
           .id(coordinator.identityScopeID)
       }
     }
-    // Rebuild the whole hierarchy whenever the theme changes: switching
-    // dark->light must leave ZERO dark fragments behind.
-    .id(themeIdentity)
     .task {
       if let launchURL = AppConfig.debugIncomingURL {
         coordinator.receiveIncomingURL(launchURL)
