@@ -15,17 +15,17 @@ struct LiveSettingsPlaybackSection: View {
         "Skip playlist autoplay screen",
         isOn: $settings.skipPlaylistAutoplayScreen
       )
-      Picker("Default quality", selection: $settings.defaultQuality) {
-        ForEach(qualities, id: \.self) { quality in
-          Text(quality == "auto" ? "Auto" : quality).tag(quality)
-        }
-      }
-      Picker("Default speed", selection: $settings.defaultPlaybackSpeed) {
-        ForEach([0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 2.0], id: \.self) {
-          speed in
-          Text("\(speed)x").tag(speed)
-        }
-      }
+      LiveOptionMenu(
+        "Default quality",
+        selection: $settings.defaultQuality,
+        options: qualities.map { ($0, $0 == "auto" ? "Auto" : $0) }
+      )
+      LiveOptionMenu(
+        "Default speed",
+        selection: $settings.defaultPlaybackSpeed,
+        options: [0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 2.0]
+          .map { ($0, "\($0)x") }
+      )
       Toggle(
         "High-quality playback",
         isOn: $settings.enableHighQualityPlayback

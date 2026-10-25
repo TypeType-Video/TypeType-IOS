@@ -19,17 +19,17 @@ struct LiveSettingsSponsorBlockSection: View {
 
   var body: some View {
     Section {
-      Picker("Global behavior", selection: $settings.sponsorBlockMode) {
-        ForEach(LiveSponsorBlockMode.allCases) { mode in
-          Text(mode.title).tag(mode.rawValue)
-        }
-      }
+      LiveOptionMenu(
+        "Global behavior",
+        selection: $settings.sponsorBlockMode,
+        options: LiveSponsorBlockMode.allCases.map { ($0.rawValue, $0.title) }
+      )
       ForEach(categories, id: \.0) { key, title in
-        Picker(title, selection: categoryBinding(key)) {
-          Text("Skip").tag("auto_skip")
-          Text("Mark").tag("mark_only")
-          Text("Hide").tag("disabled")
-        }
+        LiveOptionMenu(
+          title,
+          selection: categoryBinding(key),
+          options: [("auto_skip", "Skip"), ("mark_only", "Mark"), ("disabled", "Hide")]
+        )
       }
       Stepper(
         "Minimum duration: \(settings.sponsorBlockMinimumDuration)s",
