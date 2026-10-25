@@ -110,7 +110,7 @@ struct LiveSettingsAccountsView: View {
 }
 
 struct LiveSettingsAppearanceView: View {
-  @Environment(\\.colorScheme) private var colorScheme
+  @Environment(\.colorScheme) private var colorScheme
 
   private var isEffectivelyDark: Bool {
     preferences.preferences.appearanceMode == .dark
