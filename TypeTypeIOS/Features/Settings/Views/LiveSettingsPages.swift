@@ -110,6 +110,14 @@ struct LiveSettingsAccountsView: View {
 }
 
 struct LiveSettingsAppearanceView: View {
+  @Environment(\\.colorScheme) private var colorScheme
+
+  private var isEffectivelyDark: Bool {
+    preferences.preferences.appearanceMode == .dark
+      || (preferences.preferences.appearanceMode == .system
+        && colorScheme == .dark)
+  }
+
   let dependencies: AppDependencies
   @ObservedObject var viewModel: LiveSettingsViewModel
   @ObservedObject var preferences: LiveAppPreferencesStore
@@ -144,7 +152,7 @@ struct LiveSettingsAppearanceView: View {
             Text(mode.title).tag(mode)
           }
         }
-        if preferences.preferences.appearanceMode != .light {
+        if isEffectivelyDark {
           Toggle("AMOLED black", isOn: preferences.binding(\.appearanceAmoled))
         }
         Picker("Theme", selection: preferences.binding(\.appearanceTheme)) {

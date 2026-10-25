@@ -41,6 +41,9 @@ struct TypeTypeLiveAppView: View {
           .id(coordinator.identityScopeID)
       }
     }
+    // Rebuild the whole hierarchy whenever the theme changes: switching
+    // dark->light must leave ZERO dark fragments behind.
+    .id(themeIdentity)
     .task {
       if let launchURL = AppConfig.debugIncomingURL {
         coordinator.receiveIncomingURL(launchURL)
@@ -92,6 +95,9 @@ struct TypeTypeLiveAppView: View {
   private var themeIdentity: String {
     let value = preferences.preferences
     return [
+      // The system scheme is part of the identity: a system light/dark flip
+      // rebuilds the whole hierarchy so no stale fragments survive.
+      colorScheme == .dark ? "sysDark" : "sysLight",
       value.accentColor.rawValue,
       value.appearancePersonality.rawValue,
       value.appearanceMode.rawValue,
