@@ -95,36 +95,42 @@ struct LiveHistoryItem: Decodable, Equatable, Identifiable {
     // field killed the whole page decode, which is why older history never
     // appeared.
     let values = try decoder.container(keyedBy: CodingKeys.self)
-    url = try values.decode(String.self, forKey: .url)
-    id = try values.decodeIfPresent(String.self, forKey: .id)
-      ?? url
-    title = try values.decodeIfPresent(String.self, forKey: .title) ?? ""
-    thumbnail = try values.decodeIfPresent(
-      String.self,
-      forKey: .thumbnail
-    ) ?? ""
-    channelName = try values.decodeIfPresent(
-      String.self,
-      forKey: .channelName
-    ) ?? ""
-    channelURL = try values.decodeIfPresent(
-      String.self,
-      forKey: .channelURL
-    ) ?? ""
-    channelAvatar = try values.decodeIfPresent(
-      String.self,
-      forKey: .channelAvatar
-    ) ?? ""
-    duration = try values.decodeIfPresent(Int64.self, forKey: .duration) ?? -1
-    progress = try values.decodeIfPresent(Int64.self, forKey: .progress) ?? 0
-    watchedAt = try values.decodeIfPresent(Int64.self, forKey: .watchedAt) ?? 0
-    publishedAt = try values.decodeIfPresent(
-      Int64.self,
-      forKey: .publishedAt
-    )
-    viewCount = try values.decodeIfPresent(
-      Int64.self,
-      forKey: .viewCount
-    ) ?? 0
+    // Every field is read through `try?`: legacy rows carry wrong types and
+    // omitted keys alike (decodeIfPresent still throws on type mismatch).
+    url = (try? values.decode(String.self, forKey: .url))
+      ?? (try? values.decodeIfPresent(String.self, forKey: .url))
+      ?? ""
+    guard !url.isEmpty else {
+      throw DecodingError.dataCorrupted(
+        DecodingError.Context(
+          codingPath: decoder.codingPath,
+          debugDescription: "History item without a url"
+        )
+      )
+    }
+    id = (try? values.decodeIfPresent(String.self, forKey: .id)) ?? url
+    title = (try? values.decodeIfPresent(String.self, forKey: .title)) ?? ""
+    thumbnail = (try? values.decodeIfPresent(String.self, forKey: .thumbnail))
+      ?? ""
+    channelName = (try? values.decodeIfPresent(
+      String.self, forKey: .channelName
+    )) ?? ""
+    channelURL = (try? values.decodeIfPresent(
+      String.self, forKey: .channelURL
+    )) ?? ""
+    channelAvatar = (try? values.decodeIfPresent(
+      String.self, forKey: .channelAvatar
+    )) ?? ""
+    duration = (try? values.decodeIfPresent(Int64.self, forKey: .duration))
+      ?? -1
+    progress = (try? values.decodeIfPresent(Int64.self, forKey: .progress))
+      ?? 0
+    watchedAt = (try? values.decodeIfPresent(Int64.self, forKey: .watchedAt))
+      ?? 0
+    publishedAt = (try? values.decodeIfPresent(
+      Int64.self, forKey: .publishedAt
+    ))
+    viewCount = (try? values.decodeIfPresent(Int64.self, forKey: .viewCount))
+      ?? 0
   }
 }

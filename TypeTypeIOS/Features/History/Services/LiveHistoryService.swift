@@ -63,15 +63,16 @@ final class LiveHistoryService: LiveHistoryServiceProtocol {
         URLQueryItem(name: "to", value: String(to))
       )
     }
-    return try await apiClient.request(
+    let wrapped = try await apiClient.request(
       APIEndpoint(
         path: "/history",
         method: .get,
         queryItems: queryItems,
         requiresAuth: true
       ),
-      as: [LiveHistoryItem].self
+      as: [LiveHistoryItem?].self
     )
+    return wrapped.compactMap { $0 }
   }
 
   func add(
