@@ -113,7 +113,7 @@ enum DemoTheme {
     let isDark = isDarkResolved
     if appearanceAmoled, isDark { return .black }
     if appearancePersonality == .manga {
-      return mangaColor(isDark: isDark)
+      return mangaColor(role: role, isDark: isDark)
     }
     switch appearanceTheme {
     case .typetype, .dynamic:
@@ -170,17 +170,56 @@ enum DemoTheme {
     Color(uiColor: dynamicColor(role: role))
   }
 
-  private static func mangaColor(isDark: Bool) -> UIColor {
-    switch mangaPaper {
-    case .day:
-      return isDark
-        ? UIColor(red: 0.13, green: 0.12, blue: 0.10, alpha: 1)
-        : UIColor(red: 1, green: 0.99, blue: 0.96, alpha: 1)
-    case .night:
-      return .black
-    case .nord:
-      return UIColor(red: 0.18, green: 0.20, blue: 0.25, alpha: 1)
+  /// Android `mangaScheme`: the classic themes keep the paper surfaces
+  /// (background + surface; variant and container-highest share the paper
+  /// surface), the palette themes take the theme's own surface set.
+  private static func mangaColor(role: SurfaceRole, isDark: Bool) -> UIColor {
+    if mangaUsesPaperSurfaces {
+      let paperBackground: UIColor
+      let paperSurface: UIColor
+      switch mangaPaper {
+      case .day:
+        let darkSurface = mangaDarkSurface(isDark: isDark)
+        paperBackground = darkSurface
+          ? UIColor(red: 0.129, green: 0.122, blue: 0.102, alpha: 1)  // 211F1A
+          : UIColor(red: 1, green: 0.992, blue: 0.961, alpha: 1)  // FFFDF5
+        paperSurface = darkSurface
+          ? UIColor(red: 0.188, green: 0.169, blue: 0.137, alpha: 1)  // 302B23
+          : UIColor(red: 1, green: 0.980, blue: 0.910, alpha: 1)  // FFFAE8
+      case .night:
+        paperBackground = .black
+        paperSurface = UIColor(red: 0.071, green: 0.071, blue: 0.071, alpha: 1)  // 121212
+      case .nord:
+        paperBackground = UIColor(red: 0.180, green: 0.204, blue: 0.251, alpha: 1)  // 2E3440
+        paperSurface = UIColor(red: 0.231, green: 0.259, blue: 0.322, alpha: 1)  // 3B4252
+      }
+      switch role {
+      case .background, .groupedBackground, .pageBackground:
+        return paperBackground
+      case .surface, .groupedSurface, .elevatedSurface:
+        return paperSurface
+      }
     }
+    let colors = themeSurfaceColors(isDark: isDark)
+    switch role {
+    case .background, .groupedBackground, .pageBackground:
+      return UIColor(colors.background)
+    case .surface:
+      return UIColor(colors.surface)
+    case .groupedSurface, .elevatedSurface:
+      return UIColor(colors.variant)
+    }
+  }
+
+  /// Android `mangaScheme`: the classic themes (TypeType/Dynamic) paint
+  /// the paper, every palette theme paints its own surface set instead.
+  private static var mangaUsesPaperSurfaces: Bool {
+    appearanceTheme == .typetype || appearanceTheme == .dynamic
+  }
+
+  /// Android `mangaScheme`: Night paper reads dark even in light mode.
+  private static func mangaDarkSurface(isDark: Bool) -> Bool {
+    mangaUsesPaperSurfaces ? (isDark || mangaPaper != .day) : isDark
   }
 }
 
@@ -240,36 +279,31 @@ extension DemoTheme {
     return (isDarkResolved ? Color.white : Color.black).opacity(0.12)
   }
 
-  /// Theme-tinted text roles (Android: onSurface per palette).
+  /// Text roles follow the Android rule exactly: classic and palette
+  /// themes share the scheme text (`onSurface` = Zinc950/Zinc100, NOT
+  /// tinted per theme), manga paints ink on paper.
   private static func textPrimaryColor() -> Color {
-    let isDark = isDarkResolved
     if appearancePersonality == .manga {
-      return isDark ? .white : .black
+      // Android mangaScheme `ink`.
+      return mangaDarkSurface(isDark: isDarkResolved)
+        ? Color(red: 0.961, green: 0.953, blue: 0.918)  // F5F3EA
+        : Color(red: 0.090, green: 0.090, blue: 0.090)  // 171717
     }
-    switch appearanceTheme {
-    case .typetype, .dynamic:
-      return isDark ? .white : .black
-    case .nord:
-      return isDark
-        ? Color(red: 0.93, green: 0.94, blue: 0.96)
-        : Color(red: 0.18, green: 0.20, blue: 0.25)
-    case .cream:
-      return isDark
-        ? Color(red: 0.97, green: 0.94, blue: 0.90)
-        : Color(red: 0.22, green: 0.16, blue: 0.11)
-    case .forest:
-      return isDark
-        ? Color(red: 0.92, green: 0.98, blue: 0.95)
-        : Color(red: 0.08, green: 0.20, blue: 0.13)
-    case .plum:
-      return isDark
-        ? Color(red: 0.96, green: 0.93, blue: 1.0)
-        : Color(red: 0.19, green: 0.10, blue: 0.24)
-    }
+    // Android `onSurface`: Zinc100 dark / Zinc950 light.
+    return isDarkResolved
+      ? Color(red: 0.957, green: 0.957, blue: 0.961)  // F4F4F5
+      : Color(red: 0.035, green: 0.035, blue: 0.043)  // 09090B
   }
 
   private static func textSecondaryColor() -> Color {
-    return textPrimaryColor().opacity(0.62)
+    if appearancePersonality == .manga {
+      // Android mangaScheme `onSurfaceVariant` = ink at 72%.
+      return textPrimaryColor().opacity(0.72)
+    }
+    // Android `onSurfaceVariant`: Zinc400 dark / Zinc700 light.
+    return isDarkResolved
+      ? Color(red: 0.631, green: 0.631, blue: 0.667)  // A1A1AA
+      : Color(red: 0.247, green: 0.247, blue: 0.275)  // 3F3F46
   }
 
   /// Android `themeSurfaceColors`: one surface set per theme and per
