@@ -18,7 +18,7 @@ final class LiveHistoryViewModel: ObservableObject {
   @Published private(set) var errorMessage: String?
 
   private let service: LiveHistoryServiceProtocol
-  private let pageSize = 30
+  private let pageSize = 20
   private var queryTask: Task<Void, Never>?
 
   init(service: LiveHistoryServiceProtocol) {
