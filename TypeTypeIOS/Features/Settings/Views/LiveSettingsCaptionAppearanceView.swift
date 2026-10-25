@@ -77,7 +77,7 @@ struct LiveSettingsCaptionAppearanceView: View {
       }
     }
       .liveThemedList()
-      .id(DemoTheme.renderToken)
+      .liveThemeRepaint()
       .listStyle(.insetGrouped)
     .navigationTitle("Caption appearance")
     .navigationBarTitleDisplayMode(.inline)

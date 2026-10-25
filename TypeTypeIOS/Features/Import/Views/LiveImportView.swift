@@ -22,7 +22,7 @@ struct LiveImportView: View {
       typeTypeBackupSection
     }
       .liveThemedList()
-      .id(DemoTheme.renderToken)
+      .liveThemeRepaint()
     .navigationTitle("Import")
     .navigationBarTitleDisplayMode(.inline)
     .fileImporter(

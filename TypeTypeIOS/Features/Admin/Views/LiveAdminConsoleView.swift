@@ -52,7 +52,7 @@ struct LiveAdminConsoleView: View {
       } header: { Text("Support").liveSectionHeader() }
     }
       .liveThemedList()
-      .id(DemoTheme.renderToken)
+      .liveThemeRepaint()
       .listStyle(.insetGrouped)
     .navigationTitle("Administration")
     .navigationBarTitleDisplayMode(.inline)

@@ -32,7 +32,7 @@ struct LivePlaybackQueueSheet: View {
         }
       }
         .liveThemedList()
-      .id(DemoTheme.renderToken)
+      .liveThemeRepaint()
       .listStyle(.plain)
       .navigationTitle("Playback queue")
       .navigationBarTitleDisplayMode(.inline)

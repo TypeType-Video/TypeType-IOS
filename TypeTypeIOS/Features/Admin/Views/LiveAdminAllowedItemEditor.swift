@@ -19,7 +19,7 @@ struct LiveAdminAllowedItemEditor: View {
         TextField("\(label) name (optional)", text: $name)
       }
         .liveThemedList()
-      .id(DemoTheme.renderToken)
+      .liveThemeRepaint()
       .navigationTitle(title)
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {

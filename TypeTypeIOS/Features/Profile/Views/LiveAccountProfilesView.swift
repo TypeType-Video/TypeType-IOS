@@ -56,7 +56,7 @@ struct LiveAccountProfilesView: View {
       } header: { Text("New profile").liveSectionHeader() }
     }
       .liveThemedList()
-      .id(DemoTheme.renderToken)
+      .liveThemeRepaint()
       .listStyle(.insetGrouped)
     .navigationTitle("Profiles")
     .overlay(alignment: .bottom) {

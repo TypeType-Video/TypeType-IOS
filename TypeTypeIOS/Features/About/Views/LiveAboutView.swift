@@ -26,7 +26,7 @@ struct LiveAboutView: View {
       }
     }
       .liveThemedList()
-      .id(DemoTheme.renderToken)
+      .liveThemeRepaint()
     .navigationTitle("About")
     .navigationBarTitleDisplayMode(.inline)
     .externalLinkAlert(pendingURL: $pendingURL)

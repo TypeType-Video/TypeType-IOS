@@ -49,7 +49,7 @@ struct LiveDiagnosticsView: View {
       }
     }
       .liveThemedList()
-      .id(DemoTheme.renderToken)
+      .liveThemeRepaint()
       .listStyle(.insetGrouped)
     .navigationTitle("Diagnostics")
     .navigationBarTitleDisplayMode(.inline)

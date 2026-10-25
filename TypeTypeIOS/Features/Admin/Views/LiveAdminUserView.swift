@@ -97,7 +97,7 @@ struct LiveAdminUserView: View {
       }
     }
       .liveThemedList()
-      .id(DemoTheme.renderToken)
+      .liveThemeRepaint()
     .navigationTitle(viewModel.user.name)
     .navigationBarTitleDisplayMode(.inline)
     .confirmationDialog(

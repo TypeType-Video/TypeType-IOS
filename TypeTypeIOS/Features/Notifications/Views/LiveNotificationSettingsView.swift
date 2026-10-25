@@ -37,7 +37,7 @@ struct LiveNotificationSettingsView: View {
       }
     }
     .background(DemoThemeBackground())
-      .id(DemoTheme.renderToken)
+      .liveThemeRepaint()
     .navigationTitle("Channel notifications")
     .navigationBarTitleDisplayMode(.inline)
     .task { await viewModel.prepare()
@@ -69,7 +69,7 @@ struct LiveNotificationSettingsView: View {
         emptyPreferencesSection
       }
       .liveThemedList()
-      .id(DemoTheme.renderToken)
+      .liveThemeRepaint()
       .listStyle(.insetGrouped)
     } else {
       List {
@@ -98,7 +98,7 @@ struct LiveNotificationSettingsView: View {
         }
       }
         .liveThemedList()
-      .id(DemoTheme.renderToken)
+      .liveThemeRepaint()
       .listStyle(.insetGrouped)
     }
   }

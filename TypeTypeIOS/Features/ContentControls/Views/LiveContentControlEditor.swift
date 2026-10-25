@@ -28,7 +28,7 @@ struct LiveContentControlEditor: View {
         }
       }
         .liveThemedList()
-      .id(DemoTheme.renderToken)
+      .liveThemeRepaint()
       .navigationTitle("Add \(kind.title.lowercased())")
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {

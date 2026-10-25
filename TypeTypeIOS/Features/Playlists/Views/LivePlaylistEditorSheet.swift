@@ -34,7 +34,7 @@ struct LivePlaylistEditorSheet: View {
         )
         .lineLimit(3...6)
       }
-        .id(DemoTheme.renderToken)
+        .liveThemeRepaint()
       .navigationTitle(title)
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {

@@ -112,7 +112,7 @@ struct LiveAdminAllowListView: View {
       } header: { Text("Global playlists").liveSectionHeader() }
     }
       .liveThemedList()
-      .id(DemoTheme.renderToken)
+      .liveThemeRepaint()
       .listStyle(.insetGrouped)
     .refreshable { await viewModel.reload() }
   }

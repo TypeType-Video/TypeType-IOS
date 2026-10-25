@@ -82,7 +82,7 @@ struct LiveAdminUserAccessView: View {
       )
     }
       .liveThemedList()
-      .id(DemoTheme.renderToken)
+      .liveThemeRepaint()
       .listStyle(.insetGrouped)
     .toolbar {
       ToolbarItem(placement: .topBarTrailing) {

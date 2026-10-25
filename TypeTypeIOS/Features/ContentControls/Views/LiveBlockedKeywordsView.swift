@@ -92,7 +92,7 @@ struct LiveBlockedKeywordsView: View {
       }
     }
       .liveThemedList()
-      .id(DemoTheme.renderToken)
+      .liveThemeRepaint()
     .listStyle(.plain)
   }
 

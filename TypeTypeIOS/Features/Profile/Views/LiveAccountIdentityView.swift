@@ -84,7 +84,7 @@ struct LiveAccountIdentityView: View {
         }
       }
         .liveThemedList()
-      .id(DemoTheme.renderToken)
+      .liveThemeRepaint()
     }
   }
 

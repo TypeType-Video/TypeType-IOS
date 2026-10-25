@@ -33,7 +33,7 @@ struct LivePlaybackSleepTimerView: View {
       }
     }
       .liveThemedList()
-      .id(DemoTheme.renderToken)
+      .liveThemeRepaint()
     .navigationTitle("Sleep timer")
     .navigationBarTitleDisplayMode(.inline)
     .accessibilityIdentifier("live.player.sleep-timer")

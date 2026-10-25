@@ -23,7 +23,7 @@ struct LivePortabilityView: View {
       }
     }
       .liveThemedList()
-      .id(DemoTheme.renderToken)
+      .liveThemeRepaint()
     .navigationTitle("Data and backups")
     .navigationBarTitleDisplayMode(.inline)
     .task { await viewModel.prepare() }

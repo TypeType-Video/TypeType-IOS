@@ -90,7 +90,7 @@ struct LiveYouTubeSessionView: View {
       }
     }
       .liveThemedList()
-      .id(DemoTheme.renderToken)
+      .liveThemeRepaint()
     .navigationTitle("YouTube session")
     .navigationBarTitleDisplayMode(.inline)
     .task { await viewModel.prepare() }

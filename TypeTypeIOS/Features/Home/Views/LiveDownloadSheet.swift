@@ -33,7 +33,7 @@ struct LiveDownloadSheet: View {
         status
       }
         .liveThemedList()
-      .id(DemoTheme.renderToken)
+      .liveThemeRepaint()
       .navigationTitle("Download")
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {

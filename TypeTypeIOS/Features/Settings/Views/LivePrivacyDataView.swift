@@ -86,7 +86,7 @@ struct LivePrivacyDataView: View {
       }
     }
       .liveThemedList()
-      .id(DemoTheme.renderToken)
+      .liveThemeRepaint()
     .refreshable { await viewModel.reload() }
   }
 

@@ -73,7 +73,7 @@ struct LiveDownloadsView: View {
             )
           }
         }
-          .id(DemoTheme.renderToken)
+          .liveThemeRepaint()
           .liveThemedList()
         .refreshable {
           await center.refresh()

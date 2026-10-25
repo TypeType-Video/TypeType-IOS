@@ -64,7 +64,7 @@ struct LiveAdminSettingsForm: View {
       }
     }
       .liveThemedList()
-      .id(DemoTheme.renderToken)
+      .liveThemeRepaint()
   }
 
   private func optionalBinding(

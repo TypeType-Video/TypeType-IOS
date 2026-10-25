@@ -21,7 +21,7 @@ struct LiveSubscriptionGroupsView: View {
       }
     }
       .liveThemedList()
-      .id(DemoTheme.renderToken)
+      .liveThemeRepaint()
       .listStyle(.insetGrouped)
     .navigationTitle("Groups")
     .navigationBarTitleDisplayMode(.inline)

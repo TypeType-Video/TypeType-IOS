@@ -22,7 +22,7 @@ struct LiveAccountView: View {
         signOutSection
       }
       .liveThemedList()
-      .id(DemoTheme.renderToken)
+      .liveThemeRepaint()
       .navigationTitle("More")
     }
     .accessibilityIdentifier("live.account.screen")

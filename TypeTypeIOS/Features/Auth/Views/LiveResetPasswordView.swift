@@ -34,7 +34,7 @@ struct LiveResetPasswordView: View {
         }
       }
         .liveThemedList()
-      .id(DemoTheme.renderToken)
+      .liveThemeRepaint()
       .navigationTitle("Reset password")
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {

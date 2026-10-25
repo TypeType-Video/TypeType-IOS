@@ -61,8 +61,16 @@ enum DemoTheme {
     accent = preferences.accentColor.color
     appearanceMode = preferences.appearanceMode
     appearanceAmoled = preferences.appearanceAmoled
+    appearanceTheme = preferences.appearanceTheme
+    appearancePersonality = preferences.appearancePersonality
+    mangaPaper = preferences.mangaPaper
+    // Was never assigned before: `.system` mode fell back to the UIKit
+    // trait collection and missed environment scheme flips.
+    systemColorScheme = colorScheme
     // Rebuild token only on real theme changes: bumping it every render
-    // thrashed the lists and still left stale colours behind.
+    // thrashed the lists and still left stale colours behind. The resolved
+    // scheme is part of the signature, so a system light/dark flip rebuilds
+    // too — it changes every colour without touching any preference.
     let signature = [
       preferences.accentColor.rawValue,
       preferences.appearanceMode.rawValue,
@@ -71,14 +79,12 @@ enum DemoTheme {
       preferences.appearancePersonality.rawValue,
       preferences.appearanceFont.rawValue,
       preferences.mangaPaper.rawValue,
+      isDarkResolved.description,
     ].joined(separator: "|")
     if signature != lastThemeSignature {
       lastThemeSignature = signature
       renderToken = UUID()
     }
-    appearanceTheme = preferences.appearanceTheme
-    appearancePersonality = preferences.appearancePersonality
-    mangaPaper = preferences.mangaPaper
   }
 
   static func applyUIKitAppearance(
@@ -236,6 +242,9 @@ struct DemoThemePalette: Equatable {
   var textPrimary: Color
   var textSecondary: Color
   var accent: Color
+  /// Bumped on every theme change; `liveThemeRepaint()` keys subtree
+  /// identity on it so statics re-render without an app refresh.
+  var renderToken: UUID
 }
 
 private struct DemoThemePaletteKey: EnvironmentKey {
@@ -271,7 +280,8 @@ extension DemoTheme {
       separator: separatorColor(),
       textPrimary: textPrimaryColor(),
       textSecondary: textSecondaryColor(),
-      accent: accent
+      accent: accent,
+      renderToken: renderToken
     )
   }
 
@@ -608,5 +618,25 @@ private struct LiveThemedListModifier: ViewModifier {
       .environment(\.defaultMinListRowHeight, 44)
       .listRowBackground(palette.surface)
       .listRowSeparatorTint(palette.separator)
+  }
+}
+
+/// Re-creates the wrapped subtree whenever the theme palette changes. The
+/// environment change re-runs the modifier body; the fresh render token
+/// gives the content a new identity, so SwiftUI re-invokes the content
+/// closures — which re-read the `DemoTheme.*` roles. Without it a theme
+/// switch only repainted pages whose own body happened to run (the "tap
+/// around first, then the new theme shows" symptom).
+extension View {
+  func liveThemeRepaint() -> some View {
+    modifier(LiveThemeRepaintModifier())
+  }
+}
+
+private struct LiveThemeRepaintModifier: ViewModifier {
+  @Environment(\.demoTheme) private var palette
+
+  func body(content: Content) -> some View {
+    content.id(palette.renderToken)
   }
 }

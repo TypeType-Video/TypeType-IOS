@@ -120,7 +120,7 @@ struct LiveNotificationsView: View {
         }
       }
         .liveThemedList()
-      .id(DemoTheme.renderToken)
+      .liveThemeRepaint()
       .listStyle(.plain)
       .refreshable { await viewModel.reload() }
     }

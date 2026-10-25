@@ -44,7 +44,7 @@ extension LiveChannelView {
       .padding(16)
     }
     .background(DemoThemeBackground())
-      .id(DemoTheme.renderToken)
+      .liveThemeRepaint()
     .refreshable {
       if viewModel.selectedTab == .playlists {
         await viewModel.loadPlaylists()

@@ -126,7 +126,7 @@ struct LivePublicPlaylistView: View {
     }
     .refreshable { await viewModel.reload() }
     .background(DemoThemeBackground())
-      .id(DemoTheme.renderToken)
+      .liveThemeRepaint()
   }
 
   private var columns: [GridItem] {

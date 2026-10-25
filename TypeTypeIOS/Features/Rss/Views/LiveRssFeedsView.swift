@@ -70,7 +70,7 @@ struct LiveRssFeedsView: View {
         }
       }
         .liveThemedList()
-      .id(DemoTheme.renderToken)
+      .liveThemeRepaint()
       .listStyle(.insetGrouped)
     }
   }
@@ -137,7 +137,7 @@ struct LiveRssFeedsView: View {
         } header: { Text("Content").liveSectionHeader() }
       }
         .liveThemedList()
-      .id(DemoTheme.renderToken)
+      .liveThemeRepaint()
       .navigationTitle("RSS feed")
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {

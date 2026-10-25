@@ -35,7 +35,7 @@ struct LivePlayerOptionsSheet: View {
         reportSection
       }
         .liveThemedList()
-      .id(DemoTheme.renderToken)
+      .liveThemeRepaint()
       .accessibilityIdentifier("live.player.options-sheet")
       .navigationTitle("Player options")
       .navigationBarTitleDisplayMode(.inline)

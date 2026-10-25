@@ -39,7 +39,7 @@ struct LiveSettingsEditingPage<Content: View>: View {
     }
     .scrollContentBackground(.hidden)
     .background(DemoThemeBackground())
-      .id(DemoTheme.renderToken)
+      .liveThemeRepaint()
   }
 
   private var errorBinding: Binding<Bool> {
@@ -106,7 +106,7 @@ struct LiveSettingsAccountsView: View {
       }
     }
       .liveThemedList()
-      .id(DemoTheme.renderToken)
+      .liveThemeRepaint()
     .navigationTitle("Instances and accounts")
     .navigationBarTitleDisplayMode(.inline)
   }
