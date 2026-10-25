@@ -93,10 +93,12 @@ enum DemoTheme {
     // The pages paint their own backgrounds through SwiftUI's dynamic
     // theme colors; painting UIKit table backgrounds here fought them and
     // cached stale colours per trait (AMOLED toggles never showed).
-    // The section cards are UIKit-painted cells: bind them to the theme
-    // surface so palette themes (Nord/Cream/Forest/Plum) colour them too.
-    UITableViewCell.appearance().backgroundColor = dynamicColor(role: .surface)
-    UICollectionViewCell.appearance().backgroundColor = dynamicColor(role: .surface)
+    // Rows are painted in the PAGE colour so they sit flat on the page,
+    // like Android's settings screens (no cards — plain rows and hairline
+    // dividers). Opaque, so the system's insetGrouped section chrome
+    // behind the rows stays covered.
+    UITableViewCell.appearance().backgroundColor = dynamicColor(role: .background)
+    UICollectionViewCell.appearance().backgroundColor = dynamicColor(role: .background)
     // Transparent, not a surface color: painting this white put a square
     // block behind every section header, clashing with the rounded cards.
     UITableViewHeaderFooterView.appearance().backgroundColor = .clear
@@ -620,7 +622,10 @@ private struct LiveThemedListModifier: ViewModifier {
       .scrollContentBackground(.hidden)
       .background(palette.background)
       .environment(\.defaultMinListRowHeight, 44)
-      .listRowBackground(palette.surface)
+      // Rows sit FLAT on the page (Android: settings screens have no
+      // cards — plain rows and hairline dividers). Painting them with the
+      // surface role turned every section into a rounded pile.
+      .listRowBackground(palette.background)
       .listRowSeparatorTint(palette.separator)
   }
 }
