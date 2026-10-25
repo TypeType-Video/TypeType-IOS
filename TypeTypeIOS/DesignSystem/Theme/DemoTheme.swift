@@ -262,8 +262,6 @@ struct LiveSettingsCard<Content: View>: View {
   }
 }
 
-/// Pads every row in a settings card to the Android row metrics
-/// (20 horizontal, 12 vertical, 44pt minimum height) so pages can be swept
 /// Settings row in the Android design: 20/12 padding, body title,
 /// muted trailing value.
 struct LiveSettingsRow<Trailing: View>: View {
@@ -335,7 +333,7 @@ struct LiveSettingsSection<Content: View, Footer: View>: View {
       Text(title)
         .liveSectionHeader()
         .padding(.horizontal, 20)
-      content
+      LiveSettingsCard { content }
       footer
     }
   }
