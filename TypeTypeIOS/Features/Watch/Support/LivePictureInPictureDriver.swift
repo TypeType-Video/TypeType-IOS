@@ -17,6 +17,8 @@ final class LivePictureInPictureDriver: NSObject, ObservableObject {
   private weak var hostView: UIView?
   private var isRestoring = false
   private var controlsRefreshPending = false
+  private var didStartConfirmed = false
+  private var startVerificationTask: Task<Void, Never>?
   private var onRestore: (() -> Void)?
   private var onClose: (() -> Void)?
 
@@ -84,8 +86,19 @@ final class LivePictureInPictureDriver: NSObject, ObservableObject {
     self.onRestore = onRestore
     self.onClose = onClose
     isEngaged = true
+    didStartConfirmed = false
     onChange?()
     pipController.startPictureInPicture()
+    // If neither didStart nor failedToStart arrives, the window never came
+    // up: release the engagement so the in-app card can show instead.
+    startVerificationTask?.cancel()
+    startVerificationTask = Task { @MainActor [weak self] in
+      try? await Task.sleep(for: .seconds(1.5))
+      guard let self, isEngaged, !didStartConfirmed else { return }
+      isEngaged = false
+      contentLayer?.isHidden = true
+      onChange?()
+    }
   }
 
   func stop() {
@@ -111,7 +124,9 @@ extension LivePictureInPictureDriver: AVPictureInPictureControllerDelegate {
     _ pictureInPictureController: AVPictureInPictureController
   ) {
     Task { @MainActor [weak self] in
-      self?.onChange?()
+      guard let self else { return }
+      didStartConfirmed = true
+      onChange?()
     }
   }
 
