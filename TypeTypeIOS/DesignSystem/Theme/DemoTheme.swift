@@ -145,18 +145,14 @@ enum DemoTheme {
 
   private static func lightBase(_ role: SurfaceRole) -> UIColor {
     switch role {
-    case .background:
+    case .background, .surface:
       return .systemBackground
     case .groupedBackground:
       return .secondarySystemGroupedBackground
     case .pageBackground:
       return .systemGroupedBackground
-    case .surface:
+    case .groupedSurface, .elevatedSurface:
       return .secondarySystemBackground
-    case .groupedSurface:
-      return .tertiarySystemGroupedBackground
-    case .elevatedSurface:
-      return .tertiarySystemBackground
     }
   }
 
@@ -284,7 +280,12 @@ private struct SettingsRowLayout: Layout {
       let size = subview.sizeThatFits(
         ProposedViewSize(width: width - 40, height: nil)
       )
-      height += max(size.height + 24, 44)
+      // Hairline children (dividers) stay hairlines.
+      if size.height <= 2 {
+        height += 1
+      } else {
+        height += max(size.height + 24, 44)
+      }
     }
     return CGSize(width: width, height: height)
   }
@@ -300,6 +301,15 @@ private struct SettingsRowLayout: Layout {
       let size = subview.sizeThatFits(
         ProposedViewSize(width: bounds.width - 40, height: nil)
       )
+      if size.height <= 2 {
+        subview.place(
+          at: CGPoint(x: bounds.minX, y: y),
+          anchor: .topLeading,
+          proposal: ProposedViewSize(width: bounds.width, height: 1)
+        )
+        y += 1
+        continue
+      }
       let rowHeight = max(size.height + 24, 44)
       subview.place(
         at: CGPoint(x: bounds.minX + 20, y: y + (rowHeight - size.height) / 2),
@@ -346,9 +356,7 @@ struct LiveSettingsRow<Trailing: View>: View {
         .foregroundStyle(.secondary)
         .lineLimit(1)
     }
-    .padding(.horizontal, 20)
-    .padding(.vertical, 12)
-    .frame(minHeight: 44)
+    .frame(minHeight: 20)
   }
 }
 
@@ -394,8 +402,6 @@ extension View {
   /// Standard row padding inside settings cards (Android: 20/12, 44 min).
   func liveSettingsRow() -> some View {
     self
-      .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
-      .padding(.horizontal, 20)
-      .padding(.vertical, 12)
+      .frame(maxWidth: .infinity, minHeight: 20, alignment: .leading)
   }
 }
