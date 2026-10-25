@@ -8,6 +8,13 @@ extension LivePlaybackCoordinator {
 
   func minimize() {
     guard hasActivePlayback else { return }
+    // Closing before playback ever started means "drop it": no PiP, no
+    // audio, no card. The mini player only carries playback that ran.
+    guard controller?.state == .playing || controller?.state == .paused
+    else {
+      close()
+      return
+    }
     controller?.flushHistory()
     // Twitch-style: float the real system PiP window over the app. When PiP
     // is unavailable or fails, isEngaged stays false and the in-app card
