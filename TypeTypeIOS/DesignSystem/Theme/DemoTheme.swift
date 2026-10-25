@@ -284,45 +284,53 @@ extension DemoTheme {
               Color(uiColor: .secondarySystemBackground),
               Color(uiColor: .secondarySystemBackground))
     case .nord:
+      // Android themeSurfaceColors: ECEFF4/FFFFFF/D8DEE9/8A96A8 (light),
+      // 2E3440/3B4252/434C5E/616E82 (dark).
       return isDark
         ? (Color(red: 0.180, green: 0.204, blue: 0.251),
            Color(red: 0.231, green: 0.259, blue: 0.322),
            Color(red: 0.263, green: 0.298, blue: 0.369),
-           Color(red: 0.302, green: 0.337, blue: 0.408))
+           Color(red: 0.380, green: 0.431, blue: 0.510))
         : (Color(red: 0.925, green: 0.937, blue: 0.957),
            Color.white,
            Color(red: 0.847, green: 0.871, blue: 0.914),
            Color(red: 0.541, green: 0.588, blue: 0.659))
     case .cream:
+      // Android themeSurfaceColors: FFF7ED/FFFBEB/FED7AA/B45309 (light),
+      // 261A12/3B2418/51301D/9A6A4A (dark).
       return isDark
-        ? (Color(red: 0.15, green: 0.10, blue: 0.07),
-           Color(red: 0.20, green: 0.14, blue: 0.10),
-           Color(red: 0.26, green: 0.19, blue: 0.14),
-           Color(red: 0.36, green: 0.27, blue: 0.20))
-        : (Color(red: 1.0, green: 0.97, blue: 0.93),
-           Color.white,
-           Color(red: 0.96, green: 0.92, blue: 0.85),
-           Color(red: 0.85, green: 0.78, blue: 0.68))
+        ? (Color(red: 0.149, green: 0.102, blue: 0.071),
+           Color(red: 0.231, green: 0.141, blue: 0.094),
+           Color(red: 0.318, green: 0.188, blue: 0.114),
+           Color(red: 0.604, green: 0.416, blue: 0.290))
+        : (Color(red: 1.0, green: 0.969, blue: 0.929),
+           Color(red: 1.0, green: 0.984, blue: 0.922),
+           Color(red: 0.996, green: 0.843, blue: 0.667),
+           Color(red: 0.706, green: 0.325, blue: 0.035))
     case .forest:
+      // Android themeSurfaceColors: F0FDF4/FFFFFF/DCFCE7/4D7C5B (light),
+      // 0B1F14/102A1B/173A25/5D9270 (dark).
       return isDark
-        ? (Color(red: 0.04, green: 0.12, blue: 0.08),
-           Color(red: 0.07, green: 0.18, blue: 0.12),
-           Color(red: 0.10, green: 0.24, blue: 0.16),
-           Color(red: 0.18, green: 0.34, blue: 0.25))
-        : (Color(red: 0.94, green: 0.99, blue: 0.96),
+        ? (Color(red: 0.043, green: 0.122, blue: 0.078),
+           Color(red: 0.063, green: 0.165, blue: 0.106),
+           Color(red: 0.090, green: 0.227, blue: 0.145),
+           Color(red: 0.365, green: 0.573, blue: 0.439))
+        : (Color(red: 0.941, green: 0.992, blue: 0.957),
            Color.white,
-           Color(red: 0.84, green: 0.94, blue: 0.88),
-           Color(red: 0.55, green: 0.73, blue: 0.62))
+           Color(red: 0.863, green: 0.988, blue: 0.906),
+           Color(red: 0.302, green: 0.486, blue: 0.357))
     case .plum:
+      // Android themeSurfaceColors: FAF5FF/FFFFFF/F3E8FF/8B5BA8 (light),
+      // 1D1028/2A1738/3B2050/9567AD (dark).
       return isDark
-        ? (Color(red: 0.11, green: 0.06, blue: 0.16),
-           Color(red: 0.15, green: 0.09, blue: 0.22),
-           Color(red: 0.20, green: 0.13, blue: 0.29),
-           Color(red: 0.31, green: 0.20, blue: 0.42))
-        : (Color(red: 0.98, green: 0.96, blue: 1.0),
+        ? (Color(red: 0.114, green: 0.063, blue: 0.157),
+           Color(red: 0.165, green: 0.090, blue: 0.220),
+           Color(red: 0.231, green: 0.125, blue: 0.314),
+           Color(red: 0.584, green: 0.404, blue: 0.678))
+        : (Color(red: 0.980, green: 0.961, blue: 1.0),
            Color.white,
-           Color(red: 0.92, green: 0.88, blue: 0.97),
-           Color(red: 0.74, green: 0.65, blue: 0.84))
+           Color(red: 0.953, green: 0.910, blue: 1.0),
+           Color(red: 0.545, green: 0.357, blue: 0.659))
     }
   }
 }
