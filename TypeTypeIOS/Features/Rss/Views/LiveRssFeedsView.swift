@@ -69,6 +69,7 @@ struct LiveRssFeedsView: View {
           row(feed)
         }
       }
+        .id(DemoTheme.renderToken)
         .listStyle(.insetGrouped)
         .scrollContentBackground(.hidden)
         .background(DemoTheme.background)
@@ -137,6 +138,7 @@ struct LiveRssFeedsView: View {
           Toggle("Upcoming", isOn: $viewModel.draftIncludeUpcoming)
         } header: { Text("Content").liveSectionHeader() }
       }
+        .id(DemoTheme.renderToken)
         .listStyle(.insetGrouped)
         .scrollContentBackground(.hidden)
         .background(DemoTheme.background)

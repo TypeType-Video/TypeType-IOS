@@ -16,6 +16,7 @@ struct LiveSettingsEditingPage<Content: View>: View {
         }
       }
     }
+      .id(DemoTheme.renderToken)
       .listStyle(.insetGrouped)
     .toolbar {
       ToolbarItemGroup(placement: .topBarTrailing) {
@@ -104,6 +105,7 @@ struct LiveSettingsAccountsView: View {
       }
       }
     }
+      .id(DemoTheme.renderToken)
       .listStyle(.insetGrouped)
       .scrollContentBackground(.hidden)
       .background(DemoTheme.background)

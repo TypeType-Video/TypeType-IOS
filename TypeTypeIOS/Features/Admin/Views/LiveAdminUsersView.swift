@@ -73,6 +73,7 @@ struct LiveAdminUsersView: View {
           }
         } header: { Text("\(viewModel.total) users").liveSectionHeader() }
       }
+        .id(DemoTheme.renderToken)
         .listStyle(.insetGrouped)
         .scrollContentBackground(.hidden)
         .background(DemoTheme.background)

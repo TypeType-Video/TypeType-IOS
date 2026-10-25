@@ -25,6 +25,7 @@ struct LiveAboutView: View {
         serverSection
       }
     }
+      .id(DemoTheme.renderToken)
       .listStyle(.insetGrouped)
       .scrollContentBackground(.hidden)
       .background(DemoTheme.background)

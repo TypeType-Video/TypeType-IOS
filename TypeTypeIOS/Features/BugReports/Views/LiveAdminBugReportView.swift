@@ -90,6 +90,7 @@ struct LiveAdminBugReportView: View {
             }
           } header: { Text("GitHub").liveSectionHeader() }
         }
+          .id(DemoTheme.renderToken)
           .listStyle(.insetGrouped)
           .scrollContentBackground(.hidden)
           .background(DemoTheme.background)

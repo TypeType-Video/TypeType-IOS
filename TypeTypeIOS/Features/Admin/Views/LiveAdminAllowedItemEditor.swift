@@ -18,6 +18,7 @@ struct LiveAdminAllowedItemEditor: View {
           .autocorrectionDisabled()
         TextField("\(label) name (optional)", text: $name)
       }
+        .id(DemoTheme.renderToken)
         .listStyle(.insetGrouped)
         .scrollContentBackground(.hidden)
         .background(DemoTheme.background)

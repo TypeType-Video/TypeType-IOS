@@ -27,6 +27,7 @@ struct LiveContentControlEditor: View {
           Text("The server validates and normalizes supported URLs.")
         }
       }
+        .id(DemoTheme.renderToken)
         .listStyle(.insetGrouped)
         .scrollContentBackground(.hidden)
         .background(DemoTheme.background)

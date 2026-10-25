@@ -92,6 +92,7 @@ struct LiveAdminBugReportsView: View {
           }
         } header: { Text("\(viewModel.total) reports").liveSectionHeader() }
       }
+        .id(DemoTheme.renderToken)
         .listStyle(.insetGrouped)
         .scrollContentBackground(.hidden)
         .background(DemoTheme.background)

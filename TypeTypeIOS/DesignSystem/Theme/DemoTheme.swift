@@ -5,6 +5,9 @@ enum DemoTheme {
   static var accent = Color(red: 1, green: 0.30, blue: 0.32)
   static var appearanceMode = LiveAppearanceMode.system
   static var appearanceAmoled = false
+  /// Bumped on every theme change; lists re-create their cells through
+  /// `.id(renderToken)` so UIKit-painted cards pick the new palette up.
+  static var renderToken = UUID()
   /// The environment colour scheme (system light/dark); used for the
   /// `.system` mode instead of UITraitCollection so system changes react.
   static var systemColorScheme: ColorScheme?
@@ -55,6 +58,7 @@ enum DemoTheme {
     accent = preferences.accentColor.color
     appearanceMode = preferences.appearanceMode
     appearanceAmoled = preferences.appearanceAmoled
+    renderToken = UUID()
     if let colorScheme {
       systemColorScheme = colorScheme
     }
@@ -69,8 +73,16 @@ enum DemoTheme {
     // The pages paint their own backgrounds through SwiftUI's dynamic
     // theme colors; painting UIKit table backgrounds here fought them and
     // cached stale colours per trait (AMOLED toggles never showed).
-    UITableViewCell.appearance().backgroundColor = .clear
-    UICollectionViewCell.appearance().backgroundColor = .clear
+    // The section cards are UIKit-painted cells: bind them to the theme
+    // surface so palette themes (Nord/Cream/Forest/Plum) colour them too.
+    UITableViewCell.appearance().backgroundColor = dynamicColor(
+      role: .surface,
+      fallbackIsDark: preferences.appearanceMode == .dark
+    )
+    UICollectionViewCell.appearance().backgroundColor = dynamicColor(
+      role: .surface,
+      fallbackIsDark: preferences.appearanceMode == .dark
+    )
     // Transparent, not a surface color: painting this white put a square
     // block behind every section header, clashing with the rounded cards.
     UITableViewHeaderFooterView.appearance().backgroundColor = .clear

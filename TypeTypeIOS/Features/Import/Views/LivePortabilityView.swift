@@ -22,6 +22,7 @@ struct LivePortabilityView: View {
         setupSection
       }
     }
+      .id(DemoTheme.renderToken)
       .listStyle(.insetGrouped)
       .scrollContentBackground(.hidden)
       .background(DemoTheme.background)

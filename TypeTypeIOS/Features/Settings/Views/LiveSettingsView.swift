@@ -209,6 +209,7 @@ struct LiveSettingsView: View {
       )
       .accessibilityIdentifier("live.settings.sign-out")
     }
+      .id(DemoTheme.renderToken)
     .listStyle(.plain)
     .padding(.bottom, playbackCoordinator.showsMiniPlayer ? 82 : 0)
     .scrollContentBackground(.hidden)

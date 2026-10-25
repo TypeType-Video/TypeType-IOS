@@ -34,6 +34,7 @@ struct LivePlayerOptionsSheet: View {
         streamInformationSection
         reportSection
       }
+        .id(DemoTheme.renderToken)
         .listStyle(.insetGrouped)
         .scrollContentBackground(.hidden)
         .background(DemoTheme.background)
