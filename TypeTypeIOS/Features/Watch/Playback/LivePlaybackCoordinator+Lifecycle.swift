@@ -20,16 +20,21 @@ extension LivePlaybackCoordinator {
   /// layer was installed into the live player view by LivePlayerLayerView.
   func startSystemPictureInPicture() {
     guard let controller else { return }
-    // While loading the layer renders no frames yet; the video poster keeps
-    // the PiP window filled so the system can start it.
-    controller.pictureInPicture.applyPoster(url: currentVideo?.thumbnail)
+    let posterURL = currentVideo?.thumbnail
     controller.pictureInPicture.onChange = { [weak self] in
       self?.objectWillChange.send()
     }
-    controller.pictureInPicture.start(
-      onRestore: { [weak self] in self?.expand() },
-      onClose: { [weak self] in self?.close() }
-    )
+    // The placeholder must be in the layer BEFORE the start: the system
+    // refuses a PiP window backed by an empty layer (that is what made the
+    // window only appear once the video rendered).
+    Task { [weak self] in
+      guard let self else { return }
+      await controller.pictureInPicture.loadPoster(url: posterURL)
+      controller.pictureInPicture.start(
+        onRestore: { [weak self] in self?.expand() },
+        onClose: { [weak self] in self?.close() }
+      )
+    }
   }
 
   func close() {

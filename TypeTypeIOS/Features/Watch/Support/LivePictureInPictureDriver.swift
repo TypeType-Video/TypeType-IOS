@@ -54,20 +54,20 @@ final class LivePictureInPictureDriver: NSObject, ObservableObject {
   }
 
   /// Renders the poster into the content layer as a placeholder; the
-  /// player's frames overwrite it once playback renders.
-  func applyPoster(url: URL?) {
+  /// player's frames overwrite it once playback renders. Waits until the
+  /// placeholder is in place — the system refuses a PiP start on an empty
+  /// layer.
+  func loadPoster(url: URL?) async {
     guard let url else { return }
-    Task { [weak self] in
-      guard
-        let (data, _) = try? await URLSession.shared.data(from: url),
-        let image = UIImage(data: data),
-        let cgImage = image.cgImage
-      else {
-        return
-      }
-      self?.contentLayer?.contents = cgImage
-      self?.contentLayer?.contentsGravity = .resizeAspect
+    guard
+      let (data, _) = try? await URLSession.shared.data(from: url),
+      let image = UIImage(data: data),
+      let cgImage = image.cgImage
+    else {
+      return
     }
+    contentLayer?.contents = cgImage
+    contentLayer?.contentsGravity = .resizeAspect
   }
 
   func relayout() {
