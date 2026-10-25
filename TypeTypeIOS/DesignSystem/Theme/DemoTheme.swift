@@ -319,3 +319,41 @@ struct LiveSettingsDivider: View {
       .padding(.leading, 20)
   }
 }
+
+/// A settings section in the Android design: uppercase caption on the page
+/// background, then the card with rows, then optional footer content.
+struct LiveSettingsSection<Content: View, Footer: View>: View {
+  let title: String
+  private let content: Content
+  private let footer: Footer
+
+  init(
+    _ title: String,
+    @ViewBuilder content: () -> Content,
+    @ViewBuilder footer: () -> Footer = { EmptyView() }
+  ) {
+    self.title = title
+    self.content = content()
+    self.footer = footer()
+  }
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 0) {
+      Text(title)
+        .liveSectionHeader()
+        .padding(.horizontal, 20)
+      LiveSettingsCard { content }
+      footer
+    }
+  }
+}
+
+extension View {
+  /// Standard row padding inside settings cards (Android: 20/12, 44 min).
+  func liveSettingsRow() -> some View {
+    self
+      .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+      .padding(.horizontal, 20)
+      .padding(.vertical, 12)
+  }
+}
