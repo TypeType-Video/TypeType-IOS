@@ -83,36 +83,54 @@ enum DemoTheme {
     base: UIColor,
     isDark: Bool
   ) -> UIColor {
-    if appearanceAmoled, isDark { return .black }
-    if appearancePersonality == .manga {
-      return mangaColor(isDark: isDark)
-    }
-    switch appearanceTheme {
-    case .typetype, .dynamic:
-      // Resolve statically against our own mode: dynamic system colors
-      // follow stale traits while the user switches modes and made the
-      // appearance screen flicker between states.
-      return base.resolvedColor(
-        with: UITraitCollection(
-          userInterfaceStyle: isDark ? .dark : .light
+    dynamicColor(base: base, fallbackIsDark: isDark)
+  }
+
+  /// Resolves on every draw: already-visible and lazy pages alike pick the
+  /// theme up without a reload, and no navigation state is rebuilt.
+  private static func dynamicColor(
+    base: UIColor,
+    fallbackIsDark: Bool
+  ) -> UIColor {
+    UIColor { trait in
+      let isDark: Bool
+      switch appearanceMode {
+      case .dark:
+        isDark = true
+      case .light:
+        isDark = false
+      case .system:
+        isDark = trait.userInterfaceStyle == .dark
+      }
+      if appearanceAmoled, isDark { return .black }
+      if appearancePersonality == .manga {
+        return mangaColor(isDark: isDark)
+      }
+      switch appearanceTheme {
+      case .typetype, .dynamic:
+        return base.resolvedColor(
+          with: UITraitCollection(
+            userInterfaceStyle: isDark ? .dark : .light
+          )
         )
-      )
-    case .nord:
-      return isDark
-        ? UIColor(red: 0.18, green: 0.20, blue: 0.25, alpha: 1)
-        : UIColor(red: 0.93, green: 0.94, blue: 0.96, alpha: 1)
-    case .cream:
-      return isDark
-        ? UIColor(red: 0.15, green: 0.10, blue: 0.07, alpha: 1)
-        : UIColor(red: 1, green: 0.97, blue: 0.93, alpha: 1)
-    case .forest:
-      return isDark
-        ? UIColor(red: 0.04, green: 0.12, blue: 0.08, alpha: 1)
-        : UIColor(red: 0.94, green: 0.99, blue: 0.96, alpha: 1)
-    case .plum:
-      return isDark
-        ? UIColor(red: 0.11, green: 0.06, blue: 0.16, alpha: 1)
-        : UIColor(red: 0.98, green: 0.96, blue: 1, alpha: 1)
+      case .nord:
+        return isDark
+          ? UIColor(red: 0.18, green: 0.20, blue: 0.25, alpha: 1)
+          : UIColor(red: 0.93, green: 0.94, blue: 0.96, alpha: 1)
+      case .cream:
+        return isDark
+          ? UIColor(red: 0.15, green: 0.10, blue: 0.07, alpha: 1)
+          : UIColor(red: 1, green: 0.97, blue: 0.93, alpha: 1)
+      case .forest:
+        return isDark
+          ? UIColor(red: 0.04, green: 0.12, blue: 0.08, alpha: 1)
+          : UIColor(red: 0.94, green: 0.99, blue: 0.96, alpha: 1)
+      case .plum:
+        return isDark
+          ? UIColor(red: 0.11, green: 0.06, blue: 0.16, alpha: 1)
+          : UIColor(red: 0.98, green: 0.96, blue: 1, alpha: 1)
+      }
+      }
     }
   }
 
