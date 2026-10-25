@@ -259,9 +259,6 @@ struct LiveSettingsCard<Content: View>: View {
     SettingsRowLayout {
       content
     }
-    .background(DemoTheme.surface)
-    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-    .padding(.horizontal, 16)
   }
 }
 
@@ -392,10 +389,14 @@ struct LiveSettingsSection<Content: View, Footer: View>: View {
       Text(title)
         .liveSectionHeader()
         .padding(.horizontal, 20)
-      LiveSettingsCard { content }
+      content
       footer
     }
   }
+}
+
+/// Flows the section rows flat on the page with the Android row metrics
+/// (20 horizontal, 12 vertical, 44pt minimum height) and hairline dividers.
 }
 
 extension View {

@@ -210,13 +210,11 @@ extension LiveAccountView {
         Image(systemName: symbol)
           .frame(width: 24)
           .foregroundStyle(DemoTheme.accent)
+        
       }
       Text(title)
-        .foregroundStyle(.primary)
+        .foregroundStyle(DemoTheme.accent)
       Spacer(minLength: 12)
-      Image(systemName: "chevron.right")
-        .font(.caption.weight(.semibold))
-        .foregroundStyle(.tertiary)
     }
     .liveSettingsRow()
     .contentShape(Rectangle())
