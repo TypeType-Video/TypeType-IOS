@@ -90,21 +90,34 @@ struct LiveHistoryItem: Decodable, Equatable, Identifiable {
   }
 
   init(from decoder: Decoder) throws {
+    // Tolerant on purpose: legacy rows (imported history, pre-app entries)
+    // omit or null fields the modern payloads always carry. A single strict
+    // field killed the whole page decode, which is why older history never
+    // appeared.
     let values = try decoder.container(keyedBy: CodingKeys.self)
     url = try values.decode(String.self, forKey: .url)
     id = try values.decodeIfPresent(String.self, forKey: .id)
       ?? url
-    title = try values.decode(String.self, forKey: .title)
-    thumbnail = try values.decode(String.self, forKey: .thumbnail)
-    channelName = try values.decode(String.self, forKey: .channelName)
-    channelURL = try values.decode(String.self, forKey: .channelURL)
+    title = try values.decodeIfPresent(String.self, forKey: .title) ?? ""
+    thumbnail = try values.decodeIfPresent(
+      String.self,
+      forKey: .thumbnail
+    ) ?? ""
+    channelName = try values.decodeIfPresent(
+      String.self,
+      forKey: .channelName
+    ) ?? ""
+    channelURL = try values.decodeIfPresent(
+      String.self,
+      forKey: .channelURL
+    ) ?? ""
     channelAvatar = try values.decodeIfPresent(
       String.self,
       forKey: .channelAvatar
     ) ?? ""
-    duration = try values.decode(Int64.self, forKey: .duration)
-    progress = try values.decode(Int64.self, forKey: .progress)
-    watchedAt = try values.decode(Int64.self, forKey: .watchedAt)
+    duration = try values.decodeIfPresent(Int64.self, forKey: .duration) ?? -1
+    progress = try values.decodeIfPresent(Int64.self, forKey: .progress) ?? 0
+    watchedAt = try values.decodeIfPresent(Int64.self, forKey: .watchedAt) ?? 0
     publishedAt = try values.decodeIfPresent(
       Int64.self,
       forKey: .publishedAt
