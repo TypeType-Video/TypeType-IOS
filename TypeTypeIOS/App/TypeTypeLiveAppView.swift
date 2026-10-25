@@ -99,8 +99,13 @@ struct TypeTypeLiveAppView: View {
 
   private var preferredColorScheme: ColorScheme? {
     if AppConfig.debugForcesLightAppearance { return .light }
-    // AMOLED black forces the dark scheme in every mode (Android parity).
-    if preferences.preferences.appearanceAmoled { return .dark }
+    // AMOLED black forces the dark scheme outside explicit Light mode;
+    // in Light mode the switch does nothing.
+    if preferences.preferences.appearanceAmoled,
+      preferences.preferences.appearanceMode != .light
+    {
+      return .dark
+    }
     switch preferences.preferences.appearanceMode {
     case .light: return .light
     case .dark: return .dark
