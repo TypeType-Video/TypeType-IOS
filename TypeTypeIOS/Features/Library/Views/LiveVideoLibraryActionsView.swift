@@ -152,6 +152,14 @@ struct LiveVideoLibraryActionsView: View {
             : DemoTheme.elevatedSurface
         )
       )
+      .overlay(
+        Circle().strokeBorder(
+          isActive
+            ? DemoTheme.accent.opacity(0.35)
+            : Color.primary.opacity(0.14),
+          lineWidth: 1
+        )
+      )
   }
 
   private var shareURL: URL? {

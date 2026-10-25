@@ -176,6 +176,17 @@ struct LiveChipButtonStyle: ButtonStyle {
         Capsule(style: .continuous)
           .fill(background)
       )
+      .overlay(
+        Capsule(style: .continuous)
+          .strokeBorder(
+            isFilled
+              ? Color.clear
+              : (isActive
+                ? DemoTheme.accent.opacity(0.35)
+                : Color.primary.opacity(0.14)),
+            lineWidth: 1
+          )
+      )
       .contentShape(Rectangle())
       .opacity(configuration.isPressed ? 0.6 : 1)
   }
