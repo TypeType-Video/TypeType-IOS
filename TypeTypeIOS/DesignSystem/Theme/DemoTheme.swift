@@ -98,60 +98,54 @@ enum DemoTheme {
     dynamicColor(role: .background, fallbackIsDark: isDark)
   }
 
-  /// Resolves on every draw: visible and lazy pages alike pick the theme up
-  /// without a reload, and no navigation state is rebuilt.
+  /// Resolves immediately (no dynamic provider): UIKit caches dynamic
+  /// colours per trait, which left pages on stale palettes after a theme
+  /// switch. Combined with the pre-render sync and the render token, every
+  /// switch repaints consistently.
   private static func dynamicColor(
     role: SurfaceRole,
     fallbackIsDark: Bool
   ) -> UIColor {
-    UIColor { trait in
-      let isDark: Bool
-      switch appearanceMode {
-      case .dark:
-        isDark = true
-      case .light:
-        isDark = false
-      case .system:
-        isDark = trait.userInterfaceStyle == .dark
+    let isDark: Bool
+    switch appearanceMode {
+    case .dark:
+      isDark = true
+    case .light:
+      isDark = false
+    case .system:
+      if let systemColorScheme {
+        isDark = systemColorScheme == .dark
+      } else {
+        isDark = UITraitCollection.current.userInterfaceStyle == .dark
       }
-      if appearanceAmoled, isDark { return .black }
-      if appearancePersonality == .manga {
-        return mangaColor(isDark: isDark)
-      }
-      switch appearanceTheme {
-      case .typetype, .dynamic:
-        // Light: the system base colours. Dark: the Android Zinc greys so
-        // AMOLED pure black reads as a real change.
-        if !isDark {
-          return lightBase(role).resolvedColor(
-            with: UITraitCollection(userInterfaceStyle: .light)
-          )
-        }
-        switch role {
-        case .background, .pageBackground:
-          return UIColor(red: 0.035, green: 0.035, blue: 0.043, alpha: 1)
-        case .groupedBackground, .surface:
-          return UIColor(red: 0.094, green: 0.094, blue: 0.106, alpha: 1)
-        case .groupedSurface, .elevatedSurface:
-          return UIColor(red: 0.153, green: 0.153, blue: 0.165, alpha: 1)
-        }
-      case .nord:
-        return isDark
-          ? UIColor(red: 0.18, green: 0.20, blue: 0.25, alpha: 1)
-          : UIColor(red: 0.93, green: 0.94, blue: 0.96, alpha: 1)
-      case .cream:
-        return isDark
-          ? UIColor(red: 0.15, green: 0.10, blue: 0.07, alpha: 1)
-          : UIColor(red: 1, green: 0.97, blue: 0.93, alpha: 1)
-      case .forest:
-        return isDark
-          ? UIColor(red: 0.04, green: 0.12, blue: 0.08, alpha: 1)
-          : UIColor(red: 0.94, green: 0.99, blue: 0.96, alpha: 1)
-      case .plum:
-        return isDark
-          ? UIColor(red: 0.11, green: 0.06, blue: 0.16, alpha: 1)
-          : UIColor(red: 0.98, green: 0.96, blue: 1, alpha: 1)
-      }
+    }
+    if appearanceAmoled, isDark { return .black }
+    if appearancePersonality == .manga {
+      return mangaColor(isDark: isDark)
+    }
+    switch appearanceTheme {
+    case .typetype, .dynamic:
+      return lightBase(role).resolvedColor(
+        with: UITraitCollection(
+          userInterfaceStyle: isDark ? .dark : .light
+        )
+      )
+    case .nord:
+      return isDark
+        ? UIColor(red: 0.18, green: 0.20, blue: 0.25, alpha: 1)
+        : UIColor(red: 0.93, green: 0.94, blue: 0.96, alpha: 1)
+    case .cream:
+      return isDark
+        ? UIColor(red: 0.15, green: 0.10, blue: 0.07, alpha: 1)
+        : UIColor(red: 1, green: 0.97, blue: 0.93, alpha: 1)
+    case .forest:
+      return isDark
+        ? UIColor(red: 0.04, green: 0.12, blue: 0.08, alpha: 1)
+        : UIColor(red: 0.94, green: 0.99, blue: 0.96, alpha: 1)
+    case .plum:
+      return isDark
+        ? UIColor(red: 0.11, green: 0.06, blue: 0.16, alpha: 1)
+        : UIColor(red: 0.98, green: 0.96, blue: 1, alpha: 1)
     }
   }
 
