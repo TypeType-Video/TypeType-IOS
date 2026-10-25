@@ -16,7 +16,7 @@ struct LiveSettingsEditingPage<Content: View>: View {
         }
       }
     }
-      .listStyle(.insetGrouped)
+      .liveThemedList()
     .toolbar {
       ToolbarItemGroup(placement: .topBarTrailing) {
         if viewModel.hasChanges {
@@ -37,8 +37,6 @@ struct LiveSettingsEditingPage<Content: View>: View {
     } message: {
       Text(viewModel.errorMessage ?? "")
     }
-    .scrollContentBackground(.hidden)
-    .background(DemoThemeBackground())
       .liveThemeRepaint()
   }
 

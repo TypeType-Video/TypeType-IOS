@@ -618,13 +618,18 @@ private struct LiveThemedListModifier: ViewModifier {
 
   func body(content: Content) -> some View {
     content
-      .listStyle(.insetGrouped)
+      // `.plain`, NOT `.insetGrouped`: the grouped style draws white
+      // rounded section cards behind the rows on iOS 26/27 (the "rounded
+      // pills"), and row backgrounds cannot cover them — only the list
+      // style removes them. Android's settings screens have no cards
+      // either: flat rows and hairline dividers on the page colour.
+      .listStyle(.plain)
       .scrollContentBackground(.hidden)
       .background(palette.background)
       .environment(\.defaultMinListRowHeight, 44)
-      // Rows sit FLAT on the page (Android: settings screens have no
-      // cards — plain rows and hairline dividers). Painting them with the
-      // surface role turned every section into a rounded pile.
+      .listRowInsets(EdgeInsets(top: 0, leading: 20, bottom: 0, trailing: 20))
+      // Rows sit FLAT on the page — never the surface role (that is for
+      // feed/content cards and chips).
       .listRowBackground(palette.background)
       .listRowSeparatorTint(palette.separator)
   }

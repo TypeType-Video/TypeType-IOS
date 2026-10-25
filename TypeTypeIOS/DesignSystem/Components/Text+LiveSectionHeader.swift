@@ -22,12 +22,16 @@ extension View {
   /// background that neither `UITableViewHeaderFooterView.appearance()`
   /// nor `backgroundView` removes (SwiftUI renders it). A background that
   /// bleeds past the slot insets (measured: -24 horizontal, -12 vertical)
-  /// covers the chrome with the page colour.
+  /// covers the chrome with the page colour. The full-width frame is load
+  /// bearing: a short footer text left the right part of the chrome block
+  /// uncovered.
   func liveSectionSlotChrome() -> some View {
-    background(
-      DemoTheme.background
-        .padding(.horizontal, -24)
-        .padding(.vertical, -12)
-    )
+    self
+      .frame(maxWidth: .infinity, alignment: .leading)
+      .background(
+        DemoTheme.background
+          .padding(.horizontal, -24)
+          .padding(.vertical, -12)
+      )
   }
 }
