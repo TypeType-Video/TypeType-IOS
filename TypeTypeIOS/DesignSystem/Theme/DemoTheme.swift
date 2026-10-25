@@ -269,12 +269,17 @@ extension DemoTheme {
       Color(uiColor: dynamicColor(role: role, fallbackIsDark: isDark))
     }
     let dark = isDark || (appearanceAmoled && appearanceMode != .light)
+    let theme = themeSurfaceOverride(isDark: dark)
+    let page = theme?.background ?? color(.pageBackground)
+    let surfaceColor = theme?.surface ?? color(.surface)
+    let variant = theme?.variant ?? color(.groupedSurface)
+    let outline = theme?.outline ?? color(.elevatedSurface)
     return DemoThemePalette(
-      background: color(.background),
-      pageBackground: color(.pageBackground),
-      surface: color(.surface),
-      groupedSurface: color(.groupedSurface),
-      elevatedSurface: color(.elevatedSurface),
+      background: theme?.background ?? color(.background),
+      pageBackground: page,
+      surface: surfaceColor,
+      groupedSurface: variant,
+      elevatedSurface: outline,
       separator: separatorColor(isDark: dark),
       textPrimary: textPrimaryColor(isDark: dark),
       textSecondary: textSecondaryColor(isDark: dark),
@@ -557,5 +562,56 @@ private struct LiveThemedListModifier: ViewModifier {
       .environment(\.defaultMinListRowHeight, 44)
       .listRowBackground(palette.surface)
       .listRowSeparatorTint(palette.separator)
+  }
+}
+
+extension DemoTheme {
+  /// Surface roles per palette, mirroring Android `themeSurfaceColors`.
+  /// TypeType and Dynamic keep the classic system surfaces (no override).
+  static func themeSurfaceOverride(isDark: Bool) -> (background: Color, surface: Color, variant: Color, outline: Color)? {
+    switch appearanceTheme {
+    case .typetype, .dynamic:
+      return nil
+    case .nord:
+      return isDark
+        ? (Color(red: 0.180, green: 0.204, blue: 0.251),
+           Color(red: 0.231, green: 0.259, blue: 0.322),
+           Color(red: 0.263, green: 0.298, blue: 0.369),
+           Color(red: 0.302, green: 0.337, blue: 0.408))
+        : (Color(red: 0.925, green: 0.937, blue: 0.957),
+           Color.white,
+           Color(red: 0.847, green: 0.871, blue: 0.914),
+           Color(red: 0.541, green: 0.588, blue: 0.659))
+    case .cream:
+      return isDark
+        ? (Color(red: 0.15, green: 0.10, blue: 0.07),
+           Color(red: 0.20, green: 0.14, blue: 0.10),
+           Color(red: 0.26, green: 0.19, blue: 0.14),
+           Color(red: 0.36, green: 0.27, blue: 0.20))
+        : (Color(red: 1.0, green: 0.97, blue: 0.93),
+           Color.white,
+           Color(red: 0.96, green: 0.92, blue: 0.85),
+           Color(red: 0.85, green: 0.78, blue: 0.68))
+    case .forest:
+      return isDark
+        ? (Color(red: 0.04, green: 0.12, blue: 0.08),
+           Color(red: 0.07, green: 0.18, blue: 0.12),
+           Color(red: 0.10, green: 0.24, blue: 0.16),
+           Color(red: 0.18, green: 0.34, blue: 0.25))
+        : (Color(red: 0.94, green: 0.99, blue: 0.96),
+           Color.white,
+           Color(red: 0.84, green: 0.94, blue: 0.88),
+           Color(red: 0.55, green: 0.73, blue: 0.62))
+    case .plum:
+      return isDark
+        ? (Color(red: 0.11, green: 0.06, blue: 0.16),
+           Color(red: 0.15, green: 0.09, blue: 0.22),
+           Color(red: 0.20, green: 0.13, blue: 0.29),
+           Color(red: 0.31, green: 0.20, blue: 0.42))
+        : (Color(red: 0.98, green: 0.96, blue: 1.0),
+           Color.white,
+           Color(red: 0.92, green: 0.88, blue: 0.97),
+           Color(red: 0.74, green: 0.65, blue: 0.84))
+    }
   }
 }
