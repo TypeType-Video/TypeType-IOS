@@ -57,8 +57,11 @@ final class LiveHistoryViewModel: ObservableObject {
     do {
       let page = try await request(offset: 0)
       try Task.checkCancellation()
-      items = unique(page)
-      canLoadMore = page.count == pageSize
+      // History lists watch EVENTS: re-watching a video is real history and
+      // must stay. Deduping by URL froze the pagination offset once only
+      // repeats remained, so the old entries were never reached.
+      items = page
+      canLoadMore = !page.isEmpty
       state = .loaded
     } catch is CancellationError {
       return
@@ -73,11 +76,8 @@ final class LiveHistoryViewModel: ObservableObject {
     defer { isLoadingMore = false }
     do {
       let page = try await request(offset: items.count)
-      let existing = Set(items.map(\.url))
-      items.append(contentsOf: page.filter {
-        !existing.contains($0.url)
-      })
-      canLoadMore = page.count == pageSize
+      items.append(contentsOf: page)
+      canLoadMore = !page.isEmpty
     } catch is CancellationError {
       return
     } catch {
@@ -119,13 +119,6 @@ final class LiveHistoryViewModel: ObservableObject {
       limit: pageSize,
       offset: offset
     )
-  }
-
-  private func unique(
-    _ candidates: [LiveHistoryItem]
-  ) -> [LiveHistoryItem] {
-    var seen: Set<String> = []
-    return candidates.filter { seen.insert($0.url).inserted }
   }
 
   private func message(for error: Error) -> String {
