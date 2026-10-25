@@ -288,11 +288,12 @@ extension DemoTheme {
 
   /// Theme-tinted text roles (Android: onSurface per palette).
   private static func textPrimaryColor(isDark: Bool) -> Color {
-    if appearancePersonality == .manga
-      || appearanceTheme == .typetype || appearanceTheme == .dynamic {
+    if appearancePersonality == .manga {
       return isDark ? .white : .black
     }
     switch appearanceTheme {
+    case .typetype, .dynamic:
+      return isDark ? .white : .black
     case .nord:
       return isDark
         ? Color(red: 0.93, green: 0.94, blue: 0.96)
