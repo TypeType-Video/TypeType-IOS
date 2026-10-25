@@ -20,12 +20,9 @@ extension LivePlaybackCoordinator {
   /// layer was installed into the live player view by LivePlayerLayerView.
   func startSystemPictureInPicture() {
     guard let controller else { return }
-    // PiP needs rendered content. Minimizing during loading would start the
-    // window with nothing to show; it fails silently and the playback keeps
-    // running with no UI at all. Fall back to the in-app card instead.
-    guard controller.state == .playing || controller.state == .paused else {
-      return
-    }
+    // While loading the layer renders no frames yet; the video poster keeps
+    // the PiP window filled so the system can start it.
+    controller.pictureInPicture.applyPoster(url: currentVideo?.thumbnail)
     controller.pictureInPicture.onChange = { [weak self] in
       self?.objectWillChange.send()
     }

@@ -53,6 +53,23 @@ final class LivePictureInPictureDriver: NSObject, ObservableObject {
     relayout()
   }
 
+  /// Renders the poster into the content layer as a placeholder; the
+  /// player's frames overwrite it once playback renders.
+  func applyPoster(url: URL?) {
+    guard let url else { return }
+    Task { [weak self] in
+      guard
+        let (data, _) = try? await URLSession.shared.data(from: url),
+        let image = UIImage(data: data),
+        let cgImage = image.cgImage
+      else {
+        return
+      }
+      self?.contentLayer?.contents = cgImage
+      self?.contentLayer?.contentsGravity = .resizeAspect
+    }
+  }
+
   func relayout() {
     guard let hostView, let contentLayer else { return }
     CATransaction.begin()
