@@ -46,7 +46,9 @@ enum DemoTheme {
     case surface, groupedSurface, elevatedSurface
   }
 
-  static let separator = Color(uiColor: .separator)
+  /// Themed separator role — the same resolver the environment palette
+  /// uses, so dividers and card borders can never disagree.
+  static var separator: Color { separatorColor() }
 
   static func updateAccent(_ preference: LiveAccentColor) {
     accent = preference.color
@@ -87,14 +89,8 @@ enum DemoTheme {
     // cached stale colours per trait (AMOLED toggles never showed).
     // The section cards are UIKit-painted cells: bind them to the theme
     // surface so palette themes (Nord/Cream/Forest/Plum) colour them too.
-    UITableViewCell.appearance().backgroundColor = dynamicColor(
-      role: .surface,
-      fallbackIsDark: preferences.appearanceMode == .dark
-    )
-    UICollectionViewCell.appearance().backgroundColor = dynamicColor(
-      role: .surface,
-      fallbackIsDark: preferences.appearanceMode == .dark
-    )
+    UITableViewCell.appearance().backgroundColor = dynamicColor(role: .surface)
+    UICollectionViewCell.appearance().backgroundColor = dynamicColor(role: .surface)
     // Transparent, not a surface color: painting this white put a square
     // block behind every section header, clashing with the rounded cards.
     UITableViewHeaderFooterView.appearance().backgroundColor = .clear
@@ -103,34 +99,18 @@ enum DemoTheme {
     UITableViewHeaderFooterView.appearance().backgroundView = UIView()
   }
 
-  private static func themeUIColor(
-    base: UIColor,
-    isDark: Bool
-  ) -> UIColor {
-    dynamicColor(role: .background, fallbackIsDark: isDark)
-  }
-
   /// Resolves immediately (no dynamic provider): UIKit caches dynamic
   /// colours per trait, which left pages on stale palettes after a theme
   /// switch. Combined with the pre-render sync and the render token, every
   /// switch repaints consistently.
-  private static func dynamicColor(
-    role: SurfaceRole,
-    fallbackIsDark: Bool
-  ) -> UIColor {
-    let isDark: Bool
-    switch appearanceMode {
-    case .dark:
-      isDark = true
-    case .light:
-      isDark = false
-    case .system:
-      if let systemColorScheme {
-        isDark = systemColorScheme == .dark
-      } else {
-        isDark = UITraitCollection.current.userInterfaceStyle == .dark
-      }
-    }
+  ///
+  /// Every surface role resolves through the theme's surface set
+  /// (Android: `themeSurfaceColors` — one set per theme and per light/dark
+  /// mode, each role takes its slot). The earlier role-blind colour here
+  /// collapsed cards, chips and UIKit cells into the page background on
+  /// the palette themes.
+  private static func dynamicColor(role: SurfaceRole) -> UIColor {
+    let isDark = isDarkResolved
     if appearanceAmoled, isDark { return .black }
     if appearancePersonality == .manga {
       return mangaColor(isDark: isDark)
@@ -142,22 +122,34 @@ enum DemoTheme {
           userInterfaceStyle: isDark ? .dark : .light
         )
       )
-    case .nord:
-      return isDark
-        ? UIColor(red: 0.18, green: 0.20, blue: 0.25, alpha: 1)
-        : UIColor(red: 0.93, green: 0.94, blue: 0.96, alpha: 1)
-    case .cream:
-      return isDark
-        ? UIColor(red: 0.15, green: 0.10, blue: 0.07, alpha: 1)
-        : UIColor(red: 1, green: 0.97, blue: 0.93, alpha: 1)
-    case .forest:
-      return isDark
-        ? UIColor(red: 0.04, green: 0.12, blue: 0.08, alpha: 1)
-        : UIColor(red: 0.94, green: 0.99, blue: 0.96, alpha: 1)
-    case .plum:
-      return isDark
-        ? UIColor(red: 0.11, green: 0.06, blue: 0.16, alpha: 1)
-        : UIColor(red: 0.98, green: 0.96, blue: 1, alpha: 1)
+    case .nord, .cream, .forest, .plum:
+      let colors = themeSurfaceColors(isDark: isDark)
+      switch role {
+      case .background, .groupedBackground, .pageBackground:
+        return UIColor(colors.background)
+      case .surface:
+        return UIColor(colors.surface)
+      case .groupedSurface:
+        return UIColor(colors.variant)
+      case .elevatedSurface:
+        return UIColor(colors.outline)
+      }
+    }
+  }
+
+  /// The scheme for the current appearance mode; `.system` follows the
+  /// environment scheme so system light/dark changes apply immediately.
+  private static var isDarkResolved: Bool {
+    switch appearanceMode {
+    case .dark:
+      return true
+    case .light:
+      return false
+    case .system:
+      if let systemColorScheme {
+        return systemColorScheme == .dark
+      }
+      return UITraitCollection.current.userInterfaceStyle == .dark
     }
   }
 
@@ -175,27 +167,7 @@ enum DemoTheme {
   }
 
   private static func themed(_ role: SurfaceRole) -> Color {
-    let isDark: Bool
-    switch appearanceMode {
-    case .dark:
-      isDark = true
-    case .light:
-      isDark = false
-    case .system:
-      if let systemColorScheme {
-        isDark = systemColorScheme == .dark
-      } else {
-        isDark = UITraitCollection.current.userInterfaceStyle == .dark
-      }
-    }
-    return Color(uiColor: dynamicColor(role: role, fallbackIsDark: isDark))
-  }
-
-  private static func resolvedUIColor(
-    _ base: UIColor,
-    isDark: Bool
-  ) -> UIColor {
-    dynamicColor(role: .background, fallbackIsDark: isDark)
+    Color(uiColor: dynamicColor(role: role))
   }
 
   private static func mangaColor(isDark: Bool) -> UIColor {
@@ -228,17 +200,9 @@ struct DemoThemePalette: Equatable {
 }
 
 private struct DemoThemePaletteKey: EnvironmentKey {
-  static let defaultValue = DemoThemePalette(
-    background: .white,
-    pageBackground: Color(uiColor: .systemGroupedBackground),
-    surface: .white,
-    groupedSurface: Color(uiColor: .secondarySystemBackground),
-    elevatedSurface: Color(uiColor: .secondarySystemBackground),
-    separator: Color.primary.opacity(0.12),
-    textPrimary: .primary,
-    textSecondary: .secondary,
-    accent: DemoTheme.accent
-  )
+  /// Computed, not cached: a `let` froze the accent at first access and
+  /// left un-injected surfaces on the launch palette.
+  static var defaultValue: DemoThemePalette { DemoTheme.palette() }
 }
 
 extension EnvironmentValues {
@@ -251,48 +215,34 @@ extension EnvironmentValues {
 extension DemoTheme {
   /// Builds the full palette from the current preferences (Android:
   /// `themedLightScheme`/`themedDarkScheme` derive every role at once).
+  /// Every surface role comes from the same resolver the `DemoTheme.*`
+  /// static roles use, so the environment palette and the statics can
+  /// never disagree (the old split logic painted AMOLED and system-mode
+  /// edge cases differently on each path).
   static func palette() -> DemoThemePalette {
-    let isDark: Bool
-    switch appearanceMode {
-    case .dark:
-      isDark = true
-    case .light:
-      isDark = false
-    case .system:
-      if let systemColorScheme {
-        isDark = systemColorScheme == .dark
-      } else {
-        isDark = UITraitCollection.current.userInterfaceStyle == .dark
-      }
-    }
     func color(_ role: SurfaceRole) -> Color {
-      Color(uiColor: dynamicColor(role: role, fallbackIsDark: isDark))
+      Color(uiColor: dynamicColor(role: role))
     }
-    let dark = isDark || (appearanceAmoled && appearanceMode != .light)
-    let theme = themeSurfaceOverride(isDark: dark)
-    let page = theme?.background ?? color(.pageBackground)
-    let surfaceColor = theme?.surface ?? color(.surface)
-    let variant = theme?.variant ?? color(.groupedSurface)
-    let outline = theme?.outline ?? color(.elevatedSurface)
     return DemoThemePalette(
-      background: theme?.background ?? color(.background),
-      pageBackground: page,
-      surface: surfaceColor,
-      groupedSurface: variant,
-      elevatedSurface: outline,
-      separator: separatorColor(isDark: dark),
-      textPrimary: textPrimaryColor(isDark: dark),
-      textSecondary: textSecondaryColor(isDark: dark),
+      background: color(.background),
+      pageBackground: color(.pageBackground),
+      surface: color(.surface),
+      groupedSurface: color(.groupedSurface),
+      elevatedSurface: color(.elevatedSurface),
+      separator: separatorColor(),
+      textPrimary: textPrimaryColor(),
+      textSecondary: textSecondaryColor(),
       accent: accent
     )
   }
 
-  private static func separatorColor(isDark: Bool) -> Color {
-    return (isDark ? Color.white : Color.black).opacity(0.12)
+  private static func separatorColor() -> Color {
+    return (isDarkResolved ? Color.white : Color.black).opacity(0.12)
   }
 
   /// Theme-tinted text roles (Android: onSurface per palette).
-  private static func textPrimaryColor(isDark: Bool) -> Color {
+  private static func textPrimaryColor() -> Color {
+    let isDark = isDarkResolved
     if appearancePersonality == .manga {
       return isDark ? .white : .black
     }
@@ -318,14 +268,21 @@ extension DemoTheme {
     }
   }
 
-  private static func textSecondaryColor(isDark: Bool) -> Color {
-    return textPrimaryColor(isDark: isDark).opacity(0.62)
+  private static func textSecondaryColor() -> Color {
+    return textPrimaryColor().opacity(0.62)
   }
 
-  static func themeSurfaceOverride(isDark: Bool) -> (background: Color, surface: Color, variant: Color, outline: Color)? {
+  /// Android `themeSurfaceColors`: one surface set per theme and per
+  /// light/dark mode — `(background, surface, variant, outline)`.
+  static func themeSurfaceColors(isDark: Bool) -> (background: Color, surface: Color, variant: Color, outline: Color) {
     switch appearanceTheme {
     case .typetype, .dynamic:
-      return nil
+      // Never reached through `dynamicColor` (the system surfaces win
+      // there); kept total so the function stays non-optional.
+      return (Color(uiColor: .systemBackground),
+              Color(uiColor: .systemBackground),
+              Color(uiColor: .secondarySystemBackground),
+              Color(uiColor: .secondarySystemBackground))
     case .nord:
       return isDark
         ? (Color(red: 0.180, green: 0.204, blue: 0.251),
