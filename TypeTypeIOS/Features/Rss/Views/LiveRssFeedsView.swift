@@ -71,7 +71,7 @@ struct LiveRssFeedsView: View {
       }
         .listStyle(.insetGrouped)
         .scrollContentBackground(.hidden)
-        .background(DemoTheme.background)
+        .background(DemoThemeBackground())
       .id(DemoTheme.renderToken)
       .listStyle(.insetGrouped)
     }
@@ -140,7 +140,7 @@ struct LiveRssFeedsView: View {
       }
         .listStyle(.insetGrouped)
         .scrollContentBackground(.hidden)
-        .background(DemoTheme.background)
+        .background(DemoThemeBackground())
       .id(DemoTheme.renderToken)
       .navigationTitle("RSS feed")
       .navigationBarTitleDisplayMode(.inline)

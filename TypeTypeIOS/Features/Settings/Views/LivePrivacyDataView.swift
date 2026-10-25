@@ -87,7 +87,7 @@ struct LivePrivacyDataView: View {
     }
       .listStyle(.insetGrouped)
       .scrollContentBackground(.hidden)
-      .background(DemoTheme.background)
+      .background(DemoThemeBackground())
       .id(DemoTheme.renderToken)
     .refreshable { await viewModel.reload() }
   }

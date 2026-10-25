@@ -38,7 +38,7 @@ struct LiveSettingsEditingPage<Content: View>: View {
       Text(viewModel.errorMessage ?? "")
     }
     .scrollContentBackground(.hidden)
-    .background(DemoTheme.background)
+    .background(DemoThemeBackground())
       .id(DemoTheme.renderToken)
   }
 
@@ -107,7 +107,7 @@ struct LiveSettingsAccountsView: View {
     }
       .listStyle(.insetGrouped)
       .scrollContentBackground(.hidden)
-      .background(DemoTheme.background)
+      .background(DemoThemeBackground())
       .id(DemoTheme.renderToken)
     .navigationTitle("Instances and accounts")
     .navigationBarTitleDisplayMode(.inline)

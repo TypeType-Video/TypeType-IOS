@@ -98,7 +98,7 @@ struct LiveAdminUserView: View {
     }
       .listStyle(.insetGrouped)
       .scrollContentBackground(.hidden)
-      .background(DemoTheme.background)
+      .background(DemoThemeBackground())
       .id(DemoTheme.renderToken)
     .navigationTitle(viewModel.user.name)
     .navigationBarTitleDisplayMode(.inline)

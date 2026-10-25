@@ -53,7 +53,7 @@ struct LiveAdminConsoleView: View {
     }
       .listStyle(.insetGrouped)
       .scrollContentBackground(.hidden)
-      .background(DemoTheme.background)
+      .background(DemoThemeBackground())
       .id(DemoTheme.renderToken)
       .listStyle(.insetGrouped)
     .navigationTitle("Administration")

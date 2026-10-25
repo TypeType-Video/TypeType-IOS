@@ -114,7 +114,7 @@ extension LiveSearchView {
       .padding(16)
     }
     .scrollDismissesKeyboard(.immediately)
-    .background(DemoTheme.background)
+    .background(DemoThemeBackground())
       .id(DemoTheme.renderToken)
   }
 

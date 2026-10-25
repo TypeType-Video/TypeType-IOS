@@ -20,7 +20,7 @@ struct LiveAdminAllowedItemEditor: View {
       }
         .listStyle(.insetGrouped)
         .scrollContentBackground(.hidden)
-        .background(DemoTheme.background)
+        .background(DemoThemeBackground())
       .id(DemoTheme.renderToken)
       .navigationTitle(title)
       .navigationBarTitleDisplayMode(.inline)

@@ -91,7 +91,7 @@ struct LiveYouTubeSessionView: View {
     }
       .listStyle(.insetGrouped)
       .scrollContentBackground(.hidden)
-      .background(DemoTheme.background)
+      .background(DemoThemeBackground())
       .id(DemoTheme.renderToken)
     .navigationTitle("YouTube session")
     .navigationBarTitleDisplayMode(.inline)

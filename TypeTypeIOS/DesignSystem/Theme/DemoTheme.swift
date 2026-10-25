@@ -212,6 +212,120 @@ enum DemoTheme {
   }
 }
 
+/// The complete design palette — the iOS mirror of Android's `ColorScheme`:
+/// ONE variable carrying every design role, injected as an environment value
+/// (the CompositionLocal equivalent) so every consumer repaints live.
+struct DemoThemePalette: Equatable {
+  var background: Color
+  var pageBackground: Color
+  var surface: Color
+  var groupedSurface: Color
+  var elevatedSurface: Color
+  var separator: Color
+  var textPrimary: Color
+  var textSecondary: Color
+  var accent: Color
+}
+
+private struct DemoThemePaletteKey: EnvironmentKey {
+  static let defaultValue = DemoThemePalette(
+    background: .white,
+    pageBackground: Color(uiColor: .systemGroupedBackground),
+    surface: .white,
+    groupedSurface: Color(uiColor: .secondarySystemBackground),
+    elevatedSurface: Color(uiColor: .secondarySystemBackground),
+    separator: Color.primary.opacity(0.12),
+    textPrimary: .primary,
+    textSecondary: .secondary,
+    accent: DemoTheme.accent
+  )
+}
+
+extension EnvironmentValues {
+  var demoTheme: DemoThemePalette {
+    get { self[DemoThemePaletteKey.self] }
+    set { self[DemoThemePaletteKey.self] = newValue }
+  }
+}
+
+extension DemoTheme {
+  /// Builds the full palette from the current preferences (Android:
+  /// `themedLightScheme`/`themedDarkScheme` derive every role at once).
+  static func palette() -> DemoThemePalette {
+    let isDark: Bool
+    switch appearanceMode {
+    case .dark:
+      isDark = true
+    case .light:
+      isDark = false
+    case .system:
+      if let systemColorScheme {
+        isDark = systemColorScheme == .dark
+      } else {
+        isDark = UITraitCollection.current.userInterfaceStyle == .dark
+      }
+    }
+    func color(_ role: SurfaceRole) -> Color {
+      Color(uiColor: dynamicColor(role: role, fallbackIsDark: isDark))
+    }
+    let dark = isDark || (appearanceAmoled && appearanceMode != .light)
+    return DemoThemePalette(
+      background: color(.background),
+      pageBackground: color(.pageBackground),
+      surface: color(.surface),
+      groupedSurface: color(.groupedSurface),
+      elevatedSurface: color(.elevatedSurface),
+      separator: separatorColor(isDark: dark),
+      textPrimary: textPrimaryColor(isDark: dark),
+      textSecondary: textSecondaryColor(isDark: dark),
+      accent: accent
+    )
+  }
+
+  private static func separatorColor(isDark: Bool) -> Color {
+    (isDark ? Color.white : Color.black).opacity(0.12)
+  }
+
+  /// Theme-tinted text roles (Android: onSurface per palette).
+  private static func textPrimaryColor(isDark: Bool) -> Color {
+    if appearancePersonality == .manga
+      || appearanceTheme == .typetype || appearanceTheme == .dynamic {
+      return isDark ? .white : .black
+    }
+    switch appearanceTheme {
+    case .nord:
+      return isDark
+        ? Color(red: 0.93, green: 0.94, blue: 0.96)
+        : Color(red: 0.18, green: 0.20, blue: 0.25)
+    case .cream:
+      return isDark
+        ? Color(red: 0.97, green: 0.94, blue: 0.90)
+        : Color(red: 0.22, green: 0.16, blue: 0.11)
+    case .forest:
+      return isDark
+        ? Color(red: 0.92, green: 0.98, blue: 0.95)
+        : Color(red: 0.08, green: 0.20, blue: 0.13)
+    case .plum:
+      return isDark
+        ? Color(red: 0.96, green: 0.93, blue: 1.0)
+        : Color(red: 0.19, green: 0.10, blue: 0.24)
+    }
+  }
+
+  private static func textSecondaryColor(isDark: Bool) -> Color {
+    textPrimaryColor(isDark: isDark).opacity(0.62)
+  }
+}
+
+/// Environment-driven page background: repaints live on theme changes.
+struct DemoThemeBackground: View {
+  @Environment(\.demoTheme) private var palette
+
+  var body: some View {
+    palette.background
+  }
+}
+
 /// Pill button in the Apple-TV-style action language: fully rounded
 /// capsules. The primary action is the white pill with dark label; all
 /// other actions are translucent dark pills with white labels. Toggled-on
@@ -286,6 +400,7 @@ struct LiveSettingsRow<Trailing: View>: View {
   let title: String
   var subtitle: String? = nil
   private let trailing: Trailing
+  @Environment(\.demoTheme) private var palette
 
   init(
     title: String,
@@ -302,17 +417,17 @@ struct LiveSettingsRow<Trailing: View>: View {
       VStack(alignment: .leading, spacing: 2) {
         Text(title)
           .font(.body)
-          .foregroundStyle(.primary)
+          .foregroundStyle(palette.textPrimary)
         if let subtitle {
           Text(subtitle)
             .font(.caption)
-            .foregroundStyle(.secondary)
+            .foregroundStyle(palette.textSecondary)
         }
       }
       Spacer(minLength: 12)
       trailing
         .font(.body)
-        .foregroundStyle(.secondary)
+        .foregroundStyle(palette.textSecondary)
         .lineLimit(1)
     }
     .frame(minHeight: 20)
@@ -321,9 +436,11 @@ struct LiveSettingsRow<Trailing: View>: View {
 
 /// Divider between rows: thin, inset 20pt like the Android settings rows.
 struct LiveSettingsDivider: View {
+  @Environment(\.demoTheme) private var palette
+
   var body: some View {
     Rectangle()
-      .fill(Color.primary.opacity(0.12))
+      .fill(palette.separator)
       .frame(height: 1)
       .padding(.leading, 20)
   }

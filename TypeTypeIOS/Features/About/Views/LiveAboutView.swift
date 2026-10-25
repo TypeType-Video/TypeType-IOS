@@ -27,7 +27,7 @@ struct LiveAboutView: View {
     }
       .listStyle(.insetGrouped)
       .scrollContentBackground(.hidden)
-      .background(DemoTheme.background)
+      .background(DemoThemeBackground())
       .id(DemoTheme.renderToken)
     .navigationTitle("About")
     .navigationBarTitleDisplayMode(.inline)

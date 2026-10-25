@@ -183,7 +183,7 @@ struct LiveSubscriptionsView: View {
         .refreshable { await viewModel.reload() }
       }
     }
-    .background(DemoTheme.background)
+    .background(DemoThemeBackground())
       .id(DemoTheme.renderToken)
     .accessibilityIdentifier("live.subscriptions.videos")
   }

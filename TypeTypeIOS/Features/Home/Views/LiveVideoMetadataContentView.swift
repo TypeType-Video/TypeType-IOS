@@ -116,7 +116,7 @@ struct LiveVideoMetadataContentView: View {
       }
       .padding(16)
     }
-    .background(DemoTheme.background)
+    .background(DemoThemeBackground())
       .id(DemoTheme.renderToken)
     .navigationTitle("Video")
     .navigationBarTitleDisplayMode(.inline)

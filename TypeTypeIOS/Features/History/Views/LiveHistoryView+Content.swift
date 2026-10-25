@@ -68,7 +68,7 @@ extension LiveHistoryView {
         .padding(.bottom, 30)
       }
       .refreshable { await viewModel.reload() }
-      .background(DemoTheme.background)
+      .background(DemoThemeBackground())
       .id(DemoTheme.renderToken)
     }
   }

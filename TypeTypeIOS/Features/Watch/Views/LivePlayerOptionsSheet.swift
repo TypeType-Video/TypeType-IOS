@@ -36,7 +36,7 @@ struct LivePlayerOptionsSheet: View {
       }
         .listStyle(.insetGrouped)
         .scrollContentBackground(.hidden)
-        .background(DemoTheme.background)
+        .background(DemoThemeBackground())
       .id(DemoTheme.renderToken)
       .accessibilityIdentifier("live.player.options-sheet")
       .navigationTitle("Player options")

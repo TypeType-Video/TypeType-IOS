@@ -212,7 +212,7 @@ struct LiveSettingsView: View {
     .listStyle(.plain)
     .padding(.bottom, playbackCoordinator.showsMiniPlayer ? 82 : 0)
     .scrollContentBackground(.hidden)
-    .background(DemoTheme.background)
+    .background(DemoThemeBackground())
       .id(DemoTheme.renderToken)
     .tint(preferences.preferences.accentColor.color)
   }

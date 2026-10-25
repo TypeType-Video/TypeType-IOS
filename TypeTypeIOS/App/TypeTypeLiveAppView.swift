@@ -28,6 +28,7 @@ struct TypeTypeLiveAppView: View {
     // colors first and needed a second tap to show. The environment scheme
     // also makes system light/dark changes apply immediately.
     let _ = applyTheme()
+    let palette = DemoTheme.palette()
     Group {
       switch coordinator.state {
       case .booting:
@@ -41,6 +42,7 @@ struct TypeTypeLiveAppView: View {
           .id(coordinator.identityScopeID)
       }
     }
+    .environment(\.demoTheme, palette)
     .task {
       if let launchURL = AppConfig.debugIncomingURL {
         coordinator.receiveIncomingURL(launchURL)

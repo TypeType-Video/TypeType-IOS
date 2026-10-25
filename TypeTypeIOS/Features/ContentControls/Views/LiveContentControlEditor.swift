@@ -29,7 +29,7 @@ struct LiveContentControlEditor: View {
       }
         .listStyle(.insetGrouped)
         .scrollContentBackground(.hidden)
-        .background(DemoTheme.background)
+        .background(DemoThemeBackground())
       .id(DemoTheme.renderToken)
       .navigationTitle("Add \(kind.title.lowercased())")
       .navigationBarTitleDisplayMode(.inline)

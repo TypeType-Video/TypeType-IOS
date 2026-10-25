@@ -11,7 +11,7 @@ extension LiveVideoQuickActionsModifier {
         .padding([.horizontal, .bottom], 12)
     }
     .frame(width: 320)
-    .background(DemoTheme.background)
+    .background(DemoThemeBackground())
       .id(DemoTheme.renderToken)
   }
 
