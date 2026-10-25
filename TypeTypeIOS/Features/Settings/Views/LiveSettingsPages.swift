@@ -144,7 +144,9 @@ struct LiveSettingsAppearanceView: View {
             Text(mode.title).tag(mode)
           }
         }
-        Toggle("AMOLED black", isOn: preferences.binding(\.appearanceAmoled))
+        if preferences.preferences.appearanceMode != .light {
+          Toggle("AMOLED black", isOn: preferences.binding(\.appearanceAmoled))
+        }
         Picker("Theme", selection: preferences.binding(\.appearanceTheme)) {
           ForEach(LiveAppearanceTheme.allCases) { theme in
             Text(theme.title).tag(theme)
