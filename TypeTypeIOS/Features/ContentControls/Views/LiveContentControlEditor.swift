@@ -12,7 +12,7 @@ struct LiveContentControlEditor: View {
 
   var body: some View {
     NavigationStack {
-      Form {
+      List {
         Section {
           TextField("URL", text: $url)
             .keyboardType(.URL)

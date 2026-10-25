@@ -6,7 +6,7 @@ struct LiveSettingsEditingPage<Content: View>: View {
   @ViewBuilder let content: () -> Content
 
   var body: some View {
-    Form {
+    List {
       content()
 
       if let message = viewModel.message {

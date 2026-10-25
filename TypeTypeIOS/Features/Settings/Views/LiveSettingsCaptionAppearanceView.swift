@@ -35,7 +35,7 @@ struct LiveSettingsCaptionAppearanceView: View {
   ]
 
   var body: some View {
-    Form {
+    List {
       Section {
         Picker("Font", selection: $styles.fontFamily) {
           ForEach(fonts, id: \.1) { Text($0.0).tag($0.1) }
