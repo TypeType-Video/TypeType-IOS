@@ -249,3 +249,73 @@ struct LiveChipButtonStyle: ButtonStyle {
     return isActive ? DemoTheme.accent.opacity(0.16) : DemoTheme.elevatedSurface
   }
 }
+
+/// Settings card in the Komi-inspired Android design: rounded 12pt
+/// surface holding rows separated by inset dividers.
+struct LiveSettingsCard<Content: View>: View {
+  private let content: Content
+
+  init(@ViewBuilder content: () -> Content) {
+    self.content = content()
+  }
+
+  var body: some View {
+    VStack(spacing: 0) {
+      content
+    }
+    .background(DemoTheme.surface)
+    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+    .padding(.horizontal, 16)
+  }
+}
+
+/// Settings row in the Android design: 20/12 padding, body title,
+/// muted trailing value.
+struct LiveSettingsRow<Trailing: View>: View {
+  let title: String
+  var subtitle: String? = nil
+  private let trailing: Trailing
+
+  init(
+    title: String,
+    subtitle: String? = nil,
+    @ViewBuilder trailing: () -> Trailing
+  ) {
+    self.title = title
+    self.subtitle = subtitle
+    self.trailing = trailing()
+  }
+
+  var body: some View {
+    HStack(alignment: .center, spacing: 16) {
+      VStack(alignment: .leading, spacing: 2) {
+        Text(title)
+          .font(.body)
+          .foregroundStyle(.primary)
+        if let subtitle {
+          Text(subtitle)
+            .font(.caption)
+            .foregroundStyle(.secondary)
+        }
+      }
+      Spacer(minLength: 12)
+      trailing
+        .font(.body)
+        .foregroundStyle(.secondary)
+        .lineLimit(1)
+    }
+    .padding(.horizontal, 20)
+    .padding(.vertical, 12)
+    .frame(minHeight: 44)
+  }
+}
+
+/// Divider between rows: thin, inset 20pt like the Android settings rows.
+struct LiveSettingsDivider: View {
+  var body: some View {
+    Rectangle()
+      .fill(Color.primary.opacity(0.12))
+      .frame(height: 1)
+      .padding(.leading, 20)
+  }
+}

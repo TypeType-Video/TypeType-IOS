@@ -16,16 +16,19 @@ struct LiveAboutView: View {
   }
 
   var body: some View {
-    List {
-      header
-      applicationSection
-      licensesSection
-      versionsSection
-      if coordinator.selectedServer != nil {
-        serverSection
+    ScrollView {
+      VStack(alignment: .leading, spacing: 24) {
+        header
+        applicationSection
+        licensesSection
+        versionsSection
+        if coordinator.selectedServer != nil {
+          serverSection
+        }
       }
+      .padding(.vertical, 16)
     }
-      .listStyle(.insetGrouped)
+    .background(DemoTheme.pageBackground)
     .navigationTitle("About")
     .navigationBarTitleDisplayMode(.inline)
     .externalLinkAlert(pendingURL: $pendingURL)
@@ -37,49 +40,51 @@ struct LiveAboutView: View {
   }
 
   private var header: some View {
-    Section {
-      VStack(spacing: 14) {
-        Image("TypeTypeLogo")
-          .resizable()
-          .scaledToFit()
-          .frame(width: 88, height: 88)
-        Text("TypeType")
-          .font(.title.weight(.bold))
-        Text(appVersion)
-          .font(.subheadline)
-          .foregroundStyle(.secondary)
-      }
-      .frame(maxWidth: .infinity)
-      .padding(.vertical, 18)
+    VStack(spacing: 14) {
+      Image("TypeTypeLogo")
+        .resizable()
+        .scaledToFit()
+        .frame(width: 88, height: 88)
+      Text("TypeType")
+        .font(.title.weight(.bold))
+      Text(appVersion)
+        .font(.subheadline)
+        .foregroundStyle(.secondary)
     }
+    .frame(maxWidth: .infinity)
+    .padding(.vertical, 8)
   }
 
   private var applicationSection: some View {
-    Section {
-      LabeledContent("Name", value: "TypeType")
-      LabeledContent("Version", value: appVersion)
-      LabeledContent("License", value: "GPL v3")
-    } header: { Text("Application").liveSectionHeader() }
+    section("Application") {
+      LiveSettingsRow(title: "Name") { Text("TypeType") }
+      LiveSettingsDivider()
+      LiveSettingsRow(title: "Version") { Text(appVersion) }
+      LiveSettingsDivider()
+      LiveSettingsRow(title: "License") { Text("GPL v3") }
+    }
   }
 
   private var licensesSection: some View {
-    Section {
+    section("Open source") {
       externalLink(
         "TypeType on GitHub",
         symbol: "chevron.left.forwardslash.chevron.right",
         urlString: "https://github.com/TypeType-Video"
       )
+      LiveSettingsDivider()
       externalLink(
         "PipePipe",
         symbol: "play.rectangle",
         urlString: "https://github.com/InfinityLoop1308/PipePipe"
       )
+      LiveSettingsDivider()
       externalLink(
         "Support TypeType",
         symbol: "heart.fill",
         urlString: "https://github.com/sponsors/Priveetee"
       )
-    } header: { Text("Open source").liveSectionHeader() } footer: {
+    } footer: {
       VStack(alignment: .leading, spacing: 4) {
         Text("Third-party notice")
           .font(.footnote.weight(.semibold))
@@ -99,17 +104,21 @@ struct LiveAboutView: View {
         .foregroundStyle(DemoTheme.accent)
       }
       .frame(maxWidth: .infinity, alignment: .leading)
-      .padding(.top, 8)
+      .padding(.horizontal, 20)
+      .padding(.top, 12)
     }
   }
 
   @ViewBuilder
   private var versionsSection: some View {
-    Section {
+    section("Versions") {
       if let versions {
         versionRow("Frontend", versions.frontend)
+        LiveSettingsDivider()
         versionRow("Server", versions.server)
+        LiveSettingsDivider()
         versionRow("Token", versions.token)
+        LiveSettingsDivider()
         versionRow("Downloader", versions.downloader)
       } else if isLoadingVersions {
         HStack {
@@ -117,47 +126,71 @@ struct LiveAboutView: View {
           Spacer()
           ProgressView()
         }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 12)
       } else {
         Text("Component versions are unavailable.")
           .foregroundStyle(.secondary)
+          .padding(.horizontal, 20)
+          .padding(.vertical, 12)
       }
-    } header: { Text("Versions").liveSectionHeader() } footer: {
+    } footer: {
       Button("Refresh versions") {
         Task { await refreshVersions() }
       }
+      .buttonStyle(.plain)
+      .foregroundStyle(DemoTheme.accent)
+      .font(.subheadline.weight(.medium))
+      .frame(maxWidth: .infinity, alignment: .leading)
+      .padding(.horizontal, 20)
+      .padding(.top, 12)
     }
   }
 
   @ViewBuilder
   private var serverSection: some View {
-    Section {
-      LabeledContent(
-        "URL",
-        value: coordinator.selectedServer?.baseURLString
-          .removingSuffix("/")
-          .removingSuffix("/api") ?? ""
-      )
-      if let user = coordinator.currentUser {
-        LabeledContent(
-          "Signed in as",
-          value: user.publicUsername ?? user.id
-        )
-        LabeledContent(
-          "Role",
-          value: user.role.rawValue.capitalized
+    section("Server") {
+      LiveSettingsRow(title: "URL") {
+        Text(
+          coordinator.selectedServer?.baseURLString
+            .removingSuffix("/")
+            .removingSuffix("/api") ?? ""
         )
       }
-    } header: { Text("Server").liveSectionHeader() }
+      if let user = coordinator.currentUser {
+        LiveSettingsDivider()
+        LiveSettingsRow(title: "Signed in as") {
+          Text(user.publicUsername ?? user.id)
+        }
+        LiveSettingsDivider()
+        LiveSettingsRow(title: "Role") {
+          Text(user.role.rawValue.capitalized)
+        }
+      }
+    }
+  }
+
+  private func section<Content: View, Footer: View>(
+    _ title: String,
+    @ViewBuilder content: () -> Content,
+    @ViewBuilder footer: () -> Footer = { EmptyView() }
+  ) -> some View {
+    VStack(alignment: .leading, spacing: 0) {
+      Text(title)
+        .liveSectionHeader()
+        .padding(.horizontal, 20)
+      LiveSettingsCard(content: content)
+      footer()
+    }
   }
 
   private func versionRow(
     _ title: String,
     _ version: LiveComponentVersion?
   ) -> some View {
-    LabeledContent(
-      title,
-      value: version?.version ?? "Unavailable"
-    )
+    LiveSettingsRow(title: title) {
+      Text(version?.version ?? "Unavailable")
+    }
   }
 
   private func externalLink(
@@ -168,8 +201,19 @@ struct LiveAboutView: View {
     Button {
       pendingURL = URL(string: urlString)
     } label: {
-      Label(title, systemImage: symbol)
+      HStack(spacing: 16) {
+        Image(systemName: symbol)
+          .frame(width: 24)
+        Text(title)
+        Spacer()
+      }
+      .foregroundStyle(DemoTheme.accent)
+      .padding(.horizontal, 20)
+      .padding(.vertical, 12)
+      .frame(minHeight: 44)
+      .contentShape(Rectangle())
     }
+    .buttonStyle(.plain)
   }
 
   private var appVersion: String {
