@@ -30,16 +30,23 @@ extension View {
     // grouped lists, and the ZStack colour sits in the CONTENT layer, above
     // the slot chrome that iOS 26/27 draws over plain-list headers.
     ZStack(alignment: .leading) {
-      DemoTheme.background
-        .padding(.horizontal, -24)
-        .padding(.vertical, -12)
+      SlotChromeBackground()
       self
         .frame(maxWidth: .infinity, alignment: .leading)
     }
-    .background(
-      DemoTheme.background
-        .padding(.horizontal, -24)
-        .padding(.vertical, -12)
-    )
+    .background(SlotChromeBackground())
+  }
+}
+
+/// The page colour for slot chrome. Reads the ENVIRONMENT palette (not a
+/// static) so it repaints the moment the theme switches — a static left the
+/// caption bands in the old theme until the page was recreated.
+private struct SlotChromeBackground: View {
+  @Environment(\.demoTheme) private var palette
+
+  var body: some View {
+    palette.background
+      .padding(.horizontal, -24)
+      .padding(.vertical, -12)
   }
 }

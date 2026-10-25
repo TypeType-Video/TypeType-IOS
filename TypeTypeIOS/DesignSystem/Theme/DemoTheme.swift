@@ -132,7 +132,16 @@ enum DemoTheme {
   /// the palette themes.
   private static func dynamicColor(role: SurfaceRole) -> UIColor {
     let isDark = isDarkResolved
-    if appearanceAmoled, isDark { return .black }
+    // AMOLED blackens the PAGE (the background roles) but keeps the theme's
+    // surfaces — blackening every role made the theme disappear entirely.
+    if appearanceAmoled, isDark {
+      switch role {
+      case .background, .groupedBackground, .pageBackground:
+        return .black
+      case .surface, .groupedSurface, .elevatedSurface:
+        break
+      }
+    }
     if appearancePersonality == .manga {
       return mangaColor(role: role, isDark: isDark)
     }
