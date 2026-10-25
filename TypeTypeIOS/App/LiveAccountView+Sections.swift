@@ -191,13 +191,12 @@ extension LiveAccountView {
   }
 
   var signOutSection: some View {
-    LiveSettingsSection(" ") {
+    LiveSettingsCard {
       Button("Sign out", role: .destructive) {
         Task { await coordinator.signOut() }
       }
       .buttonStyle(.plain)
       .foregroundStyle(.red)
-      .liveSettingsRow()
       .accessibilityIdentifier("live.account.sign-out")
     }
   }

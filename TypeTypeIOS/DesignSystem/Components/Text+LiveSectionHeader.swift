@@ -11,6 +11,7 @@ extension Text {
       .kerning(1.5)
       .foregroundStyle(.secondary)
       .frame(maxWidth: .infinity, alignment: .leading)
-      .padding(.top, 26)
+      .padding(.top, 4)
+      .padding(.bottom, 8)
   }
 }

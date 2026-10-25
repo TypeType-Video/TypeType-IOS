@@ -61,7 +61,7 @@ struct LiveAboutView: View {
       LiveSettingsDivider()
       LiveSettingsRow(title: "Version") { Text(appVersion) }
       LiveSettingsDivider()
-      LiveSettingsRow(title: "License") { Text("GPL v3") }
+      LiveSettingsRow(title: "License") { Text("MPL 2.0") }
     }
   }
 
