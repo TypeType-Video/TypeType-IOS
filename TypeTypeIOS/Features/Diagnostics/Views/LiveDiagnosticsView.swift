@@ -35,7 +35,7 @@ struct LiveDiagnosticsView: View {
             description: Text(
               "Requests made to this TypeType instance will appear here."
             )
-          )
+          ).liveThemedEmptyState()
         }
       } else {
         Section {

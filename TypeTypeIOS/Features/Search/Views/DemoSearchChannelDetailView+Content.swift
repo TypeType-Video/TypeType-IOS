@@ -153,7 +153,7 @@ extension DemoSearchChannelDetailView {
         "No live streams",
         systemImage: "dot.radiowaves.left.and.right",
         description: Text("This mock channel is currently offline.")
-      )
+      ).liveThemedEmptyState()
       .frame(maxWidth: .infinity)
       .padding(.top, 40)
     }

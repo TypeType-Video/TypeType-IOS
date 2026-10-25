@@ -32,7 +32,7 @@ extension LivePlaylistDetailView {
           description: Text(
             "Add videos from their details page using Save to playlist."
           )
-        )
+        ).liveThemedEmptyState()
       } else {
         List {
           if !playlist.description.isEmpty {

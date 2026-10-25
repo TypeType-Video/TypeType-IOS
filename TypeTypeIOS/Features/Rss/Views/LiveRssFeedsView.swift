@@ -62,7 +62,7 @@ struct LiveRssFeedsView: View {
         "No RSS feeds",
         systemImage: "dot.radiowaves.left.and.right",
         description: Text("Create a private feed for your subscriptions.")
-      )
+      ).liveThemedEmptyState()
     } else {
       List {
         ForEach(viewModel.feeds) { feed in

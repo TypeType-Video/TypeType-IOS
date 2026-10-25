@@ -87,7 +87,7 @@ struct LivePublicPlaylistView: View {
           ContentUnavailableView(
             "No videos",
             systemImage: "rectangle.stack"
-          )
+          ).liveThemedEmptyState()
           .frame(maxWidth: .infinity)
           .padding(.top, 50)
         } else {

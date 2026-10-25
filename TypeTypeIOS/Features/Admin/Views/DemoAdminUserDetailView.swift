@@ -48,7 +48,7 @@ struct DemoAdminUserDetailView: View {
           }
         } header: { Text("Actions").liveSectionHeader() }
       } else {
-        ContentUnavailableView("User not found", systemImage: "person.slash")
+        ContentUnavailableView("User not found", systemImage: "person.slash").liveThemedEmptyState()
       }
     }
     .navigationTitle(user?.name ?? "User")

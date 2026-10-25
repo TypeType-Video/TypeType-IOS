@@ -60,7 +60,7 @@ struct LiveContentControlsView: View {
         "Content controls unavailable",
         systemImage: "hand.raised.slash",
         description: Text(message)
-      )
+      ).liveThemedEmptyState()
     case .loaded:
       if viewModel.kind == .blockedKeywords {
         LiveBlockedKeywordsView(service: viewModel.service)
@@ -69,7 +69,7 @@ struct LiveContentControlsView: View {
         ContentUnavailableView(
           "No \(viewModel.kind.title.lowercased())",
           systemImage: "checkmark.shield"
-        )
+        ).liveThemedEmptyState()
       } else {
         List(viewModel.items) { item in
           VStack(alignment: .leading, spacing: 3) {

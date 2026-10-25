@@ -41,7 +41,7 @@ struct DemoHomeFeedView: View {
               "Home is quiet",
               systemImage: "moon.stars",
               description: Text("Enable a discovery surface in More → Discovery & services.")
-            )
+            ).liveThemedEmptyState()
             .frame(maxWidth: .infinity)
             .padding(.top, 90)
           }

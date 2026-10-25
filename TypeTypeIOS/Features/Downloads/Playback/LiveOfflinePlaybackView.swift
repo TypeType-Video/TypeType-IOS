@@ -150,7 +150,7 @@ struct LiveOfflinePlaybackView: View {
       "Playback unavailable",
       systemImage: "exclamationmark.triangle",
       description: Text(message)
-    )
+    ).liveThemedEmptyState()
       .foregroundStyle(.white)
       .padding()
       .background(.black.opacity(0.82), in: .rect(cornerRadius: 18))

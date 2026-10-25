@@ -89,7 +89,7 @@ private struct DemoPlaybackQueueSheet: View {
             "Queue is empty",
             systemImage: "text.badge.minus",
             description: Text("Add a video from any card menu.")
-          )
+          ).liveThemedEmptyState()
         } else {
           List(Array(videos.enumerated()), id: \.element.id) { index, video in
             DemoPlaybackQueueRow(

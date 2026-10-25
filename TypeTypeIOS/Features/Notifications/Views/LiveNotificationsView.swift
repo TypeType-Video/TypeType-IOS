@@ -88,7 +88,7 @@ struct LiveNotificationsView: View {
         "No notifications",
         systemImage: "bell",
         description: Text("New videos from subscriptions appear here.")
-      )
+      ).liveThemedEmptyState()
     } else {
       List {
         if viewModel.unreadCount > 0 {

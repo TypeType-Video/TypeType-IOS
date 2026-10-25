@@ -673,6 +673,17 @@ private struct LiveThemeRepaintModifier: ViewModifier {
   }
 }
 
+/// `ContentUnavailableView` and other empty states paint their own system
+/// background (the black/grey boxes in themed pages). This fills the whole
+/// screen with the page colour instead.
+extension View {
+  func liveThemedEmptyState() -> some View {
+    self
+      .frame(maxWidth: .infinity, maxHeight: .infinity)
+      .background(DemoTheme.background)
+  }
+}
+
 /// Android-style selection menu: a filled surface popup with the options
 /// and a checkmark on the current one (the Android theme popup look). The
 /// system menu popups are Liquid Glass and cannot take the theme surface,

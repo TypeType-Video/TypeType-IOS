@@ -20,7 +20,7 @@ extension DemoSearchPlaylistDetailView {
             "No videos yet",
             systemImage: "rectangle.stack.badge.plus",
             description: Text("Save a video from its action menu to fill this playlist.")
-          )
+          ).liveThemedEmptyState()
           .frame(maxWidth: .infinity)
           .padding(.top, 34)
         } else {

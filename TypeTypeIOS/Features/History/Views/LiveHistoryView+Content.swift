@@ -33,7 +33,7 @@ extension LiveHistoryView {
             ? "Videos you watch will appear here."
             : "Try another search or date."
         )
-      )
+      ).liveThemedEmptyState()
     } else {
       ScrollView {
         LiveHistoryFilterBar(

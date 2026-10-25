@@ -145,7 +145,7 @@ struct LiveSubscriptionsView: View {
           "No subscription videos",
           systemImage: "bell.slash",
           description: Text("Subscribe to a channel to build this feed.")
-        )
+        ).liveThemedEmptyState()
       } else {
         ScrollView {
           LazyVGrid(columns: columns, alignment: .leading, spacing: 24) {
@@ -195,7 +195,7 @@ struct LiveSubscriptionsView: View {
           "No subscriptions",
           systemImage: "person.2.slash",
           description: Text("Channels you subscribe to will appear here.")
-        )
+        ).liveThemedEmptyState()
       } else {
         List(viewModel.channels) { channel in
           LiveSubscriptionChannelRow(

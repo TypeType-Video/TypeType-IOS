@@ -99,7 +99,7 @@ struct LiveCollectionView: View {
         "No \(viewModel.kind.title.lowercased())",
         systemImage: viewModel.kind.symbol,
         description: Text("Videos saved here will appear in this collection.")
-      )
+      ).liveThemedEmptyState()
     } else {
       ScrollView {
         LazyVGrid(columns: columns, alignment: .leading, spacing: 24) {

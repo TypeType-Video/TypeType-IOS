@@ -61,7 +61,7 @@ struct LivePodcastEpisodesView: View {
         "No episodes",
         systemImage: "mic",
         description: Text("This podcast has no published episodes.")
-      )
+      ).liveThemedEmptyState()
     case .loaded:
       loadedContent
     }

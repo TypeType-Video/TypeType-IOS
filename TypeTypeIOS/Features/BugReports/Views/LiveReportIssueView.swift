@@ -25,7 +25,7 @@ struct LiveReportIssueView: View {
             description: Text(
               "Reference \(created.id) · \(created.status)"
             )
-          )
+          ).liveThemedEmptyState()
         }
       } else {
         Section {

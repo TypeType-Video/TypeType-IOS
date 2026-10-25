@@ -98,7 +98,7 @@ struct LiveSearchHistoryView: View {
           description: Text(
             "Find videos, channels, and playlists on any service."
           )
-        )
+        ).liveThemedEmptyState()
       } else {
         LazyVGrid(columns: columns, alignment: .leading, spacing: 24) {
           ForEach(viewModel.visibleTrending) { video in

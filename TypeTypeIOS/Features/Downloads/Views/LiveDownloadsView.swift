@@ -22,7 +22,7 @@ struct LiveDownloadsView: View {
           description: Text(
             "Downloads started from a video will remain available here."
           )
-        )
+        ).liveThemedEmptyState()
       } else {
         List {
           ForEach(center.visibleRecords) { record in

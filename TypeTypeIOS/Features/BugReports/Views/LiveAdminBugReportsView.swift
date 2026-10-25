@@ -70,7 +70,7 @@ struct LiveAdminBugReportsView: View {
         "Reports unavailable",
         systemImage: "ladybug",
         description: Text(message)
-      )
+      ).liveThemedEmptyState()
     case .loaded:
       List {
         Section {

@@ -33,7 +33,7 @@ struct LiveAccountIdentityView: View {
         "Account unavailable",
         systemImage: "person.crop.circle.badge.exclamationmark",
         description: Text(message)
-      )
+      ).liveThemedEmptyState()
     case .loaded:
       Form {
         if viewModel.managedByOIDC {

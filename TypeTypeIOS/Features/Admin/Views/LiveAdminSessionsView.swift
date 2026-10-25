@@ -38,7 +38,7 @@ struct LiveAdminSessionsView: View {
         ContentUnavailableView(
           "No active sessions",
           systemImage: "dot.radiowaves.left.and.right"
-        )
+        ).liveThemedEmptyState()
       } else {
         List(viewModel.sessions) { session in
           LiveAdminSessionRow(session: session)

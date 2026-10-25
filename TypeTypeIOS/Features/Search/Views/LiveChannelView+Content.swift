@@ -88,7 +88,7 @@ extension LiveChannelView {
         emptyTitle,
         systemImage: emptySystemImage,
         description: Text(emptyDescription)
-      )
+      ).liveThemedEmptyState()
       .padding(.vertical, 50)
     case .loaded:
       loadedContent

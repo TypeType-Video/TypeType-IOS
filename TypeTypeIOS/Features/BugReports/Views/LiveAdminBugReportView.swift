@@ -40,7 +40,7 @@ struct LiveAdminBugReportView: View {
         "Report unavailable",
         systemImage: "ladybug",
         description: Text(message)
-      )
+      ).liveThemedEmptyState()
     case .loaded:
       if let detail = viewModel.detail {
         Form {

@@ -27,7 +27,7 @@ struct DemoNotificationsView: View {
             "No notifications",
             systemImage: "bell.slash",
             description: Text("New uploads and local activity will appear here.")
-          )
+          ).liveThemedEmptyState()
         } else {
           List {
             ForEach(

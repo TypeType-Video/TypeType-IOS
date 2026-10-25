@@ -67,7 +67,7 @@ struct DemoSubscriptionsView: View {
             "No followed videos",
             systemImage: "bell.slash",
             description: Text("Follow a channel to rebuild this local feed.")
-          )
+          ).liveThemedEmptyState()
           .frame(maxWidth: .infinity)
           .padding(.top, 70)
         } else {
