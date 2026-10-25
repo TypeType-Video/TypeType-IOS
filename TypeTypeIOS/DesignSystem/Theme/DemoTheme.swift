@@ -81,7 +81,14 @@ enum DemoTheme {
     }
     switch appearanceTheme {
     case .typetype, .dynamic:
-      return base
+      // Resolve statically against our own mode: dynamic system colors
+      // follow stale traits while the user switches modes and made the
+      // appearance screen flicker between states.
+      return base.resolvedColor(
+        with: UITraitCollection(
+          userInterfaceStyle: isDark ? .dark : .light
+        )
+      )
     case .nord:
       return isDark
         ? UIColor(red: 0.18, green: 0.20, blue: 0.25, alpha: 1)
@@ -125,7 +132,11 @@ enum DemoTheme {
     if appearanceAmoled, isDark { return .black }
     switch appearanceTheme {
     case .typetype, .dynamic:
-      return base
+      return base.resolvedColor(
+        with: UITraitCollection(
+          userInterfaceStyle: isDark ? .dark : .light
+        )
+      )
     case .nord:
       return isDark
         ? UIColor(red: 0.18, green: 0.20, blue: 0.25, alpha: 1)
