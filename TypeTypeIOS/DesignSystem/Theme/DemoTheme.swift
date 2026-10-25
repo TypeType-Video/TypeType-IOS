@@ -58,7 +58,6 @@ enum DemoTheme {
     let isDark = preferences.appearanceMode == .dark
       || (preferences.appearanceMode == .system
         && UITraitCollection.current.userInterfaceStyle == .dark)
-      || preferences.appearanceAmoled
     let backgroundColor = themeUIColor(base: .systemBackground, isDark: isDark)
     UITableView.appearance().backgroundColor = backgroundColor
     UICollectionView.appearance().backgroundColor = backgroundColor
@@ -76,7 +75,7 @@ enum DemoTheme {
     base: UIColor,
     isDark: Bool
   ) -> UIColor {
-    if appearanceAmoled { return .black }
+    if appearanceAmoled, isDark { return .black }
     if appearancePersonality == .manga {
       return mangaColor(isDark: isDark)
     }
@@ -103,9 +102,15 @@ enum DemoTheme {
   }
 
   private static func themed(_ base: UIColor) -> Color {
-    let isDark = appearanceMode == .dark
-      || UITraitCollection.current.userInterfaceStyle == .dark
-      || appearanceAmoled
+    let isDark: Bool
+    switch appearanceMode {
+    case .dark:
+      isDark = true
+    case .light:
+      isDark = false
+    case .system:
+      isDark = UITraitCollection.current.userInterfaceStyle == .dark
+    }
     if appearancePersonality == .manga,
       appearanceTheme == .typetype || appearanceTheme == .dynamic {
       return Color(uiColor: mangaColor(isDark: isDark))
@@ -117,7 +122,7 @@ enum DemoTheme {
     _ base: UIColor,
     isDark: Bool
   ) -> UIColor {
-    if appearanceAmoled { return .black }
+    if appearanceAmoled, isDark { return .black }
     switch appearanceTheme {
     case .typetype, .dynamic:
       return base

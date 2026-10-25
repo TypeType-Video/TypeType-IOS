@@ -99,9 +99,7 @@ struct LiveAboutView: View {
         Text("Component versions are unavailable.")
           .foregroundStyle(.secondary)
       }
-    } header: {
-      Text("Versions")
-    } footer: {
+    } header: { Text("Versions").liveSectionHeader() } footer: {
       Button("Refresh versions") {
         Task { await refreshVersions() }
       }

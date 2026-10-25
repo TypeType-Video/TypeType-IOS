@@ -66,9 +66,7 @@ extension LiveImportView {
           LabeledContent(item.key, value: String(item.value))
         }
       }
-    } header: {
-      Text("TypeType backup")
-    } footer: {
+    } header: { Text("TypeType backup").liveSectionHeader() } footer: {
       Text("Restore replaces matching data in this TypeType account. Export and restore use the selected categories.")
     }
   }
@@ -118,9 +116,7 @@ extension LiveImportView {
       .disabled(viewModel.isRunning)
       takeoutGuide
       archiveQueue
-    } header: {
-      Text("YouTube Takeout")
-    } footer: {
+    } header: { Text("YouTube Takeout").liveSectionHeader() } footer: {
       Text(
         "Archives are uploaded one at a time. "
           + "Subscriptions, playlists, favorites, Watch later, "

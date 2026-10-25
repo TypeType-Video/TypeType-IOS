@@ -68,9 +68,7 @@ struct LiveSettingsCaptionAppearanceView: View {
         Picker("Opacity", selection: $styles.displayBackgroundOpacity) {
           optionLabels(opacities)
         }
-      } header: {
-        Text("Caption area")
-      } footer: {
+      } header: { Text("Caption area").liveSectionHeader() } footer: {
         Text(
           "These preferences style native subtitles. System keeps "
             + "your iOS accessibility appearance when a value is not set."

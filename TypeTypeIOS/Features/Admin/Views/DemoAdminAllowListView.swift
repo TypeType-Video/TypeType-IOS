@@ -40,9 +40,7 @@ struct DemoAdminAllowListView: View {
             isOn: restrictedBinding(for: user.id)
           )
         }
-      } header: {
-        Text("User access")
-      } footer: {
+      } header: { Text("User access").liveSectionHeader() } footer: {
         Text("Enabled means this user has a user-specific allow list.")
       }
 

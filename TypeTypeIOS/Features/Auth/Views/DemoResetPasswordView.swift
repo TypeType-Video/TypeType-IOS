@@ -20,9 +20,7 @@ struct DemoResetPasswordView: View {
             .textInputAutocapitalization(.never)
             .keyboardType(.emailAddress)
             .accessibilityIdentifier("demo.auth.reset.email")
-        } header: {
-          Text("Account")
-        } footer: {
+        } header: { Text("Account").liveSectionHeader() } footer: {
           Text("A mock reset link will be created locally. No message is sent.")
         }
 
@@ -44,9 +42,7 @@ struct DemoResetPasswordView: View {
               Text("Passwords do not match.")
                 .foregroundStyle(.red)
             }
-          } header: {
-            Text("Complete reset")
-          } footer: {
+          } header: { Text("Complete reset").liveSectionHeader() } footer: {
             Text("The local token is prefilled so the complete Web flow can be exercised.")
           }
         }

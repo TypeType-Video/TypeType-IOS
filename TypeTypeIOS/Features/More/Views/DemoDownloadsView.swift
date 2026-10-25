@@ -9,9 +9,7 @@ struct DemoDownloadsView: View {
         ForEach($session.downloads) { $download in
           row($download)
         }
-      } header: {
-        Text("\(readyCount) ready offline")
-      } footer: {
+      } header: { Text("\(readyCount) ready offline").liveSectionHeader() } footer: {
         Text("All files and progress on this screen are local mock data.")
       }
     }

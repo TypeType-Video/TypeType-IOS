@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct LiveNotificationSettingsView: View {
+  @State private var channelNames: [String: String] = [:]
   @StateObject private var viewModel: LiveNotificationSettingsViewModel
 
   init(dependencies: AppDependencies) {
@@ -36,7 +37,14 @@ struct LiveNotificationSettingsView: View {
     .background(DemoTheme.background)
     .navigationTitle("Channel notifications")
     .navigationBarTitleDisplayMode(.inline)
-    .task { await viewModel.prepare() }
+    .task { await viewModel.prepare()
+      if let subscriptions = try? await dependencies.subscriptionsService
+        .subscriptions() {
+        channelNames = Dictionary(
+          subscriptions.map { ($0.channelURL, $0.name) },
+          uniquingKeysWith: { first, _ in first }
+        )
+      } }
     .onChange(of: viewModel.permissionStatus) { }
     .alert(
       "Notification settings",
@@ -64,7 +72,10 @@ struct LiveNotificationSettingsView: View {
         ForEach(preferences) { preference in
           Toggle(isOn: binding(for: preference)) {
             VStack(alignment: .leading, spacing: 4) {
-              Text(Self.channelName(preference.channelURL))
+              Text(
+                channelNames[preference.channelURL]
+                  ?? Self.channelName(preference.channelURL)
+              )
                 .foregroundStyle(.primary)
                 .lineLimit(1)
               Text(preference.channelURL)

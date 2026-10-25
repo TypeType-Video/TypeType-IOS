@@ -18,9 +18,7 @@ struct LiveSettingsPrivacySection: View {
           ? "Allow list"
           : "Unrestricted"
       )
-    } header: {
-      Text("Privacy")
-    } footer: {
+    } header: { Text("Privacy").liveSectionHeader() } footer: {
       Text(
         "Content access is managed by the instance administrator."
       )
