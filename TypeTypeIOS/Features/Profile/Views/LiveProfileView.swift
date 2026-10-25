@@ -71,15 +71,15 @@ struct LiveProfileView: View {
         }
       )
       LiveProfileDetailsSection(viewModel: viewModel)
-      LiveSettingsSection("Account") {
+      Section {
         NavigationLink("Email and account name") {
           LiveAccountIdentityView(
             service: coordinator.dependencies.profileService
           )
         }
-      }
+      } header: { Text("Account").liveSectionHeader() }
       if let message = viewModel.message {
-        LiveSettingsCard {
+        Section {
           Label(message, systemImage: "checkmark.circle.fill")
             .foregroundStyle(.green)
         }

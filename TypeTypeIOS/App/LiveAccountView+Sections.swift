@@ -2,72 +2,61 @@ import SwiftUI
 
 extension LiveAccountView {
   var accountSection: some View {
-    LiveSettingsSection("Account") {
-      LiveSettingsRow(title: "Username") {
-        Text(coordinator.currentUser?.publicUsername ?? "Guest")
-      }
-      LiveSettingsDivider()
-      LiveSettingsRow(title: "Role") {
-        Text(coordinator.currentUser?.role.rawValue.capitalized ?? "User")
-      }
+    Section {
+      LabeledContent(
+        "Username",
+        value: coordinator.currentUser?.publicUsername ?? "Guest"
+      )
+      LabeledContent(
+        "Role",
+        value: coordinator.currentUser?.role.rawValue.capitalized ?? "User"
+      )
       if let user = coordinator.currentUser,
         !user.id.hasPrefix("guest:") {
-        LiveSettingsDivider()
-        NavigationLink {
+        NavigationLink("Profile") {
           LiveProfileView(coordinator: coordinator, user: user)
-        } label: {
-          rowLabel("Profile")
         }
         if coordinator.dependencies.accountProfileService != nil {
-          LiveSettingsDivider()
-          NavigationLink {
+          NavigationLink("Account profiles") {
             LiveAccountProfilesView(coordinator: coordinator)
-          } label: {
-            rowLabel("Account profiles")
           }
         }
       }
-    }
-  }
-
-  var instanceSection: some View {
-    LiveSettingsSection("Instance") {
-      LiveSettingsRow(title: "Name") {
-        Text(
-          coordinator.instance?.name
-            ?? coordinator.selectedServer?.name
-            ?? "TypeType"
-        )
+    } header: {
+        Text("Account").liveSectionHeader()
       }
+  }
+  var instanceSection: some View {
+    Section {
+      LabeledContent(
+        "Name",
+        value: coordinator.instance?.name
+          ?? coordinator.selectedServer?.name
+          ?? "TypeType"
+      )
       if let address = coordinator.selectedServer?.baseURLString {
-        LiveSettingsDivider()
-        LiveSettingsRow(title: "Address") {
+        LabeledContent("Address") {
           Text(address)
             .multilineTextAlignment(.trailing)
             .textSelection(.enabled)
         }
       }
       if let version = coordinator.instance?.version {
-        LiveSettingsDivider()
-        LiveSettingsRow(title: "Version") {
-          Text(version)
-        }
+        LabeledContent("Version", value: version)
       }
-    }
+    } header: {
+        Text("Instance").liveSectionHeader()
+      }
   }
-
   var preferencesSection: some View {
-    LiveSettingsSection("Preferences") {
+    Section {
       accountPreferences
-      LiveSettingsDivider()
       NavigationLink {
         LiveSettingsView(coordinator: coordinator)
       } label: {
-        rowLabel("Settings", symbol: "gearshape.fill")
+        Label("Settings", systemImage: "gearshape.fill")
       }
-      LiveSettingsDivider()
       downloadsLink
-      LiveSettingsDivider()
       NavigationLink {
         LiveDiagnosticsView(
           store: coordinator.dependencies.diagnosticsStore,
@@ -76,26 +65,25 @@ extension LiveAccountView {
           }
         )
       } label: {
-        rowLabel("Diagnostics", symbol: "ladybug.fill")
+        Label("Diagnostics", systemImage: "ladybug.fill")
       }
-      LiveSettingsDivider()
       NavigationLink {
         LiveContentControlsView(
           service: coordinator.dependencies.contentControlsService,
           canCreateGlobal: coordinator.currentUser?.role != .user
         )
       } label: {
-        rowLabel("Content controls", symbol: "slash.circle.fill")
+        Label("Content controls", systemImage: "slash.circle.fill")
       }
-      LiveSettingsDivider()
       NavigationLink {
         LiveImportView(service: coordinator.dependencies.importService)
       } label: {
-        rowLabel("Import data", symbol: "square.and.arrow.up.fill")
+        Label("Import data", systemImage: "square.and.arrow.up.fill")
       }
-    }
+    } header: {
+        Text("Preferences").liveSectionHeader()
+      }
   }
-
   @ViewBuilder private var accountPreferences: some View {
     if let user = coordinator.currentUser,
       !user.id.hasPrefix("guest:") {
@@ -103,7 +91,7 @@ extension LiveAccountView {
         LiveNotificationsView(dependencies: coordinator.dependencies)
       } label: {
         HStack {
-          rowLabel("Notifications", symbol: "bell")
+          Label("Notifications", systemImage: "bell")
           Spacer()
           if notificationCenter.unreadCount > 0 {
             countBadge(
@@ -115,19 +103,17 @@ extension LiveAccountView {
       }
       if coordinator.dependencies.rssEnabled,
         let rssFeedService = coordinator.dependencies.rssFeedService {
-        LiveSettingsDivider()
         NavigationLink {
           LiveRssFeedsView(
             feedService: rssFeedService,
             subscriptionsService: coordinator.dependencies.subscriptionsService
           )
         } label: {
-          rowLabel("RSS feeds", symbol: "dot.radiowaves.left.and.right")
+          Label("RSS feeds", systemImage: "dot.radiowaves.left.and.right")
         }
       }
     }
   }
-
   private var downloadsLink: some View {
     NavigationLink {
       LiveDownloadsView(
@@ -137,7 +123,7 @@ extension LiveAccountView {
       )
     } label: {
       HStack {
-        rowLabel("Downloads", symbol: "arrow.down.circle")
+        Label("Downloads", systemImage: "arrow.down.circle")
         Spacer()
         if downloadCenter.activeCount > 0 {
           countBadge(
@@ -148,76 +134,53 @@ extension LiveAccountView {
       }
     }
   }
-
   @ViewBuilder var supportSection: some View {
     if let user = coordinator.currentUser,
       !user.id.hasPrefix("guest:") {
-      LiveSettingsSection("Support") {
+      Section {
         NavigationLink {
           LiveReportIssueView(
             service: coordinator.dependencies.bugReportsService
           )
         } label: {
-          rowLabel("Report a problem", symbol: "ladybug.fill")
+          Label("Report a problem", systemImage: "ladybug.fill")
         }
         if user.role == .admin || user.role == .moderator {
-          LiveSettingsDivider()
-          NavigationLink {
+          NavigationLink("Manage bug reports") {
             LiveAdminBugReportsView(
               service: coordinator.dependencies.bugReportsService,
               canCreateGitHubIssue: user.role == .admin
             )
-          } label: {
-            rowLabel("Manage bug reports")
           }
         }
+      } header: {
+        Text("Support").liveSectionHeader()
       }
     }
   }
 
   @ViewBuilder var administrationSection: some View {
     if let user = coordinator.currentUser, user.role == .admin {
-      LiveSettingsSection("Administration") {
-        NavigationLink {
+      Section {
+        NavigationLink("Admin console") {
           LiveAdminConsoleView(
             dependencies: coordinator.dependencies,
             currentUserID: user.id
           )
-        } label: {
-          rowLabel("Admin console")
         }
+      } header: {
+        Text("Administration").liveSectionHeader()
       }
     }
   }
 
   var signOutSection: some View {
-    LiveSettingsCard {
+    Section {
       Button("Sign out", role: .destructive) {
         Task { await coordinator.signOut() }
       }
-      .buttonStyle(.plain)
-      .foregroundStyle(.red)
       .accessibilityIdentifier("live.account.sign-out")
     }
-  }
-
-  private func rowLabel(
-    _ title: String,
-    symbol: String? = nil
-  ) -> some View {
-    HStack(spacing: 16) {
-      if let symbol {
-        Image(systemName: symbol)
-          .frame(width: 24)
-          .foregroundStyle(DemoTheme.accent)
-        
-      }
-      Text(title)
-        .foregroundStyle(DemoTheme.accent)
-      Spacer(minLength: 12)
-    }
-    .liveSettingsRow()
-    .contentShape(Rectangle())
   }
 
   private func countBadge(

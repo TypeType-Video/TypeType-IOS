@@ -13,18 +13,14 @@ struct LiveAccountView: View {
 
   var body: some View {
     NavigationStack {
-      ScrollView {
-        VStack(alignment: .leading, spacing: 24) {
-          accountSection
-          instanceSection
-          preferencesSection
-          supportSection
-          administrationSection
-          signOutSection
-        }
-        .padding(.vertical, 16)
+      List {
+        accountSection
+        instanceSection
+        preferencesSection
+        supportSection
+        administrationSection
+        signOutSection
       }
-      .background(DemoTheme.pageBackground)
       .navigationTitle("More")
     }
     .accessibilityIdentifier("live.account.screen")

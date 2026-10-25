@@ -63,13 +63,10 @@ struct LiveNotificationSettingsView: View {
   private var settingsList: some View {
     let preferences = viewModel.sortedPreferences
     if preferences.isEmpty {
-      ScrollView {
-      VStack(alignment: .leading, spacing: 24) {
+      List {
         permissionSection
         emptyPreferencesSection
       }
-      .background(DemoTheme.pageBackground)
-    }
       .listStyle(.insetGrouped)
     } else {
       List {
@@ -103,7 +100,7 @@ struct LiveNotificationSettingsView: View {
 
   @ViewBuilder
   private var permissionSection: some View {
-    LiveSettingsSection("iOS permissions") {
+    Section {
       switch viewModel.permissionStatus {
       case .unknown:
         LabeledContent("Status", value: "Unavailable")
@@ -135,12 +132,12 @@ struct LiveNotificationSettingsView: View {
           }
         }
       }
-    }
+    } header: { Text("iOS permissions").liveSectionHeader() }
   }
 
   @ViewBuilder
   private var emptyPreferencesSection: some View {
-    LiveSettingsCard {
+    Section {
       Text("Notification preferences appear after you subscribe to a channel.")
         .foregroundStyle(.secondary)
     }
