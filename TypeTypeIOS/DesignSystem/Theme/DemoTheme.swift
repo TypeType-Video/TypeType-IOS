@@ -132,7 +132,6 @@ enum DemoTheme {
       }
       }
     }
-  }
 
   private static func themed(_ base: UIColor) -> Color {
     let isDark: Bool
