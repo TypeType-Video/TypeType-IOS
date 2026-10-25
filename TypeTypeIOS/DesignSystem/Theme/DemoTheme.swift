@@ -5,6 +5,9 @@ enum DemoTheme {
   static var accent = Color(red: 1, green: 0.30, blue: 0.32)
   static var appearanceMode = LiveAppearanceMode.system
   static var appearanceAmoled = false
+  /// The environment colour scheme (system light/dark); used for the
+  /// `.system` mode instead of UITraitCollection so system changes react.
+  static var systemColorScheme: ColorScheme?
   static var appearanceTheme = LiveAppearanceTheme.typetype
   static var appearancePersonality = LiveAppearancePersonality.classic
   static var mangaPaper = LiveMangaPaper.day
@@ -47,6 +50,9 @@ enum DemoTheme {
     accent = preferences.accentColor.color
     appearanceMode = preferences.appearanceMode
     appearanceAmoled = preferences.appearanceAmoled
+    if let colorScheme {
+      systemColorScheme = colorScheme
+    }
     appearanceTheme = preferences.appearanceTheme
     appearancePersonality = preferences.appearancePersonality
     mangaPaper = preferences.mangaPaper
@@ -57,7 +63,9 @@ enum DemoTheme {
   ) {
     let isDark = preferences.appearanceMode == .dark
       || (preferences.appearanceMode == .system
-        && UITraitCollection.current.userInterfaceStyle == .dark)
+        && (systemColorScheme == .dark
+          || (systemColorScheme == nil
+            && UITraitCollection.current.userInterfaceStyle == .dark)))
     let backgroundColor = themeUIColor(base: .systemBackground, isDark: isDark)
     UITableView.appearance().backgroundColor = backgroundColor
     UICollectionView.appearance().backgroundColor = backgroundColor
@@ -116,7 +124,11 @@ enum DemoTheme {
     case .light:
       isDark = false
     case .system:
-      isDark = UITraitCollection.current.userInterfaceStyle == .dark
+      if let systemColorScheme {
+        isDark = systemColorScheme == .dark
+      } else {
+        isDark = UITraitCollection.current.userInterfaceStyle == .dark
+      }
     }
     // Android semantics: AMOLED black forces the dark scheme (see
     // AppearanceColorSchemes.kt: `isDark || amoled`).

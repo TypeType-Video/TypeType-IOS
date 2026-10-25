@@ -24,6 +24,10 @@ struct TypeTypeLiveAppView: View {
   }
 
   var body: some View {
+    // Runs BEFORE every render pass: updating in onChange rendered stale
+    // colors first and needed a second tap to show. The environment scheme
+    // also makes system light/dark changes apply immediately.
+    let _ = applyTheme()
     Group {
       switch coordinator.state {
       case .booting:
@@ -57,11 +61,10 @@ struct TypeTypeLiveAppView: View {
       ? Font.system(.body, design: .rounded)
       : nil)
     .onChange(of: preferences.preferences) {
-      DemoTheme.update(
-        preferences: preferences.preferences,
-        colorScheme: systemColorScheme
-      )
-      DemoTheme.applyUIKitAppearance(preferences.preferences)
+      applyTheme()
+    }
+    .onChange(of: colorScheme) { _, _ in
+      applyTheme()
     }
     .onChange(of: scenePhase) {
       guard scenePhase == .background,
@@ -74,6 +77,16 @@ struct TypeTypeLiveAppView: View {
         ? .light
         : preferredColorScheme
     )
+  }
+
+  @Environment(\.colorScheme) private var colorScheme
+
+  private func applyTheme() {
+    DemoTheme.update(
+      preferences: preferences.preferences,
+      colorScheme: colorScheme
+    )
+    DemoTheme.applyUIKitAppearance(preferences.preferences)
   }
 
   private var themeIdentity: String {
