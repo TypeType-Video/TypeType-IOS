@@ -96,7 +96,6 @@ struct LiveSettingsCaptionAppearanceView: View {
     }
       .liveThemedList()
       .liveThemeRepaint()
-      .listStyle(.insetGrouped)
     .navigationTitle("Caption appearance")
     .navigationBarTitleDisplayMode(.inline)
     .accessibilityIdentifier("live.settings.caption-appearance")

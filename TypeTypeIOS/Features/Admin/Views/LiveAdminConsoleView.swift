@@ -53,7 +53,6 @@ struct LiveAdminConsoleView: View {
     }
       .liveThemedList()
       .liveThemeRepaint()
-      .listStyle(.insetGrouped)
     .navigationTitle("Administration")
     .navigationBarTitleDisplayMode(.inline)
     .accessibilityIdentifier("live.admin.screen")

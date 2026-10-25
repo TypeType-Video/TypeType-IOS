@@ -84,7 +84,7 @@ struct LiveDownloadsView: View {
             .foregroundStyle(.secondary)
             .frame(maxWidth: .infinity)
             .padding(.vertical, 6)
-            .background(.bar)
+            .background(DemoTheme.background)
         }
       }
     }

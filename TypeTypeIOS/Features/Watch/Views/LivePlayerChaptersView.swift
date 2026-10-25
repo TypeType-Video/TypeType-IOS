@@ -7,7 +7,7 @@ struct LivePlayerChaptersView: View {
     List(controller.availableChapters) { chapter in
       chapterRow(chapter)
     }
-    .listStyle(.insetGrouped)
+    .liveThemedList()
     .navigationTitle("Chapters")
     .navigationBarTitleDisplayMode(.inline)
     .accessibilityIdentifier("live.player.chapters")

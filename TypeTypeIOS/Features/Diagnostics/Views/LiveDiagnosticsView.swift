@@ -50,7 +50,6 @@ struct LiveDiagnosticsView: View {
     }
       .liveThemedList()
       .liveThemeRepaint()
-      .listStyle(.insetGrouped)
     .navigationTitle("Diagnostics")
     .navigationBarTitleDisplayMode(.inline)
     .toolbar {

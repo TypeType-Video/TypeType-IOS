@@ -22,7 +22,6 @@ struct LiveSubscriptionGroupsView: View {
     }
       .liveThemedList()
       .liveThemeRepaint()
-      .listStyle(.insetGrouped)
     .navigationTitle("Groups")
     .navigationBarTitleDisplayMode(.inline)
     .overlay {

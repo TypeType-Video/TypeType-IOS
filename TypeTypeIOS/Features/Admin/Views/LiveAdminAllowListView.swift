@@ -113,7 +113,6 @@ struct LiveAdminAllowListView: View {
     }
       .liveThemedList()
       .liveThemeRepaint()
-      .listStyle(.insetGrouped)
     .refreshable { await viewModel.reload() }
   }
 

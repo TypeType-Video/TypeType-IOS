@@ -71,7 +71,6 @@ struct LiveRssFeedsView: View {
       }
         .liveThemedList()
       .liveThemeRepaint()
-      .listStyle(.insetGrouped)
     }
   }
 

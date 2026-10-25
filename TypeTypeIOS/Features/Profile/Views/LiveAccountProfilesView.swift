@@ -57,7 +57,6 @@ struct LiveAccountProfilesView: View {
     }
       .liveThemedList()
       .liveThemeRepaint()
-      .listStyle(.insetGrouped)
     .navigationTitle("Profiles")
     .overlay(alignment: .bottom) {
       if let error = viewModel.errorMessage ?? switchError {

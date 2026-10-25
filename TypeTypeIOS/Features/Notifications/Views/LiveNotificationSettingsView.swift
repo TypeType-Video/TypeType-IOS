@@ -70,7 +70,6 @@ struct LiveNotificationSettingsView: View {
       }
       .liveThemedList()
       .liveThemeRepaint()
-      .listStyle(.insetGrouped)
     } else {
       List {
         permissionSection
@@ -99,7 +98,6 @@ struct LiveNotificationSettingsView: View {
       }
         .liveThemedList()
       .liveThemeRepaint()
-      .listStyle(.insetGrouped)
     }
   }
 

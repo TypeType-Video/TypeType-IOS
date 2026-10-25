@@ -26,12 +26,20 @@ extension View {
   /// bearing: a short footer text left the right part of the chrome block
   /// uncovered.
   func liveSectionSlotChrome() -> some View {
-    self
-      .frame(maxWidth: .infinity, alignment: .leading)
-      .background(
-        DemoTheme.background
-          .padding(.horizontal, -24)
-          .padding(.vertical, -12)
-      )
+    // Two layers on purpose: the background bleed covers the chrome on
+    // grouped lists, and the ZStack colour sits in the CONTENT layer, above
+    // the slot chrome that iOS 26/27 draws over plain-list headers.
+    ZStack(alignment: .leading) {
+      DemoTheme.background
+        .padding(.horizontal, -24)
+        .padding(.vertical, -12)
+      self
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+    .background(
+      DemoTheme.background
+        .padding(.horizontal, -24)
+        .padding(.vertical, -12)
+    )
   }
 }

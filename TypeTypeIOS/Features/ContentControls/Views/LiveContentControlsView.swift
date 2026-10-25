@@ -92,6 +92,7 @@ struct LiveContentControlsView: View {
           }
         }
         .listStyle(.plain)
+        .liveThemedList()
         .refreshable { await viewModel.reload() }
       }
     }

@@ -636,6 +636,11 @@ private struct LiveThemedListModifier: ViewModifier {
       // feed/content cards and chips).
       .listRowBackground(palette.background)
       .listRowSeparatorTint(palette.separator)
+      // The navigation bar takes the SAME variable as the page — otherwise
+      // it stays system-white above a coloured page (the "colour is
+      // different at the very top" symptom).
+      .toolbarBackground(palette.background, for: .navigationBar)
+      .toolbarBackground(.visible, for: .navigationBar)
   }
 }
 
