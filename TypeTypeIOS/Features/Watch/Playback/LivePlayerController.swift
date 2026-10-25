@@ -54,6 +54,10 @@ final class LivePlayerController: ObservableObject {
   /// Whether the player surface sits at the top of the page (page not
   /// scrolled). Gates the pull-down-to-mini gesture.
   var isPlayerSurfaceFullyVisible = true
+  /// Set on stop/close: pending async work (item-ready observers, delayed
+  /// resumes, provider recovery) must never start playback afterwards —
+  /// that produced audio with no player UI at all.
+  var isTornDown = false
   let service: LivePlaybackServiceProtocol?
   let settingsService: LiveSettingsServiceProtocol
   let historyService: LiveHistoryServiceProtocol

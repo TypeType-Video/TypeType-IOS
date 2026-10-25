@@ -16,6 +16,16 @@ extension LivePlayerController {
     }
   }
 
+  /// Starts playback unless the controller was stopped/closed.
+  func playIfActive(rate: Float) {
+    guard !isTornDown else { return }
+    player.playImmediately(atRate: rate)
+  }
+
+  func playIfActive() {
+    playIfActive(rate: playbackRate)
+  }
+
   func togglePlayback() {
     presentationResumeTask?.cancel()
     presentationResumeTask = nil
@@ -29,7 +39,7 @@ extension LivePlayerController {
       }
     } else {
       providerRecoveryDesiredAutoplay = true
-      player.playImmediately(atRate: playbackRate)
+      playIfActive()
       if state == .paused {
         state = .playing
       }
@@ -50,7 +60,7 @@ extension LivePlayerController {
       return
     }
     providerRecoveryDesiredAutoplay = true
-    player.playImmediately(atRate: playbackRate)
+    playIfActive()
     presentationResumeTask = Task { @MainActor [weak self] in
       for delay in [100, 250, 500, 900] {
         do {
@@ -60,7 +70,7 @@ extension LivePlayerController {
         }
         guard let self, player.currentItem != nil else { return }
         if player.timeControlStatus == .paused {
-          player.playImmediately(atRate: playbackRate)
+          playIfActive()
         }
       }
       self?.presentationResumeTask = nil
@@ -90,12 +100,13 @@ extension LivePlayerController {
         if position != 0 {
           position = 0
         }
-        player.playImmediately(atRate: playbackRate)
+        playIfActive()
       }
     }
   }
 
   func stop() {
+    isTornDown = true
     presentationResumeTask?.cancel()
     presentationResumeTask = nil
     sabrStallRecoveryTask?.cancel()

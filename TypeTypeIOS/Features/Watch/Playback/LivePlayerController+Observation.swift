@@ -124,11 +124,12 @@ extension LivePlayerController {
     _ item: AVPlayerItem,
     autoplay: Bool
   ) {
+    guard !isTornDown else { return }
     let target = pendingSeek ?? 0
     pendingSeek = nil
     guard target > 0 else {
       if autoplay {
-        player.playImmediately(atRate: playbackRate)
+        playIfActive()
       } else if state != .ready {
         state = .ready
       }
@@ -143,7 +144,7 @@ extension LivePlayerController {
         try? await Task.sleep(for: .milliseconds(100))
         guard let self else { return }
         if autoplay {
-          player.playImmediately(atRate: playbackRate)
+          playIfActive()
         } else if state != .ready {
           state = .ready
         }

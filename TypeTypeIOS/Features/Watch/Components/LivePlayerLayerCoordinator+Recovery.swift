@@ -20,7 +20,7 @@ extension LivePlayerLayerCoordinator {
           return
         }
         if controller.player.timeControlStatus == .paused {
-          controller.player.playImmediately(
+          controller.playIfActive(rate: 
             atRate: controller.playbackRate
           )
         }
@@ -53,7 +53,7 @@ extension LivePlayerLayerCoordinator {
       else {
         return
       }
-      controller.player.playImmediately(
+      controller.playIfActive(rate: 
         atRate: controller.playbackRate
       )
       resumeAfterTransitionTask = nil
