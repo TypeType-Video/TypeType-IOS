@@ -69,9 +69,7 @@ struct LiveReportIssueView: View {
         }
       }
     }
-      .listStyle(.insetGrouped)
-      .scrollContentBackground(.hidden)
-      .background(DemoThemeBackground())
+      .liveThemedList()
       .id(DemoTheme.renderToken)
     .navigationTitle("Report a problem")
     .navigationBarTitleDisplayMode(.inline)

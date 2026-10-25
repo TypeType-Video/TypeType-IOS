@@ -75,9 +75,7 @@ struct LiveSettingsCaptionAppearanceView: View {
         )
       }
     }
-      .listStyle(.insetGrouped)
-      .scrollContentBackground(.hidden)
-      .background(DemoThemeBackground())
+      .liveThemedList()
       .id(DemoTheme.renderToken)
       .listStyle(.insetGrouped)
     .navigationTitle("Caption appearance")

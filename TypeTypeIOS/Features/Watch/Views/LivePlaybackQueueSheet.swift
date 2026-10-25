@@ -31,9 +31,7 @@ struct LivePlaybackQueueSheet: View {
           header
         }
       }
-        .listStyle(.insetGrouped)
-        .scrollContentBackground(.hidden)
-        .background(DemoThemeBackground())
+        .liveThemedList()
       .id(DemoTheme.renderToken)
       .listStyle(.plain)
       .navigationTitle("Playback queue")

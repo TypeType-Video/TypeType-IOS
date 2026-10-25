@@ -81,9 +81,7 @@ struct LiveAdminUserAccessView: View {
         removable: true
       )
     }
-      .listStyle(.insetGrouped)
-      .scrollContentBackground(.hidden)
-      .background(DemoThemeBackground())
+      .liveThemedList()
       .id(DemoTheme.renderToken)
       .listStyle(.insetGrouped)
     .toolbar {

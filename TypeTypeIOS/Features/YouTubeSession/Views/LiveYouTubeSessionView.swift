@@ -89,9 +89,7 @@ struct LiveYouTubeSessionView: View {
         }
       }
     }
-      .listStyle(.insetGrouped)
-      .scrollContentBackground(.hidden)
-      .background(DemoThemeBackground())
+      .liveThemedList()
       .id(DemoTheme.renderToken)
     .navigationTitle("YouTube session")
     .navigationBarTitleDisplayMode(.inline)

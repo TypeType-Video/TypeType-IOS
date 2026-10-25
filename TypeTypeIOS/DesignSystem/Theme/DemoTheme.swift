@@ -536,3 +536,26 @@ extension View {
       .frame(maxWidth: .infinity, minHeight: 20, alignment: .leading)
   }
 }
+
+/// Shared row-surface rule: every list row is painted with the palette's
+/// surface colour, so cards follow the theme like Android's Material
+/// surfaces do. Applied once per list via `.liveThemedList()`.
+extension View {
+  func liveThemedList() -> some View {
+    modifier(LiveThemedListModifier())
+  }
+}
+
+private struct LiveThemedListModifier: ViewModifier {
+  @Environment(\.demoTheme) private var palette
+
+  func body(content: Content) -> some View {
+    content
+      .listStyle(.insetGrouped)
+      .scrollContentBackground(.hidden)
+      .background(palette.background)
+      .environment(\.defaultMinListRowHeight, 44)
+      .listRowBackground(palette.surface)
+      .listRowSeparatorTint(palette.separator)
+  }
+}

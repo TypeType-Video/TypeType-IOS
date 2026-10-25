@@ -34,9 +34,7 @@ struct LivePlayerOptionsSheet: View {
         streamInformationSection
         reportSection
       }
-        .listStyle(.insetGrouped)
-        .scrollContentBackground(.hidden)
-        .background(DemoThemeBackground())
+        .liveThemedList()
       .id(DemoTheme.renderToken)
       .accessibilityIdentifier("live.player.options-sheet")
       .navigationTitle("Player options")

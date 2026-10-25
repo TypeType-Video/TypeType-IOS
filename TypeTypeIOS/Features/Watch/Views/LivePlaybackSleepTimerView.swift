@@ -32,9 +32,7 @@ struct LivePlaybackSleepTimerView: View {
         }
       }
     }
-      .listStyle(.insetGrouped)
-      .scrollContentBackground(.hidden)
-      .background(DemoThemeBackground())
+      .liveThemedList()
       .id(DemoTheme.renderToken)
     .navigationTitle("Sleep timer")
     .navigationBarTitleDisplayMode(.inline)

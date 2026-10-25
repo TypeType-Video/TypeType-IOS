@@ -22,9 +22,7 @@ struct LivePortabilityView: View {
         setupSection
       }
     }
-      .listStyle(.insetGrouped)
-      .scrollContentBackground(.hidden)
-      .background(DemoThemeBackground())
+      .liveThemedList()
       .id(DemoTheme.renderToken)
     .navigationTitle("Data and backups")
     .navigationBarTitleDisplayMode(.inline)

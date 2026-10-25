@@ -91,9 +91,7 @@ struct LiveBlockedKeywordsView: View {
         } header: { Text("Keywords").liveSectionHeader() }
       }
     }
-      .listStyle(.insetGrouped)
-      .scrollContentBackground(.hidden)
-      .background(DemoThemeBackground())
+      .liveThemedList()
       .id(DemoTheme.renderToken)
     .listStyle(.plain)
   }

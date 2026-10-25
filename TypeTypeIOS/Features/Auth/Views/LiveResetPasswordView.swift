@@ -33,9 +33,7 @@ struct LiveResetPasswordView: View {
           }
         }
       }
-        .listStyle(.insetGrouped)
-        .scrollContentBackground(.hidden)
-        .background(DemoThemeBackground())
+        .liveThemedList()
       .id(DemoTheme.renderToken)
       .navigationTitle("Reset password")
       .navigationBarTitleDisplayMode(.inline)

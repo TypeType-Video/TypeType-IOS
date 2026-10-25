@@ -48,9 +48,7 @@ struct LiveDiagnosticsView: View {
         } header: { Text("Recent requests").liveSectionHeader() }
       }
     }
-      .listStyle(.insetGrouped)
-      .scrollContentBackground(.hidden)
-      .background(DemoThemeBackground())
+      .liveThemedList()
       .id(DemoTheme.renderToken)
       .listStyle(.insetGrouped)
     .navigationTitle("Diagnostics")

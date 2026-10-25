@@ -68,9 +68,7 @@ struct LiveNotificationSettingsView: View {
         permissionSection
         emptyPreferencesSection
       }
-      .listStyle(.insetGrouped)
-      .scrollContentBackground(.hidden)
-      .background(DemoThemeBackground())
+      .liveThemedList()
       .id(DemoTheme.renderToken)
       .listStyle(.insetGrouped)
     } else {
@@ -99,9 +97,7 @@ struct LiveNotificationSettingsView: View {
           )
         }
       }
-        .listStyle(.insetGrouped)
-        .scrollContentBackground(.hidden)
-        .background(DemoThemeBackground())
+        .liveThemedList()
       .id(DemoTheme.renderToken)
       .listStyle(.insetGrouped)
     }

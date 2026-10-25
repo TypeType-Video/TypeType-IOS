@@ -74,9 +74,7 @@ struct LiveDownloadsView: View {
           }
         }
           .id(DemoTheme.renderToken)
-          .listStyle(.insetGrouped)
-          .scrollContentBackground(.hidden)
-          .background(DemoThemeBackground())
+          .liveThemedList()
         .refreshable {
           await center.refresh()
         }

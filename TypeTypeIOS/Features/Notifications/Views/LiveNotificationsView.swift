@@ -119,9 +119,7 @@ struct LiveNotificationsView: View {
           }
         }
       }
-        .listStyle(.insetGrouped)
-        .scrollContentBackground(.hidden)
-        .background(DemoThemeBackground())
+        .liveThemedList()
       .id(DemoTheme.renderToken)
       .listStyle(.plain)
       .refreshable { await viewModel.reload() }

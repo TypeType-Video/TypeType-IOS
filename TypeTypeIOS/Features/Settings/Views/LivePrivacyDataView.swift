@@ -85,9 +85,7 @@ struct LivePrivacyDataView: View {
         }
       }
     }
-      .listStyle(.insetGrouped)
-      .scrollContentBackground(.hidden)
-      .background(DemoThemeBackground())
+      .liveThemedList()
       .id(DemoTheme.renderToken)
     .refreshable { await viewModel.reload() }
   }

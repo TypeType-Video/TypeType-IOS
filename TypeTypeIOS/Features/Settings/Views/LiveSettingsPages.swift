@@ -105,9 +105,7 @@ struct LiveSettingsAccountsView: View {
       }
       }
     }
-      .listStyle(.insetGrouped)
-      .scrollContentBackground(.hidden)
-      .background(DemoThemeBackground())
+      .liveThemedList()
       .id(DemoTheme.renderToken)
     .navigationTitle("Instances and accounts")
     .navigationBarTitleDisplayMode(.inline)

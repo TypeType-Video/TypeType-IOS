@@ -20,9 +20,7 @@ struct LiveSubscriptionGroupsView: View {
         channelsSection
       }
     }
-      .listStyle(.insetGrouped)
-      .scrollContentBackground(.hidden)
-      .background(DemoThemeBackground())
+      .liveThemedList()
       .id(DemoTheme.renderToken)
       .listStyle(.insetGrouped)
     .navigationTitle("Groups")
