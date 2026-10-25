@@ -97,6 +97,9 @@ struct LiveNotificationSettingsView: View {
           )
         }
       }
+        .listStyle(.insetGrouped)
+        .scrollContentBackground(.hidden)
+        .background(DemoTheme.background)
       .listStyle(.insetGrouped)
     }
   }
