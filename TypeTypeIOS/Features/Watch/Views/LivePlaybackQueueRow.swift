@@ -36,11 +36,16 @@ struct LivePlaybackQueueRow: View {
     )
   }
 
+  @ObservedObject private var watchProgress = LiveWatchProgressStore.shared
+
   private var thumbnail: some View {
     LiveRemoteImage(url: video.thumbnail)
       .frame(width: 96, height: 54)
       .aspectRatio(16 / 9, contentMode: .fill)
       .clipped()
+      .liveThumbnailProgress(
+        watchProgress.fraction(forVideoID: video.canonicalID)
+      )
       .clipShape(
         RoundedRectangle(cornerRadius: 8, style: .continuous)
       )

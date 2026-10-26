@@ -67,6 +67,8 @@ struct LiveVideoCard: View {
     }
   }
 
+  @ObservedObject private var watchProgress = LiveWatchProgressStore.shared
+
   private var thumbnail: some View {
     LiveRemoteImage(url: branding.thumbnailURL)
       .frame(maxWidth: .infinity)
@@ -78,6 +80,9 @@ struct LiveVideoCard: View {
       .overlay(alignment: .topLeading) {
         stateBadges
       }
+      .liveThumbnailProgress(
+        watchProgress.fraction(forVideoID: video.canonicalID)
+      )
       .clipShape(
         RoundedRectangle(cornerRadius: 14, style: .continuous)
       )
