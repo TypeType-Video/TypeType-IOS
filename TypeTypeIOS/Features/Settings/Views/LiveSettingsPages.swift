@@ -209,9 +209,6 @@ struct LiveSettingsAppearanceView: View {
       }
 
       Section {
-        Color.clear
-          .accessibilityIdentifier("live.settings.appearance.preview")
-          .frame(height: 0)
         ZStack {
           // Android `AppearancePreview`: classic = Surface with tonal
           // elevation 2dp (the tinted variant role — plain surface reads as

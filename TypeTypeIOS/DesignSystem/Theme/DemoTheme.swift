@@ -184,15 +184,15 @@ enum DemoTheme {
   }
 
   /// The system surfaces for the classic themes (Android: the classic
-  /// scheme keeps system surfaces — grey grouped page, white grouped
-  /// cards). Mapping background AND surface to `.systemBackground` made
-  /// page and cards identical.
+  /// scheme keeps system surfaces — grey page, white cards). `.systemGroupedBackground`
+  /// is pure black in dark mode ("already OLED"), so the page takes the
+  /// grey secondary tone and AMOLED is the only thing that goes black.
   private static func lightBase(_ role: SurfaceRole) -> UIColor {
     switch role {
     case .background, .pageBackground:
-      return .systemGroupedBackground
+      return .secondarySystemBackground
     case .surface:
-      return .secondarySystemGroupedBackground
+      return .tertiarySystemBackground
     case .groupedBackground:
       return .secondarySystemGroupedBackground
     case .groupedSurface:
@@ -324,9 +324,7 @@ extension DemoTheme {
       textPrimary: textPrimaryColor(),
       textSecondary: textSecondaryColor(),
       accent: accent,
-      rowBackground: (appearanceAmoled && isDarkResolved)
-        ? color(.surface)
-        : color(.background),
+      rowBackground: DemoTheme.rowBackground,
       renderToken: renderToken
     )
   }
@@ -717,11 +715,12 @@ extension View {
   /// them. The fill bleeds past the row content insets to reach the row
   /// edges; outside lists it is invisible because it matches the page.
   func liveRowFill() -> some View {
-    background(
-      DemoTheme.rowBackground
-        .padding(.horizontal, -20)
-        .padding(.vertical, -12)
-    )
+    self
+      .frame(maxWidth: .infinity, minHeight: 44)
+      .background(
+        DemoTheme.rowBackground
+          .padding(.horizontal, -20)
+      )
   }
 }
 
