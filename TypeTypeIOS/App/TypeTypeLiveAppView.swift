@@ -92,27 +92,13 @@ struct TypeTypeLiveAppView: View {
     DemoTheme.applyUIKitAppearance(preferences.preferences)
   }
 
+  /// Rebuilds the whole hierarchy ONLY on a system light/dark flip: UIKit
+  /// bars keep their appearance proxies otherwise, leaving the top area
+  /// stale. Everyday preference changes repaint through the themed loop and
+  /// must keep navigation — a full rebuild threw every theme change back to
+  /// the home tab.
   private var themeIdentity: String {
-    let value = preferences.preferences
-    return [
-      // The system scheme is part of the identity: a system light/dark flip
-      // rebuilds the whole hierarchy so no stale fragments survive.
-      colorScheme == .dark ? "sysDark" : "sysLight",
-      value.accentColor.rawValue,
-      value.appearancePersonality.rawValue,
-      value.appearanceMode.rawValue,
-      value.appearanceAmoled.description,
-      value.appearanceTheme.rawValue,
-      value.appearanceFont.rawValue,
-      value.appearanceMotion.rawValue,
-      value.mangaPaper.rawValue,
-      value.mangaHeadlineMarker.rawValue,
-      value.mangaScreentone.description,
-      value.mangaSpeedLines.description,
-      value.mangaStarburst.description,
-      value.mangaInkedIcons.description,
-      value.mangaPanelTilt.description,
-    ].joined(separator: "|")
+    colorScheme == .dark ? "sysDark" : "sysLight"
   }
 
   private var preferredColorScheme: ColorScheme? {
