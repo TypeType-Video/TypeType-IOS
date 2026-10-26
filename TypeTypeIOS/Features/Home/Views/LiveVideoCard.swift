@@ -130,8 +130,8 @@ struct LiveVideoCard: View {
       }
 
       Text(detailText)
-        .font(.caption2)
-        .foregroundStyle(.secondary)
+        .font(.caption)
+        .foregroundStyle(.primary)
         .lineLimit(1)
     }
     .frame(maxWidth: .infinity, alignment: .leading)
@@ -157,8 +157,8 @@ struct LiveVideoCard: View {
           .accessibilityLabel("Verified")
       }
     }
-    .font(.caption)
-    .foregroundStyle(.secondary)
+    .font(.subheadline)
+    .foregroundStyle(.primary)
   }
 
   @ViewBuilder

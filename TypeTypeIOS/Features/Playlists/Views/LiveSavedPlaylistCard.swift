@@ -16,13 +16,11 @@ struct LiveSavedPlaylistCard: View {
             .clipShape(
               RoundedRectangle(cornerRadius: 14, style: .continuous)
             )
-          Label(
-            String(playlist.streamCount),
-            systemImage: "rectangle.stack.fill"
-          )
-          .font(.caption2.weight(.semibold))
-          .padding(.horizontal, 8)
-          .padding(.vertical, 5)
+          Text(String(playlist.streamCount))
+            .font(.caption2.weight(.semibold))
+            .frame(minWidth: 26)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 5)
           .background(.black.opacity(0.78), in: Capsule())
           .foregroundStyle(.white)
           .padding(7)

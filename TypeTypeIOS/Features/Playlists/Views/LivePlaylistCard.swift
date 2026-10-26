@@ -21,13 +21,11 @@ struct LivePlaylistCard: View {
             .clipShape(
               RoundedRectangle(cornerRadius: 14, style: .continuous)
             )
-          Label(
-            String(playlist.videoCount),
-            systemImage: "rectangle.stack.fill"
-          )
-          .font(.caption.weight(.semibold))
-          .padding(.horizontal, 9)
-          .padding(.vertical, 6)
+          Text(String(playlist.videoCount))
+            .font(.caption.weight(.semibold))
+            .frame(minWidth: 28)
+            .padding(.horizontal, 9)
+            .padding(.vertical, 6)
           .background(.black.opacity(0.78), in: Capsule())
           .foregroundStyle(.white)
           .padding(8)
