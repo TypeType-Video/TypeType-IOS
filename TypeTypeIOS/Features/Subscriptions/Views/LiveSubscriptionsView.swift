@@ -111,7 +111,7 @@ struct LiveSubscriptionsView: View {
   private var content: some View {
     switch viewModel.state {
     case .idle, .loading:
-      ProgressView("Loading subscriptions")
+      TypeTypeSkeletonList(layout: .cards)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     case let .failed(message):
       ContentUnavailableView {

@@ -5,8 +5,7 @@ extension LiveHistoryView {
   var content: some View {
     switch viewModel.state {
     case .idle, .loading:
-      ProgressView("Loading history")
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+      TypeTypeSkeletonList(layout: .rows, count: 8)
     case let .failed(message):
       ContentUnavailableView {
         Label("History unavailable", systemImage: "wifi.exclamationmark")

@@ -31,15 +31,8 @@ extension LiveSearchView {
   }
 
   private var searchLoading: some View {
-    VStack(spacing: 12) {
-      ProgressView()
-        .controlSize(.large)
-      Text("Searching TypeType")
-        .font(.subheadline)
-        .foregroundStyle(.secondary)
-    }
-    .frame(maxWidth: .infinity, maxHeight: .infinity)
-    .accessibilityIdentifier("live.search.loading")
+    TypeTypeSkeletonList(layout: .cards)
+.accessibilityIdentifier("live.search.loading")
   }
 
   private var searchEmpty: some View {

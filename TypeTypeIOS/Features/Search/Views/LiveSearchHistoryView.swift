@@ -74,9 +74,7 @@ struct LiveSearchHistoryView: View {
         .font(.headline)
 
       if viewModel.isLoadingTrending, viewModel.trending.isEmpty {
-        ProgressView("Loading trending videos")
-          .frame(maxWidth: .infinity)
-          .padding(.vertical, 40)
+        TypeTypeSkeletonList(layout: .cards, count: 2, scrolls: false)
       } else if let error = viewModel.trendingError,
         viewModel.trending.isEmpty {
         ContentUnavailableView {

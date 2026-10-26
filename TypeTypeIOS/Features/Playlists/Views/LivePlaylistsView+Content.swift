@@ -5,8 +5,7 @@ extension LivePlaylistsView {
   var content: some View {
     switch viewModel.state {
     case .idle, .loading:
-      ProgressView("Loading playlists")
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+      TypeTypeSkeletonList(layout: .cards, count: 4)
     case let .failed(message):
       ContentUnavailableView {
         Label("Playlists unavailable", systemImage: "wifi.exclamationmark")

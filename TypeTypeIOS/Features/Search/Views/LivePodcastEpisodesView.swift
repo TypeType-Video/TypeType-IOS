@@ -44,7 +44,7 @@ struct LivePodcastEpisodesView: View {
   private var content: some View {
     switch viewModel.state {
     case .idle, .loading:
-      ProgressView("Loading podcast episodes")
+      TypeTypeSkeletonList(layout: .rows, count: 8)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     case let .failed(message):
       ContentUnavailableView {
@@ -116,14 +116,14 @@ struct LivePodcastEpisodesView: View {
         .clipShape(RoundedRectangle(cornerRadius: 16))
       VStack(alignment: .leading, spacing: 5) {
         Label("Podcast", systemImage: "mic.fill")
-          .font(.caption.weight(.semibold))
-          .foregroundStyle(.secondary)
+          .typeTypeFont(.bodySmall, weight: .semibold)
+          .foregroundStyle(theme.palette.onSurfaceVariant)
         Text(viewModel.podcast.title)
-          .font(.title3.weight(.bold))
+          .typeTypeFont(.titleLarge, weight: .bold)
           .lineLimit(2)
         Text(viewModel.podcast.uploaderName)
-          .font(.subheadline)
-          .foregroundStyle(.secondary)
+          .typeTypeFont(.bodyMedium)
+          .foregroundStyle(theme.palette.onSurfaceVariant)
           .lineLimit(1)
       }
     }

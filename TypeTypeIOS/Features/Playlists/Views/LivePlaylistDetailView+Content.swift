@@ -5,7 +5,7 @@ extension LivePlaylistDetailView {
   var content: some View {
     switch viewModel.state {
     case .idle, .loading:
-      ProgressView("Loading playlist")
+      TypeTypeSkeletonList(layout: .rows, count: 8)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     case let .failed(message):
       ContentUnavailableView {
@@ -38,7 +38,7 @@ extension LivePlaylistDetailView {
           if !playlist.description.isEmpty {
             Section {
               Text(playlist.description)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(theme.palette.onSurfaceVariant)
             }
           }
           Section {

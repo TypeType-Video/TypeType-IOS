@@ -49,7 +49,7 @@ struct LivePublicPlaylistView: View {
   private var content: some View {
     switch viewModel.state {
     case .idle, .loading:
-      ProgressView("Loading playlist")
+      TypeTypeSkeletonList(layout: .rows, count: 8)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     case let .failed(message):
       ContentUnavailableView {

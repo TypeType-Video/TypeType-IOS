@@ -124,15 +124,8 @@ extension LiveHomeView {
   }
 
   private var loadingView: some View {
-    VStack(spacing: 14) {
-      ProgressView()
-        .controlSize(.large)
-      Text("Loading recommendations")
-        .font(.subheadline)
-        .foregroundStyle(.secondary)
-    }
-    .frame(maxWidth: .infinity, maxHeight: .infinity)
-    .accessibilityIdentifier("live.home.loading")
+    TypeTypeSkeletonList(layout: .cards)
+.accessibilityIdentifier("live.home.loading")
   }
 
   private var emptyView: some View {

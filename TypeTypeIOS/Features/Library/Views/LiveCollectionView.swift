@@ -71,8 +71,7 @@ struct LiveCollectionView: View {
   private var content: some View {
     switch viewModel.state {
     case .idle, .loading:
-      ProgressView("Loading \(viewModel.kind.title.lowercased())")
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+      TypeTypeSkeletonList(layout: .cards)
     case let .failed(message):
       ContentUnavailableView {
         Label("Library unavailable", systemImage: "wifi.exclamationmark")

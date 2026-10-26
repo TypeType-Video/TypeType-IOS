@@ -58,15 +58,7 @@ extension LiveChannelView {
   private var stateContent: some View {
     switch viewModel.state {
     case .idle, .loading:
-      VStack(spacing: 12) {
-        ProgressView()
-          .controlSize(.large)
-        Text("Loading channel")
-          .font(.subheadline)
-          .foregroundStyle(.secondary)
-      }
-      .frame(maxWidth: .infinity)
-      .padding(.vertical, 70)
+      TypeTypeSkeletonList(layout: .cards, count: 3, scrolls: false)
     case let .failed(message):
       ContentUnavailableView {
         Label("Channel unavailable", systemImage: "wifi.exclamationmark")
