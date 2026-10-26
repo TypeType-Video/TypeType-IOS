@@ -7,7 +7,7 @@ struct DemoPlaybackSettingsView: View {
     ScrollView {
       VStack(spacing: 24) {
         DemoMoreSectionCard("Playback") {
-          settingToggle("Autoplay", value: binding(\.autoplay)).liveRowFill()
+          settingToggle("Autoplay", value: binding(\.autoplay))
           divider
           Stepper(
             "Autoplay countdown · \(session.preferences.autoplayCountdownSeconds)s",
@@ -20,11 +20,11 @@ struct DemoPlaybackSettingsView: View {
           settingToggle(
             "Skip playlist autoplay screen",
             value: binding(\.skipPlaylistAutoplayScreen)
-          ).liveRowFill()
+          )
           divider
-          settingToggle("Audio-only playback", value: binding(\.audioOnlyPlayback)).liveRowFill()
+          settingToggle("Audio-only playback", value: binding(\.audioOnlyPlayback))
           divider
-          settingToggle("Background audio", value: binding(\.backgroundAudio)).liveRowFill()
+          settingToggle("Background audio", value: binding(\.backgroundAudio))
           divider
           Stepper(
             "Audio boost · \(session.preferences.audioGainPercent)%",
@@ -93,7 +93,7 @@ struct DemoPlaybackSettingsView: View {
   private func settingToggle(
     _ title: String,
     value: Binding<Bool>
-  ).liveRowFill() -> some View {
+  ) -> some View {
     Toggle(isOn: value).liveRowFill() {
       Text(title).foregroundStyle(.primary)
     }
