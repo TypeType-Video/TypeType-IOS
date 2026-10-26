@@ -180,14 +180,14 @@ enum DemoTheme {
     }
   }
 
-  /// Android `Theme.kt`: AMOLED is inactive in Light mode.
+  /// AMOLED is inactive when the app is effectively light — it only applies
+  /// when the app is actually dark (Dark mode, or System with a dark system).
   private static var effectiveAmoled: Bool {
-    appearanceAmoled && appearanceMode != .light
+    appearanceAmoled && isDarkResolved
   }
 
-  /// The scheme for the current appearance mode (Android `Theme.kt`):
-  /// Light stays light, Dark stays dark, System follows the environment —
-  /// except that AMOLED forces dark even when the system is light.
+  /// The scheme for the current appearance mode: Light stays light, Dark
+  /// stays dark, System follows the environment scheme.
   private static var isDarkResolved: Bool {
     switch appearanceMode {
     case .dark:
@@ -195,9 +195,6 @@ enum DemoTheme {
     case .light:
       return false
     case .system:
-      if effectiveAmoled {
-        return true
-      }
       if let systemColorScheme {
         return systemColorScheme == .dark
       }

@@ -149,9 +149,9 @@ struct LiveSettingsAppearanceView: View {
           selection: preferences.binding(\.appearanceMode),
           options: LiveAppearanceMode.allCases.map { ($0, $0.title) }
         )
-        // Android: AMOLED is inactive in Light mode (the row is hidden
-        // there); in Dark AND System it applies — System+AMOLED forces dark.
-        if preferences.preferences.appearanceMode != .light {
+        // The AMOLED row is visible only when the app is effectively dark
+        // (Dark, or System with a dark system) — in light it does nothing.
+        if isEffectivelyDark {
           Toggle("AMOLED black", isOn: preferences.binding(\.appearanceAmoled)).liveRowFill()
         }
         LiveOptionMenu(
