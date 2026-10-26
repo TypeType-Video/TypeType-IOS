@@ -142,12 +142,16 @@ extension LivePlayerController {
           || state == .playing
       )
     state = .loading
+    LivePlaybackDebugTrace.note("seek requested to=\(Int(seconds)) from=\(Int(position))")
     seekTask = Task { @MainActor [weak self] in
       guard let self else { return }
       do {
-        let assetURL = try await playbackServer.seekSABR(to: seconds)
+        let assetURL = try await LivePlaybackDebugTrace.measure("sabr seek") {
+          try await playbackServer.seekSABR(to: seconds)
+        }
         try Task.checkCancellation()
         playbackTimeOffset = playbackServer.sabrPlaybackStartTime
+        LivePlaybackDebugTrace.note("seek installed offset=\(Int(playbackTimeOffset))")
         position = seconds
         pendingSeek = playbackTimeOffset == 0 ? seconds : nil
         installPlayerItem(
@@ -158,6 +162,7 @@ extension LivePlayerController {
       } catch is CancellationError {
         return
       } catch {
+        LivePlaybackDebugTrace.note("seek failed \(error)")
         state = player.timeControlStatus == .playing
           ? .playing
           : .paused

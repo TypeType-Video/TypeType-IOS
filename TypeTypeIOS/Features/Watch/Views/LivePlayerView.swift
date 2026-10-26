@@ -11,6 +11,9 @@ struct LivePlayerView: View {
 
 
   @State private var seekFeedback: PlayerDoubleTapSeekFeedback?
+  /// Rapid double taps add up into one seek, like YouTube.
+  @State private var doubleTapSeek: (target: TimeInterval, seconds: Int, direction: PlayerDoubleTapSeekDirection, at: Date)?
+  @State private var doubleTapSeekTask: Task<Void, Never>?
   @State private var swipeAdjustment: PlayerSwipeAdjustmentState?
   @State private var systemBrightnessBeforeSwipe: CGFloat?
   @State private var longPressBaseRate: Float?
@@ -220,20 +223,37 @@ struct LivePlayerView: View {
     guard let direction = PlayerDoubleTapSeek.direction(
       x: location.x,
       width: width
-    ), let target = PlayerDoubleTapSeek.target(
-      current: controller.position,
-      duration: controller.duration,
-      direction: direction,
-      seconds: preferences.preferences.playerDoubleTapSeekSeconds
     ) else {
       return
     }
-
+    // Continue from the pending target while taps keep coming in the same
+    // direction: the player position only moves once the seek has run.
+    // Kept 1.5 s after the last tap, so a tap right after the seek fired
+    // still builds on its target rather than on a not-yet-updated position.
+    let pending = doubleTapSeek.flatMap {
+      $0.direction == direction && Date().timeIntervalSince($0.at) < 1.5 ? $0 : nil
+    }
+    let step = preferences.preferences.playerDoubleTapSeekSeconds
+    guard let target = PlayerDoubleTapSeek.target(
+      current: pending?.target ?? controller.position,
+      duration: controller.duration,
+      direction: direction,
+      seconds: step
+    ) else {
+      return
+    }
+    let seconds = (pending?.seconds ?? 0) + step
+    doubleTapSeek = (target, seconds, direction, Date())
     seekFeedback = PlayerDoubleTapSeekFeedback(
       direction: direction,
-      seconds: preferences.preferences.playerDoubleTapSeekSeconds
+      seconds: seconds
     )
-    controller.seek(to: target)
+    doubleTapSeekTask?.cancel()
+    doubleTapSeekTask = Task { @MainActor in
+      try? await Task.sleep(for: .milliseconds(450))
+      guard !Task.isCancelled else { return }
+      controller.seek(to: target)
+    }
   }
 
   private func handleSwipeAdjustment(
