@@ -24,6 +24,7 @@ struct LiveAccountView: View {
       .liveThemedList()
       .liveThemeRepaint()
       .navigationTitle("More")
+      .navigationBarTitleDisplayMode(.inline)
     }
     .accessibilityIdentifier("live.account.screen")
   }
