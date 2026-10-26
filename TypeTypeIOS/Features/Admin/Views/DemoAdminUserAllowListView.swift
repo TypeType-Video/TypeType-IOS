@@ -9,7 +9,7 @@ struct DemoAdminUserAllowListView: View {
   var body: some View {
     Form {
       Section {
-        Toggle("User-specific allow list", isOn: restricted)
+        Toggle("User-specific allow list", isOn: restricted).liveRowFill()
         Text(accessSummary)
           .font(.caption)
           .foregroundStyle(.secondary)

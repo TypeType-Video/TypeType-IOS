@@ -24,7 +24,7 @@ struct DemoBugReportView: View {
       } header: { Text("Problem").liveSectionHeader() }
 
       Section {
-        Toggle("Include privacy-safe diagnostics", isOn: $includesDiagnostics)
+        Toggle("Include privacy-safe diagnostics", isOn: $includesDiagnostics).liveRowFill()
         LabeledContent("App", value: "TypeType iOS mock")
         LabeledContent("Device", value: "iPhone simulator")
       } header: { Text("Diagnostics").liveSectionHeader() }

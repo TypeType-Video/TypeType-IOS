@@ -25,8 +25,8 @@ struct DemoAdminUserDetailView: View {
             Text("Moderator").tag("moderator")
             Text("Admin").tag("admin")
           }
-          Toggle("Suspended", isOn: suspendedBinding)
-          Toggle("Verified", isOn: verifiedBinding)
+          Toggle("Suspended", isOn: suspendedBinding).liveRowFill()
+          Toggle("Verified", isOn: verifiedBinding).liveRowFill()
         } header: { Text("Role and status").liveSectionHeader() }
 
         Section {

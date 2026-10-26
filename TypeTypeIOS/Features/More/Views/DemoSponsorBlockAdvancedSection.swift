@@ -9,13 +9,13 @@ struct DemoSponsorBlockAdvancedSection: View {
         "Minimum segment: \(session.preferences.sponsorBlockMinimumDuration)s",
         value: binding(\.sponsorBlockMinimumDuration),
         in: 0...30
-      )
-      Toggle("Show current segment next to time", isOn: binding(\.sponsorBlockShowsCurrentSegment))
-      Toggle("Show SponsorBlock chapters", isOn: binding(\.sponsorBlockShowsChapters))
-      Toggle("Show full-video labels", isOn: binding(\.sponsorBlockShowsFullVideoLabels))
-      Toggle("Manual skip for full-video labels", isOn: binding(\.sponsorBlockManualFullVideoSkip))
-      Toggle("Non-music only on music videos", isOn: binding(\.sponsorBlockMusicOnly))
-      Toggle("Mute segments instead of skipping", isOn: binding(\.sponsorBlockMutesInsteadOfSkips))
+      ).liveRowFill()
+      Toggle("Show current segment next to time", isOn: binding(\.sponsorBlockShowsCurrentSegment)).liveRowFill()
+      Toggle("Show SponsorBlock chapters", isOn: binding(\.sponsorBlockShowsChapters)).liveRowFill()
+      Toggle("Show full-video labels", isOn: binding(\.sponsorBlockShowsFullVideoLabels)).liveRowFill()
+      Toggle("Manual skip for full-video labels", isOn: binding(\.sponsorBlockManualFullVideoSkip)).liveRowFill()
+      Toggle("Non-music only on music videos", isOn: binding(\.sponsorBlockMusicOnly)).liveRowFill()
+      Toggle("Mute segments instead of skipping", isOn: binding(\.sponsorBlockMutesInsteadOfSkips)).liveRowFill()
     } header: { Text("Advanced display").liveSectionHeader() }
   }
 

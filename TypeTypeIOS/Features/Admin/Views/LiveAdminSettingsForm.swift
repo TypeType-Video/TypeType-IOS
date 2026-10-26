@@ -27,25 +27,25 @@ struct LiveAdminSettingsForm: View {
       } header: { Text("Branding").liveSectionHeader() }
 
       Section {
-        Toggle("Allow registration", isOn: $settings.allowRegistration)
-        Toggle("Allow guests", isOn: $settings.allowGuest)
+        Toggle("Allow registration", isOn: $settings.allowRegistration).liveRowFill()
+        Toggle("Allow guests", isOn: $settings.allowGuest).liveRowFill()
         Toggle(
           "Require email verification",
           isOn: $settings.forceEmailVerification
-        )
-        Toggle("Local login", isOn: $settings.localLoginEnabled)
-        Toggle("OIDC auto redirect", isOn: $settings.oidcAutoRedirect)
+        ).liveRowFill()
+        Toggle("Local login", isOn: $settings.localLoginEnabled).liveRowFill()
+        Toggle("OIDC auto redirect", isOn: $settings.oidcAutoRedirect).liveRowFill()
       } header: { Text("Authentication").liveSectionHeader() }
 
       Section {
         Toggle(
           "Active session visibility",
           isOn: $settings.activeSessionsEnabled
-        )
+        ).liveRowFill()
         Toggle(
           "YouTube remote login",
           isOn: $settings.youtubeRemoteLoginEnabled
-        )
+        ).liveRowFill()
         TextField(
           "Minimum Android version",
           text: optionalBinding(\.minimumAndroidClientVersion)

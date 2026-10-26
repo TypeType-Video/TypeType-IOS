@@ -32,7 +32,7 @@ struct DemoPlayerOptionsSheet: View {
             value: binding(\.audioGainPercent),
             in: 100...300,
             step: 25
-          )
+          ).liveRowFill()
           .onChange(of: session.preferences.audioGainPercent) {
             controller.setAudioGain(
               percent: session.preferences.audioGainPercent
@@ -46,9 +46,9 @@ struct DemoPlayerOptionsSheet: View {
             "Audio only",
             systemImage: "headphones",
             isOn: audioOnlyBinding
-          )
-          Toggle("Autoplay next video", isOn: binding(\.autoplay))
-          Toggle("Loop video", isOn: binding(\.loopPlayback))
+          ).liveRowFill()
+          Toggle("Autoplay next video", isOn: binding(\.autoplay)).liveRowFill()
+          Toggle("Loop video", isOn: binding(\.loopPlayback)).liveRowFill()
             .onChange(of: session.preferences.loopPlayback) {
               controller.setLooping(session.preferences.loopPlayback)
             }
@@ -66,7 +66,7 @@ struct DemoPlayerOptionsSheet: View {
               .font(.caption)
               .foregroundStyle(.secondary)
           }
-          Toggle("Subtitles", isOn: binding(\.subtitlesEnabled))
+          Toggle("Subtitles", isOn: binding(\.subtitlesEnabled)).liveRowFill()
           if session.preferences.subtitlesEnabled {
             Picker("Subtitle language", selection: binding(\.subtitleLanguage)) {
               Text("English").tag("English")
@@ -81,8 +81,8 @@ struct DemoPlayerOptionsSheet: View {
         } header: { Text("Tracks").liveSectionHeader() }
 
         Section {
-          Toggle("Cinema mode", isOn: binding(\.cinemaMode))
-          Toggle("Bullet comments", isOn: binding(\.bulletComments))
+          Toggle("Cinema mode", isOn: binding(\.cinemaMode)).liveRowFill()
+          Toggle("Bullet comments", isOn: binding(\.bulletComments)).liveRowFill()
           if session.preferences.bulletComments {
             LabeledContent("Danmaku speed") {
               Slider(value: binding(\.bulletCommentSpeed), in: 0.5...2)
@@ -114,9 +114,9 @@ struct DemoPlayerOptionsSheet: View {
         } header: { Text("Player presentation").liveSectionHeader() }
 
         Section {
-          Toggle("SponsorBlock", isOn: binding(\.sponsorBlock))
+          Toggle("SponsorBlock", isOn: binding(\.sponsorBlock)).liveRowFill()
             .accessibilityIdentifier("demo.player.options.sponsorblock")
-          Toggle("DeArrow", isOn: binding(\.deArrow))
+          Toggle("DeArrow", isOn: binding(\.deArrow)).liveRowFill()
             .accessibilityIdentifier("demo.player.options.dearrow")
           LabeledContent(
             "SponsorBlock behavior",

@@ -77,7 +77,7 @@ struct LiveAdminAllowListView: View {
               Task { await viewModel.setRestricted(value) }
             }
           )
-        )
+        ).liveRowFill()
         .disabled(viewModel.isBusy)
       } header: { Text("Entire instance").liveSectionHeader() }
 

@@ -8,7 +8,7 @@ struct LiveSettingsLanguageSection: View {
       Toggle(
         "Enable subtitles by default",
         isOn: $settings.subtitlesEnabled
-      )
+      ).liveRowFill()
       TextField(
         "Subtitle language code",
         text: $settings.defaultSubtitleLanguage
@@ -22,7 +22,7 @@ struct LiveSettingsLanguageSection: View {
       Toggle(
         "Prefer original language",
         isOn: $settings.preferOriginalLanguage
-      )
+      ).liveRowFill()
       NavigationLink("Caption appearance") {
         LiveSettingsCaptionAppearanceView(
           styles: $settings.captionStyles

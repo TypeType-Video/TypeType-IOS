@@ -150,7 +150,7 @@ struct LiveSettingsAppearanceView: View {
           options: LiveAppearanceMode.allCases.map { ($0, $0.title) }
         )
         if isEffectivelyDark {
-          Toggle("AMOLED black", isOn: preferences.binding(\.appearanceAmoled))
+          Toggle("AMOLED black", isOn: preferences.binding(\.appearanceAmoled)).liveRowFill()
         }
         LiveOptionMenu(
           "Theme",
@@ -186,23 +186,23 @@ struct LiveSettingsAppearanceView: View {
           Toggle(
             "Screentone",
             isOn: preferences.binding(\.mangaScreentone)
-          )
+          ).liveRowFill()
           Toggle(
             "Speed lines",
             isOn: preferences.binding(\.mangaSpeedLines)
-          )
+          ).liveRowFill()
           Toggle(
             "Starburst",
             isOn: preferences.binding(\.mangaStarburst)
-          )
+          ).liveRowFill()
           Toggle(
             "Inked icons",
             isOn: preferences.binding(\.mangaInkedIcons)
-          )
+          ).liveRowFill()
           Toggle(
             "Panel tilt",
             isOn: preferences.binding(\.mangaPanelTilt)
-          )
+          ).liveRowFill()
         } header: {
         Text("Manga").liveSectionHeader()
       }
@@ -301,7 +301,7 @@ struct LiveSettingsContentView: View {
         services: dependencies.serviceSelection.services
       )
       Section {
-        Toggle("Hide Shorts", isOn: $viewModel.draft.hideShorts)
+        Toggle("Hide Shorts", isOn: $viewModel.draft.hideShorts).liveRowFill()
       } header: {
         Text("Visible surfaces").liveSectionHeader()
       }
@@ -327,11 +327,11 @@ struct LiveSettingsPlayerView: View {
         Toggle(
           "Accessible player controls",
           isOn: preferences.binding(\.playerAccessibleControlsEnabled)
-        )
+        ).liveRowFill()
         Toggle(
           "Double-tap to seek",
           isOn: preferences.binding(\.playerDoubleTapSeekEnabled)
-        )
+        ).liveRowFill()
         if preferences.preferences.playerDoubleTapSeekEnabled {
           LiveOptionMenu(
             "Double-tap seek time",
@@ -342,17 +342,17 @@ struct LiveSettingsPlayerView: View {
         Toggle(
           "Swipe to seek",
           isOn: preferences.binding(\.playerSwipeSeekEnabled)
-        )
+        ).liveRowFill()
         Toggle(
           "Brightness and volume swipe",
           isOn: preferences.binding(
             \.playerSwipeBrightnessVolumeEnabled
           )
-        )
+        ).liveRowFill()
         Toggle(
           "Long-press to speed up",
           isOn: preferences.binding(\.playerLongPressSpeedEnabled)
-        )
+        ).liveRowFill()
       } header: {
         Text("Gestures").liveSectionHeader()
       }
@@ -374,7 +374,7 @@ struct LiveSettingsPlayerView: View {
         Toggle(
           "Show bullet comments",
           isOn: preferences.binding(\.danmakuEnabled)
-        )
+        ).liveRowFill()
         if preferences.preferences.danmakuEnabled {
           LiveOptionMenu(
             "Danmaku speed",
@@ -403,7 +403,7 @@ struct LiveSettingsPlayerView: View {
       Toggle(
         "Autoplay next video",
         isOn: preferences.binding(\.playerAutoplayEnabled)
-      )
+      ).liveRowFill()
       if preferences.preferences.playerAutoplayEnabled {
         LiveOptionMenu(
           "Autoplay countdown",
@@ -415,11 +415,11 @@ struct LiveSettingsPlayerView: View {
       Toggle(
         "Audio-only playback",
         isOn: preferences.binding(\.playerAudioOnlyPlayback)
-      )
+      ).liveRowFill()
       Toggle(
         "Pause in background",
         isOn: preferences.binding(\.playerPauseInBackground)
-      )
+      ).liveRowFill()
     } header: {
         Text("Device playback").liveSectionHeader()
       }

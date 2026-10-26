@@ -283,6 +283,13 @@ struct DemoThemePalette: Equatable {
   var renderToken: UUID
 }
 
+extension DemoTheme {
+  /// Static twin of `palette.rowBackground` for row content fills.
+  static var rowBackground: Color {
+    (appearanceAmoled && isDarkResolved) ? surface : background
+  }
+}
+
 private struct DemoThemePaletteKey: EnvironmentKey {
   /// Computed, not cached: a `let` froze the accent at first access and
   /// left un-injected surfaces on the launch palette.
@@ -703,6 +710,19 @@ extension View {
       .frame(maxWidth: .infinity, maxHeight: .infinity)
       .background(DemoTheme.background)
   }
+
+  /// Fills the whole list row with the row colour. iOS 26 paints system
+  /// fills (white in light, black in dark) on rows whose content is a
+  /// control (Button/Toggle/Stepper) — `listRowBackground` does not cover
+  /// them. The fill bleeds past the row content insets to reach the row
+  /// edges; outside lists it is invisible because it matches the page.
+  func liveRowFill() -> some View {
+    background(
+      DemoTheme.rowBackground
+        .padding(.horizontal, -20)
+        .padding(.vertical, -12)
+    )
+  }
 }
 
 /// Android-style selection menu: a filled surface popup with the options
@@ -741,6 +761,7 @@ struct LiveOptionMenu<Option: Hashable>: View {
       .frame(maxWidth: .infinity, minHeight: 20, alignment: .leading)
     }
     .buttonStyle(.plain)
+    .liveRowFill()
     .popover(
       isPresented: $isPresented,
       attachmentAnchor: .rect(.bounds),

@@ -15,7 +15,7 @@ struct DemoPrivacyView: View {
   var body: some View {
     Form {
       Section {
-        Toggle("Watch history tracking", isOn: tracksHistory)
+        Toggle("Watch history tracking", isOn: tracksHistory).liveRowFill()
       } header: { Text("Privacy").liveSectionHeader() }
 
       Section {

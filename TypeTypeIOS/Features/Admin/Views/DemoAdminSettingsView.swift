@@ -6,21 +6,21 @@ struct DemoAdminSettingsView: View {
   var body: some View {
     Form {
       Section {
-        Toggle("Allow registrations", isOn: adminBinding(\.allowsRegistration))
-        Toggle("Allow guest mode", isOn: adminBinding(\.allowsGuests))
-        Toggle("Track active sessions", isOn: adminBinding(\.tracksActiveSessions))
+        Toggle("Allow registrations", isOn: adminBinding(\.allowsRegistration)).liveRowFill()
+        Toggle("Allow guest mode", isOn: adminBinding(\.allowsGuests)).liveRowFill()
+        Toggle("Track active sessions", isOn: adminBinding(\.tracksActiveSessions)).liveRowFill()
       } header: { Text("Instance access").liveSectionHeader() }
 
       Section {
-        Toggle("Allow local login", isOn: adminBinding(\.allowsLocalLogin))
-        Toggle("Auto-redirect to OIDC", isOn: adminBinding(\.redirectsToOIDC))
+        Toggle("Allow local login", isOn: adminBinding(\.allowsLocalLogin)).liveRowFill()
+        Toggle("Auto-redirect to OIDC", isOn: adminBinding(\.redirectsToOIDC)).liveRowFill()
       } header: { Text("Authentication").liveSectionHeader() }
 
       Section {
         Toggle(
           "Remote YouTube login",
           isOn: adminBinding(\.allowsYouTubeRemoteLogin)
-        )
+        ).liveRowFill()
       } header: { Text("YouTube").liveSectionHeader() }
 
       Section {

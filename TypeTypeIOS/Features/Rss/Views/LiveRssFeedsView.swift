@@ -76,7 +76,7 @@ struct LiveRssFeedsView: View {
 
   private func row(_ feed: LiveRssFeed) -> some View {
     VStack(alignment: .leading, spacing: 8) {
-      Toggle(feed.name, isOn: enabledBinding(feed))
+      Toggle(feed.name, isOn: enabledBinding(feed)).liveRowFill()
         .disabled(viewModel.busyFeedIDs.contains(feed.id))
       Text(feed.scope == "channels" ? "Selected channels" : "All subscriptions")
         .font(.caption)
@@ -110,7 +110,7 @@ struct LiveRssFeedsView: View {
       Form {
         Section {
           TextField("Feed name", text: $viewModel.draftName)
-          Toggle("Only selected channels", isOn: $viewModel.draftIncludesChannels)
+          Toggle("Only selected channels", isOn: $viewModel.draftIncludesChannels).liveRowFill()
         } header: { Text("Feed").liveSectionHeader() }
         if viewModel.draftIncludesChannels {
           Section {
@@ -130,9 +130,9 @@ struct LiveRssFeedsView: View {
           } header: { Text("Channels").liveSectionHeader() }
         }
         Section {
-          Toggle("Shorts", isOn: $viewModel.draftIncludeShorts)
-          Toggle("Live", isOn: $viewModel.draftIncludeLive)
-          Toggle("Upcoming", isOn: $viewModel.draftIncludeUpcoming)
+          Toggle("Shorts", isOn: $viewModel.draftIncludeShorts).liveRowFill()
+          Toggle("Live", isOn: $viewModel.draftIncludeLive).liveRowFill()
+          Toggle("Upcoming", isOn: $viewModel.draftIncludeUpcoming).liveRowFill()
         } header: { Text("Content").liveSectionHeader() }
       }
         .liveThemedList()

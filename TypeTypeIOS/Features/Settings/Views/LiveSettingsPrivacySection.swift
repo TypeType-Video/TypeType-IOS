@@ -11,7 +11,7 @@ struct LiveSettingsPrivacySection: View {
           get: { !settings.disableWatchHistory },
           set: { settings.disableWatchHistory = !$0 }
         )
-      )
+      ).liveRowFill()
       LabeledContent(
         "Content access",
         value: settings.accessMode == "allow_list"

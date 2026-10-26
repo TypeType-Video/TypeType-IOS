@@ -40,8 +40,8 @@ extension LiveDownloadSheet {
   @ViewBuilder private var processingOptions: some View {
     if viewModel.mode != .thumbnail {
       Section {
-        Toggle("Apply SponsorBlock", isOn: $viewModel.sponsorBlock)
-        Toggle("Include subtitles", isOn: $viewModel.includesSubtitles)
+        Toggle("Apply SponsorBlock", isOn: $viewModel.sponsorBlock).liveRowFill()
+        Toggle("Include subtitles", isOn: $viewModel.includesSubtitles).liveRowFill()
         if viewModel.includesSubtitles {
           TextField(
             "Subtitle language",

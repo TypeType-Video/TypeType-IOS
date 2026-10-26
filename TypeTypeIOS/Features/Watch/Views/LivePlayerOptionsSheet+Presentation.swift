@@ -12,7 +12,7 @@ extension LivePlayerOptionsSheet {
           Text(mode.title).tag(mode)
         }
       }
-      Toggle("Cinema mode", isOn: $cinemaMode)
+      Toggle("Cinema mode", isOn: $cinemaMode).liveRowFill()
       LabeledContent(
         "Picture in Picture",
         value: AVPictureInPictureController
@@ -28,7 +28,7 @@ extension LivePlayerOptionsSheet {
             \.bulletCommentsEnabled,
             setter: controller.setBulletCommentsEnabled
           )
-        )
+        ).liveRowFill()
         if controller.bulletCommentsEnabled {
           LabeledContent("Danmaku speed") {
             Slider(

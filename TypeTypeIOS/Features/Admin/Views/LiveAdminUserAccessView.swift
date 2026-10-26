@@ -56,7 +56,7 @@ struct LiveAdminUserAccessView: View {
               Task { await viewModel.setRestricted(value) }
             }
           )
-        )
+        ).liveRowFill()
         .disabled(viewModel.isBusy)
       } header: { Text("User").liveSectionHeader() }
 

@@ -10,11 +10,11 @@ struct LiveSettingsPlaybackSection: View {
 
   var body: some View {
     Section {
-      Toggle("Autoplay next video", isOn: $settings.autoplay)
+      Toggle("Autoplay next video", isOn: $settings.autoplay).liveRowFill()
       Toggle(
         "Skip playlist autoplay screen",
         isOn: $settings.skipPlaylistAutoplayScreen
-      )
+      ).liveRowFill()
       LiveOptionMenu(
         "Default quality",
         selection: $settings.defaultQuality,
@@ -29,8 +29,8 @@ struct LiveSettingsPlaybackSection: View {
       Toggle(
         "High-quality playback",
         isOn: $settings.enableHighQualityPlayback
-      )
-      Toggle("Start muted", isOn: $settings.muted)
+      ).liveRowFill()
+      Toggle("Start muted", isOn: $settings.muted).liveRowFill()
       VStack(alignment: .leading, spacing: 8) {
         HStack {
           Text("Default volume")

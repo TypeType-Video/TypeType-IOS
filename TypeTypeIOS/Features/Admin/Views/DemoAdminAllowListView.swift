@@ -38,7 +38,7 @@ struct DemoAdminAllowListView: View {
           Toggle(
             user.name,
             isOn: restrictedBinding(for: user.id)
-          )
+          ).liveRowFill()
         }
       } header: { Text("User access").liveSectionHeader() } footer: {
         Text("Enabled means this user has a user-specific allow list.").liveSectionSlotChrome()

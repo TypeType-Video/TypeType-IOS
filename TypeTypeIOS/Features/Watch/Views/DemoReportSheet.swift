@@ -29,7 +29,7 @@ struct DemoReportSheet: View {
         } header: { Text("What happened?").liveSectionHeader() }
 
         Section {
-          Toggle("Attach technical details", isOn: $includesDiagnostics)
+          Toggle("Attach technical details", isOn: $includesDiagnostics).liveRowFill()
           if includesDiagnostics {
             LabeledContent("Playback", value: "SABR")
             LabeledContent("App", value: "TypeType iOS mock")

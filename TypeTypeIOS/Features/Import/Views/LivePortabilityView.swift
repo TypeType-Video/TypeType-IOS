@@ -109,7 +109,7 @@ struct LivePortabilityView: View {
           )
         }
         ForEach(viewModel.activeCategories) { category in
-          Toggle(category.title, isOn: categoryBinding(category))
+          Toggle(category.title, isOn: categoryBinding(category)).liveRowFill()
         }
       } header: { Text("Categories").liveSectionHeader() }
     }
@@ -216,7 +216,7 @@ struct LivePortabilityView: View {
               value: String(preview.counts[category.rawValue] ?? 0)
             )
           }
-          Toggle("Skip duplicates", isOn: policyBinding)
+          Toggle("Skip duplicates", isOn: policyBinding).liveRowFill()
           Button("Import selected") {
             Task { await viewModel.apply() }
           }

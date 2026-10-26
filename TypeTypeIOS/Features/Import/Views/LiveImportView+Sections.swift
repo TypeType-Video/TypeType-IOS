@@ -4,7 +4,7 @@ extension LiveImportView {
   var typeTypeBackupSection: some View {
     Section {
       ForEach(LiveTypeTypeBackupCategory.allCases) { category in
-        Toggle(category.title, isOn: categoryBinding(category))
+        Toggle(category.title, isOn: categoryBinding(category)).liveRowFill()
           .disabled(viewModel.isRunning)
       }
       if let exportedBackupURL = viewModel.exportedBackupURL {

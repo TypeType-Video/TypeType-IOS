@@ -21,7 +21,7 @@ struct LiveContentControlEditor: View {
             TextField("Name (optional)", text: $name)
           }
           if canCreateGlobal {
-            Toggle("Apply globally", isOn: $global)
+            Toggle("Apply globally", isOn: $global).liveRowFill()
           }
         } footer: {
           Text("The server validates and normalizes supported URLs.").liveSectionSlotChrome()

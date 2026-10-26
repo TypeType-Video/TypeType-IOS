@@ -26,16 +26,16 @@ struct LiveSettingsDiscoverySection: View {
       Toggle(
         "Hide Continue watching",
         isOn: $settings.hideContinueWatching
-      )
+      ).liveRowFill()
       Toggle(
         "Hide home recommendations",
         isOn: $settings.hideHomeRecommendations
-      )
+      ).liveRowFill()
       Toggle(
         "Hide related videos",
         isOn: $settings.hideRelatedVideos
-      )
-      Toggle("Hide comments and danmaku", isOn: $settings.hideComments)
+      ).liveRowFill()
+      Toggle("Hide comments and danmaku", isOn: $settings.hideComments).liveRowFill()
     } header: { Text("Interface and discovery").liveSectionHeader() }
 
     if settings.hideSubscriptionLiveStreams != nil {
@@ -46,14 +46,14 @@ struct LiveSettingsDiscoverySection: View {
             get: { settings.hideSubscriptionLiveStreams ?? false },
             set: { settings.hideSubscriptionLiveStreams = $0 }
           )
-        )
+        ).liveRowFill()
       } footer: {
         Text("Hide live streams from your subscription feed.").liveSectionSlotChrome()
       }
     }
 
     Section {
-      Toggle("Enable DeArrow", isOn: $settings.deArrowEnabled)
+      Toggle("Enable DeArrow", isOn: $settings.deArrowEnabled).liveRowFill()
       LiveOptionMenu(
         "Titles",
         selection: $settings.deArrowTitleMode,

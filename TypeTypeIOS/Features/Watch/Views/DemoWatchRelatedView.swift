@@ -14,7 +14,7 @@ struct DemoWatchRelatedView: View {
         Text("Up next")
           .font(.title3.weight(.semibold))
         Spacer()
-        Toggle("Autoplay", isOn: $autoplay)
+        Toggle("Autoplay", isOn: $autoplay).liveRowFill()
           .labelsHidden()
         Text("Autoplay")
           .font(.caption)

@@ -53,7 +53,7 @@ struct LiveDanmakuQuickControlsView: View {
             get: { controller.bulletCommentsEnabled },
             set: controller.setBulletCommentsEnabled
           )
-        )
+        ).liveRowFill()
         .labelsHidden()
       }
 

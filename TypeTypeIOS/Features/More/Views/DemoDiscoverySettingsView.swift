@@ -40,10 +40,10 @@ struct DemoDiscoverySettingsView: View {
       } header: { Text("Startup").liveSectionHeader() }
 
       Section {
-        Toggle("Continue watching", isOn: binding(\.showsContinueWatching))
-        Toggle("Home recommendations", isOn: binding(\.showsRecommendations))
-        Toggle("Related videos", isOn: binding(\.showsRelated))
-        Toggle("Comments and bullet comments", isOn: binding(\.loadsComments))
+        Toggle("Continue watching", isOn: binding(\.showsContinueWatching)).liveRowFill()
+        Toggle("Home recommendations", isOn: binding(\.showsRecommendations)).liveRowFill()
+        Toggle("Related videos", isOn: binding(\.showsRelated)).liveRowFill()
+        Toggle("Comments and bullet comments", isOn: binding(\.loadsComments)).liveRowFill()
       } header: { Text("Discovery surfaces").liveSectionHeader() }
 
       Section {

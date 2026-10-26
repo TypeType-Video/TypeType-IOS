@@ -73,6 +73,10 @@ extension LiveAuthenticatedAppView {
         .badge(notificationCenter.unreadCount)
         .tag(LiveAuthenticatedTab.more)
     }
+    // The tab bar floats in a glass pill; without a full-bleed page
+    // background the area below it shows the window's black — only the
+    // More tab covered it because its List fills the safe area.
+    .background(DemoThemeBackground().ignoresSafeArea())
     // Layout-aware: the mini player sits above whatever height the tab
     // bar actually has on this device. The old hardcoded 49pt clearance
     // overlapped the bar on modern devices and on the iPhone SE.

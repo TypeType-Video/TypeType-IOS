@@ -35,31 +35,31 @@ struct LiveSettingsSponsorBlockSection: View {
         "Minimum duration: \(settings.sponsorBlockMinimumDuration)s",
         value: $settings.sponsorBlockMinimumDuration,
         in: 0...600
-      )
+      ).liveRowFill()
       Toggle(
         "Show current segment",
         isOn: $settings.sponsorBlockShowCurrentSegment
-      )
+      ).liveRowFill()
       Toggle(
         "Show SponsorBlock chapters",
         isOn: $settings.sponsorBlockShowChapters
-      )
+      ).liveRowFill()
       Toggle(
         "Show full-video labels",
         isOn: $settings.sponsorBlockShowFullVideoLabels
-      )
+      ).liveRowFill()
       Toggle(
         "Manual skip for full-video labels",
         isOn: $settings.sponsorBlockManualSkipOnFullVideo
-      )
+      ).liveRowFill()
       Toggle(
         "Non-music only on music videos",
         isOn: $settings.sponsorBlockSkipNonMusicOnlyOnMusicVideos
-      )
+      ).liveRowFill()
       Toggle(
         "Mute instead of skip",
         isOn: $settings.sponsorBlockMuteInsteadOfSkip
-      )
+      ).liveRowFill()
     } header: { Text("SponsorBlock").liveSectionHeader() }
   }
 

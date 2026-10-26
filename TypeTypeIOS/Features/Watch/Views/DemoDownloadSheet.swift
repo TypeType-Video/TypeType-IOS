@@ -44,8 +44,8 @@ struct DemoDownloadSheet: View {
               Text("Small size").tag("Small size")
             }
           }
-          Toggle("Include subtitles", isOn: $includesSubtitles)
-          Toggle("Show all formats", isOn: $showsAllFormats)
+          Toggle("Include subtitles", isOn: $includesSubtitles).liveRowFill()
+          Toggle("Show all formats", isOn: $showsAllFormats).liveRowFill()
         }
 
         Section {

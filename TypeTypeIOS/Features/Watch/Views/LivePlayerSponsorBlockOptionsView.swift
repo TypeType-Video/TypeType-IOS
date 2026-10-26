@@ -15,31 +15,31 @@ struct LivePlayerSponsorBlockOptionsView: View {
           "Minimum duration: \(controller.sponsorBlockMinimumDuration)s",
           value: minimumDurationBinding,
           in: 0...600
-        )
+        ).liveRowFill()
         Toggle(
           "Mute segments instead of skipping",
           isOn: muteInsteadOfSkipBinding
-        )
+        ).liveRowFill()
         Toggle(
           "Show current segment",
           isOn: showCurrentBinding
-        )
+        ).liveRowFill()
         Toggle(
           "Show SponsorBlock chapters",
           isOn: showChaptersBinding
-        )
+        ).liveRowFill()
         Toggle(
           "Show full-video labels",
           isOn: showFullVideoBinding
-        )
+        ).liveRowFill()
         Toggle(
           "Manual skip for full-video labels",
           isOn: manualFullVideoBinding
-        )
+        ).liveRowFill()
         Toggle(
           "Non-music only on music videos",
           isOn: musicOnlyBinding
-        )
+        ).liveRowFill()
       } header: { Text("Behavior").liveSectionHeader() }
 
       Section {
