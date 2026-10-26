@@ -49,7 +49,8 @@ struct LiveAuthenticatedAppView: View {
           guard let service = coordinator.dependencies.playbackService else {
             return
           }
-          _ = try? await service.stream(for: video.url)
+          // Only what starting playback needs; full metadata follows on open.
+          _ = try? await service.playbackStream(for: video.url)
         }
       }
       notificationCenter.startPolling()

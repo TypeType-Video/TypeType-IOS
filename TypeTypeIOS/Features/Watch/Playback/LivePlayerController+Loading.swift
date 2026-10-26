@@ -10,7 +10,12 @@ extension LivePlayerController {
       return
     }
     state = .loading
-    await configureAudioSession()
+    loadGeneration += 1
+    let generation = loadGeneration
+    startupTrace.begin()
+    armStartupWatchdog()
+    // The audio session is set up while the stream loads, not before it.
+    async let audioSession: Void = configureAudioSession()
     sabrStallRecoveryTask?.cancel()
     sabrStallRecoveryTask = nil
     sabrRecoveryBudgetResetTask?.cancel()
@@ -20,7 +25,10 @@ extension LivePlayerController {
     sponsorMutedRange = nil
     do {
       async let settingsRequest = settingsService.settings()
-      async let streamRequest = service.stream(for: video.url)
+      // Lives have no fast bootstrap contract; ask for the full stream at once.
+      async let streamRequest = video.isLive
+        ? service.stream(for: video.url)
+        : service.playbackStream(for: video.url)
       async let progressRequest = historyService.progress(
         videoURL: video.url
       )
@@ -28,6 +36,7 @@ extension LivePlayerController {
       applyLoadedSettings()
       loadBulletCommentsIfNeeded()
       let loadedStream = try await streamRequest
+      startupTrace.mark("stream")
       let savedPositionMS: Int64?
       do {
         savedPositionMS = try await progressRequest
@@ -37,6 +46,7 @@ extension LivePlayerController {
       guard !Task.isCancelled else { return }
       stream = loadedStream
       onMetadataResolved?(video.resolving(with: loadedStream))
+      loadFullMetadata(using: service)
       if selectedVideoItag != nil {
         selectedVideoItag = nil
       }
@@ -76,6 +86,9 @@ extension LivePlayerController {
         for: preparation,
         autoplay: initialAutoplay
       )
+      await audioSession
+      startupTrace.mark("audio")
+      guard generation == loadGeneration else { return }
       try await installWithProviderFallback(
         preparation,
         autoplay: initialAutoplay,
@@ -85,6 +98,11 @@ extension LivePlayerController {
       return
     } catch {
       Self.logPreparationFailure(error)
+      if Self.isTransientStartupFailure(error),
+        retryStartupOnce(reason: "\(error)") {
+        return
+      }
+      startupWatchdog?.cancel()
       state = .failed(Self.message(for: error))
       stopPlaybackSession()
     }
@@ -95,6 +113,7 @@ extension LivePlayerController {
     let restartTime = position
     let wasPlaying = player.timeControlStatus == .playing
     state = .loading
+    loadGeneration += 1
     loadTask?.cancel()
     loadTask = Task { [weak self] in
       guard let self else { return }
@@ -140,6 +159,8 @@ extension LivePlayerController {
     autoplay: Bool,
     seekOverride: TimeInterval?
   ) async throws {
+    startupTrace.mark("prepared")
+    let generation = loadGeneration
     player.pause()
     playbackServer?.stop()
     playbackServer = nil
@@ -190,7 +211,13 @@ extension LivePlayerController {
         server.stop()
         throw error
       }
+      // A newer load or restart began while this session was opening.
+      guard generation == loadGeneration else {
+        server.stop()
+        throw CancellationError()
+      }
       playbackServer = server
+      startupTrace.mark("session")
       if installedPreparation.isSABR {
         server.updatePlaybackRate(playbackRate)
         playbackTimeOffset = server.sabrPlaybackStartTime
@@ -211,6 +238,7 @@ extension LivePlayerController {
     at assetURL: URL,
     autoplay: Bool
   ) {
+    startupTrace.mark("item")
     let asset = AVURLAsset(url: assetURL)
     installPlayerItem(asset: asset, autoplay: autoplay)
   }

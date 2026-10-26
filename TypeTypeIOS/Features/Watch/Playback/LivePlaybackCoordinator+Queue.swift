@@ -137,7 +137,7 @@ extension LivePlaybackCoordinator {
     let url = queue.videos[nextIndex].url
     let service = controller?.service
     Task { [weak service] in
-      _ = try? await service?.stream(for: url)
+      _ = try? await service?.playbackStream(for: url)
     }
   }
 }

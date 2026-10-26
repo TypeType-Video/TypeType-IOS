@@ -8,7 +8,6 @@ extension LivePlayerController {
       queue: .main
     ) { [weak self] time in
       Task { @MainActor [weak self] in
-        try? await Task.sleep(for: .milliseconds(100))
         guard let self else { return }
         let seconds = time.seconds
         guard seconds.isFinite else { return }

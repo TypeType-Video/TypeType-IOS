@@ -17,6 +17,16 @@ final class LivePlayerController: ObservableObject {
   @Published var state: State = .idle
   @Published var stream: LivePlaybackStream?
   @Published var preparation: LivePlaybackPreparation?
+  /// Milliseconds from loading to the first playing frame of the last start.
+  @Published var lastStartupMilliseconds: Int?
+  var startupTrace = LivePlaybackStartupTrace()
+  var metadataTask: Task<Void, Never>?
+  /// Bumped by each load or restart; a slower, older load never installs.
+  var loadGeneration = 0
+  var startupWatchdog: Task<Void, Never>?
+  var startupRetryUsed = false
+  /// True while full metadata (related videos, chapters) is still loading.
+  @Published var isLoadingFullMetadata = false
   @Published var position: TimeInterval = 0
   @Published var duration: TimeInterval = 0
   @Published var audioOnly = false

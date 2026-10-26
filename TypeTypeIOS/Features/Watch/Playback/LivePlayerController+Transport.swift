@@ -9,6 +9,7 @@ extension LivePlayerController {
   }
 
   func retry() {
+    startupRetryUsed = false
     loadTask?.cancel()
     didLoad = true
     loadTask = Task { [weak self] in

@@ -2,6 +2,7 @@ import Foundation
 
 protocol LivePlaybackServiceProtocol: AnyObject {
   func stream(for videoURL: String) async throws -> LivePlaybackStream
+  func playbackStream(for videoURL: String) async throws -> LivePlaybackStream
   func prepare(
     stream: LivePlaybackStream,
     sourceURL: String,
@@ -74,8 +75,11 @@ final class LivePlaybackService: LivePlaybackServiceProtocol {
 
   /// Stream metadata is stable for minutes: reopening a video or advancing
   /// the queue re-uses the last response instead of re-fetching.
-  private let streamCache = LiveStreamMetadataCache()
-  private static let streamCacheTTL: TimeInterval = 600
+  let streamCache = LiveStreamMetadataCache()
+  /// Playback-only bootstrap responses, kept apart from full metadata.
+  let playbackCache = LiveStreamMetadataCache()
+  static let streamCacheTTL: TimeInterval = 600
+  let requests = LiveStreamRequests()
 
   func stream(for videoURL: String) async throws -> LivePlaybackStream {
     if let cached = streamCache.stream(
@@ -84,8 +88,13 @@ final class LivePlaybackService: LivePlaybackServiceProtocol {
     ) {
       return cached
     }
-    let loaded = try await loadStream(for: videoURL)
-    streamCache.store(loaded, for: videoURL)
+    let loaded = try await requests.value(for: "full|" + videoURL) { [self] in
+      try await loadStream(for: videoURL)
+    }
+    // Live manifests are short-lived and the live edge moves: never reuse them.
+    if !loaded.isLive {
+      streamCache.store(loaded, for: videoURL)
+    }
     return loaded
   }
 
@@ -108,7 +117,7 @@ final class LivePlaybackService: LivePlaybackServiceProtocol {
     return try await requestStream(path: path, videoURL: videoURL)
   }
 
-  private func requestStream(
+  func requestStream(
     path: String,
     videoURL: String,
     retryToken: String? = nil
@@ -180,6 +189,9 @@ final class LivePlaybackService: LivePlaybackServiceProtocol {
     sourceURL: String,
     preferences: LivePlaybackPreferences
   ) throws -> LivePlaybackPreparation {
+    if isYouTubeURL(sourceURL), Self.playsAsLiveHLS(stream) {
+      return try prepareLiveHLS(stream: stream, preferences: preferences)
+    }
     if isYouTubeURL(sourceURL) {
       return try prepareYouTubeSABR(
         stream: stream,
@@ -251,33 +263,5 @@ final class LivePlaybackService: LivePlaybackServiceProtocol {
         timeoutInterval: 120
       )
     )
-  }
-}
-
-/// Short-lived, thread-safe cache for stream metadata.
-private final class LiveStreamMetadataCache: @unchecked Sendable {
-  private struct Entry {
-    let stream: LivePlaybackStream
-    let date: Date
-  }
-
-  private let lock = NSLock()
-  private var entries: [String: Entry] = [:]
-
-  func stream(for key: String, ttl: TimeInterval) -> LivePlaybackStream? {
-    lock.lock()
-    defer { lock.unlock() }
-    let cutoff = Date().addingTimeInterval(-ttl)
-    entries = entries.filter { $0.value.date > cutoff }
-    guard let entry = entries[key], entry.date > cutoff else {
-      return nil
-    }
-    return entry.stream
-  }
-
-  func store(_ stream: LivePlaybackStream, for key: String) {
-    lock.lock()
-    defer { lock.unlock() }
-    entries[key] = Entry(stream: stream, date: Date())
   }
 }

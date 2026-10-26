@@ -33,7 +33,6 @@ extension LivePlayerController {
       options: [.initial, .new]
     ) { [weak self] item, _ in
       Task { @MainActor [weak self] in
-        try? await Task.sleep(for: .milliseconds(100))
         guard let self, player.currentItem === item else { return }
         handleStatus(item, autoplay: autoplay)
       }
@@ -43,7 +42,6 @@ extension LivePlayerController {
       options: [.new]
     ) { [weak self] player, _ in
       Task { @MainActor [weak self] in
-        try? await Task.sleep(for: .milliseconds(100))
         guard let self else { return }
         switch player.timeControlStatus {
         case .paused:
@@ -65,6 +63,10 @@ extension LivePlayerController {
         case .playing:
           sabrStallRecoveryTask?.cancel()
           sabrStallRecoveryTask = nil
+          if let total = startupTrace.finish(source: video.url) {
+            lastStartupMilliseconds = total
+            startupWatchdog?.cancel()
+          }
           if state != .playing {
             state = .playing
           }
@@ -87,6 +89,7 @@ extension LivePlayerController {
         state = .loading
       }
     case .readyToPlay:
+      startupTrace.mark("ready")
       let resolvedDuration: TimeInterval
       if preparation?.isSABR == true {
         resolvedDuration = TimeInterval(
@@ -141,7 +144,6 @@ extension LivePlayerController {
       toleranceAfter: .zero
     ) { [weak self] _ in
       Task { @MainActor [weak self] in
-        try? await Task.sleep(for: .milliseconds(100))
         guard let self else { return }
         if autoplay {
           playIfActive()
