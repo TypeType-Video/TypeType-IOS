@@ -124,6 +124,7 @@ struct LiveVideoCard: View {
             quickActionsMenu
           } label: {
             Image(systemName: "ellipsis")
+              .rotationEffect(.degrees(90))
               .font(.subheadline.weight(.semibold))
               .foregroundStyle(.secondary)
               .frame(width: 28, height: 28)
