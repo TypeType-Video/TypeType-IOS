@@ -24,7 +24,7 @@ struct LiveVideoMetadataView: View {
       } else {
         ProgressView("Preparing video")
           .frame(maxWidth: .infinity, maxHeight: .infinity)
-          .background(DemoThemeBackground().ignoresSafeArea())
+          .background(DemoThemeBackground())
       .liveThemeRepaint()
       }
     }
