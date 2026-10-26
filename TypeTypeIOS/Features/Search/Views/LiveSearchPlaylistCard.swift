@@ -12,14 +12,12 @@ struct LiveSearchPlaylistCard: View {
           .aspectRatio(16 / 9, contentMode: .fit)
           .clipped()
           .overlay(alignment: .bottomTrailing) {
-            Label(
-              "\(playlist.streamCount)",
-              systemImage: "rectangle.stack.fill"
-            )
+            Text("\(playlist.streamCount)")
             .font(.caption2.weight(.semibold))
-            .foregroundStyle(.white)
-            .padding(.horizontal, 7)
-            .padding(.vertical, 4)
+            .multilineTextAlignment(.center)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 5)
+            .frame(minWidth: 32, minHeight: 22)
             .background(.black.opacity(0.8), in: Capsule())
             .padding(7)
           }
