@@ -131,7 +131,7 @@ struct LiveVideoCard: View {
 
       Text(detailText)
         .font(.caption2.weight(.medium))
-        .foregroundStyle(Color.primary.opacity(0.75))
+        .foregroundStyle(Color.primary.opacity(0.65))
         .lineLimit(1)
     }
     .frame(maxWidth: .infinity, alignment: .leading)
@@ -158,7 +158,7 @@ struct LiveVideoCard: View {
       }
     }
     .font(.caption.weight(.medium))
-    .foregroundStyle(Color.primary.opacity(0.75))
+    .foregroundStyle(Color.primary.opacity(0.65))
   }
 
   @ViewBuilder

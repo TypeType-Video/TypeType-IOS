@@ -10,7 +10,7 @@ struct LiveSavedPlaylistCard: View {
       VStack(alignment: .leading, spacing: 8) {
         ZStack(alignment: .bottomTrailing) {
           LiveRemoteImage(url: playlist.thumbnail)
-            .aspectRatio(16 / 10, contentMode: .fill)
+            .aspectRatio(16 / 9, contentMode: .fill)
             .frame(width: 190)
             .clipped()
             .clipShape(
@@ -18,9 +18,10 @@ struct LiveSavedPlaylistCard: View {
             )
           Text(String(playlist.streamCount))
             .font(.caption2.weight(.semibold))
-            .frame(minWidth: 26)
+            .multilineTextAlignment(.center)
             .padding(.horizontal, 8)
             .padding(.vertical, 5)
+            .frame(minWidth: 32, minHeight: 22)
           .background(.black.opacity(0.78), in: Capsule())
           .foregroundStyle(.white)
           .padding(7)

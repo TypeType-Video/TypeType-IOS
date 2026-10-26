@@ -10,7 +10,7 @@ struct LivePlaylistCard: View {
       VStack(alignment: .leading, spacing: 9) {
         ZStack(alignment: .bottomTrailing) {
           Color.clear
-            .aspectRatio(16 / 10, contentMode: .fit)
+            .aspectRatio(16 / 9, contentMode: .fit)
             .overlay {
               LiveRemoteImage(
                 url: URL(string: playlist.videos.first?.thumbnail ?? "")
@@ -23,9 +23,10 @@ struct LivePlaylistCard: View {
             )
           Text(String(playlist.videoCount))
             .font(.caption.weight(.semibold))
-            .frame(minWidth: 28)
+            .multilineTextAlignment(.center)
             .padding(.horizontal, 9)
             .padding(.vertical, 6)
+            .frame(minWidth: 36, minHeight: 24)
           .background(.black.opacity(0.78), in: Capsule())
           .foregroundStyle(.white)
           .padding(8)
