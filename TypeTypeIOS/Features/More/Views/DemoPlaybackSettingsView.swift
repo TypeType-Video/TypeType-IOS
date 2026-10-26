@@ -94,9 +94,10 @@ struct DemoPlaybackSettingsView: View {
     _ title: String,
     value: Binding<Bool>
   ) -> some View {
-    Toggle(isOn: value).liveRowFill() {
+    Toggle(isOn: value) {
       Text(title).foregroundStyle(.primary)
     }
+    .liveRowFill()
     .tint(Color(red: 1, green: 0.3, blue: 0.34))
     .padding(.vertical, 12)
   }

@@ -74,7 +74,7 @@ struct LiveNotificationSettingsView: View {
       List {
         permissionSection
         ForEach(preferences) { preference in
-          Toggle(isOn: binding(for: preference)).liveRowFill() {
+          Toggle(isOn: binding(for: preference)) {
             VStack(alignment: .leading, spacing: 4) {
               Text(
                 channelNames[preference.channelURL]
@@ -88,6 +88,7 @@ struct LiveNotificationSettingsView: View {
                 .lineLimit(1)
             }
           }
+          .liveRowFill()
           .disabled(
             viewModel.updatingURLs.contains(preference.channelURL)
           )
