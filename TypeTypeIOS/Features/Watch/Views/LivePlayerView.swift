@@ -48,6 +48,7 @@ struct LivePlayerView: View {
         swipeAdjustmentOverlay
         statusOverlay
         if controller.nativePlayback != nil {
+          LiveNativeSubtitleOverlay(controller: controller)
           LiveNativePlayerControls(controller: controller, controls: nativeControls) {
             LiveLandscapeHostingController.present(for: controller)
           }

@@ -7,6 +7,8 @@ extension LivePlayerView {
   func evaluateAutoPictureInPicture(_ frame: CGRect) {
     // Pull-down is only allowed while the page is at the top: the player
     // must sit below the status bar and well above the bottom edge.
+    // Rotating into full screen moves this surface; that is not the reader scrolling away.
+    guard !controller.isPresentingFullscreen else { return }
     let screenH = UIScreen.main.bounds.height
     controller.isPlayerSurfaceFullyVisible =
       frame.minY >= 44 && frame.maxY <= screenH - 100
@@ -25,7 +27,6 @@ extension LivePlayerView {
     guard autoPictureInPictureArmed else { return }
     autoPictureInPictureArmed = false
     guard coordinator.hasActivePlayback,
-      controller.nativePlayback == nil,
       !controller.pictureInPicture.isEngaged
     else {
       return
