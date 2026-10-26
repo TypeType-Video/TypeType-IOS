@@ -9,6 +9,7 @@ enum DemoTheme {
   /// `.id(renderToken)` so UIKit-painted cards pick the new palette up.
   static var renderToken = UUID()
   private static var lastThemeSignature = ""
+  private static var lastPreferencesSignature = ""
   /// The environment colour scheme (system light/dark); used for the
   /// `.system` mode instead of UITraitCollection so system changes react.
   static var systemColorScheme: ColorScheme?
@@ -71,7 +72,7 @@ enum DemoTheme {
     // thrashed the lists and still left stale colours behind. The resolved
     // scheme is part of the signature, so a system light/dark flip rebuilds
     // too — it changes every colour without touching any preference.
-    let signature = [
+    lastPreferencesSignature = [
       preferences.accentColor.rawValue,
       preferences.appearanceMode.rawValue,
       preferences.appearanceAmoled.description,
@@ -79,8 +80,20 @@ enum DemoTheme {
       preferences.appearancePersonality.rawValue,
       preferences.appearanceFont.rawValue,
       preferences.mangaPaper.rawValue,
-      isDarkResolved.description,
     ].joined(separator: "|")
+    rebuildToken()
+  }
+
+  /// A system light/dark flip changes every colour without touching a
+  /// preference. The preference values are cached in the statics, so the
+  /// token rebuilds without reaching for a `LiveAppPreferences`.
+  static func update(colorScheme: ColorScheme?) {
+    systemColorScheme = colorScheme
+    rebuildToken()
+  }
+
+  private static func rebuildToken() {
+    let signature = lastPreferencesSignature + "|" + isDarkResolved.description
     if signature != lastThemeSignature {
       lastThemeSignature = signature
       renderToken = UUID()
@@ -730,14 +743,12 @@ extension View {
 private struct LiveThemeRepaintModifier: ViewModifier {
   @Environment(\.demoTheme) private var palette
   @Environment(\.colorScheme) private var systemScheme
-  @EnvironmentObject private var preferences: LiveAppPreferences
 
   func body(content: Content) -> some View {
     content
-      .id(DemoTheme.renderToken &+ palette.renderToken)
+      .id(palette.renderToken)
       .onChange(of: systemScheme) { _, scheme in
-        DemoTheme.update(preferences: preferences, colorScheme: scheme)
-        DemoTheme.bumpRenderToken()
+        DemoTheme.update(colorScheme: scheme)
       }
   }
 }
