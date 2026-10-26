@@ -50,8 +50,8 @@ extension LivePlayerController {
     sponsorBlockSkipNonMusicOnlyOnMusicVideos =
       settings.sponsorBlockSkipNonMusicOnlyOnMusicVideos
     muted = settings.muted
-    player.volume = Float(min(max(settings.volume, 0), 1))
-    player.isMuted = muted || sponsorMutedRange != nil
+    setOutputVolume(Float(min(max(settings.volume, 0), 1)))
+    setOutputMuted(muted || sponsorMutedRange != nil)
     loopsPlayback = UserDefaults.standard.bool(
       forKey: Self.loopPreferenceKey
     )
@@ -83,7 +83,7 @@ extension LivePlayerController {
 
   func setMuted(_ enabled: Bool) {
     muted = enabled
-    player.isMuted = enabled || sponsorMutedRange != nil
+    setOutputMuted(enabled || sponsorMutedRange != nil)
     updateSettings { $0.muted = enabled }
   }
 
@@ -150,7 +150,7 @@ extension LivePlayerController {
     handledSponsorSegments.removeAll()
     if !enabled, sponsorMutedRange != nil {
       sponsorMutedRange = nil
-      player.isMuted = settings.muted
+      setOutputMuted(settings.muted)
     }
     updateSettings { $0.sponsorBlockMuteInsteadOfSkip = enabled }
   }

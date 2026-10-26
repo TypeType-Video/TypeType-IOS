@@ -11,26 +11,43 @@ extension LivePlayerController {
         guard let self else { return }
         let seconds = time.seconds
         guard seconds.isFinite else { return }
-        let currentPosition = Self.timelinePosition(
-          playbackSeconds: seconds,
-          offset: playbackTimeOffset,
-          duration: duration
-        )
-        if abs(position - currentPosition) >= 0.05 {
-          position = currentPosition
-        }
-        if preparation?.providerPlayback != nil {
-          providerRecoveryResumeTime = max(
-            providerRecoveryResumeTime,
-            currentPosition
+        guard nativePlayback == nil else { return }
+        handleTimeTick(
+          Self.timelinePosition(
+            playbackSeconds: seconds,
+            offset: playbackTimeOffset,
+            duration: duration
           )
-        }
-        playbackServer?.updatePlayerTime(currentPosition)
-        updateSponsorBlock(at: currentPosition)
-        notifyNearEndIfNeeded(at: currentPosition)
-        recordHistoryIfNeeded(force: false)
+        )
       }
     }
+  }
+
+  func handleTimeTick(_ currentPosition: TimeInterval) {
+    if abs(position - currentPosition) >= 0.05 {
+      position = currentPosition
+    }
+    if preparation?.providerPlayback != nil {
+      providerRecoveryResumeTime = max(
+        providerRecoveryResumeTime,
+        currentPosition
+      )
+    }
+    playbackServer?.updatePlayerTime(currentPosition)
+    nativePlayback?.report(currentPosition)
+    updateSponsorBlock(at: currentPosition)
+    notifyNearEndIfNeeded(at: currentPosition)
+    recordHistoryIfNeeded(force: false)
+  }
+
+  func setOutputMuted(_ value: Bool) {
+    player.isMuted = value
+    nativePlayback?.player.isMuted = value
+  }
+
+  func setOutputVolume(_ value: Float) {
+    player.volume = value
+    nativePlayback?.player.volume = value
   }
 
   static func timelinePosition(
@@ -48,7 +65,7 @@ extension LivePlayerController {
   private func updateSponsorBlock(at seconds: TimeInterval) {
     if let sponsorMutedRange {
       if !sponsorMutedRange.contains(seconds) {
-        player.isMuted = settings.muted
+        setOutputMuted(settings.muted)
         self.sponsorMutedRange = nil
       } else {
         return
@@ -67,7 +84,7 @@ extension LivePlayerController {
     }
     handledSponsorSegments.insert(window.id)
     if settings.sponsorBlockMuteInsteadOfSkip {
-      player.isMuted = true
+      setOutputMuted(true)
       sponsorMutedRange = window.start..<window.end
     } else {
       seek(to: window.end)

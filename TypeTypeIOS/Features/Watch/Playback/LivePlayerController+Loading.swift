@@ -157,6 +157,7 @@ extension LivePlayerController {
     startupTrace.mark("prepared")
     let generation = loadGeneration
     player.pause()
+    stopNative()
     playbackServer?.stop()
     playbackServer = nil
     let resolvedDuration = TimeInterval(preparation.stream.duration)
@@ -173,6 +174,23 @@ extension LivePlayerController {
     self.preparation = installedPreparation
     pendingSeek = installedPreparation.isSABR ? nil : requestedTime
     playbackTimeOffset = 0
+    if playsNatively(installedPreparation), let service {
+      do {
+        try await installNative(
+          installedPreparation,
+          service: service,
+          startTime: requestedTime,
+          autoplay: autoplay,
+          generation: generation
+        )
+        return
+      } catch is CancellationError {
+        throw CancellationError()
+      } catch {
+        AppLogger.playback.error("Native playback unavailable, using AVPlayer: \(String(describing: error), privacy: .public)")
+        nativeFallbackUsed = true
+      }
+    }
 
     let assetURL: URL
     if installedPreparation.usesAuthenticatedLoader,

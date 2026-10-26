@@ -30,6 +30,17 @@ extension LivePlayerController {
   func togglePlayback() {
     presentationResumeTask?.cancel()
     presentationResumeTask = nil
+    if let nativePlayback {
+      providerRecoveryDesiredAutoplay = state != .playing
+      if state == .playing {
+        nativePlayback.player.pause()
+        state = .paused
+      } else {
+        nativePlayback.player.play()
+        if state == .paused { state = .playing }
+      }
+      return
+    }
     if player.timeControlStatus == .playing {
       providerRecoveryDesiredAutoplay = false
       player.pause()
@@ -52,11 +63,12 @@ extension LivePlayerController {
     presentationResumeTask = nil
     providerRecoveryDesiredAutoplay = false
     player.pause()
+    nativePlayback?.player.pause()
   }
 
   func preservePlaybackAfterViewDetach(shouldContinue: Bool) {
     presentationResumeTask?.cancel()
-    guard shouldContinue, player.currentItem != nil else {
+    guard nativePlayback == nil, shouldContinue, player.currentItem != nil else {
       self.presentationResumeTask = nil
       return
     }
@@ -79,6 +91,13 @@ extension LivePlayerController {
   }
 
   func replay() {
+    if let nativePlayback {
+      providerRecoveryDesiredAutoplay = true
+      position = 0
+      nativePlayback.seek(to: 0)
+      nativePlayback.player.play()
+      return
+    }
     guard player.currentItem != nil else {
       retry()
       return
@@ -129,6 +148,7 @@ extension LivePlayerController {
     bulletCommentsTask = nil
     providerRecoveryDesiredAutoplay = false
     player.pause()
+    stopNative()
     recordHistoryIfNeeded(force: true)
     reportPlaybackSessionProgress()
     stopPlaybackSession()
@@ -150,6 +170,12 @@ extension LivePlayerController {
 
   func seek(to seconds: TimeInterval) {
     let bounded = min(max(seconds, 0), max(duration, 0))
+    if let nativePlayback {
+      position = bounded
+      nativePlayback.seek(to: bounded)
+      reportPlaybackSessionProgress()
+      return
+    }
     if preparation?.isSABR == true {
       seekSABR(to: bounded, autoplay: nil)
       return
@@ -259,6 +285,7 @@ extension LivePlayerController {
       playIfActive(rate: playbackRate)
     }
     playbackServer?.updatePlaybackRate(playbackRate)
+    nativePlayback?.setRate(playbackRate)
   }
 
   func flushHistory() {

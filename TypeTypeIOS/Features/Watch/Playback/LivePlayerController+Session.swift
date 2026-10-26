@@ -73,7 +73,7 @@ extension LivePlayerController {
       durationMilliseconds: resolvedDuration > 0
         ? milliseconds(resolvedDuration)
         : nil,
-      isPaused: player.timeControlStatus == .paused
+      isPaused: nativePlayback.map { $0.player.state != .playing } ?? (player.timeControlStatus == .paused)
     )
   }
 

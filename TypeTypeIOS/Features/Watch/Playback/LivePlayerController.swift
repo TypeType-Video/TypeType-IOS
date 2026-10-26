@@ -22,6 +22,8 @@ final class LivePlayerController: ObservableObject {
   @Published var extrasReleased = false
   var firstFrameJobs: [() -> Void] = []
   @Published var stream: LivePlaybackStream?
+  @Published var nativePlayback: LiveNativePlayback?
+  var nativeFallbackUsed = false
   @Published var preparation: LivePlaybackPreparation?
   /// Milliseconds from loading to the first playing frame of the last start.
   @Published var lastStartupMilliseconds: Int?
