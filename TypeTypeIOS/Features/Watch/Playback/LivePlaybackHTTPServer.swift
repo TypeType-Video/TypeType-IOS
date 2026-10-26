@@ -161,6 +161,7 @@ final class LivePlaybackHTTPServer: @unchecked Sendable {
           target: .providerMaster,
           pathExtension: "m3u8"
         )
+        warmProviderHLSStart()
       case .separateProgressive:
         routeID = try await startProgressiveProviderSession()
       }

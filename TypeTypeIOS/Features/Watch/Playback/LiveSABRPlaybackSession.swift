@@ -47,14 +47,16 @@ actor LiveSABRPlaybackSession {
     else {
       throw LivePlaybackFailure.noPlayableSource
     }
-    control = try await createControl(
-      videoItag: selectedVideo.itag,
-      audioItag: selectedAudio.itag,
-      audioTrackID: selectedAudio.audioTrackID
-    )
+    control = try await LivePlaybackDebugTrace.measure("sabr create") {
+      try await createControl(
+        videoItag: selectedVideo.itag,
+        audioItag: selectedAudio.itag,
+        audioTrackID: selectedAudio.audioTrackID
+      )
+    }
     attemptedVideoItags = [selectedVideo.itag]
-    _ = try await loadWindow()
-    let snapshot = try await loadIndexedSnapshot()
+    _ = try await LivePlaybackDebugTrace.measure("sabr window") { try await loadWindow() }
+    let snapshot = try await LivePlaybackDebugTrace.measure("sabr index") { try await loadIndexedSnapshot() }
     startMaintenanceIfNeeded()
     return snapshot
   }
@@ -224,7 +226,13 @@ actor LiveSABRPlaybackSession {
       else {
         throw LivePlaybackFailure.invalidSABRContract
       }
+      // The VOD playlist only needs each track's segment count, which the
+      // first answer already carries; the newest window segment is published
+      // a poll or two later and only matters once playback reaches it.
+      let knowsSegmentCount = value.tracks.audio.endSegment > 0
+        && (preparation.audioOnly || value.tracks.video.endSegment > 0)
       let published = value.live
+        || knowsSegmentCount
         || value.tracks.audio.maxSegment >= requiredAudioSegment
           && (
             preparation.audioOnly

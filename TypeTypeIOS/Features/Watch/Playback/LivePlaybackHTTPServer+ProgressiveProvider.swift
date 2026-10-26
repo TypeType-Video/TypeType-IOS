@@ -27,7 +27,7 @@ extension LivePlaybackHTTPServer {
       indexStart: audio.indexStart,
       indexEnd: audio.indexEnd,
       mimeType: "audio/mp4",
-      preflightDuration: 0
+      preflightDuration: 10
     )
     let playlists = try await (videoPlaylist, audioPlaylist)
     providerProgressiveVideo = playlists.0
@@ -112,6 +112,7 @@ extension LivePlaybackHTTPServer {
     ]
     var offset = indexEnd + 1 + index.firstOffset
     var registeredDuration: TimeInterval = 0
+    var warmRoutes: [Route] = []
     for reference in index.references {
       guard offset >= 0,
         offset <= Int64(Int.max),
@@ -131,20 +132,7 @@ extension LivePlaybackHTTPServer {
         pathExtension: "m4s"
       )
       if registeredDuration < preflightDuration {
-        let data = try await loadProviderRange(
-          sourceURL,
-          range: range,
-          allowsAdaptiveRetry: false
-        )
-        let cacheRoute = Route(
-          target: target,
-          pathExtension: "m4s"
-        )
-        cache.setObject(
-          data as NSData,
-          forKey: cacheKey(for: cacheRoute),
-          cost: data.count
-        )
+        warmRoutes.append(Route(target: target, pathExtension: "m4s"))
       }
       guard let segmentURL = localURL(
         routeID: route,
@@ -161,7 +149,25 @@ extension LivePlaybackHTTPServer {
     }
     lines.append("#EXT-X-ENDLIST")
     lines.append("")
+    try await warmProgressiveStart(warmRoutes)
     return lines.joined(separator: "\n")
+  }
+
+  /// Loads the first segment before playback starts, so a broken source
+  /// fails fast and the provider fallback can run; the rest of the warm-up
+  /// window loads in the background while the player already starts. These
+  /// loads go through `load(_:)`, so the player's requests join or hit them.
+  private func warmProgressiveStart(_ routes: [Route]) async throws {
+    guard let first = routes.first else { return }
+    _ = try await load(first)
+    let rest = Array(routes.dropFirst())
+    guard !rest.isEmpty else { return }
+    Task.detached(priority: .userInitiated) { [weak self] in
+      for route in rest {
+        guard let self, !Task.isCancelled else { return }
+        _ = try? await self.load(route)
+      }
+    }
   }
 
   private static let providerPreflightDuration: TimeInterval = 20

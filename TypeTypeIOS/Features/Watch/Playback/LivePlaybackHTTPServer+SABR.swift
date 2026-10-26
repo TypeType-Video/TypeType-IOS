@@ -31,6 +31,7 @@ extension LivePlaybackHTTPServer {
       pathExtension: "m3u8"
     )
     sabrMasterRouteID = masterRouteID
+    warmSABRStart()
     return masterRouteID
   }
 
