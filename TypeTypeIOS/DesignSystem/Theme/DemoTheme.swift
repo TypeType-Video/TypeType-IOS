@@ -195,7 +195,11 @@ enum DemoTheme {
       return .secondarySystemGroupedBackground
     case .groupedBackground:
       return .secondarySystemGroupedBackground
-    case .groupedSurface, .elevatedSurface:
+    case .groupedSurface:
+      // Android classic surfaceVariant/surfaceContainerHigh — an elevated
+      // card tone (plain white reads as "no theme" next to white cards).
+      return .tertiarySystemGroupedBackground
+    case .elevatedSurface:
       return .secondarySystemBackground
     }
   }

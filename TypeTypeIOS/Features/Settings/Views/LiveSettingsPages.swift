@@ -124,6 +124,10 @@ struct LiveSettingsAppearanceView: View {
   @ObservedObject var preferences: LiveAppPreferencesStore
   @Environment(\.demoTheme) private var palette
 
+  private var previewIsManga: Bool {
+    preferences.preferences.appearancePersonality == .manga
+  }
+
   var body: some View {
     LiveSettingsEditingPage(
       viewModel: viewModel,
@@ -209,11 +213,13 @@ struct LiveSettingsAppearanceView: View {
           .accessibilityIdentifier("live.settings.appearance.preview")
           .frame(height: 0)
         ZStack {
+          // Android `AppearancePreview`: classic = Surface with tonal
+          // elevation 2dp (the tinted variant role — plain surface reads as
+          // "no theme" in light mode); manga = surface + 2dp outline border.
           RoundedRectangle(cornerRadius: 16, style: .continuous)
-            .fill(palette.surface)
+            .fill(previewIsManga ? palette.surface : palette.groupedSurface)
             .overlay {
-              if preferences.preferences.appearancePersonality == .manga,
-                preferences.preferences.mangaScreentone {
+              if previewIsManga, preferences.preferences.mangaScreentone {
                   Canvas { context, size in
                     var x: CGFloat = 8
                     while x < size.width {
@@ -232,12 +238,14 @@ struct LiveSettingsAppearanceView: View {
             }
             .frame(height: 132)
             .overlay {
-              RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .strokeBorder(palette.textSecondary.opacity(0.35), lineWidth: 1.5)
+              if previewIsManga {
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                  .strokeBorder(palette.elevatedSurface, lineWidth: 2)
+              }
             }
             .rotationEffect(
               .degrees(
-                preferences.preferences.appearancePersonality == .manga
+                previewIsManga
                   && preferences.preferences.mangaPanelTilt ? -1 : 0
               )
             )
