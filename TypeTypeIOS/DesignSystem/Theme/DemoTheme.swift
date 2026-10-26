@@ -663,7 +663,11 @@ private struct LiveThemedListModifier: ViewModifier {
       // either: flat rows and hairline dividers on the page colour.
       .listStyle(.plain)
       .scrollContentBackground(.hidden)
-      .background(palette.background)
+      // The list background IS the row colour: it shows through
+      // transparent rows (NavigationLinks etc.) and in the gaps between
+      // filled rows, so every page renders rows the same way. Under AMOLED
+      // this is the theme surface on the black page.
+      .background(palette.rowBackground)
       .environment(\.defaultMinListRowHeight, 44)
       .listRowInsets(EdgeInsets(top: 0, leading: 20, bottom: 0, trailing: 20))
       // Rows sit FLAT on the page — never the surface role (that is for
