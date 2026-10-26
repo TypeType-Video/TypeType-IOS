@@ -130,8 +130,8 @@ struct LiveVideoCard: View {
       }
 
       Text(detailText)
-        .font(.caption)
-        .foregroundStyle(.primary)
+        .font(.caption2.weight(.medium))
+        .foregroundStyle(Color.primary.opacity(0.75))
         .lineLimit(1)
     }
     .frame(maxWidth: .infinity, alignment: .leading)
@@ -157,8 +157,8 @@ struct LiveVideoCard: View {
           .accessibilityLabel("Verified")
       }
     }
-    .font(.subheadline)
-    .foregroundStyle(.primary)
+    .font(.caption.weight(.medium))
+    .foregroundStyle(Color.primary.opacity(0.75))
   }
 
   @ViewBuilder
