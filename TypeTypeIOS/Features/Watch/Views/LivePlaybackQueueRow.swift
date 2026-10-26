@@ -29,7 +29,11 @@ struct LivePlaybackQueueRow: View {
           }
         } label: {
           Image(systemName: "ellipsis")
+            .rotationEffect(.degrees(90))
+            .font(.subheadline.weight(.bold))
+            .foregroundStyle(.primary)
             .frame(width: 34, height: 40)
+            .contentShape(Rectangle())
         }
         .accessibilityLabel("Queue options")
       }
