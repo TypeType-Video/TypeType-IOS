@@ -61,8 +61,16 @@ final class AppDependencies {
     )
   }()
   @MainActor
+  lazy var playbackPrewarmer: LivePlaybackPrewarmer? = playbackService.map {
+    LivePlaybackPrewarmer(
+      service: $0,
+      settingsService: settingsService,
+      historyService: historyService
+    )
+  }
+  @MainActor
   lazy var playbackCoordinator: LivePlaybackCoordinator = {
-    LivePlaybackCoordinator(
+    let coordinator = LivePlaybackCoordinator(
       settingsService: settingsService,
       scopeProvider: { [weak self] in
         guard let self,
@@ -84,6 +92,8 @@ final class AppDependencies {
         )
       }
     )
+    coordinator.prewarmer = playbackPrewarmer
+    return coordinator
   }()
 
   init(

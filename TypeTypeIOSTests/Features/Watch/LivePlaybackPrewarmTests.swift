@@ -1,6 +1,61 @@
 import XCTest
 @testable import TypeTypeIOS
 
+final class LiveSABRPrewarmsTests: XCTestCase {
+  private func key(start: Int64 = 0) -> LiveSABRPrewarms.Key {
+    LiveSABRPrewarms.Key(
+      videoID: "abcdefghijk",
+      request: LiveSABRPlaybackRequest(
+        videoItag: 137,
+        audioItag: 140,
+        audioTrackID: nil,
+        startTimeMS: start,
+        playerTimeMS: start,
+        audioOnly: false,
+        isLive: false
+      )
+    )
+  }
+
+  func testCreateWaitsForPrewarmInFlight() async {
+    let prewarms = LiveSABRPrewarms()
+    let order = OrderRecorder()
+    let started = expectation(description: "prewarm sent")
+    let prewarm = Task {
+      await prewarms.prewarm(key()) {
+        started.fulfill()
+        try? await Task.sleep(for: .milliseconds(150))
+        await order.append("prewarm")
+      }
+    }
+    await fulfillment(of: [started], timeout: 2)
+    await prewarms.settle(key())
+    await order.append("create")
+    await prewarm.value
+    let events = await order.events
+    XCTAssertEqual(events, ["prewarm", "create"])
+  }
+
+  func testPrewarmAfterCreateIsDropped() async {
+    let prewarms = LiveSABRPrewarms()
+    let order = OrderRecorder()
+    await prewarms.settle(key())
+    await prewarms.prewarm(key()) { await order.append("prewarm") }
+    let events = await order.events
+    XCTAssertEqual(events, [])
+  }
+
+  func testSecondPrewarmOfSameRequestIsDropped() async {
+    let prewarms = LiveSABRPrewarms()
+    let order = OrderRecorder()
+    await prewarms.prewarm(key()) { await order.append("first") }
+    await prewarms.prewarm(key()) { await order.append("second") }
+    await prewarms.prewarm(key(start: 5_000)) { await order.append("other start") }
+    let events = await order.events
+    XCTAssertEqual(events, ["first", "other start"])
+  }
+}
+
 final class LivePlaybackStartPlanTests: XCTestCase {
   func testStartTimeKeepsResumeAwayFromTheEnd() {
     XCTAssertEqual(LivePlaybackPreparation.startTime(requested: 30, duration: 120), 30)
@@ -58,5 +113,13 @@ final class LivePlaybackStartPlanTests: XCTestCase {
       sponsorBlockSegments: [], relatedStreams: [], category: nil, isLive: false,
       isPostLive: false, isLiveContent: false
     )
+  }
+}
+
+private actor OrderRecorder {
+  private(set) var events: [String] = []
+
+  func append(_ event: String) {
+    events.append(event)
   }
 }

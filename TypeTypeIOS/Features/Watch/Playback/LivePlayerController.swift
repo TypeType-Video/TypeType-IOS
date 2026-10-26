@@ -64,6 +64,8 @@ final class LivePlayerController: ObservableObject {
 
   var onPlaybackEnded: (() -> Void)?
   var onMetadataResolved: ((LiveVideoItem) -> Void)?
+  var onNearEnd: (() -> Void)?
+  var didNotifyNearEnd = false
 
   let video: LiveVideoItem
   let initialAutoplay: Bool

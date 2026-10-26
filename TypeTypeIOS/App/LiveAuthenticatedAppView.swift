@@ -46,13 +46,7 @@ struct LiveAuthenticatedAppView: View {
     .task {
       coordinator.dependencies.playbackService?.preconnectMedia()
       LiveVideoCard.onPrewarm = { video in
-        Task {
-          guard let service = coordinator.dependencies.playbackService else {
-            return
-          }
-          // Only what starting playback needs; full metadata follows on open.
-          _ = try? await service.playbackStream(for: video.url)
-        }
+        coordinator.dependencies.playbackPrewarmer?.prewarm(video)
       }
       notificationCenter.startPolling()
       LiveBackgroundRefreshCoordinator.shared.scheduleRefresh()

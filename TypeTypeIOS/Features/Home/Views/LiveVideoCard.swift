@@ -1,9 +1,9 @@
 import SwiftUI
 
 struct LiveVideoCard: View {
-  /// Touch-down prewarm hook (configured once by the shell): loads stream
-  /// metadata while the finger is still on the card, so the tap-to-open
-  /// latency hides behind the press.
+  /// Press prewarm hook (configured once by the shell): opens the video's
+  /// session while the finger is still on the card, so the start hides
+  /// behind the press.
   static var onPrewarm: ((LiveVideoItem) -> Void)?
   @State private var didPrewarm = false
   @Environment(\.liveQuickActionsMenu) private var quickActionsMenu
@@ -41,6 +41,8 @@ struct LiveVideoCard: View {
           .frame(maxWidth: .infinity, alignment: .leading)
       }
     }
+    // On the whole card, thumbnail included: that is where most taps land.
+    .livePrewarmOnPress { Self.onPrewarm?(video) }
     .task { await deArrowStore.prepare(video) }
     .contentShape(Rectangle())
   }

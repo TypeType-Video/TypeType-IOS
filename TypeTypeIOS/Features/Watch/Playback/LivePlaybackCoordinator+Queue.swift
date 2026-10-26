@@ -140,4 +140,17 @@ extension LivePlaybackCoordinator {
       _ = try? await service?.playbackStream(for: url)
     }
   }
+
+  /// Near the end of the current video: opens the next one's session so
+  /// autoplay or a skip starts on a session the server already prepared.
+  func prewarmNextQueueSession() {
+    guard queue.isActive,
+      queue.repeatMode != .one,
+      let nextIndex = queue.nextIndex,
+      queue.videos.indices.contains(nextIndex)
+    else {
+      return
+    }
+    prewarmer?.prewarm(queue.videos[nextIndex])
+  }
 }

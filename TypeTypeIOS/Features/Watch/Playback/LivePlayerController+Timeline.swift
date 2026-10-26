@@ -27,6 +27,7 @@ extension LivePlayerController {
         }
         playbackServer?.updatePlayerTime(currentPosition)
         updateSponsorBlock(at: currentPosition)
+        notifyNearEndIfNeeded(at: currentPosition)
         recordHistoryIfNeeded(force: false)
       }
     }

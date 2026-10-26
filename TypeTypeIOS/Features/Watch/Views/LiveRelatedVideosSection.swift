@@ -45,10 +45,8 @@ struct LiveRelatedVideosSection: View {
               )
             }
             .buttonStyle(.plain)
-            .liveVideoQuickActions(
-              video: video,
-              dependencies: dependencies
-            )
+            .liveVideoQuickActions(video: video, dependencies: dependencies)
+            .livePrewarmOnPress { LiveVideoCard.onPrewarm?(video) }
             .task(id: video.canonicalID) {
               await Task.yield()
               guard !Task.isCancelled else { return }

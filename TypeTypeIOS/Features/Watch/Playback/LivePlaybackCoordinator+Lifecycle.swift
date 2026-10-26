@@ -97,6 +97,14 @@ extension LivePlaybackCoordinator {
       }
       self.handlePlaybackEnded()
     }
+    next.onNearEnd = { [weak self, weak next] in
+      guard let self, self.controller === next,
+        self.playbackGeneration == generation
+      else {
+        return
+      }
+      self.prewarmNextQueueSession()
+    }
     next.onMetadataResolved = { [weak self, weak next] resolved in
       guard let self, self.controller === next,
         self.playbackGeneration == generation

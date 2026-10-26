@@ -31,6 +31,7 @@ final class LivePlaybackCoordinator: ObservableObject {
   var sleepTimerTask: Task<Void, Never>?
   var autoplayCountdownTask: Task<Void, Never>?
   var pendingAutoplayIndex: Int?
+  var prewarmer: LivePlaybackPrewarmer?
 
   init(
     settingsService: LiveSettingsServiceProtocol,

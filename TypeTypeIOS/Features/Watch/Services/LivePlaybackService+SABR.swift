@@ -5,7 +5,8 @@ extension LivePlaybackService {
     videoID: String,
     request: LiveSABRPlaybackRequest
   ) async throws -> LiveSABRPlaybackControl {
-    try await sabrRequest(
+    await prewarms.settle(LiveSABRPrewarms.Key(videoID: videoID, request: request))
+    return try await sabrRequest(
       APIEndpoint(
         path: "/sabr/playback/\(videoID)",
         method: .post,
@@ -15,6 +16,28 @@ extension LivePlaybackService {
       ),
       as: LiveSABRPlaybackControl.self
     )
+  }
+
+  /// Opens the session before the tap (`prewarm=true`); the next create of
+  /// the same request takes it over on the server instead of opening another.
+  func prewarmSABRPlayback(
+    videoID: String,
+    request: LiveSABRPlaybackRequest
+  ) async {
+    guard let body = try? APIEndpoint.jsonBody(request) else { return }
+    let endpoint = APIEndpoint(
+      path: "/sabr/playback/\(videoID)",
+      method: .post,
+      queryItems: [URLQueryItem(name: "prewarm", value: "true")],
+      body: body,
+      requiresAuth: true,
+      timeoutInterval: 30,
+      retriesTransientFailures: false
+    )
+    let key = LiveSABRPrewarms.Key(videoID: videoID, request: request)
+    await prewarms.prewarm(key) { [apiClient] in
+      _ = try? await apiClient.requestData(endpoint)
+    }
   }
 
   func seekSABRPlayback(

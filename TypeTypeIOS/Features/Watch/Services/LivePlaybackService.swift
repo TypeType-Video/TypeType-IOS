@@ -15,6 +15,7 @@ protocol LivePlaybackServiceProtocol: AnyObject {
   ) async throws -> Data
   func subtitleData(for source: LivePlaybackSubtitle) async throws -> Data
   func preconnectMedia()
+  func prewarmSABRPlayback(videoID: String, request: LiveSABRPlaybackRequest) async
   func createSABRPlayback(
     videoID: String,
     request: LiveSABRPlaybackRequest
@@ -62,6 +63,8 @@ extension LivePlaybackServiceProtocol {
   }
 
   func preconnectMedia() {}
+
+  func prewarmSABRPlayback(videoID: String, request: LiveSABRPlaybackRequest) async {}
 }
 
 final class LivePlaybackService: LivePlaybackServiceProtocol {
@@ -84,6 +87,7 @@ final class LivePlaybackService: LivePlaybackServiceProtocol {
   static let streamCacheTTL: TimeInterval = 600
   let requests = LiveStreamRequests()
   let preconnector = LiveMediaPreconnector()
+  let prewarms = LiveSABRPrewarms()
 
   func stream(for videoURL: String) async throws -> LivePlaybackStream {
     if let cached = streamCache.stream(
