@@ -132,14 +132,23 @@ enum DemoTheme {
   /// the palette themes.
   private static func dynamicColor(role: SurfaceRole) -> UIColor {
     let isDark = isDarkResolved
-    // AMOLED blackens the PAGE (the background roles) but keeps the theme's
-    // surfaces — blackening every role made the theme disappear entirely.
-    if appearanceAmoled, isDark {
+    // Android `Theme.kt`: AMOLED blacks the surface roles — background and
+    // surface pure black (classic: `if (amoled) Color.Black`), the dynamic
+    // scheme blacks the containers too (`withAmoledSurfaces`). Classic keeps
+    // grey secondary roles: surfaceVariant #27272A, highest/outline #3F3F46.
+    // Accent and text are never touched.
+    if effectiveAmoled, isDark {
       switch role {
-      case .background, .groupedBackground, .pageBackground:
+      case .background, .groupedBackground, .pageBackground, .surface:
         return .black
-      case .surface, .groupedSurface, .elevatedSurface:
-        break
+      case .groupedSurface:
+        return appearanceTheme == .dynamic
+          ? .black
+          : UIColor(red: 0.153, green: 0.153, blue: 0.165, alpha: 1)  // 27272A
+      case .elevatedSurface:
+        return appearanceTheme == .dynamic
+          ? .black
+          : UIColor(red: 0.247, green: 0.247, blue: 0.271, alpha: 1)  // 3F3F46
       }
     }
     if appearancePersonality == .manga {
@@ -167,8 +176,14 @@ enum DemoTheme {
     }
   }
 
-  /// The scheme for the current appearance mode; `.system` follows the
-  /// environment scheme so system light/dark changes apply immediately.
+  /// Android `Theme.kt`: AMOLED is inactive in Light mode.
+  private static var effectiveAmoled: Bool {
+    appearanceAmoled && appearanceMode != .light
+  }
+
+  /// The scheme for the current appearance mode (Android `Theme.kt`):
+  /// Light stays light, Dark stays dark, System follows the environment —
+  /// except that AMOLED forces dark even when the system is light.
   private static var isDarkResolved: Bool {
     switch appearanceMode {
     case .dark:
@@ -176,6 +191,9 @@ enum DemoTheme {
     case .light:
       return false
     case .system:
+      if effectiveAmoled {
+        return true
+      }
       if let systemColorScheme {
         return systemColorScheme == .dark
       }
@@ -286,7 +304,7 @@ struct DemoThemePalette: Equatable {
 extension DemoTheme {
   /// Static twin of `palette.rowBackground` for row content fills.
   static var rowBackground: Color {
-    (appearanceAmoled && isDarkResolved) ? surface : background
+    (effectiveAmoled && isDarkResolved) ? surface : background
   }
 }
 
