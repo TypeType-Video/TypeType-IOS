@@ -45,6 +45,14 @@ extension LivePlayerController {
         guard let self else { return }
         switch player.timeControlStatus {
         case .paused:
+          // AVPlayer pauses itself after repeated segment failures; that is
+          // a stall to recover from, not the user's pause.
+          if providerRecoveryDesiredAutoplay, state == .loading {
+            if sabrStallRecoveryTask == nil {
+              scheduleSABRStallRecovery(for: item)
+            }
+            return
+          }
           sabrStallRecoveryTask?.cancel()
           sabrStallRecoveryTask = nil
           sabrRecoveryBudgetResetTask?.cancel()

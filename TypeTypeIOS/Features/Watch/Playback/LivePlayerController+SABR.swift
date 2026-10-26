@@ -50,15 +50,24 @@ extension LivePlayerController {
       } catch {
         return
       }
+      // After repeated segment failures AVPlayer stops waiting and pauses
+      // itself: that still is a stall the user did not ask for.
       guard let self, let item,
         player.currentItem === item,
-        player.timeControlStatus == .waitingToPlayAtSpecifiedRate,
+        player.timeControlStatus != .playing,
         preparation?.isSABR == true,
         providerRecoveryDesiredAutoplay
       else {
         return
       }
       sabrStallRecoveryTask = nil
+      // Offline: the player retries its segments and resumes on its own as
+      // soon as the network is back; a new session would only add a slow
+      // server round trip. Check again later instead.
+      if playbackServer?.isWaitingForNetwork() == true {
+        scheduleSABRStallRecovery(for: item)
+        return
+      }
       recoverSABRFromStall()
     }
   }
@@ -95,10 +104,25 @@ extension LivePlayerController {
           autoplay: true,
           seekOverride: restartTime
         )
+        sabrOfflineRetries = 0
       } catch is CancellationError {
         return
       } catch {
         Self.logPreparationFailure(error)
+        // Offline or instance briefly down: keep the player waiting and try
+        // again, so playback resumes by itself when the network returns.
+        if Self.isTransientStartupFailure(error),
+          providerRecoveryDesiredAutoplay,
+          sabrOfflineRetries < Self.maximumSABROfflineRetries {
+          sabrOfflineRetries += 1
+          sabrStallRecoveryCount = max(sabrStallRecoveryCount - 1, 0)
+          state = .loading
+          try? await Task.sleep(for: .seconds(Self.sabrOfflineRetryDelay))
+          guard !Task.isCancelled else { return }
+          recoverSABRFromStall()
+          return
+        }
+        sabrOfflineRetries = 0
         state = .failed(Self.message(for: error))
         stopPlaybackSession()
       }
@@ -141,7 +165,10 @@ extension LivePlayerController {
     }
   }
 
-  private static let sabrStallRecoveryDelay: TimeInterval = 12
+  private static let sabrStallRecoveryDelay: TimeInterval = 8
+  /// Retries while offline: every 5 s for up to two minutes.
+  static let sabrOfflineRetryDelay: TimeInterval = 5
+  static let maximumSABROfflineRetries = 24
   private static let sabrRecoveryBudgetResetDelay: TimeInterval = 30
   private static let maximumSABRStallRecoveries = 2
 }

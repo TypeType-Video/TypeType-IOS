@@ -25,6 +25,7 @@ final class LivePlayerController: ObservableObject {
   var loadGeneration = 0
   var startupWatchdog: Task<Void, Never>?
   var startupRetryUsed = false
+  var sabrOfflineRetries = 0
   /// True while full metadata (related videos, chapters) is still loading.
   @Published var isLoadingFullMetadata = false
   @Published var position: TimeInterval = 0

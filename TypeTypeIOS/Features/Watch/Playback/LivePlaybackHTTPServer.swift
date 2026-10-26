@@ -69,6 +69,8 @@ final class LivePlaybackHTTPServer: @unchecked Sendable {
   var providerProgressiveMaster: String?
   var providerProgressiveVideo: String?
   var providerProgressiveAudio: String?
+  /// When an upstream load last failed for lack of network; read under `lock`.
+  var lastTransportFailureAt: Date?
 
   init(
     service: LivePlaybackServiceProtocol,

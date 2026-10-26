@@ -93,6 +93,22 @@ extension LivePlaybackHTTPServer {
   }
 }
 
+extension LivePlaybackHTTPServer {
+  static func isTransportFailure(_ error: Error) -> Bool {
+    if case .transport? = error as? NetworkError { return true }
+    return (error as NSError).domain == NSURLErrorDomain
+  }
+
+  /// True while upstream loads keep failing for lack of network: the player
+  /// retries those by itself, so the SABR session must not be rebuilt.
+  func isWaitingForNetwork(within interval: TimeInterval = 6) -> Bool {
+    lock.withLock {
+      guard let lastTransportFailureAt else { return false }
+      return Date().timeIntervalSince(lastTransportFailureAt) < interval
+    }
+  }
+}
+
 extension LivePlaybackHTTPServer.Route {
   /// Short label for debug traces; never includes tokens.
   var debugName: String {
