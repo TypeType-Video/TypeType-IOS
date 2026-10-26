@@ -38,6 +38,7 @@ struct LiveVideoCard: View {
       HStack(alignment: .top, spacing: 10) {
         channelAvatar
         metadata
+          .frame(maxWidth: .infinity, alignment: .leading)
       }
     }
     .task { await deArrowStore.prepare(video) }
@@ -125,8 +126,8 @@ struct LiveVideoCard: View {
           } label: {
             Image(systemName: "ellipsis")
               .rotationEffect(.degrees(90))
-              .font(.subheadline.weight(.semibold))
-              .foregroundStyle(.secondary)
+              .font(.subheadline.weight(.bold))
+              .foregroundStyle(.primary)
               .frame(width: 28, height: 28)
               .contentShape(Rectangle())
           }
