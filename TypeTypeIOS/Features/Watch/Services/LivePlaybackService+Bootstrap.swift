@@ -23,7 +23,12 @@ extension LivePlaybackService {
     }
     do {
       let ready = try await requests.value(for: "bootstrap|" + videoURL) { [self] in
-        try await requestStream(path: "/streams/youtube/sabr/bootstrap", videoURL: videoURL)
+        // A refused bootstrap (503 for lives) is an answer: fall back now.
+        try await requestStream(
+          path: "/streams/youtube/sabr/bootstrap",
+          videoURL: videoURL,
+          retriesTransientFailures: false
+        )
       }
       playbackCache.store(ready, for: videoURL)
       return ready

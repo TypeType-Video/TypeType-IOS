@@ -71,8 +71,9 @@ final class URLSessionAPIClient: APIClient {
 
   func requestData(_ endpoint: APIEndpoint) async throws -> Data {
     let request = try makeURLRequest(endpoint)
+    let retries = endpoint.retriesTransientFailures
     do {
-      return try await executeRead(request) {
+      return try await executeRead(request, retries: retries) {
         try await self.execute(request)
       }
     } catch let error as NetworkError {
@@ -81,7 +82,7 @@ final class URLSessionAPIClient: APIClient {
       guard let retryRequest = await makeRetryRequest(from: request) else {
         throw error
       }
-      return try await executeRead(retryRequest) {
+      return try await executeRead(retryRequest, retries: retries) {
         try await self.execute(retryRequest)
       }
     }

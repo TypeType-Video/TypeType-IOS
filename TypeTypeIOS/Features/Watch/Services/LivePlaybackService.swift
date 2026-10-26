@@ -120,7 +120,8 @@ final class LivePlaybackService: LivePlaybackServiceProtocol {
   func requestStream(
     path: String,
     videoURL: String,
-    retryToken: String? = nil
+    retryToken: String? = nil,
+    retriesTransientFailures: Bool = true
   ) async throws -> LivePlaybackStream {
     var queryItems = [URLQueryItem(name: "url", value: videoURL)]
     if let retryToken {
@@ -137,7 +138,8 @@ final class LivePlaybackService: LivePlaybackServiceProtocol {
           ? [:]
           : ["Cache-Control": "no-cache"],
         requiresAuth: true,
-        timeoutInterval: 120
+        timeoutInterval: 120,
+        retriesTransientFailures: retriesTransientFailures
       ),
       as: LivePlaybackStream.self
     )

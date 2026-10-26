@@ -8,6 +8,9 @@ struct APIEndpoint {
   let body: Data?
   let requiresAuth: Bool
   let timeoutInterval: TimeInterval?
+  /// False when a failure is an answer, not a hiccup (a route that refuses
+  /// some videos), so the caller falls back at once instead of after retries.
+  let retriesTransientFailures: Bool
 
   init(
     path: String,
@@ -16,7 +19,8 @@ struct APIEndpoint {
     headers: [String: String] = [:],
     body: Data? = nil,
     requiresAuth: Bool = false,
-    timeoutInterval: TimeInterval? = nil
+    timeoutInterval: TimeInterval? = nil,
+    retriesTransientFailures: Bool = true
   ) {
     self.path = path
     self.method = method
@@ -25,6 +29,7 @@ struct APIEndpoint {
     self.body = body
     self.requiresAuth = requiresAuth
     self.timeoutInterval = timeoutInterval
+    self.retriesTransientFailures = retriesTransientFailures
   }
 
   static func jsonBody<T: Encodable>(_ value: T) throws -> Data {

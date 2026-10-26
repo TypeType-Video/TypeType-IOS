@@ -167,6 +167,24 @@ final class URLSessionAPIClientTests: XCTestCase {
     }
   }
 
+  func testRefusalsMarkedFinalAreNotRetried() async {
+    let state = RequestCounter()
+    URLProtocolStub.register { request in
+      _ = state.increment()
+      return try Self.response(request: request, status: 503, body: #"{"error":"no bootstrap"}"#)
+    }
+    let client = makeClient(token: { nil })
+
+    do {
+      try await client.request(
+        APIEndpoint(path: "/streams/youtube/sabr/bootstrap", method: .get, retriesTransientFailures: false)
+      )
+      XCTFail("A 503 should be reported.")
+    } catch {
+      XCTAssertEqual(state.value, 1)
+    }
+  }
+
   func testStreamsFileUploadAndRetriesWithRefreshedToken() async throws {
     let directory = FileManager.default.temporaryDirectory
       .appendingPathComponent(UUID().uuidString)
