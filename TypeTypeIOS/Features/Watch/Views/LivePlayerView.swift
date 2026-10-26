@@ -19,6 +19,7 @@ struct LivePlayerView: View {
   @State var horizontalSeekPreview: TimeInterval?
   @State var autoPictureInPictureArmed = true
   @State var autoPictureInPictureActive = false
+  @StateObject var nativeControls = LiveNativeControlsState()
 
 
   var body: some View {
@@ -26,63 +27,7 @@ struct LivePlayerView: View {
       ZStack {
         Color.black
 
-        LivePlayerLayerView(
-          player: controller.player,
-          controller: controller,
-          onSwipeAdjustment: { event in
-            handleSwipeAdjustment(event)
-          },
-          onHorizontalSeek: { event in
-            handleHorizontalSeek(event)
-          },
-          onPictureInPictureUIRestore: { completion in
-            PictureInPictureRestore.restore(
-              canRestore: coordinator.hasActivePlayback,
-              prepare: {
-                coordinator.expand()
-              },
-              isPrepared: {
-                coordinator.presentation == .expanded
-              },
-              completion: completion
-            )
-          }
-        )
-          .accessibilityIdentifier("live.player.surface")
-          .overlay {
-            LivePictureInPictureNotice(
-              pictureInPicture: controller.pictureInPicture
-            )
-          }
-          .onGeometryChange(for: CGRect.self) { proxy in
-            proxy.frame(in: .global)
-          } action: { frame in
-            evaluateAutoPictureInPicture(frame)
-          }
-          .onAppear {
-            // A surface that reappears after a PiP round trip must not come
-            // back with hidden controls.
-            controller.pictureInPicture.markControlsRefresh()
-          }
-          // Seek and speed gestures live on the video surface only: as
-          // container-level simultaneous gestures they also fired when
-          // tapping controls, so double-tapping pause sought -10s.
-          .simultaneousGesture(
-            SpatialTapGesture(count: 2)
-              .onEnded { value in
-                handleDoubleTap(
-                  at: value.location,
-                  width: proxy.size.width
-                )
-              }
-          )
-          .onLongPressGesture(
-            minimumDuration: 0.35,
-            perform: {},
-            onPressingChanged: { pressing in
-              setLongPressBoost(active: pressing)
-            }
-          )
+        videoSurface(width: proxy.size.width)
 
         if controller.audioOnly {
           ZStack {
@@ -102,8 +47,11 @@ struct LivePlayerView: View {
         horizontalSeekOverlay
         swipeAdjustmentOverlay
         statusOverlay
-        // Above the transport controls on purpose: the UIKit player overlay
-        // sits under the SwiftUI controls and never received taps on Skip.
+        if controller.nativePlayback != nil {
+          LiveNativePlayerControls(controller: controller, controls: nativeControls)
+        }
+        // Above the transport controls: the UIKit overlay below never received taps.
+ (feat: show the in-house player with its own controls)
         LiveSponsorBlockOverlay(
           controller: controller,
           fillsAvailableSpace: false

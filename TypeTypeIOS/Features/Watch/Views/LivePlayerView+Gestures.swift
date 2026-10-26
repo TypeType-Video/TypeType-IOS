@@ -25,6 +25,7 @@ extension LivePlayerView {
     guard autoPictureInPictureArmed else { return }
     autoPictureInPictureArmed = false
     guard coordinator.hasActivePlayback,
+      controller.nativePlayback == nil,
       !controller.pictureInPicture.isEngaged
     else {
       return
@@ -128,7 +129,7 @@ extension LivePlayerView {
     case .brightness:
       UIScreen.main.brightness = fraction
     case .volume:
-      controller.player.volume = Float(fraction)
+      controller.setOutputVolume(Float(fraction))
     }
   }
 

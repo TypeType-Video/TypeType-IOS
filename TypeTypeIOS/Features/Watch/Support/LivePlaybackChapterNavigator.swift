@@ -17,7 +17,11 @@ enum LivePlaybackChapterNavigator {
   }
 
   static func timeText(for chapter: LivePlaybackChapter) -> String {
-    let total = max(0, chapter.startTimeSeconds)
+    clockText(seconds: chapter.startTimeSeconds)
+  }
+
+  static func clockText(seconds: Int) -> String {
+    let total = max(0, seconds)
     let hours = total / 3600
     let minutes = (total % 3600) / 60
     let seconds = total % 60

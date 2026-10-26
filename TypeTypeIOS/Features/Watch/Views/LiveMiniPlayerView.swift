@@ -34,6 +34,8 @@ struct LiveMiniPlayerView: View {
               .font(.system(size: 26, weight: .medium))
               .foregroundStyle(.white)
           }
+        } else if let playback = controller.nativePlayback {
+          LiveNativeVideoView(playback: playback, controller: controller)
         } else if controller.state == .playing || controller.state == .paused {
           LiveVideoPreviewLayer(player: controller.player)
         } else {
