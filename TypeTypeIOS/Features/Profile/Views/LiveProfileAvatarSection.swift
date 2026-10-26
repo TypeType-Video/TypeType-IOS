@@ -8,6 +8,47 @@ struct LiveProfileAvatarSection: View {
   let onEmoji: (String) -> Void
   let onClear: () -> Void
 
+  @ViewBuilder private var profileAvatar: some View {
+    if let glyph = emojiAvatarGlyph {
+      Text(glyph)
+        .font(.system(size: 34))
+        .frame(width: 72, height: 72)
+        .background(DemoTheme.groupedSurface, in: Circle())
+        .overlay {
+          Circle().stroke(.separator, lineWidth: 1)
+        }
+    } else {
+      LiveRemoteImage(url: user?.avatarURL)
+        .frame(width: 72, height: 72)
+        .clipShape(Circle())
+        .overlay {
+          Circle().stroke(.separator, lineWidth: 1)
+        }
+    }
+  }
+
+  /// Emoji avatars arrive as hex codes ("1F600", compound codes joined by
+  /// "-"). The old body only ever asked for `avatarURL`, so they rendered
+  /// as the empty image placeholder.
+  private var emojiAvatarGlyph: String? {
+    guard user?.avatarType?.lowercased() == "emoji",
+      let code = user?.avatarCode,
+      let glyph = Self.emoji(fromHexCode: code)
+    else { return nil }
+    return glyph
+  }
+
+  private static func emoji(fromHexCode code: String) -> String? {
+    var scalars = String.UnicodeScalarView()
+    for part in code.split(separator: "-") {
+      guard let value = UInt32(part, radix: 16),
+        let scalar = UnicodeScalar(value)
+      else { return nil }
+      scalars.append(scalar)
+    }
+    return scalars.isEmpty ? nil : String(scalars)
+  }
+
   private let emojis = [
     ("😀", "1F600"),
     ("🦊", "1F98A"),
@@ -22,12 +63,7 @@ struct LiveProfileAvatarSection: View {
   var body: some View {
     Section {
       HStack(spacing: 16) {
-        LiveRemoteImage(url: user?.avatarURL)
-          .frame(width: 72, height: 72)
-          .clipShape(Circle())
-          .overlay {
-            Circle().stroke(.separator, lineWidth: 1)
-          }
+        profileAvatar
         VStack(alignment: .leading, spacing: 8) {
           Text(user?.publicUsername ?? "TypeType user")
             .font(.headline)

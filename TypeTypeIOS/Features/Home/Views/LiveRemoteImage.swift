@@ -13,7 +13,7 @@ struct LiveRemoteImage: View {
   }
 
   var body: some View {
-    AsyncImage(url: url) { phase in
+    AsyncImage(url: LiveImageURLResolver.resolve(url)) { phase in
       switch phase {
       case let .success(image):
         image
