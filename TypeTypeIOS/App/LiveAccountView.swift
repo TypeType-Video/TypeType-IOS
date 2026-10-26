@@ -4,7 +4,7 @@ struct LiveAccountView: View {
   @ObservedObject var coordinator: RootCoordinator
   @ObservedObject var notificationCenter: LiveNotificationCenter
   @ObservedObject var downloadCenter: LiveDownloadCenter
-  @State private var confirmsSignOut = false
+  @State var confirmsSignOut = false
 
   init(coordinator: RootCoordinator) {
     self.coordinator = coordinator
