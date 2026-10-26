@@ -26,6 +26,8 @@ targets:
       - TypeTypeIOS/Features
       - TypeTypeIOS/MockData
       - TypeTypeIOS/Resources
+    dependencies:
+      - target: TypeTypePlayerKit
     info:
       path: TypeTypeIOS/Info.plist
       properties:
@@ -65,6 +67,16 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: dev.typetype.ios
         PRODUCT_NAME: TypeTypeIOS
         TARGETED_DEVICE_FAMILY: "1,2"
+
+  TypeTypePlayerKit:
+    type: library.static
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - TypeTypePlayerKit
+    settings:
+      base:
+        PRODUCT_NAME: TypeTypePlayerKit
 
   TypeTypeIOSTests:
     type: bundle.unit-test
