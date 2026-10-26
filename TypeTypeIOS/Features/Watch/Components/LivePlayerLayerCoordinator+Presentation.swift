@@ -108,6 +108,8 @@ extension LivePlayerLayerCoordinator {
     with coordinator: UIViewControllerTransitionCoordinator
   ) {
     presentationTransitionInProgress = true
+    // Full screen rotates the device to landscape; leaving returns portrait.
+    LiveScreenOrientation.set(toFullScreen ? .landscape : .portrait)
     pendingPauseIntentTask?.cancel()
     resumeAfterTransitionTask?.cancel()
     settleTransitionTask?.cancel()

@@ -15,9 +15,20 @@ extension LiveAuthenticatedAppView {
     }
     
     .onChange(of: playbackCoordinator.presentation) { _, newValue in
-      // System PiP restore: bring the expanded player back.
+      // System PiP restore: bring the expanded player back. The cover must
+      // appear WITHOUT its slide — the system animates the PiP window back
+      // onto the player surface, and a sliding cover leaves that target
+      // frame at the top of the screen first (the "jump, then settle" one).
       if newValue == .expanded {
-        presentsExpandedPlayback = true
+        if playbackCoordinator.controller?.pictureInPicture.isEngaged == true {
+          var transaction = Transaction()
+          transaction.disablesAnimations = true
+          withTransaction(transaction) {
+            presentsExpandedPlayback = true
+          }
+        } else {
+          presentsExpandedPlayback = true
+        }
       }
     }
     .fullScreenCover(
