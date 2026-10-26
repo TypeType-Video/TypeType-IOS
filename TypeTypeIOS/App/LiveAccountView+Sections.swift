@@ -3,28 +3,39 @@ import SwiftUI
 extension LiveAccountView {
   var accountSection: some View {
     Section {
-      LabeledContent(
-        "Username",
-        value: coordinator.currentUser?.publicUsername ?? "Guest"
-      )
-      LabeledContent(
-        "Role",
-        value: coordinator.currentUser?.role.rawValue.capitalized ?? "User"
-      )
-      if let user = coordinator.currentUser,
-        !user.id.hasPrefix("guest:") {
-        NavigationLink("Profile") {
+      if let user = coordinator.currentUser, !user.id.hasPrefix("guest:") {
+        NavigationLink {
           LiveProfileView(coordinator: coordinator, user: user)
+        } label: {
+          HStack(spacing: 14) {
+            accountAvatar(for: user)
+            VStack(alignment: .leading, spacing: 2) {
+              Text(user.publicUsername ?? "TypeType user")
+                .font(.headline)
+                .foregroundStyle(.primary)
+              Text(user.role.rawValue.capitalized)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            }
+            Spacer(minLength: 0)
+          }
+          .padding(.vertical, 2)
         }
+        .accessibilityIdentifier("live.account.profile")
         if coordinator.dependencies.accountProfileService != nil {
-          NavigationLink("Account profiles") {
+          NavigationLink {
             LiveAccountProfilesView(coordinator: coordinator)
+          } label: {
+            Text("Account profiles")
           }
         }
+      } else {
+        LabeledContent("Username", value: "Guest")
+        LabeledContent("Role", value: "Guest")
       }
     } header: {
-        Text("Account").liveSectionHeader()
-      }
+      Text("Account")
+    }
   }
   var instanceSection: some View {
     Section {
@@ -45,54 +56,29 @@ extension LiveAccountView {
         LabeledContent("Version", value: version)
       }
     } header: {
-        Text("Instance").liveSectionHeader()
-      }
+      Text("Instance")
+    }
   }
   var preferencesSection: some View {
     Section {
-      accountPreferences
-      NavigationLink {
+      LiveSettingsLinkRow(
+        title: "Settings",
+        icon: "gearshape.fill",
+        iconColor: .systemGray
+      ) {
         LiveSettingsView(coordinator: coordinator)
-      } label: {
-        Label("Settings", systemImage: "gearshape.fill")
       }
       downloadsLink
       NavigationLink {
-        LiveDiagnosticsView(
-          store: coordinator.dependencies.diagnosticsStore,
-          scopeProvider: {
-            coordinator.dependencies.diagnosticScope()
-          }
-        )
-      } label: {
-        Label("Diagnostics", systemImage: "ladybug.fill")
-      }
-      NavigationLink {
-        LiveContentControlsView(
-          service: coordinator.dependencies.contentControlsService,
-          canCreateGlobal: coordinator.currentUser?.role != .user
-        )
-      } label: {
-        Label("Content controls", systemImage: "slash.circle.fill")
-      }
-      NavigationLink {
-        LiveImportView(service: coordinator.dependencies.importService)
-      } label: {
-        Label("Import data", systemImage: "square.and.arrow.up.fill")
-      }
-    } header: {
-        Text("Preferences").liveSectionHeader()
-      }
-  }
-  @ViewBuilder private var accountPreferences: some View {
-    if let user = coordinator.currentUser,
-      !user.id.hasPrefix("guest:") {
-      NavigationLink {
         LiveNotificationsView(dependencies: coordinator.dependencies)
       } label: {
-        HStack {
-          Label("Notifications", systemImage: "bell")
-          Spacer()
+        HStack(spacing: 14) {
+          LiveSettingsIconTile(
+            icon: "bell.fill",
+            color: .systemRed
+          )
+          Text("Notifications")
+          Spacer(minLength: 0)
           if notificationCenter.unreadCount > 0 {
             countBadge(
               notificationCenter.unreadCount,
@@ -101,52 +87,43 @@ extension LiveAccountView {
           }
         }
       }
-      if coordinator.dependencies.rssEnabled,
-        let rssFeedService = coordinator.dependencies.rssFeedService {
-        NavigationLink {
-          LiveRssFeedsView(
-            feedService: rssFeedService,
-            subscriptionsService: coordinator.dependencies.subscriptionsService
-          )
-        } label: {
-          Label("RSS feeds", systemImage: "dot.radiowaves.left.and.right")
-        }
-      }
+    } header: {
+      Text("Activity")
     }
   }
   private var downloadsLink: some View {
-    NavigationLink {
+    LiveSettingsLinkRow(
+      title: "Downloads",
+      icon: "arrow.down.circle",
+      iconColor: .systemTeal,
+      badge: downloadCenter.activeCount
+    ) {
       LiveDownloadsView(
         center: downloadCenter,
         onlinePlaybackCoordinator:
           coordinator.dependencies.playbackCoordinator
       )
-    } label: {
-      HStack {
-        Label("Downloads", systemImage: "arrow.down.circle")
-        Spacer()
-        if downloadCenter.activeCount > 0 {
-          countBadge(
-            downloadCenter.activeCount,
-            label: "active downloads"
-          )
-        }
-      }
     }
   }
   @ViewBuilder var supportSection: some View {
     if let user = coordinator.currentUser,
       !user.id.hasPrefix("guest:") {
       Section {
-        NavigationLink {
+        LiveSettingsLinkRow(
+          title: "Report a problem",
+          icon: "ladybug.fill",
+          iconColor: .systemRed
+        ) {
           LiveReportIssueView(
             service: coordinator.dependencies.bugReportsService
           )
-        } label: {
-          Label("Report a problem", systemImage: "ladybug.fill")
         }
         if user.role == .admin || user.role == .moderator {
-          NavigationLink("Manage bug reports") {
+          LiveSettingsLinkRow(
+            title: "Manage bug reports",
+            icon: "ladybug.fill",
+            iconColor: .systemGray
+          ) {
             LiveAdminBugReportsView(
               service: coordinator.dependencies.bugReportsService,
               canCreateGitHubIssue: user.role == .admin
@@ -154,7 +131,7 @@ extension LiveAccountView {
           }
         }
       } header: {
-        Text("Support").liveSectionHeader()
+        Text("Support")
       }
     }
   }
@@ -162,24 +139,56 @@ extension LiveAccountView {
   @ViewBuilder var administrationSection: some View {
     if let user = coordinator.currentUser, user.role == .admin {
       Section {
-        NavigationLink("Admin console") {
+        LiveSettingsLinkRow(
+          title: "Admin console",
+          icon: "person.3.fill",
+          iconColor: .systemRed
+        ) {
           LiveAdminConsoleView(
             dependencies: coordinator.dependencies,
             currentUserID: user.id
           )
         }
       } header: {
-        Text("Administration").liveSectionHeader()
+        Text("Administration")
       }
     }
   }
 
   var signOutSection: some View {
     Section {
-      Button("Sign out", role: .destructive) {
-        Task { await coordinator.signOut() }
+      Button {
+        confirmsSignOut = true
+      } label: {
+        Text("Sign out")
+          .font(.body.weight(.semibold))
+          .foregroundStyle(.red)
+          .frame(maxWidth: .infinity)
+          .frame(height: 44)
       }
       .accessibilityIdentifier("live.account.sign-out")
+    }
+  }
+
+  @ViewBuilder
+  private func accountAvatar(for user: AuthUser) -> some View {
+    if let code = user.avatarCode,
+      user.avatarType?.lowercased() == "emoji",
+      let glyph = LiveAvatar.emoji(fromHexCode: code)
+    {
+      Text(glyph)
+        .font(.system(size: 24))
+        .frame(width: 46, height: 46)
+        .background(DemoTheme.groupedSurface, in: Circle())
+    } else if user.avatarURL != nil {
+      LiveRemoteImage(url: user.avatarURL)
+        .frame(width: 46, height: 46)
+        .clipShape(Circle())
+    } else {
+      Image(systemName: "person.crop.circle")
+        .font(.system(size: 34))
+        .foregroundStyle(.secondary)
+        .frame(width: 46, height: 46)
     }
   }
 
