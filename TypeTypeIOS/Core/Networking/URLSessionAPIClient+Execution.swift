@@ -5,9 +5,13 @@ extension URLSessionAPIClient {
     let startedAt = DispatchTime.now().uptimeNanoseconds
     do {
       try DebugNetworkOutage.check()
+<<<<<<< HEAD
       let (data, response) = media
         ? try await mediaSession.data(for: request, delegate: MediaTaskPriority.shared)
         : try await session.data(for: request)
+=======
+      let (data, response) = try await session.data(for: request)
+>>>>>>> ad18d21 (test: simulate an instance outage in debug builds)
       guard let http = response as? HTTPURLResponse else {
         await recordDiagnostic(
           request,
