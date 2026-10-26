@@ -122,6 +122,7 @@ struct LiveSettingsAppearanceView: View {
   let dependencies: AppDependencies
   @ObservedObject var viewModel: LiveSettingsViewModel
   @ObservedObject var preferences: LiveAppPreferencesStore
+  @Environment(\.demoTheme) private var palette
 
   var body: some View {
     LiveSettingsEditingPage(
@@ -209,7 +210,7 @@ struct LiveSettingsAppearanceView: View {
           .frame(height: 0)
         ZStack {
           RoundedRectangle(cornerRadius: 16, style: .continuous)
-            .fill(DemoTheme.surface)
+            .fill(palette.surface)
             .overlay {
               if preferences.preferences.appearancePersonality == .manga,
                 preferences.preferences.mangaScreentone {
@@ -232,7 +233,7 @@ struct LiveSettingsAppearanceView: View {
             .frame(height: 132)
             .overlay {
               RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .strokeBorder(DemoTheme.separator, lineWidth: 1)
+                .strokeBorder(palette.textSecondary.opacity(0.35), lineWidth: 1.5)
             }
             .rotationEffect(
               .degrees(
@@ -260,7 +261,7 @@ struct LiveSettingsAppearanceView: View {
             Circle()
               .fill(preferences.preferences.accentColor.color)
               .frame(width: 24, height: 24)
-              .overlay(Circle().strokeBorder(DemoTheme.separator))
+              .overlay(Circle().strokeBorder(palette.separator))
             Text(preferences.preferences.accentColor.title)
               .font(.caption)
             Spacer()

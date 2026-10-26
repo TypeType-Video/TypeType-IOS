@@ -270,6 +270,10 @@ struct DemoThemePalette: Equatable {
   var textPrimary: Color
   var textSecondary: Color
   var accent: Color
+  /// Row fill: normally the page colour (flat rows), but under AMOLED the
+  /// theme's surface — otherwise page and rows are both black and the
+  /// theme disappears entirely.
+  var rowBackground: Color
   /// Bumped on every theme change; `liveThemeRepaint()` keys subtree
   /// identity on it so statics re-render without an app refresh.
   var renderToken: UUID
@@ -309,6 +313,9 @@ extension DemoTheme {
       textPrimary: textPrimaryColor(),
       textSecondary: textSecondaryColor(),
       accent: accent,
+      rowBackground: (appearanceAmoled && isDarkResolved)
+        ? color(.surface)
+        : color(.background),
       renderToken: renderToken
     )
   }
@@ -651,8 +658,9 @@ private struct LiveThemedListModifier: ViewModifier {
       .environment(\.defaultMinListRowHeight, 44)
       .listRowInsets(EdgeInsets(top: 0, leading: 20, bottom: 0, trailing: 20))
       // Rows sit FLAT on the page — never the surface role (that is for
-      // feed/content cards and chips).
-      .listRowBackground(palette.background)
+      // feed/content cards and chips). Under AMOLED `rowBackground` switches
+      // to the theme surface so the theme stays visible on the black page.
+      .listRowBackground(palette.rowBackground)
       .listRowSeparatorTint(palette.separator)
       // The navigation bar takes the SAME variable as the page — otherwise
       // it stays system-white above a coloured page (the "colour is
