@@ -84,12 +84,7 @@ struct LiveHistoryCard: View {
             action: onRemove
           )
         } label: {
-          Image(systemName: "ellipsis")
-            .rotationEffect(.degrees(90))
-            .font(.subheadline.weight(.bold))
-            .foregroundStyle(.primary)
-            .frame(width: 30, height: 30)
-            .contentShape(Rectangle())
+          LiveDotsGlyph()
         }
         .accessibilityLabel("History options")
       }

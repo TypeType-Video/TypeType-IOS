@@ -72,6 +72,23 @@ struct LiveVideoQuickActionsModifier: ViewModifier {
   }
 }
 
+/// The vertical "⋮" menu glyph, drawn from shapes: SF Symbols in menu
+/// labels get tinted by the accent colour, and their weight cannot be
+/// controlled. Three dots in the title colour, guaranteed.
+struct LiveDotsGlyph: View {
+  var body: some View {
+    VStack(spacing: 3) {
+      ForEach(0..<3, id: \.self) { _ in
+        Circle()
+          .fill(Color.primary)
+          .frame(width: 5, height: 5)
+      }
+    }
+    .frame(width: 28, height: 28)
+    .contentShape(Rectangle())
+  }
+}
+
 /// The quick-actions menu content is handed to video cards via the
 /// environment so the "…" button can live on the title line while the
 /// long-press menu is retired.

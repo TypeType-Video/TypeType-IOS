@@ -124,12 +124,7 @@ struct LiveVideoCard: View {
           Menu {
             quickActionsMenu
           } label: {
-            Image(systemName: "ellipsis")
-              .rotationEffect(.degrees(90))
-              .font(.subheadline.weight(.bold))
-              .foregroundStyle(.primary)
-              .frame(width: 28, height: 28)
-              .contentShape(Rectangle())
+            LiveDotsGlyph()
           }
           .accessibilityLabel("More actions for \(branding.title)")
         }
