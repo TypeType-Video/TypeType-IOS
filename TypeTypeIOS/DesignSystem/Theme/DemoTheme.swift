@@ -118,11 +118,14 @@ enum DemoTheme {
     UINavigationBar.appearance().standardAppearance = navAppearance
     UINavigationBar.appearance().scrollEdgeAppearance = navAppearance
     UINavigationBar.appearance().compactAppearance = navAppearance
-    // The floating tab bar's band (the area beside/below the glass pill)
-    // paints black by default — the black corners around the pill. Clear
-    // both layers so the themed page background shows through.
-    UITabBar.appearance().backgroundColor = .clear
-    UITabBar.appearance().backgroundImage = UIImage()
+    // The floating tab bar's band (the area behind/below the glass pill)
+    // is painted by UITabBarAppearance — the legacy backgroundColor is
+    // ignored there. Bind it to the page colour like the navigation bar.
+    let tabAppearance = UITabBarAppearance()
+    tabAppearance.configureWithOpaqueBackground()
+    tabAppearance.backgroundColor = dynamicColor(role: .background)
+    UITabBar.appearance().standardAppearance = tabAppearance
+    UITabBar.appearance().scrollEdgeAppearance = tabAppearance
   }
 
   /// Resolves immediately (no dynamic provider): UIKit caches dynamic
