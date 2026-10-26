@@ -29,7 +29,7 @@ struct LiveVideoCard: View {
       Button(action: action) {
         thumbnail
       }
-      .buttonStyle(.plain)
+      .buttonStyle(LivePrewarmButtonStyle(onPrewarm: triggerPrewarm))
       .accessibilityLabel("Open video \(branding.title)")
       .accessibilityHint("Opens video details")
       .accessibilityIdentifier("live.home.video.card.\(video.id)")
@@ -38,17 +38,31 @@ struct LiveVideoCard: View {
         channelAvatar
         metadata
       }
-    
-      .simultaneousGesture(
-        DragGesture(minimumDistance: 0)
-          .onChanged { _ in
-            guard !didPrewarm else { return }
-            didPrewarm = true
-            Self.onPrewarm?(video)
-          }
-      )}
+    }
     .task { await deArrowStore.prepare(video) }
     .contentShape(Rectangle())
+  }
+
+  /// Prewarm on press-down. Triggered from the button style's `isPressed` —
+  /// a zero-distance DragGesture on the card fought the ScrollView's pan
+  /// and made scrolling stop dead mid-swipe.
+  private func triggerPrewarm() {
+    guard !didPrewarm else { return }
+    didPrewarm = true
+    Self.onPrewarm?(video)
+  }
+
+  private struct LivePrewarmButtonStyle: ButtonStyle {
+    let onPrewarm: () -> Void
+
+    func makeBody(configuration: Configuration) -> some View {
+      configuration.label
+        .onChange(of: configuration.isPressed) { _, pressed in
+          if pressed {
+            onPrewarm()
+          }
+        }
+    }
   }
 
   private var thumbnail: some View {
