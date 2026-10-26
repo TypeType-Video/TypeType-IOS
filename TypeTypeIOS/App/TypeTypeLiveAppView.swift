@@ -43,6 +43,7 @@ struct TypeTypeLiveAppView: View {
       }
     }
     .environment(\.demoTheme, palette)
+    .id(themeIdentity)
     .task {
       if let launchURL = AppConfig.debugIncomingURL {
         coordinator.receiveIncomingURL(launchURL)
