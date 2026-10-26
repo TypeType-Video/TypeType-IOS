@@ -56,6 +56,7 @@ targets:
           - dev.typetype.ios.notifications-refresh
         UIApplicationSceneManifest:
           UIApplicationSupportsMultipleScenes: false
+        NSSupportsLiveActivities: true
     settings:
       base:
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
@@ -64,6 +65,32 @@ targets:
         MARKETING_VERSION: 0.2.0
         PRODUCT_BUNDLE_IDENTIFIER: dev.typetype.ios
         PRODUCT_NAME: TypeTypeIOS
+        TARGETED_DEVICE_FAMILY: "1,2"
+    dependencies:
+      - target: TypeTypeIOSWidget
+        embed: true
+
+  TypeTypeIOSWidget:
+    type: app-extension
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - TypeTypeIOSWidget
+      - TypeTypeIOS/Core/Activity/PlaybackActivityAttributes.swift
+    info:
+      path: TypeTypeIOSWidget/Info.plist
+      properties:
+        CFBundleDisplayName: TypeType Playback
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    settings:
+      base:
+        CURRENT_PROJECT_VERSION: 1
+        MARKETING_VERSION: 0.2.0
+        PRODUCT_BUNDLE_IDENTIFIER: dev.typetype.ios.widget
+        PRODUCT_NAME: TypeTypeIOSWidget
         TARGETED_DEVICE_FAMILY: "1,2"
 
   TypeTypeIOSTests:

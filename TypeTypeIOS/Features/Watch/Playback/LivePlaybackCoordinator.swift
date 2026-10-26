@@ -42,6 +42,19 @@ final class LivePlaybackCoordinator: ObservableObject {
     self.queueStore = queueStore
     self.scopeProvider = scopeProvider
     self.playerFactory = playerFactory
+    // Dynamic Island buttons arrive as intents in the app process; wire
+    // them to the real player once per coordinator.
+    PlaybackActivityBridge.shared.onToggle = { [weak self] in
+      self?.controller?.togglePlayback()
+    }
+    PlaybackActivityBridge.shared.onNext = { [weak self] in
+      guard let self else { return }
+      self.play(index: self.queue.currentIndex + 1)
+    }
+    PlaybackActivityBridge.shared.onPrevious = { [weak self] in
+      guard let self else { return }
+      self.play(index: self.queue.currentIndex - 1)
+    }
   }
 
   var hasActivePlayback: Bool {
