@@ -55,7 +55,7 @@ final class LiveProviderSegmentIndexTests: XCTestCase {
 
   func testProgressiveProviderRangesAreSplitIntoBoundedChunks() {
     XCTAssertEqual(
-      LivePlaybackHTTPServer.providerChunkRanges(3_900...916_693),
+      LiveProviderRangeLoader.chunkRanges(3_900...916_693),
       [
         3_900...134_971,
         134_972...266_043,
@@ -67,7 +67,7 @@ final class LiveProviderSegmentIndexTests: XCTestCase {
       ]
     )
     XCTAssertEqual(
-      LivePlaybackHTTPServer.providerChunkRanges(837...3_756),
+      LiveProviderRangeLoader.chunkRanges(837...3_756),
       [837...3_756]
     )
   }
