@@ -39,13 +39,24 @@ enum LiveAppearancePersonality: String, Codable, CaseIterable, Identifiable {
 }
 
 enum LiveAppearanceTheme: String, Codable, CaseIterable, Identifiable {
-  case typetype, dynamic, nord, cream, forest, plum
+  case typetype, snow, nord, cream, forest, plum
   var id: String { rawValue }
+
+  /// Tolerates old stores: the removed `dynamic` theme maps to Snow.
+  init(from decoder: Decoder) throws {
+    let raw = try decoder.singleValueContainer().decode(String.self)
+    switch raw {
+    case "dynamic":
+      self = .snow
+    default:
+      self = LiveAppearanceTheme(rawValue: raw) ?? .typetype
+    }
+  }
 
   var title: String {
     switch self {
     case .typetype: return "TypeType"
-    case .dynamic: return "Dynamic"
+    case .snow: return "Snow"
     case .nord: return "Nord"
     case .cream: return "Cream"
     case .forest: return "Forest"

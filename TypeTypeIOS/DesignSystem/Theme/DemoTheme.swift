@@ -150,26 +150,22 @@ enum DemoTheme {
       case .background, .groupedBackground, .pageBackground, .surface:
         return .black
       case .groupedSurface:
-        return appearanceTheme == .dynamic
-          ? .black
-          : UIColor(red: 0.153, green: 0.153, blue: 0.165, alpha: 1)  // 27272A
+        return UIColor(red: 0.153, green: 0.153, blue: 0.165, alpha: 1)  // 27272A
       case .elevatedSurface:
-        return appearanceTheme == .dynamic
-          ? .black
-          : UIColor(red: 0.247, green: 0.247, blue: 0.271, alpha: 1)  // 3F3F46
+        return UIColor(red: 0.247, green: 0.247, blue: 0.271, alpha: 1)  // 3F3F46
       }
     }
     if appearancePersonality == .manga {
       return mangaColor(role: role, isDark: isDark)
     }
     switch appearanceTheme {
-    case .typetype, .dynamic:
+    case .typetype:
       return lightBase(role).resolvedColor(
         with: UITraitCollection(
           userInterfaceStyle: isDark ? .dark : .light
         )
       )
-    case .nord, .cream, .forest, .plum:
+    case .snow, .nord, .cream, .forest, .plum:
       let colors = themeSurfaceColors(isDark: isDark)
       switch role {
       case .background, .groupedBackground, .pageBackground:
@@ -275,10 +271,11 @@ enum DemoTheme {
     }
   }
 
-  /// Android `mangaScheme`: the classic themes (TypeType/Dynamic) paint
-  /// the paper, every palette theme paints its own surface set instead.
+  /// Android `mangaScheme`: the classic theme (TypeType) paints the paper,
+  /// every palette theme (Snow/Nord/Cream/Forest/Plum) takes the theme's
+  /// own surface set instead.
   private static var mangaUsesPaperSurfaces: Bool {
-    appearanceTheme == .typetype || appearanceTheme == .dynamic
+    appearanceTheme == .typetype
   }
 
   /// Android `mangaScheme`: Night paper reads dark even in light mode.
@@ -390,13 +387,25 @@ extension DemoTheme {
   /// light/dark mode — `(background, surface, variant, outline)`.
   static func themeSurfaceColors(isDark: Bool) -> (background: Color, surface: Color, variant: Color, outline: Color) {
     switch appearanceTheme {
-    case .typetype, .dynamic:
+    case .typetype:
       // Never reached through `dynamicColor` (the system surfaces win
       // there); kept total so the function stays non-optional.
       return (Color(uiColor: .systemGroupedBackground),
               Color(uiColor: .secondarySystemGroupedBackground),
               Color(uiColor: .secondarySystemBackground),
               Color(uiColor: .secondarySystemBackground))
+    case .snow:
+      // Snow: a clean white design — white page and surfaces in light,
+      // neutral iOS greys in dark.
+      return isDark
+        ? (Color(red: 0.071, green: 0.071, blue: 0.071),   // 121212
+           Color(red: 0.110, green: 0.110, blue: 0.118),   // 1C1C1E
+           Color(red: 0.173, green: 0.173, blue: 0.180),   // 2C2C2E
+           Color(red: 0.247, green: 0.247, blue: 0.275))   // 3F3F46
+        : (Color.white,                                    // FFFFFF
+           Color.white,                                    // FFFFFF
+           Color(red: 0.957, green: 0.957, blue: 0.961),   // F4F4F5
+           Color(red: 0.831, green: 0.831, blue: 0.847))   // D4D4D8
     case .nord:
       // Android themeSurfaceColors: ECEFF4/FFFFFF/D8DEE9/8A96A8 (light),
       // 2E3440/3B4252/434C5E/616E82 (dark).
