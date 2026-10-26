@@ -55,24 +55,17 @@ extension LivePlayerController {
       if selectedVideoSourceID != nil {
         selectedVideoSourceID = nil
       }
-      let preferredAudioTrackID = settings.defaultAudioLanguage.isEmpty
-        ? nil
-        : loadedStream.audioStreams.first(where: {
-          $0.audioLocale?.lowercased().hasPrefix(
-            settings.defaultAudioLanguage.lowercased()
-          ) == true
-        })?.audioTrackID
-      if selectedAudioTrackID != preferredAudioTrackID {
-        selectedAudioTrackID = preferredAudioTrackID
+      let initial = LivePlaybackPreferences.initial(
+        for: loadedStream,
+        settings: settings,
+        audioOnly: audioOnly,
+        preferredCodec: LiveAppPreferencesStore.shared.preferences.playerPreferredCodec
+      )
+      if selectedAudioTrackID != initial.audioTrackID {
+        selectedAudioTrackID = initial.audioTrackID
       }
-      let preferredAudioSourceID = loadedStream.audioStreams.first(where: {
-        guard !settings.defaultAudioLanguage.isEmpty else { return false }
-        return $0.audioLocale?.lowercased().hasPrefix(
-          settings.defaultAudioLanguage.lowercased()
-        ) == true
-      })?.id
-      if selectedAudioSourceID != preferredAudioSourceID {
-        selectedAudioSourceID = preferredAudioSourceID
+      if selectedAudioSourceID != initial.audioSourceID {
+        selectedAudioSourceID = initial.audioSourceID
       }
       var preparation = try service.prepare(
         stream: loadedStream,
@@ -170,11 +163,10 @@ extension LivePlayerController {
     if duration != resolvedDuration {
       duration = resolvedDuration
     }
-    let requestedTime: TimeInterval = {
-      let requested = seekOverride ?? preparation.resumeTime
-      guard duration > 0, requested < duration - 5 else { return 0 }
-      return max(requested, 0)
-    }()
+    let requestedTime = LivePlaybackPreparation.startTime(
+      requested: seekOverride ?? preparation.resumeTime,
+      duration: duration
+    )
     let installedPreparation = preparation.isSABR
       ? preparation.resuming(at: requestedTime)
       : preparation
