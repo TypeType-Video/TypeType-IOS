@@ -54,7 +54,7 @@ extension LivePlaybackService {
     stream: LivePlaybackStream,
     preferences: LivePlaybackPreferences
   ) throws -> LivePlaybackPreparation {
-    if let hlsURL = URL(string: stream.hlsURL), !stream.hlsURL.isEmpty {
+    if let hlsURL = serverResourceURL(for: stream.hlsURL) {
       let isServer = isSelectedServerURL(hlsURL)
       return LivePlaybackPreparation(
         stream: stream,
@@ -79,7 +79,7 @@ extension LivePlaybackService {
       preferredCodec: preferences.preferredCodec,
       requestedItag: preferences.videoItag,
       requestedSourceID: preferences.videoSourceID
-    ), let url = URL(string: selected.url) {
+    ), let url = serverResourceURL(for: selected.url) {
       return LivePlaybackPreparation(
         stream: stream,
         assetURL: url,
@@ -120,10 +120,16 @@ extension LivePlaybackService {
       declared: video.deliveryMethod,
       sourceURL: videoURL
     )
-    let audioMethod = providerDeliveryMethod(
+    var audioMethod = providerDeliveryMethod(
       declared: audio.deliveryMethod,
       sourceURL: audioURL
     )
+    // NicoNico labels its HLS audio "progressive" and its media URLs carry no
+    // .m3u8 extension: audio without byte-range data next to HLS video is HLS.
+    if videoMethod == "hls", audioMethod == "progressive",
+      audio.initEnd == 0, audio.indexEnd == 0 {
+      audioMethod = "hls"
+    }
     let providerPlayback: LiveProviderPlayback
     let usesAuthenticatedLoader: Bool
     if videoMethod == "hls", audioMethod == "hls" {

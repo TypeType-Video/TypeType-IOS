@@ -114,6 +114,12 @@ extension LivePlaybackService {
     for sourceURL: URL,
     authenticated: Bool
   ) -> URL? {
+    // Resources the server already hosts (`/media/…`) are loaded directly:
+    // wrapping a relative URL in /proxy fails with "Missing URL scheme".
+    if sourceURL.scheme == nil || isSelectedServerURL(sourceURL) {
+      guard let resolved = serverResourceURL(for: sourceURL.absoluteString) else { return nil }
+      return authenticated ? authenticatedAssetURL(for: resolved) : resolved
+    }
     guard let serverURL = serverURLProvider(),
       var components = URLComponents(
         url: serverURL,
