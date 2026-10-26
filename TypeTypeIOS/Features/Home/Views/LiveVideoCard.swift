@@ -118,10 +118,10 @@ struct LiveVideoCard: View {
         .buttonStyle(.plain)
         .frame(maxWidth: .infinity, alignment: .leading)
 
-        // The "…" menu sits on the title line (the old long-press menu).
+        // The "…" button sits on the title line (the old long-press menu).
         if let quickActionsMenu {
-          Menu {
-            quickActionsMenu
+          Button {
+            quickActionsMenu.open()
           } label: {
             Image(systemName: "ellipsis")
               .font(.subheadline.weight(.semibold))

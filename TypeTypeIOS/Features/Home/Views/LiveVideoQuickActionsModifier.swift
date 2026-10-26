@@ -2,7 +2,15 @@ import SwiftUI
 
 struct LiveVideoQuickActionsModifier: ViewModifier {
   @StateObject var viewModel: LiveVideoQuickActionsViewModel
-  @State var presentsDownload = false
+  /// Single sheet slot: the YouTube-style actions sheet and the download
+  /// sheet swap through it (a second sheet over the first is refused).
+  enum ActiveSheet: Int, Identifiable {
+    case actions
+    case download
+    var id: Int { rawValue }
+  }
+
+  @State var activeSheet: ActiveSheet?
   @ObservedObject var deArrowStore: LiveDeArrowStore
   @ObservedObject var playbackCoordinator: LivePlaybackCoordinator
   let dependencies: AppDependencies
@@ -37,16 +45,7 @@ struct LiveVideoQuickActionsModifier: ViewModifier {
       // the title line and consumes this content as its menu.
       .environment(
         \.liveQuickActionsMenu,
-        AnyView(
-          quickActions
-            .task {
-              async let actions: Void = viewModel.prepare()
-              async let branding: Void = deArrowStore.prepare(
-                viewModel.video
-              )
-              _ = await (actions, branding)
-            }
-        )
+        LiveQuickActionsHandle(open: { activeSheet = .actions })
       )
       .alert(
         "Video",
@@ -63,26 +62,66 @@ struct LiveVideoQuickActionsModifier: ViewModifier {
       } message: {
         Text(viewModel.message ?? "")
       }
-      .sheet(isPresented: $presentsDownload) {
-        LiveDownloadSheet(
-          video: viewModel.video,
-          dependencies: dependencies
-        )
+      .sheet(item: $activeSheet) { sheet in
+        switch sheet {
+        case .actions:
+          ScrollView {
+            VStack(alignment: .leading, spacing: 0) {
+              quickActions
+                .task {
+                  async let actions: Void = viewModel.prepare()
+                  async let branding: Void = deArrowStore.prepare(
+                    viewModel.video
+                  )
+                  _ = await (actions, branding)
+                }
+            }
+            .buttonStyle(LiveQuickActionRowStyle())
+            .padding(.vertical, 8)
+          }
+          .presentationDetents([.medium, .large])
+          .presentationDragIndicator(.visible)
+          .presentationBackground(DemoTheme.surface)
+        case .download:
+          LiveDownloadSheet(
+            video: viewModel.video,
+            dependencies: dependencies
+          )
+        }
       }
   }
 }
 
-/// The quick-actions menu content is handed to video cards via the
-/// environment so the "…" button can live on the title line while the
-/// long-press menu is retired.
+/// Handle the card's "…" button uses to open the actions sheet (handed
+/// down via the environment; the long-press menu is retired).
+struct LiveQuickActionsHandle {
+  let open: () -> Void
+}
+
 private struct LiveQuickActionsMenuKey: EnvironmentKey {
-  static let defaultValue: AnyView? = nil
+  static let defaultValue: LiveQuickActionsHandle? = nil
 }
 
 extension EnvironmentValues {
-  var liveQuickActionsMenu: AnyView? {
+  var liveQuickActionsMenu: LiveQuickActionsHandle? {
     get { self[LiveQuickActionsMenuKey.self] }
     set { self[LiveQuickActionsMenuKey.self] = newValue }
+  }
+}
+
+/// YouTube-style action rows: large vertical list rows.
+private struct LiveQuickActionRowStyle: ButtonStyle {
+  func makeBody(configuration: Configuration) -> some View {
+    configuration.label
+      .font(.title3)
+      .imageScale(.large)
+      .frame(maxWidth: .infinity, alignment: .leading)
+      .padding(.horizontal, 20)
+      .padding(.vertical, 14)
+      .background(
+        configuration.isPressed ? DemoTheme.groupedSurface : Color.clear
+      )
+      .contentShape(Rectangle())
   }
 }
 

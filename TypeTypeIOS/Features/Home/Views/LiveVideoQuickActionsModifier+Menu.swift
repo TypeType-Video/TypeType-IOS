@@ -47,7 +47,7 @@ extension LiveVideoQuickActionsModifier {
     }
 
     Button {
-      presentsDownload = true
+      activeSheet = .download
     } label: {
       Label("Download", systemImage: "arrow.down.circle")
     }
