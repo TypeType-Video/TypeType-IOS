@@ -1,4 +1,5 @@
 import ActivityKit
+import AppIntents
 import Foundation
 
 /// Shared between the app and the widget extension: the Live Activity
@@ -25,7 +26,8 @@ final class PlaybackActivityBridge {
   var onPrevious: (() -> Void)?
 }
 
-struct PlaybackToggleIntent: ActivityIntent {
+struct PlaybackToggleIntent: LiveActivityIntent {
+  static var isDiscoverable: Bool = false
   static var title: LocalizedStringResource = "Play or pause"
 
   func perform() async throws -> some IntentResult {
@@ -34,7 +36,8 @@ struct PlaybackToggleIntent: ActivityIntent {
   }
 }
 
-struct PlaybackNextIntent: ActivityIntent {
+struct PlaybackNextIntent: LiveActivityIntent {
+  static var isDiscoverable: Bool = false
   static var title: LocalizedStringResource = "Next video"
 
   func perform() async throws -> some IntentResult {
@@ -43,7 +46,8 @@ struct PlaybackNextIntent: ActivityIntent {
   }
 }
 
-struct PlaybackPreviousIntent: ActivityIntent {
+struct PlaybackPreviousIntent: LiveActivityIntent {
+  static var isDiscoverable: Bool = false
   static var title: LocalizedStringResource = "Previous video"
 
   func perform() async throws -> some IntentResult {
