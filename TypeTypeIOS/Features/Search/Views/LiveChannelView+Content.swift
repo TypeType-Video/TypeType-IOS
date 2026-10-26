@@ -43,7 +43,7 @@ extension LiveChannelView {
       }
       .padding(16)
     }
-    .background(DemoThemeBackground())
+    .background(DemoThemeBackground().ignoresSafeArea())
       .liveThemeRepaint()
     .refreshable {
       if viewModel.selectedTab == .playlists {

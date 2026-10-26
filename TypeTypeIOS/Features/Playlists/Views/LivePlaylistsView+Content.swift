@@ -34,7 +34,7 @@ extension LivePlaylistsView {
       .padding(.vertical, 16)
     }
     .refreshable { await viewModel.reload() }
-    .background(DemoThemeBackground())
+    .background(DemoThemeBackground().ignoresSafeArea())
       .liveThemeRepaint()
   }
 

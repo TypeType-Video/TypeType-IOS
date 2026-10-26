@@ -30,7 +30,7 @@ extension LiveHomeView {
       .padding(.horizontal, 16)
       .padding(.vertical, 18)
     }
-    .background(DemoThemeBackground())
+    .background(DemoThemeBackground().ignoresSafeArea())
       .liveThemeRepaint()
     .accessibilityIdentifier("live.home.feed")
     .refreshable {
