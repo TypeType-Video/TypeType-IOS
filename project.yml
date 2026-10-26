@@ -78,6 +78,20 @@ targets:
       base:
         PRODUCT_NAME: TypeTypePlayerKit
 
+  TypeTypePlayerKitTests:
+    type: bundle.unit-test
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - TypeTypePlayerKitTests
+    dependencies:
+      - target: TypeTypePlayerKit
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: true
+        PRODUCT_BUNDLE_IDENTIFIER: dev.typetype.playerkit.tests
+        PRODUCT_NAME: TypeTypePlayerKitTests
+
   TypeTypeIOSTests:
     type: bundle.unit-test
     platform: iOS
@@ -129,6 +143,7 @@ schemes:
     test:
       targets:
         - TypeTypeIOSTests
+        - TypeTypePlayerKitTests
         - TypeTypeIOSUITests
 
   TypeTypeIOSUnit:
@@ -138,6 +153,7 @@ schemes:
     test:
       targets:
         - TypeTypeIOSTests
+        - TypeTypePlayerKitTests
 
   TypeTypeIOSLive:
     build:
