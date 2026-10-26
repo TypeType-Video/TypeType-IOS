@@ -74,6 +74,7 @@ struct LiveHistoryCard: View {
           .font(.caption2)
           .foregroundStyle(.tertiary)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         Spacer(minLength: 4)
         Menu {
           Button(
@@ -84,7 +85,11 @@ struct LiveHistoryCard: View {
           )
         } label: {
           Image(systemName: "ellipsis")
+            .rotationEffect(.degrees(90))
+            .font(.subheadline.weight(.bold))
+            .foregroundStyle(.primary)
             .frame(width: 30, height: 30)
+            .contentShape(Rectangle())
         }
         .accessibilityLabel("History options")
       }
