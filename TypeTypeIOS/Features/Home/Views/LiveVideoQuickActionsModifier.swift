@@ -33,18 +33,21 @@ struct LiveVideoQuickActionsModifier: ViewModifier {
 
   func body(content: Content) -> some View {
     content
-      .contextMenu {
-        quickActions
-          .task {
-            async let actions: Void = viewModel.prepare()
-            async let branding: Void = deArrowStore.prepare(
-              viewModel.video
-            )
-            _ = await (actions, branding)
-          }
-      } preview: {
-        preview
-      }
+      // The long-press menu is retired; the card renders a "…" button on
+      // the title line and consumes this content as its menu.
+      .environment(
+        \.liveQuickActionsMenu,
+        AnyView(
+          quickActions
+            .task {
+              async let actions: Void = viewModel.prepare()
+              async let branding: Void = deArrowStore.prepare(
+                viewModel.video
+              )
+              _ = await (actions, branding)
+            }
+        )
+      )
       .alert(
         "Video",
         isPresented: Binding(
@@ -66,6 +69,20 @@ struct LiveVideoQuickActionsModifier: ViewModifier {
           dependencies: dependencies
         )
       }
+  }
+}
+
+/// The quick-actions menu content is handed to video cards via the
+/// environment so the "…" button can live on the title line while the
+/// long-press menu is retired.
+private struct LiveQuickActionsMenuKey: EnvironmentKey {
+  static let defaultValue: AnyView? = nil
+}
+
+extension EnvironmentValues {
+  var liveQuickActionsMenu: AnyView? {
+    get { self[LiveQuickActionsMenuKey.self] }
+    set { self[LiveQuickActionsMenuKey.self] = newValue }
   }
 }
 

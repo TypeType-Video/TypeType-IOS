@@ -6,6 +6,7 @@ struct LiveVideoCard: View {
   /// latency hides behind the press.
   static var onPrewarm: ((LiveVideoItem) -> Void)?
   @State private var didPrewarm = false
+  @Environment(\.liveQuickActionsMenu) private var quickActionsMenu
 
   let video: LiveVideoItem
   @ObservedObject private var deArrowStore: LiveDeArrowStore
@@ -106,14 +107,31 @@ struct LiveVideoCard: View {
 
   private var metadata: some View {
     VStack(alignment: .leading, spacing: 4) {
-      Button(action: action) {
-        Text(branding.title)
-          .font(.subheadline.weight(.semibold))
-          .foregroundStyle(.primary)
-          .lineLimit(2)
-          .multilineTextAlignment(.leading)
+      HStack(alignment: .top, spacing: 8) {
+        Button(action: action) {
+          Text(branding.title)
+            .font(.subheadline.weight(.semibold))
+            .foregroundStyle(.primary)
+            .lineLimit(2)
+            .multilineTextAlignment(.leading)
+        }
+        .buttonStyle(.plain)
+        .frame(maxWidth: .infinity, alignment: .leading)
+
+        // The "…" menu sits on the title line (the old long-press menu).
+        if let quickActionsMenu {
+          Menu {
+            quickActionsMenu
+          } label: {
+            Image(systemName: "ellipsis")
+              .font(.subheadline.weight(.semibold))
+              .foregroundStyle(.secondary)
+              .frame(width: 28, height: 28)
+              .contentShape(Rectangle())
+          }
+          .accessibilityLabel("More actions for \(branding.title)")
+        }
       }
-      .buttonStyle(.plain)
 
       if let onChannel {
       Button(action: onChannel) {
