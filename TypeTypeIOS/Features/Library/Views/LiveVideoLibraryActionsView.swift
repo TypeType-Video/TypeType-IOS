@@ -142,7 +142,7 @@ struct LiveVideoLibraryActionsView: View {
     isActive: Bool
   ) -> some View {
     Image(systemName: systemImage)
-      .font(.body.weight(.regular))
+      .font(.title3.weight(.regular))
       .foregroundStyle(isActive ? DemoTheme.accent : .primary)
       .frame(width: 44, height: 44)
       .background(

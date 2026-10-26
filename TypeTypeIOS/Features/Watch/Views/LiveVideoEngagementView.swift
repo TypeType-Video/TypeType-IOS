@@ -76,6 +76,11 @@ struct LiveVideoEngagementView: View {
         subscribeButton
       }
       .contentShape(Rectangle())
+      .padding(12)
+      .background(
+        RoundedRectangle(cornerRadius: 14, style: .continuous)
+          .strokeBorder(DemoTheme.separator, lineWidth: 1)
+      )
     }
     .buttonStyle(.plain)
     .accessibilityIdentifier("live.video.channel.banner")

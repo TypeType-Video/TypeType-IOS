@@ -26,7 +26,7 @@ struct LiveRelatedVideosSection: View {
             Text("Autoplay")
               .font(.subheadline)
               .foregroundStyle(.secondary)
-            Toggle("Autoplay", isOn: autoplayBinding).liveRowFill()
+            Toggle("Autoplay", isOn: autoplayBinding)
               .toggleStyle(.switch)
               .controlSize(.small)
               .labelsHidden()

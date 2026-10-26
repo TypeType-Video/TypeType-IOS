@@ -68,7 +68,7 @@ struct LiveVideoUtilityActionsView: View {
   ) -> some View {
     HStack(spacing: 6) {
       Image(systemName: symbol)
-        .font(.body.weight(.regular))
+        .font(.title3.weight(.regular))
 
       Text(title)
         .font(.footnote.weight(.medium))

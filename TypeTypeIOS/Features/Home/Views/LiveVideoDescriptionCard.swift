@@ -54,7 +54,7 @@ struct LiveVideoDescriptionCard: View {
     }
     .padding(14)
     .frame(maxWidth: .infinity, alignment: .leading)
-    .background(DemoTheme.surface)
+    .background(DemoTheme.groupedSurface)
     .clipShape(
       RoundedRectangle(cornerRadius: 16, style: .continuous)
     )
