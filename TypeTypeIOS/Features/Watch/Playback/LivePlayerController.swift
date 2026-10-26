@@ -23,6 +23,8 @@ final class LivePlayerController: ObservableObject {
   var firstFrameJobs: [() -> Void] = []
   @Published var stream: LivePlaybackStream?
   @Published var nativePlayback: LiveNativePlayback?
+  @Published var nativeSubtitleCues: [LiveSubtitleCue] = []
+  var nativeSubtitlesTask: Task<Void, Never>?
   var nativeFallbackUsed = false
   // Tracks the presented native full screen host so gestures stay away from it.
   var isPresentingFullscreen = false

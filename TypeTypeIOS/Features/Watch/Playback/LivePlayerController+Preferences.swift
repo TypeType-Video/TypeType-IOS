@@ -66,6 +66,7 @@ extension LivePlayerController {
     if let item = player.currentItem {
       configureSubtitles(for: item)
     }
+    reloadNativeSubtitles()
   }
 
   func setAutoplay(_ enabled: Bool) {
@@ -97,6 +98,7 @@ extension LivePlayerController {
     if let item = player.currentItem {
       configureSubtitles(for: item)
     }
+    reloadNativeSubtitles()
   }
 
   func selectSubtitleLanguage(_ language: String) {
@@ -105,6 +107,7 @@ extension LivePlayerController {
     if let item = player.currentItem {
       configureSubtitles(for: item)
     }
+    reloadNativeSubtitles()
   }
 
   func setSponsorBlockEnabled(_ enabled: Bool) {
