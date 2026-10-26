@@ -76,15 +76,13 @@ struct LiveHistoryCard: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         Spacer(minLength: 4)
-        Menu {
+        LiveDotMenu {
           Button(
             "Remove from history",
             systemImage: "trash",
             role: .destructive,
             action: onRemove
           )
-        } label: {
-          LiveDotsGlyph()
         }
         .accessibilityLabel("History options")
       }

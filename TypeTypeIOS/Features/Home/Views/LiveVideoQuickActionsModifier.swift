@@ -89,6 +89,43 @@ struct LiveDotsGlyph: View {
   }
 }
 
+/// The "…" menu: a plain button plus a popover. A SwiftUI `Menu` leaves its
+/// label behind at the presentation position when it closes mid-scroll —
+/// the button froze at a fixed screen spot instead of following the card.
+struct LiveDotMenu<Content: View>: View {
+  @State private var isPresented = false
+  private let content: Content
+
+  init(@ViewBuilder content: () -> Content) {
+    self.content = content()
+  }
+
+  var body: some View {
+    Button {
+      isPresented = true
+    } label: {
+      LiveDotsGlyph()
+    }
+    .popover(
+      isPresented: $isPresented,
+      attachmentAnchor: .rect(.bounds),
+      arrowEdge: .top
+    ) {
+      VStack(alignment: .leading, spacing: 0) {
+        content
+      }
+      .padding(8)
+      .frame(width: 300, alignment: .leading)
+      // Any tap inside fires the row's action AND closes the popup,
+      // matching menu behaviour.
+      .simultaneousGesture(TapGesture().onEnded { isPresented = false })
+      .presentationCompactAdaptation(.popover)
+      .presentationBackground(DemoTheme.surface)
+      .presentationCornerRadius(20)
+    }
+  }
+}
+
 /// The quick-actions menu content is handed to video cards via the
 /// environment so the "…" button can live on the title line while the
 /// long-press menu is retired.

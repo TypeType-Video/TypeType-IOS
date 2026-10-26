@@ -20,15 +20,13 @@ struct LivePlaybackQueueRow: View {
       .disabled(isCurrent)
 
       if !isCurrent {
-        Menu {
+        LiveDotMenu {
           Button("Play next", systemImage: "text.insert") {
             onPlayNext()
           }
           Button("Remove", systemImage: "trash", role: .destructive) {
             onRemove()
           }
-        } label: {
-          LiveDotsGlyph()
         }
         .accessibilityLabel("Queue options")
       }

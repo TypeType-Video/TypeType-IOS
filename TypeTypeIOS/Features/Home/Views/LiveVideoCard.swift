@@ -139,10 +139,8 @@ struct LiveVideoCard: View {
     // (DeArrow swaps titles after load and used to make the button jump).
     .overlay(alignment: .topTrailing) {
       if let quickActionsMenu {
-        Menu {
+        LiveDotMenu {
           quickActionsMenu
-        } label: {
-          LiveDotsGlyph()
         }
         .accessibilityLabel("More actions for \(branding.title)")
       }
