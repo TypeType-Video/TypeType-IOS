@@ -89,6 +89,21 @@ struct LiveDotsGlyph: View {
   }
 }
 
+/// Row style for the "…" popup: rows in the title colour — the default
+/// button styling tinted every row with the accent — destructive stays red.
+private struct LiveDotMenuRowStyle: ButtonStyle {
+  func makeBody(configuration: Configuration) -> some View {
+    configuration.label
+      .foregroundStyle(
+        configuration.role == .destructive ? Color.red : Color.primary
+      )
+      .frame(maxWidth: .infinity, alignment: .leading)
+      .padding(.horizontal, 12)
+      .padding(.vertical, 10)
+      .contentShape(Rectangle())
+  }
+}
+
 /// The "…" menu: a plain button plus a popover. A SwiftUI `Menu` leaves its
 /// label behind at the presentation position when it closes mid-scroll —
 /// the button froze at a fixed screen spot instead of following the card.
@@ -114,6 +129,7 @@ struct LiveDotMenu<Content: View>: View {
       VStack(alignment: .leading, spacing: 0) {
         content
       }
+      .buttonStyle(LiveDotMenuRowStyle())
       .padding(8)
       .frame(width: 300, alignment: .leading)
       // Any tap inside fires the row's action AND closes the popup,

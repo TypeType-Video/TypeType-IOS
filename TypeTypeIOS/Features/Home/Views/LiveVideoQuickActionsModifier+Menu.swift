@@ -28,8 +28,8 @@ extension LiveVideoQuickActionsModifier {
           ? "Remove from Watch later"
           : "Add to Watch later",
         systemImage: viewModel.isInWatchLater
-          ? "clock.badge.xmark"
-          : "clock.badge.plus"
+          ? "clock.arrow.circlepath"
+          : "clock"
       )
     }
 
