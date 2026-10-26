@@ -26,7 +26,23 @@ extension LivePlayerController {
     let (source, session) = try await nativeSource(for: preparation, service: service, generation: generation)
     startupTrace.mark("session")
     let player = TypeTypePlayer(source: source)
-    let playback = LiveNativePlayback(player: player, session: session, preparation: preparation)
+    let pictureInPicture = LiveNativePictureInPictureSource(
+      setPlaying: { [weak self] playing in
+        Task { @MainActor [weak self] in self?.setNativePlaying(playing) }
+      },
+      skip: { [weak self] seconds in
+        Task { @MainActor [weak self] in
+          guard let self else { return }
+          seek(to: position + seconds)
+        }
+      }
+    )
+    let playback = LiveNativePlayback(
+      player: player,
+      session: session,
+      preparation: preparation,
+      pictureInPictureSource: pictureInPicture
+    )
     player.onStart = { [weak self, weak playback] in
       guard let self, let playback, nativePlayback === playback else { return }
       nativeDidStart(playback)
@@ -80,14 +96,44 @@ extension LivePlayerController {
 
   private func nativeDidStart(_ playback: LiveNativePlayback) {
     playback.hasStarted = true
+    playback.nowPlaying.activate(
+      title: stream?.title ?? video.title,
+      artist: stream?.uploaderName ?? video.uploaderName,
+      duration: duration,
+      artworkURL: video.thumbnail,
+      commands: LiveNowPlaying.Commands(
+        play: { [weak self] in self?.setNativePlaying(true) },
+        pause: { [weak self] in self?.setNativePlaying(false) },
+        seek: { [weak self] time in self?.seek(to: time) },
+        skip: { [weak self] seconds in
+          guard let self else { return }
+          seek(to: position + seconds)
+        }
+      )
+    )
     startupTrace.mark("ready")
+    reloadNativeSubtitles()
     if let total = startupTrace.finish(source: video.url) {
       lastStartupMilliseconds = total
       startupWatchdog?.cancel()
     }
   }
 
+  private func setNativePlaying(_ playing: Bool) {
+    guard nativePlayback != nil, playing != (state == .playing) else { return }
+    togglePlayback()
+  }
+
   private func nativeStateChanged(_ newState: TypeTypePlayerState, playback: LiveNativePlayback) {
+    defer {
+      playback.pictureInPictureSource.update(duration: duration, paused: state != .playing)
+      pictureInPicture.invalidatePlaybackState()
+      playback.nowPlaying.update(
+        elapsed: playback.player.currentTime,
+        rate: state == .playing ? playbackRate : 0,
+        duration: duration
+      )
+    }
     switch newState {
     case .idle:
       break
@@ -142,6 +188,9 @@ extension LivePlayerController {
   }
 
   func stopNative() {
+    nativeSubtitlesTask?.cancel()
+    nativeSubtitlesTask = nil
+    if !nativeSubtitleCues.isEmpty { nativeSubtitleCues = [] }
     nativePlayback?.stop()
     nativePlayback = nil
   }

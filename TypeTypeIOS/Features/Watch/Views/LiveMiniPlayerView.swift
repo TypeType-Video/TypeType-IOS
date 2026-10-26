@@ -35,7 +35,7 @@ struct LiveMiniPlayerView: View {
               .foregroundStyle(.white)
           }
         } else if let playback = controller.nativePlayback {
-          LiveNativeVideoView(playback: playback, controller: controller)
+          LiveNativeVideoView(playback: playback, controller: controller, surface: .mini)
         } else if controller.state == .playing || controller.state == .paused {
           LiveVideoPreviewLayer(player: controller.player)
         } else {

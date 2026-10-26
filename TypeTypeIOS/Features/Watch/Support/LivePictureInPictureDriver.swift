@@ -17,6 +17,7 @@ final class LivePictureInPictureDriver: NSObject, ObservableObject {
 
   private var pipController: AVPictureInPictureController?
   private var contentLayer: AVPlayerLayer?
+  private var nativeLayer: AVSampleBufferDisplayLayer?
   private weak var hostView: UIView?
   private var isRestoring = false
   private var controlsRefreshPending = false
@@ -41,11 +42,12 @@ final class LivePictureInPictureDriver: NSObject, ObservableObject {
       // image bits/pixel") — the controls end up invisible but tappable.
       layer.isHidden = true
       contentLayer = layer
-      if isAvailable, let controller = AVPictureInPictureController(playerLayer: layer) {
-        controller.delegate = self
-        controller.canStartPictureInPictureAutomaticallyFromInline = false
-        pipController = controller
-      }
+    }
+    if nativeLayer != nil || pipController == nil, let layer = contentLayer {
+      nativeLayer = nil
+      pipController = isAvailable ? AVPictureInPictureController(playerLayer: layer) : nil
+      pipController?.delegate = self
+      pipController?.canStartPictureInPictureAutomaticallyFromInline = false
     }
     contentLayer?.player = player
     contentLayer?.isHidden = !isEngaged
@@ -72,6 +74,28 @@ final class LivePictureInPictureDriver: NSObject, ObservableObject {
     }
     contentLayer?.contents = cgImage
     contentLayer?.contentsGravity = .resizeAspect
+  }
+
+  func installNativeContent(
+    layer: AVSampleBufferDisplayLayer,
+    playback: AVPictureInPictureSampleBufferPlaybackDelegate
+  ) {
+    guard isAvailable, nativeLayer !== layer else { return }
+    contentLayer?.isHidden = true
+    nativeLayer = layer
+    let controller = AVPictureInPictureController(
+      contentSource: .init(sampleBufferDisplayLayer: layer, playbackDelegate: playback)
+    )
+    controller.delegate = self
+    controller.canStartPictureInPictureAutomaticallyFromInline = false
+    pipController = controller
+  }
+
+  func invalidatePlaybackState() {
+    if nativeLayer != nil {
+      pipController?.invalidatePlaybackState()
+    }
+>>>>>>> 1e602b4 (feat: Picture in Picture and lock-screen controls for the in-house player)
   }
 
   func relayout() {
@@ -101,6 +125,11 @@ final class LivePictureInPictureDriver: NSObject, ObservableObject {
   ) {
     guard isAvailable, let pipController, !isEngaged, !isPendingStart else {
       return
+    }
+    // The system animates the window from the layer's rect.
+    relayout()
+    if nativeLayer == nil {
+      contentLayer?.isHidden = false
     }
     self.onRestore = onRestore
     self.onClose = onClose

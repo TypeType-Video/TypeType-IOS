@@ -2,8 +2,15 @@ import AVFoundation
 import SwiftUI
 
 struct LiveNativeVideoView: UIViewRepresentable {
+  enum Surface: Int {
+    case mini
+    case page
+    case fullscreen
+  }
+
   let playback: LiveNativePlayback
   let controller: LivePlayerController
+  var surface = Surface.page
   var onSwipeAdjustment: ((PlayerSwipeAdjustmentEvent) -> Void)? = nil
   var onHorizontalSeek: ((PlayerHorizontalSeekEvent) -> Void)? = nil
 
@@ -13,6 +20,7 @@ struct LiveNativeVideoView: UIViewRepresentable {
 
   func makeUIView(context: Context) -> LiveNativeVideoHostView {
     let view = LiveNativeVideoHostView()
+    view.surface = surface
     view.backgroundColor = .black
     if onSwipeAdjustment != nil {
       context.coordinator.installSwipeGesture(in: view)
@@ -25,7 +33,17 @@ struct LiveNativeVideoView: UIViewRepresentable {
   }
 
   func updateUIView(_ view: LiveNativeVideoHostView, context: Context) {
-    view.host(playback.player.videoLayer, gravity: controller.imageMode.videoGravity)
+    playback.player.videoLayer.videoGravity = controller.imageMode.videoGravity
+    if view.owner !== playback.layerOwner {
+      view.owner = playback.layerOwner
+      if view.window != nil { playback.layerOwner.attach(view) }
+    }
+    if surface == .page {
+      controller.pictureInPicture.installNativeContent(
+        layer: playback.player.videoLayer,
+        playback: playback.pictureInPictureSource
+      )
+    }
     context.coordinator.swipeGestureHandler = onSwipeAdjustment
     context.coordinator.horizontalSeekHandler = onHorizontalSeek
   }
@@ -35,35 +53,67 @@ struct LiveNativeVideoView: UIViewRepresentable {
   }
 }
 
-// A layer has one superlayer: whichever surface is on screen (player page or mini player) takes it.
-final class LiveNativeVideoHostView: UIView {
-  private var videoLayer: AVSampleBufferDisplayLayer?
+// A layer has one superlayer: the visible surface that matters most (fullscreen, then the player
+// page, then the mini player) shows it; the latest one wins a tie.
+@MainActor
+final class LiveNativeLayerOwner {
+  private let layer: AVSampleBufferDisplayLayer
+  private var hosts: [WeakHost] = []
 
-  func host(_ layer: AVSampleBufferDisplayLayer, gravity: AVLayerVideoGravity) {
-    videoLayer = layer
-    layer.videoGravity = gravity
-    claimLayer()
+  private struct WeakHost {
+    weak var view: LiveNativeVideoHostView?
   }
+
+  init(layer: AVSampleBufferDisplayLayer) {
+    self.layer = layer
+  }
+
+  func attach(_ host: LiveNativeVideoHostView) {
+    hosts.removeAll { $0.view == nil || $0.view === host }
+    hosts.append(WeakHost(view: host))
+    place()
+  }
+
+  func detach(_ host: LiveNativeVideoHostView) {
+    hosts.removeAll { $0.view == nil || $0.view === host }
+    place()
+  }
+
+  private func place() {
+    let visible = hosts.compactMap(\.view).filter { $0.window != nil }
+    guard let host = visible.max(by: { $0.surface.rawValue <= $1.surface.rawValue }) else { return }
+    host.adopt(layer)
+  }
+}
+
+final class LiveNativeVideoHostView: UIView {
+  weak var owner: LiveNativeLayerOwner?
+  var surface = LiveNativeVideoView.Surface.page
+  private weak var videoLayer: AVSampleBufferDisplayLayer?
 
   override func didMoveToWindow() {
     super.didMoveToWindow()
-    claimLayer()
+    if window != nil {
+      owner?.attach(self)
+    } else {
+      owner?.detach(self)
+    }
+  }
+
+  func adopt(_ layer: AVSampleBufferDisplayLayer) {
+    videoLayer = layer
+    guard layer.superlayer !== self.layer else { return }
+    layer.removeFromSuperlayer()
+    self.layer.addSublayer(layer)
+    setNeedsLayout()
   }
 
   override func layoutSubviews() {
     super.layoutSubviews()
+    guard let videoLayer, videoLayer.superlayer === layer else { return }
     CATransaction.begin()
     CATransaction.setDisableActions(true)
-    if videoLayer?.superlayer === layer {
-      videoLayer?.frame = bounds
-    }
+    videoLayer.frame = bounds
     CATransaction.commit()
-  }
-
-  private func claimLayer() {
-    guard window != nil, let videoLayer, videoLayer.superlayer !== layer else { return }
-    videoLayer.removeFromSuperlayer()
-    layer.addSublayer(videoLayer)
-    setNeedsLayout()
   }
 }
