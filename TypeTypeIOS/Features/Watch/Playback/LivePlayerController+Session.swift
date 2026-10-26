@@ -21,8 +21,6 @@ extension LivePlayerController {
       positionMilliseconds: snapshot.positionMilliseconds,
       durationMilliseconds: snapshot.durationMilliseconds
     )
-    // The Dynamic Island mirrors this loop's snapshot.
-    LivePlaybackActivityManager.shared.update(from: snapshot)
   }
 
   private func startPlaybackSessionProgressLoop() {
@@ -44,7 +42,6 @@ extension LivePlayerController {
     playbackSessionProgressTask?.cancel()
     playbackSessionProgressTask = nil
     playbackSessionReporter.stop()
-    LivePlaybackActivityManager.shared.end()
   }
 
   private var playbackActivitySnapshot:
