@@ -77,14 +77,14 @@ struct LiveVideoQuickActionsModifier: ViewModifier {
 /// controlled. Three dots in the title colour, guaranteed.
 struct LiveDotsGlyph: View {
   var body: some View {
-    VStack(spacing: 3) {
+    VStack(spacing: 2.5) {
       ForEach(0..<3, id: \.self) { _ in
         Circle()
           .fill(Color.primary)
-          .frame(width: 5, height: 5)
+          .frame(width: 4, height: 4)
       }
     }
-    .frame(width: 28, height: 28)
+    .frame(width: 24, height: 24)
     .contentShape(Rectangle())
   }
 }

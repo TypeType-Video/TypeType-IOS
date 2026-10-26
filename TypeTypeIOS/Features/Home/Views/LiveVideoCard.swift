@@ -108,27 +108,16 @@ struct LiveVideoCard: View {
 
   private var metadata: some View {
     VStack(alignment: .leading, spacing: 4) {
-      HStack(alignment: .top, spacing: 8) {
-        Button(action: action) {
-          Text(branding.title)
-            .font(.subheadline.weight(.semibold))
-            .foregroundStyle(.primary)
-            .lineLimit(2)
-            .multilineTextAlignment(.leading)
-        }
-        .buttonStyle(.plain)
-        .frame(maxWidth: .infinity, alignment: .leading)
-
-        // The "…" menu sits on the title line (the old long-press menu).
-        if let quickActionsMenu {
-          Menu {
-            quickActionsMenu
-          } label: {
-            LiveDotsGlyph()
-          }
-          .accessibilityLabel("More actions for \(branding.title)")
-        }
+      Button(action: action) {
+        Text(branding.title)
+          .font(.subheadline.weight(.semibold))
+          .foregroundStyle(.primary)
+          .lineLimit(2)
+          .multilineTextAlignment(.leading)
       }
+      .buttonStyle(.plain)
+      .frame(maxWidth: .infinity, alignment: .leading)
+      .padding(.trailing, quickActionsMenu == nil ? 0 : 36)
 
       if let onChannel {
       Button(action: onChannel) {
@@ -146,6 +135,18 @@ struct LiveVideoCard: View {
         .lineLimit(1)
     }
     .frame(maxWidth: .infinity, alignment: .leading)
+    // Anchored to the column corner — independent of how the title wraps
+    // (DeArrow swaps titles after load and used to make the button jump).
+    .overlay(alignment: .topTrailing) {
+      if let quickActionsMenu {
+        Menu {
+          quickActionsMenu
+        } label: {
+          LiveDotsGlyph()
+        }
+        .accessibilityLabel("More actions for \(branding.title)")
+      }
+    }
   }
 
   private var channelName: some View {
