@@ -44,6 +44,7 @@ struct LiveAuthenticatedAppView: View {
     .animation(.snappy.delay(0.25), value: playbackCoordinator.showsMiniPlayer)
     .animation(.snappy, value: presentsSearch)
     .task {
+      coordinator.dependencies.playbackService?.preconnectMedia()
       LiveVideoCard.onPrewarm = { video in
         Task {
           guard let service = coordinator.dependencies.playbackService else {

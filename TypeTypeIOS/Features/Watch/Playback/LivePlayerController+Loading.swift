@@ -14,6 +14,7 @@ extension LivePlayerController {
     let generation = loadGeneration
     startupTrace.begin()
     armStartupWatchdog()
+    service.preconnectMedia()
     // The audio session is set up while the stream loads, not before it.
     async let audioSession: Void = configureAudioSession()
     sabrStallRecoveryTask?.cancel()
