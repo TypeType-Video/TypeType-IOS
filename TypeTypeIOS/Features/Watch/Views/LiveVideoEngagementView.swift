@@ -7,6 +7,7 @@ struct LiveVideoEngagementView: View {
   let onChannel: (() -> Void)?
   private let video: LiveVideoItem
   @StateObject private var viewModel: LiveVideoEngagementViewModel
+  @Environment(\.liveWatchExtrasEnabled) private var extrasEnabled
 
   init(
     video: LiveVideoItem,
@@ -41,7 +42,10 @@ struct LiveVideoEngagementView: View {
           .transition(.opacity)
       }
     }
-    .task { await viewModel.prepare() }
+    .task(id: extrasEnabled) {
+      guard extrasEnabled else { return }
+      await viewModel.prepare()
+    }
     .accessibilityIdentifier("live.video.engagement")
   }
 

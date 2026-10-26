@@ -14,7 +14,13 @@ final class LivePlayerController: ObservableObject {
 
   let player = AVPlayer()
 
-  @Published var state: State = .idle
+  @Published var state: State = .idle {
+    didSet { releaseExtrasIfStarted() }
+  }
+  /// False until the video starts (or its start ends another way); the rest
+  /// of the watch page waits for it so the network goes to the video first.
+  @Published var extrasReleased = false
+  var firstFrameJobs: [() -> Void] = []
   @Published var stream: LivePlaybackStream?
   @Published var preparation: LivePlaybackPreparation?
   /// Milliseconds from loading to the first playing frame of the last start.

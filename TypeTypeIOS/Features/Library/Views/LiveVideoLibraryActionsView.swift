@@ -7,6 +7,7 @@ struct LiveVideoLibraryActionsView: View {
   let video: LiveVideoItem
   let dependencies: AppDependencies
   @State private var createsPlaylist = false
+  @Environment(\.liveWatchExtrasEnabled) private var extrasEnabled
   @State private var presentsDownload = false
 
   init(video: LiveVideoItem, dependencies: AppDependencies) {
@@ -90,7 +91,10 @@ struct LiveVideoLibraryActionsView: View {
     } message: {
       Text(viewModel.errorMessage ?? "")
     }
-    .task { await viewModel.prepare() }
+    .task(id: extrasEnabled) {
+      guard extrasEnabled else { return }
+      await viewModel.prepare()
+    }
     .accessibilityIdentifier("live.video.library-actions")
   }
 

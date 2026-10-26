@@ -34,7 +34,7 @@ extension LivePlayerController {
       )
       settings = (try? await settingsRequest) ?? LiveSettings()
       applyLoadedSettings()
-      loadBulletCommentsIfNeeded()
+      afterFirstFrame { [weak self] in self?.loadBulletCommentsIfNeeded() }
       let loadedStream = try await streamRequest
       startupTrace.mark("stream")
       let savedPositionMS: Int64?
@@ -46,7 +46,8 @@ extension LivePlayerController {
       guard !Task.isCancelled else { return }
       stream = loadedStream
       onMetadataResolved?(video.resolving(with: loadedStream))
-      loadFullMetadata(using: service)
+      isLoadingFullMetadata = true
+      afterFirstFrame { [weak self] in self?.loadFullMetadata(using: service) }
       if selectedVideoItag != nil {
         selectedVideoItag = nil
       }

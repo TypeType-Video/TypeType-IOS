@@ -146,10 +146,14 @@ struct LiveVideoMetadataContentView: View {
     }
     .externalLinkAlert(pendingURL: $pendingExternalURL)
     .accessibilityIdentifier("live.video.metadata")
-    .task(id: libraryActionsIdentity) {
+    .liveStartupProbe(playerController.lastStartupMilliseconds)
+    .environment(\.liveWatchExtrasEnabled, playerController.extrasReleased)
+    .task(id: "\(libraryActionsIdentity)|\(playerController.extrasReleased)") {
+      guard playerController.extrasReleased else { return }
       await deArrowStore.prepare(resolvedVideo)
     }
-    .task(id: channelMetadataIdentity) {
+    .task(id: "\(channelMetadataIdentity)|\(playerController.extrasReleased)") {
+      guard playerController.extrasReleased else { return }
       await channelMetadataViewModel.load(
         channelURL: resolvedVideo.uploaderURL,
         streamSubscriberCount:
@@ -159,24 +163,11 @@ struct LiveVideoMetadataContentView: View {
     .onDisappear { playerController.flushHistory() }
   }
 
-  private var displayedChapters: [LivePlaybackChapter] {
-    let chapters = playerController.stream?.chapters ?? []
-    return (chapters + playerController.sponsorBlockChapters)
-      .sorted { $0.startTimeSeconds < $1.startTimeSeconds }
-  }
-
   private var subscriberCount: Int64? {
     if let count = playerController.stream?.uploaderSubscriberCount,
       count >= 0 {
       return count
     }
     return channelMetadataViewModel.subscriberCount
-  }
-
-  private var channelMetadataIdentity: String {
-    [
-      resolvedVideo.uploaderURL,
-      String(playerController.stream?.uploaderSubscriberCount ?? -1),
-    ].joined(separator: ":")
   }
 }

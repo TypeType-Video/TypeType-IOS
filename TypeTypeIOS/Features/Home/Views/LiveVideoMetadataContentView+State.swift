@@ -72,4 +72,17 @@ extension LiveVideoMetadataContentView {
       pendingExternalURL = url
     }
   }
+
+  var displayedChapters: [LivePlaybackChapter] {
+    let chapters = playerController.stream?.chapters ?? []
+    return (chapters + playerController.sponsorBlockChapters)
+      .sorted { $0.startTimeSeconds < $1.startTimeSeconds }
+  }
+
+  var channelMetadataIdentity: String {
+    [
+      resolvedVideo.uploaderURL,
+      String(playerController.stream?.uploaderSubscriberCount ?? -1),
+    ].joined(separator: ":")
+  }
 }

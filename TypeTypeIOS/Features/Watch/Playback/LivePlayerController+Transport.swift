@@ -116,6 +116,14 @@ extension LivePlayerController {
     sabrRecoveryBudgetResetTask?.cancel()
     sabrRecoveryBudgetResetTask = nil
     loadTask?.cancel()
+    // A closed player must not retry or install a start still in flight.
+    loadGeneration += 1
+    startupWatchdog?.cancel()
+    startupWatchdog = nil
+    startupTrace = LivePlaybackStartupTrace()
+    metadataTask?.cancel()
+    metadataTask = nil
+    firstFrameJobs = []
     seekTask?.cancel()
     bulletCommentsTask?.cancel()
     bulletCommentsTask = nil
