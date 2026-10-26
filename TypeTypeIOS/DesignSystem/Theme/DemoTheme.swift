@@ -729,9 +729,16 @@ extension View {
 
 private struct LiveThemeRepaintModifier: ViewModifier {
   @Environment(\.demoTheme) private var palette
+  @Environment(\.colorScheme) private var systemScheme
+  @EnvironmentObject private var preferences: LiveAppPreferences
 
   func body(content: Content) -> some View {
-    content.id(palette.renderToken)
+    content
+      .id(DemoTheme.renderToken &+ palette.renderToken)
+      .onChange(of: systemScheme) { _, scheme in
+        DemoTheme.update(preferences: preferences, colorScheme: scheme)
+        DemoTheme.bumpRenderToken()
+      }
   }
 }
 
