@@ -1,10 +1,13 @@
 import Foundation
 
 extension URLSessionAPIClient {
-  func execute(_ request: URLRequest) async throws -> Data {
+  func execute(_ request: URLRequest, media: Bool = false) async throws -> Data {
     let startedAt = DispatchTime.now().uptimeNanoseconds
     do {
-      let (data, response) = try await session.data(for: request)
+      try DebugNetworkOutage.check()
+      let (data, response) = media
+        ? try await mediaSession.data(for: request, delegate: MediaTaskPriority.shared)
+        : try await session.data(for: request)
       guard let http = response as? HTTPURLResponse else {
         await recordDiagnostic(
           request,

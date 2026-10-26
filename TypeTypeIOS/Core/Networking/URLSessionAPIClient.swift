@@ -6,6 +6,7 @@ final class URLSessionAPIClient: APIClient {
   let serverURLProvider: () -> URL?
   let accessTokenProvider: () -> String?
   let session: URLSession
+  let mediaSession: URLSession
   let decoder: JSONDecoder
   let diagnosticsStore: LiveDiagnosticsStore?
   let diagnosticScopeProvider: () -> LiveDiagnosticScope?
@@ -16,6 +17,7 @@ final class URLSessionAPIClient: APIClient {
     serverURLProvider: @escaping () -> URL?,
     accessTokenProvider: @escaping () -> String?,
     session: URLSession = URLSessionAPIClient.makeSession(),
+    mediaSession: URLSession = URLSessionAPIClient.makeMediaSession(),
     decoder: JSONDecoder = JSONDecoder(),
     diagnosticsStore: LiveDiagnosticsStore? = nil,
     diagnosticScopeProvider: @escaping () -> LiveDiagnosticScope? = {
@@ -25,6 +27,7 @@ final class URLSessionAPIClient: APIClient {
     self.serverURLProvider = serverURLProvider
     self.accessTokenProvider = accessTokenProvider
     self.session = session
+    self.mediaSession = mediaSession
     self.decoder = decoder
     self.diagnosticsStore = diagnosticsStore
     self.diagnosticScopeProvider = diagnosticScopeProvider
@@ -72,9 +75,10 @@ final class URLSessionAPIClient: APIClient {
   func requestData(_ endpoint: APIEndpoint) async throws -> Data {
     let request = try makeURLRequest(endpoint)
     let retries = endpoint.retriesTransientFailures
+    let media = endpoint.isMedia
     do {
       return try await executeRead(request, retries: retries) {
-        try await self.execute(request)
+        try await self.execute(request, media: media)
       }
     } catch let error as NetworkError {
       guard case .statusCode(401, _) = error else { throw error }
@@ -83,7 +87,7 @@ final class URLSessionAPIClient: APIClient {
         throw error
       }
       return try await executeRead(retryRequest, retries: retries) {
-        try await self.execute(retryRequest)
+        try await self.execute(retryRequest, media: media)
       }
     }
   }

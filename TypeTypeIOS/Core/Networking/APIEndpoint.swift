@@ -11,6 +11,8 @@ struct APIEndpoint {
   /// False when a failure is an answer, not a hiccup (a route that refuses
   /// some videos), so the caller falls back at once instead of after retries.
   let retriesTransientFailures: Bool
+  /// Media bytes for playback: sent on the media session, ahead of the rest.
+  let isMedia: Bool
 
   init(
     path: String,
@@ -20,7 +22,8 @@ struct APIEndpoint {
     body: Data? = nil,
     requiresAuth: Bool = false,
     timeoutInterval: TimeInterval? = nil,
-    retriesTransientFailures: Bool = true
+    retriesTransientFailures: Bool = true,
+    isMedia: Bool = false
   ) {
     self.path = path
     self.method = method
@@ -30,6 +33,21 @@ struct APIEndpoint {
     self.requiresAuth = requiresAuth
     self.timeoutInterval = timeoutInterval
     self.retriesTransientFailures = retriesTransientFailures
+    self.isMedia = isMedia
+  }
+
+  func asMedia() -> APIEndpoint {
+    APIEndpoint(
+      path: path,
+      method: method,
+      queryItems: queryItems,
+      headers: headers,
+      body: body,
+      requiresAuth: requiresAuth,
+      timeoutInterval: timeoutInterval,
+      retriesTransientFailures: retriesTransientFailures,
+      isMedia: true
+    )
   }
 
   static func jsonBody<T: Encodable>(_ value: T) throws -> Data {

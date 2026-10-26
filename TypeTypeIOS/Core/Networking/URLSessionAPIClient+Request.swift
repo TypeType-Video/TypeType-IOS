@@ -88,4 +88,28 @@ extension URLSessionAPIClient {
     configuration.waitsForConnectivity = true
     return URLSession(configuration: configuration)
   }
+
+  /// Segments are read once and played: caching them on disk only costs
+  /// writes. Kept apart so a burst of API calls never queues ahead of video.
+  static func makeMediaSession() -> URLSession {
+    let configuration = URLSessionConfiguration.default
+    configuration.httpCookieAcceptPolicy = .always
+    configuration.httpCookieStorage = .shared
+    configuration.httpShouldSetCookies = true
+    configuration.urlCache = nil
+    configuration.requestCachePolicy = .reloadIgnoringLocalCacheData
+    configuration.timeoutIntervalForRequest = 30
+    configuration.timeoutIntervalForResource = 180
+    configuration.waitsForConnectivity = true
+    return URLSession(configuration: configuration)
+  }
+}
+
+/// Raises each media task to the highest priority the session offers.
+final class MediaTaskPriority: NSObject, URLSessionTaskDelegate, Sendable {
+  static let shared = MediaTaskPriority()
+
+  func urlSession(_ session: URLSession, didCreateTask task: URLSessionTask) {
+    task.priority = URLSessionTask.highPriority
+  }
 }
