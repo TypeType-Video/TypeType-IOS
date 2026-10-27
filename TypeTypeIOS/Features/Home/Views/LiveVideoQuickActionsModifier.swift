@@ -31,6 +31,24 @@ struct LiveVideoQuickActionsModifier: ViewModifier {
     self.onRemove = onRemove
   }
 
+  /// The toast text with its own shape-independent styling; the caller adds
+  /// either the system glass or a dark capsule fallback.
+  private func toastLabel(_ message: String) -> some View {
+    Text(message)
+      .font(.footnote.weight(.medium))
+      .foregroundStyle(.primary)
+      .padding(.horizontal, 16)
+      .padding(.vertical, 10)
+      .padding(.bottom, 24)
+      .transition(.opacity)
+      .task {
+        try? await Task.sleep(for: .seconds(2.2))
+        withAnimation(.easeOut(duration: 0.25)) {
+          viewModel.dismissMessage()
+        }
+      }
+  }
+
   func body(content: Content) -> some View {
     content
       // The long-press menu is retired; the card renders a "…" button on
@@ -154,24 +172,6 @@ struct LiveDotMenu<Content: View>: View {
       .presentationCompactAdaptation(.popover)
     }
   }
-}
-
-/// The toast text with its own shape-independent styling; the caller adds
-/// either the system glass or a dark capsule fallback.
-private func toastLabel(_ message: String) -> some View {
-  Text(message)
-    .font(.footnote.weight(.medium))
-    .foregroundStyle(.primary)
-    .padding(.horizontal, 16)
-    .padding(.vertical, 10)
-    .padding(.bottom, 24)
-    .transition(.opacity)
-    .task {
-      try? await Task.sleep(for: .seconds(2.2))
-      withAnimation(.easeOut(duration: 0.25)) {
-        viewModel.dismissMessage()
-      }
-    }
 }
 
 /// The quick-actions menu content is handed to video cards via the
