@@ -47,26 +47,36 @@ final class LiveLandscapeHostingController: UIHostingController<LiveNativeFullsc
 
   @MainActor
   static func present(for controller: LivePlayerController) {
-    guard let scene = UIApplication.shared.connectedScenes
-      .compactMap({ $0 as? UIWindowScene })
-      .first(where: { $0.activationState == .foregroundActive }),
-      var top = scene.keyWindow?.rootViewController
-    else {
-      return
-    }
-    while let presented = top.presentedViewController {
-      top = presented
-    }
-    weak var host: LiveLandscapeHostingController?
-    let created = LiveLandscapeHostingController(
-      rootView: LiveNativeFullscreenView(controller: controller) {
-        host?.dismiss(animated: true)
-      }
-    )
-    created.modalPresentationStyle = .fullScreen
-    created.onDisappear = { [weak controller] in controller?.isPresentingFullscreen = false }
     controller.isPresentingFullscreen = true
-    host = created
-    top.present(created, animated: true)
+    Task { @MainActor in
+      // Rotate the window first: presenting a modal into a portrait window
+      // shows no rotation transition, so the fullscreen lands on an
+      // already-landscape window.
+      LiveScreenOrientation.set(.landscape)
+      try? await Task.sleep(for: .milliseconds(280))
+      guard let scene = UIApplication.shared.connectedScenes
+        .compactMap({ $0 as? UIWindowScene })
+        .first(where: { $0.activationState == .foregroundActive }),
+        var top = scene.keyWindow?.rootViewController
+      else {
+        controller.isPresentingFullscreen = false
+        return
+      }
+      while let presented = top.presentedViewController {
+        top = presented
+      }
+      weak var host: LiveLandscapeHostingController?
+      let created = LiveLandscapeHostingController(
+        rootView: LiveNativeFullscreenView(controller: controller) {
+          host?.dismiss(animated: true)
+        }
+      )
+      created.modalPresentationStyle = .fullScreen
+      created.onDisappear = { [weak controller] in
+        controller?.isPresentingFullscreen = false
+      }
+      host = created
+      top.present(created, animated: true)
+    }
   }
 }
