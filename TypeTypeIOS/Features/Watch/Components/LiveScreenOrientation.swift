@@ -11,7 +11,8 @@ enum LiveScreenOrientation {
         .first
       else { return }
       scene.requestGeometryUpdate(.iOS(interfaceOrientations: orientation))
-      UIViewController.attemptRotationToDeviceOrientation()
+      scene.windows.first?.rootViewController?
+        .setNeedsUpdateOfSupportedInterfaceOrientations()
     }
   }
 }
