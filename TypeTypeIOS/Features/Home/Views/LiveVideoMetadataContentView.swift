@@ -160,7 +160,11 @@ struct LiveVideoMetadataContentView: View {
             controller: playerController,
             surface: .fullscreen
           )
-          .ignoresSafeArea()
+          // Same 16:9 container shape as the page player: the video keeps
+          // its anchoring while the window rotates instead of jumping to a
+          // full-window frame.
+          .aspectRatio(16 / 9, contentMode: .fit)
+          .frame(maxWidth: .infinity, maxHeight: .infinity)
           .onTapGesture { fullscreenControls.tap() }
           LiveNativePlayerControls(
             controller: playerController,
