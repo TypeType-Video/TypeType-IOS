@@ -169,6 +169,21 @@ extension LivePlayerController {
     AppLogger.playback.error(
       "Native playback failed in fullscreen=\(self.isPresentingFullscreen, privacy: .public), using AVPlayer: \(reason, privacy: .public)"
     )
+
+  /// Keeps the native PiP binding off the layer while the player cover
+  /// itself becomes the landscape stage, then rotates the window.
+  func enterNativeFullscreen() {
+    pictureInPicture.uninstallNativeContent()
+    isPresentingFullscreen = true
+    LiveScreenOrientation.set(.landscape)
+  }
+
+  /// Reverses the cover stage and re-arms the page surface for reinstall.
+  func exitNativeFullscreen() {
+    pictureInPicture.uninstallNativeContent()
+    LiveScreenOrientation.set(.portrait)
+    isPresentingFullscreen = false
+  }
     let resumeAt = playback.hasStarted ? position : playback.preparation.resumeTime
     let autoplay = providerRecoveryDesiredAutoplay || state == .playing || !playback.hasStarted
     playback.stop()

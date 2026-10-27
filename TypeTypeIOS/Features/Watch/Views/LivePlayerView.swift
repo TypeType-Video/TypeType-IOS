@@ -50,7 +50,7 @@ struct LivePlayerView: View {
         if controller.nativePlayback != nil {
           LiveNativeSubtitleOverlay(controller: controller)
           LiveNativePlayerControls(controller: controller, controls: nativeControls) {
-            LiveLandscapeHostingController.present(for: controller)
+            controller.enterNativeFullscreen()
           }
         }
         // Above the transport controls: the UIKit overlay below never received taps.
