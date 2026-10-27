@@ -97,3 +97,49 @@ struct LiveNativePlayerControls: View {
     .padding(.bottom, 6)
   }
 }
+
+// A presented controller that only allows landscape makes iOS rotate in and back out of it.
+final class LiveLandscapeHostingController: UIHostingController<LiveNativeFullscreenView> {
+  override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
+    traitCollection.userInterfaceIdiom == .phone ? .landscape : .all
+  }
+
+  override var preferredInterfaceOrientationForPresentation: UIInterfaceOrientation {
+    .landscapeRight
+  }
+
+  var onDisappear: (() -> Void)?
+
+  override func viewDidDisappear(_ animated: Bool) {
+    super.viewDidDisappear(animated)
+    onDisappear?()
+  }
+
+  override var prefersStatusBarHidden: Bool { true }
+  override var prefersHomeIndicatorAutoHidden: Bool { true }
+
+  @MainActor
+  static func present(for controller: LivePlayerController) {
+    guard let scene = UIApplication.shared.connectedScenes
+      .compactMap({ $0 as? UIWindowScene })
+      .first(where: { $0.activationState == .foregroundActive }),
+      var top = scene.keyWindow?.rootViewController
+    else {
+      return
+    }
+    while let presented = top.presentedViewController {
+      top = presented
+    }
+    weak var host: LiveLandscapeHostingController?
+    let created = LiveLandscapeHostingController(
+      rootView: LiveNativeFullscreenView(controller: controller) {
+        host?.dismiss(animated: true)
+      }
+    )
+    created.modalPresentationStyle = .fullScreen
+    created.onDisappear = { [weak controller] in controller?.isPresentingFullscreen = false }
+    controller.isPresentingFullscreen = true
+    host = created
+    top.present(created, animated: true)
+  }
+}
