@@ -22,6 +22,9 @@ struct LiveNativeVideoView: UIViewRepresentable {
     let view = LiveNativeVideoHostView()
     view.surface = surface
     view.backgroundColor = .black
+    // The layer must never paint outside the host, otherwise interim frames
+    // bleed a band below the controls row during the transition.
+    view.clipsToBounds = true
     if onSwipeAdjustment != nil {
       context.coordinator.installSwipeGesture(in: view)
     }
@@ -36,8 +39,6 @@ struct LiveNativeVideoView: UIViewRepresentable {
     playback.player.videoLayer.videoGravity = controller.imageMode.videoGravity
     if view.window != nil && view.bounds.size.width > 0 {
       view.setNeedsLayout()
-      view.layer.setNeedsLayout()
-      view.layoutIfNeeded()
     }
     view.surface = surface
     if view.owner !== playback.layerOwner {
@@ -120,9 +121,9 @@ final class LiveNativeVideoHostView: UIView {
   override func layoutSubviews() {
     super.layoutSubviews()
     guard let videoLayer, videoLayer.superlayer === layer else { return }
-    CATransaction.begin()
-    CATransaction.setDisableActions(true)
+    // No action-disabling transaction: the layer frame animates with the
+    // SwiftUI container, otherwise the picture moves out of step with the
+    // letterboxing and a stale band shows under the controls.
     videoLayer.frame = bounds
-    CATransaction.commit()
   }
 }
