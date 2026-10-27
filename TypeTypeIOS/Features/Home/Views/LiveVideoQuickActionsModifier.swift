@@ -48,21 +48,27 @@ struct LiveVideoQuickActionsModifier: ViewModifier {
             }
         )
       )
-      .alert(
-        "Video",
-        isPresented: Binding(
-          get: { viewModel.message != nil },
-          set: {
-            if !$0 {
-              viewModel.dismissMessage()
+      // Confirmations are toasts: they show the same texts and fade out by
+      // themselves instead of demanding an OK tap.
+      .overlay(alignment: .bottom) {
+        if let message = viewModel.message {
+          Text(message)
+            .font(.footnote.weight(.medium))
+            .foregroundStyle(.white)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 9)
+            .background(.black.opacity(0.82), in: Capsule())
+            .padding(.bottom, 24)
+            .transition(.opacity)
+            .task {
+              try? await Task.sleep(for: .seconds(2.2))
+              withAnimation(.easeOut(duration: 0.25)) {
+                viewModel.dismissMessage()
+              }
             }
-          }
-        )
-      ) {
-        Button("OK") { viewModel.dismissMessage() }
-      } message: {
-        Text(viewModel.message ?? "")
+        }
       }
+      .animation(.easeIn(duration: 0.18), value: viewModel.message)
       .sheet(isPresented: $presentsDownload) {
         LiveDownloadSheet(
           video: viewModel.video,
