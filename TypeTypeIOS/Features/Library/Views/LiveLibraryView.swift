@@ -94,10 +94,7 @@ struct LiveLibraryView: View {
           .frame(width: 44, height: 40)
           .font(.body.weight(.semibold))
           .foregroundStyle(Color.primary)
-          .background(
-            DemoTheme.groupedSurface,
-            in: RoundedRectangle(cornerRadius: 14, style: .continuous)
-          )
+          .modifier(LiveLibraryActionGlass())
       }
       .padding(.horizontal, 16)
       .background(DemoTheme.background)
@@ -211,6 +208,21 @@ struct LiveLibraryView: View {
 /// The segment strip above the library content. It reads the palette from
 /// the environment: as a safe-area inset it sits outside the themed list
 /// and would otherwise keep the previous theme's resolved colours.
+/// The action tile's shell: system Liquid Glass where available, the
+/// grouped surface colour otherwise.
+struct LiveLibraryActionGlass: ViewModifier {
+  func body(content: Content) -> some View {
+    if #available(iOS 26.0, *) {
+      content.glassEffect()
+    } else {
+      content.background(
+        DemoTheme.groupedSurface,
+        in: RoundedRectangle(cornerRadius: 14, style: .continuous)
+      )
+    }
+  }
+}
+
 private struct LiveLibrarySectionStrip: View {
   @Binding var selection: LiveLibrarySection
   @Environment(\.demoTheme) private var palette
