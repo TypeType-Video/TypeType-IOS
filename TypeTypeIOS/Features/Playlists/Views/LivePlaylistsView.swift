@@ -31,15 +31,7 @@ struct LivePlaylistsView: View {
     content
       .navigationTitle("Playlists")
       .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-          ToolbarItem(placement: .topBarTrailing) {
-            Button("New playlist", systemImage: "plus") {
-              createsPlaylist = true
-            }
-            .accessibilityIdentifier("live.playlists.add")
-          }
-        }
-        .navigationDestination(item: $selectedPlaylist) { playlist in
+          .navigationDestination(item: $selectedPlaylist) { playlist in
           LivePlaylistDetailView(
             playlist: playlist,
             dependencies: coordinator.dependencies

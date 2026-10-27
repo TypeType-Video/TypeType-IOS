@@ -32,14 +32,6 @@ struct LiveHistoryView: View {
       .onChange(of: viewModel.query) {
         viewModel.queryDidChange()
       }
-      .toolbar {
-        ToolbarItem(placement: .topBarTrailing) {
-          Button("Clear", role: .destructive) {
-            confirmsClear = true
-          }
-          .disabled(viewModel.items.isEmpty)
-        }
-      }
       .onChange(of: selectedVideo) { _, video in
         guard let video else { return }
         selectedVideo = nil

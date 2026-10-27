@@ -24,20 +24,6 @@ struct LiveCollectionView: View {
     content
       .navigationTitle(viewModel.kind.title)
       .navigationBarTitleDisplayMode(.inline)
-      .toolbar {
-        ToolbarItem(placement: .topBarTrailing) {
-          Menu {
-            Picker("Sort", selection: $viewModel.sort) {
-              ForEach(LiveCollectionViewModel.Sort.allCases) {
-                Text($0.title).tag($0)
-              }
-            }
-          } label: {
-            Label("Sort", systemImage: "arrow.up.arrow.down")
-          }
-          .disabled(viewModel.videos.isEmpty)
-        }
-      }
       .onChange(of: selectedVideo) { _, video in
         guard let video else { return }
         selectedVideo = nil

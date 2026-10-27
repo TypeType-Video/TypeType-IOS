@@ -22,9 +22,20 @@ enum LiveLibrarySection: String, CaseIterable, Identifiable {
 struct LiveLibraryView: View {
   @ObservedObject var coordinator: RootCoordinator
   @Binding var section: LiveLibrarySection
+  @State private var collectionSorts: [LiveLibrarySection: LiveCollectionViewModel.Sort] = [:]
 
   /// Two-way bridge: the pager writes during the drag (the strip follows
   /// the finger), pill taps animate the pager to the section.
+  @State private var historyConfirmsClear = false
+  @State private var createsPlaylist = false
+
+  private var collectionSortBinding: Binding<LiveCollectionViewModel.Sort> {
+    Binding(
+      get: { collectionSorts[section, default: .addedNewest] },
+      set: { collectionSorts[section] = $0 }
+    )
+  }
+
   private var sectionIDBinding: Binding<LiveLibrarySection?> {
     Binding(
       get: { $section.wrappedValue },
@@ -34,22 +45,75 @@ struct LiveLibraryView: View {
     )
   }
 
+  /// The bar items belong to the library, not to lazy pager pages: page
+  /// toolbars never attach inside the pager, which is why the buttons
+  /// vanished when the sections moved into it.
+  @ToolbarContentBuilder
+  private var sectionToolbar: some ToolbarContent {
+    ToolbarItem(placement: .principal) {
+      Text(section.title)
+    }
+    switch section {
+    case .history:
+      ToolbarItem(placement: .topBarTrailing) {
+        Button("Clear", role: .destructive) {
+          historyConfirmsClear = true
+        }
+      }
+    case .favorites, .watchLater:
+      ToolbarItem(placement: .topBarTrailing) {
+        Menu {
+          Picker("Sort", selection: collectionSortBinding) {
+            ForEach(LiveCollectionViewModel.Sort.allCases) {
+              Text($0.title).tag($0)
+            }
+          }
+        } label: {
+          Label("Sort", systemImage: "arrow.up.arrow.down")
+        }
+      }
+    case .playlists:
+      ToolbarItem(placement: .topBarTrailing) {
+        Button {
+          createsPlaylist = true
+        } label: {
+          Image(systemName: "plus")
+        }
+        .accessibilityIdentifier("live.playlists.add")
+      }
+    case .downloads:
+      ToolbarItem(placement: .topBarTrailing) {
+        Button {
+          Task { await coordinator.dependencies.downloadCenter.refresh() }
+        } label: {
+          Image(systemName: "arrow.clockwise")
+        }
+      }
+    }
+  }
+
+  private var pager: some View {
+    ScrollView(.horizontal) {
+      LazyHStack(spacing: 0) {
+        ForEach(LiveLibrarySection.allCases) { page in
+          sectionContent(page)
+            .containerRelativeFrame(.horizontal)
+            .id(page)
+        }
+      }
+      .scrollTargetLayout()
+    }
+    .scrollPosition(id: sectionIDBinding)
+    .scrollTargetBehavior(.viewAligned)
+    .scrollIndicators(.hidden)
+  }
+
   var body: some View {
     NavigationStack {
-      ScrollView(.horizontal) {
-        LazyHStack(spacing: 0) {
-          ForEach(LiveLibrarySection.allCases) { page in
-            sectionContent(page)
-              .navigationBarTitleDisplayMode(.inline)
-              .containerRelativeFrame(.horizontal)
-              .id(page)
-          }
+      pager
+        .toolbar {
+          sectionToolbar
         }
-        .scrollTargetLayout()
-      }
-      .scrollPosition(id: sectionIDBinding)
-      .scrollTargetBehavior(.viewAligned)
-      .scrollIndicators(.hidden)
     }
     // The strip sits above the stack as an inset, so no page chrome (the
     // History search field) can slide over it.

@@ -89,17 +89,7 @@ struct LiveDownloadsView: View {
       }
     }
     .navigationTitle("Downloads")
-    .toolbar {
-      ToolbarItem(placement: .topBarTrailing) {
-        Button {
-          Task { await center.refresh() }
-        } label: {
-          Image(systemName: "arrow.clockwise")
-        }
-        .accessibilityLabel("Refresh downloads")
-      }
-    }
-    .task {
+        .task {
       await center.activate()
     }
     .alert(
