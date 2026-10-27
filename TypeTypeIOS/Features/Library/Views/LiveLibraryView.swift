@@ -22,20 +22,38 @@ enum LiveLibrarySection: String, CaseIterable, Identifiable {
 struct LiveLibraryView: View {
   @ObservedObject var coordinator: RootCoordinator
   @Binding var section: LiveLibrarySection
-  @State private var collectionSorts: [LiveLibrarySection: LiveCollectionViewModel.Sort] = [:]
-
-  /// Two-way bridge: the pager writes during the drag (the strip follows
-  /// the finger), pill taps animate the pager to the section.
+  // One model per section owned here: the strip actions act on the same
+  // instance the pages render, and the sort survives browsing.
+  @StateObject private var historyModel: LiveHistoryViewModel
+  @StateObject private var favoritesModel: LiveCollectionViewModel
+  @StateObject private var watchLaterModel: LiveCollectionViewModel
   @State private var historyConfirmsClear = false
   @State private var createsPlaylist = false
 
-  private var collectionSortBinding: Binding<LiveCollectionViewModel.Sort> {
-    Binding(
-      get: { collectionSorts[section, default: .addedNewest] },
-      set: { collectionSorts[section] = $0 }
+  init(coordinator: RootCoordinator, section: Binding<LiveLibrarySection>) {
+    self.coordinator = coordinator
+    _section = section
+    _historyModel = StateObject(
+      wrappedValue: LiveHistoryViewModel(
+        service: coordinator.dependencies.historyService
+      )
+    )
+    _favoritesModel = StateObject(
+      wrappedValue: LiveCollectionViewModel(
+        kind: .favorites,
+        service: coordinator.dependencies.libraryService
+      )
+    )
+    _watchLaterModel = StateObject(
+      wrappedValue: LiveCollectionViewModel(
+        kind: .watchLater,
+        service: coordinator.dependencies.libraryService
+      )
     )
   }
 
+  /// Two-way bridge: the pager writes during the drag (the strip follows
+  /// the finger), pill taps animate the pager to the section.
   private var sectionIDBinding: Binding<LiveLibrarySection?> {
     Binding(
       get: { $section.wrappedValue },
@@ -43,53 +61,6 @@ struct LiveLibraryView: View {
         if let newValue { $section.wrappedValue = newValue }
       }
     )
-  }
-
-  /// The bar items belong to the library, not to lazy pager pages: page
-  /// toolbars never attach inside the pager, which is why the buttons
-  /// vanished when the sections moved into it.
-  @ToolbarContentBuilder
-  private var sectionToolbar: some ToolbarContent {
-    ToolbarItem(placement: .principal) {
-      Text(section.title)
-    }
-    switch section {
-    case .history:
-      ToolbarItem(placement: .topBarTrailing) {
-        Button("Clear", role: .destructive) {
-          historyConfirmsClear = true
-        }
-      }
-    case .favorites, .watchLater:
-      ToolbarItem(placement: .topBarTrailing) {
-        Menu {
-          Picker("Sort", selection: collectionSortBinding) {
-            ForEach(LiveCollectionViewModel.Sort.allCases) {
-              Text($0.title).tag($0)
-            }
-          }
-        } label: {
-          Label("Sort", systemImage: "arrow.up.arrow.down")
-        }
-      }
-    case .playlists:
-      ToolbarItem(placement: .topBarTrailing) {
-        Button {
-          createsPlaylist = true
-        } label: {
-          Image(systemName: "plus")
-        }
-        .accessibilityIdentifier("live.playlists.add")
-      }
-    case .downloads:
-      ToolbarItem(placement: .topBarTrailing) {
-        Button {
-          Task { await coordinator.dependencies.downloadCenter.refresh() }
-        } label: {
-          Image(systemName: "arrow.clockwise")
-        }
-      }
-    }
   }
 
   private var pager: some View {
@@ -111,17 +82,81 @@ struct LiveLibraryView: View {
   var body: some View {
     NavigationStack {
       pager
-        .toolbar {
-          sectionToolbar
-        }
     }
     // The strip sits above the stack as an inset, so no page chrome (the
-    // History search field) can slide over it.
+    // History search field) can slide over it. The section's action rides
+    // in the same row — plain SwiftUI, no bar machinery that the pager
+    // could hide.
     .safeAreaInset(edge: .top, spacing: 0) {
-      LiveLibrarySectionStrip(selection: $section)
-        .background(DemoTheme.background)
+      HStack(spacing: 10) {
+        LiveLibrarySectionStrip(selection: $section)
+        sectionAction
+      }
+      .background(DemoTheme.background)
+    }
+    .confirmationDialog(
+      "Clear watch history?",
+      isPresented: $historyConfirmsClear,
+      titleVisibility: .visible
+    ) {
+      Button("Clear all", role: .destructive) {
+        Task { await historyModel.clear() }
+      }
+    } message: {
+      Text("This removes every video from your watch history.")
     }
     .accessibilityIdentifier("live.library.screen")
+  }
+
+  /// The section's action, always visible at the strip's trailing edge.
+  @ViewBuilder
+  private var sectionAction: some View {
+    switch section {
+    case .history:
+      Button {
+        historyConfirmsClear = true
+      } label: {
+        Image(systemName: "trash")
+      }
+      .foregroundStyle(.red)
+      .disabled(historyModel.items.isEmpty)
+      .accessibilityLabel("Clear history")
+    case .favorites:
+      sortMenu(for: favoritesModel)
+    case .watchLater:
+      sortMenu(for: watchLaterModel)
+    case .playlists:
+      Button {
+        createsPlaylist = true
+      } label: {
+        Image(systemName: "plus")
+      }
+      .accessibilityLabel("New playlist")
+      .accessibilityIdentifier("live.playlists.add")
+    case .downloads:
+      Button {
+        Task { await coordinator.dependencies.downloadCenter.refresh() }
+      } label: {
+        Image(systemName: "arrow.clockwise")
+      }
+      .accessibilityLabel("Refresh downloads")
+    }
+  }
+
+  private func sortMenu(
+    for model: LiveCollectionViewModel
+  ) -> some View {
+    Menu {
+      Picker("Sort", selection: $model.sort) {
+        ForEach(LiveCollectionViewModel.Sort.allCases) {
+          Text($0.title).tag($0)
+        }
+      }
+    } label: {
+      Image(systemName: "arrow.up.arrow.down")
+    }
+    .disabled(model.videos.isEmpty)
+    .accessibilityLabel("Sort")
   }
 
   @ViewBuilder
@@ -130,15 +165,18 @@ struct LiveLibraryView: View {
   ) -> some View {
     switch section {
     case .history:
-      LiveHistoryView(coordinator: coordinator)
+      LiveHistoryView(
+        coordinator: coordinator,
+        viewModel: historyModel
+      )
     case .favorites:
       LiveCollectionView(
-        kind: .favorites,
+        viewModel: favoritesModel,
         dependencies: coordinator.dependencies
       )
     case .watchLater:
       LiveCollectionView(
-        kind: .watchLater,
+        viewModel: watchLaterModel,
         dependencies: coordinator.dependencies
       )
     case .playlists:

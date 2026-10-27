@@ -2,22 +2,32 @@ import SwiftUI
 
 struct LiveCollectionView: View {
   let dependencies: AppDependencies
-  @StateObject private var viewModel: LiveCollectionViewModel
+  @ObservedObject var viewModel: LiveCollectionViewModel
   @State private var selectedVideo: LiveVideoItem?
   @State private var selectedChannelURL: String?
   @State private var pendingRemoval: LiveLibraryVideo?
 
+  /// The library owns one view model per kind so its strip actions reach
+  /// the same instance the page renders; standalone uses create their own.
   init(
     kind: LiveLibraryCollectionKind,
     dependencies: AppDependencies
   ) {
     self.dependencies = dependencies
-    _viewModel = StateObject(
+    _viewModel = ObservedObject(
       wrappedValue: LiveCollectionViewModel(
         kind: kind,
         service: dependencies.libraryService
       )
     )
+  }
+
+  init(
+    viewModel: LiveCollectionViewModel,
+    dependencies: AppDependencies
+  ) {
+    self.dependencies = dependencies
+    _viewModel = ObservedObject(wrappedValue: viewModel)
   }
 
   var body: some View {

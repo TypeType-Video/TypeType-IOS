@@ -2,20 +2,16 @@ import SwiftUI
 
 struct LiveHistoryView: View {
   @ObservedObject var coordinator: RootCoordinator
-  @StateObject var viewModel: LiveHistoryViewModel
+  @ObservedObject var viewModel: LiveHistoryViewModel
   @State var selectedVideo: LiveVideoItem?
   @State var selectedChannelURL: String?
   @State var pendingRemoval: LiveHistoryItem?
   @State var confirmsClear = false
   @State var choosesDate = false
 
-  init(coordinator: RootCoordinator) {
+  init(coordinator: RootCoordinator, viewModel: LiveHistoryViewModel) {
     self.coordinator = coordinator
-    _viewModel = StateObject(
-      wrappedValue: LiveHistoryViewModel(
-        service: coordinator.dependencies.historyService
-      )
-    )
+    self.viewModel = viewModel
   }
 
   // No own NavigationStack: as a library section the pager hosts this view
