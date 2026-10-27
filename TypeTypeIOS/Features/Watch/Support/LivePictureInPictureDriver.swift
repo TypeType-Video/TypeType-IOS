@@ -208,7 +208,11 @@ final class LivePictureInPictureDriver: NSObject, ObservableObject {
   /// The engagement flag drops immediately so the notice overlay is gone
   /// before the system animates the window back into the player surface.
   func bringInline() {
-    guard isEngaged else { return }
+    AppLogger.playback.info("pip driver: bring inline requested")
+    guard isEngaged else {
+      AppLogger.playback.info("pip driver: bring inline skipped, not engaged")
+      return
+    }
     isEngaged = false
     onChange?()
     isRestoring = true
@@ -224,6 +228,7 @@ extension LivePictureInPictureDriver: AVPictureInPictureControllerDelegate {
     Task { @MainActor [weak self] in
       guard let self else { return }
       didStartConfirmed = true
+      AppLogger.playback.info("pip driver: did start confirmed")
       onChange?()
     }
   }
@@ -253,6 +258,7 @@ extension LivePictureInPictureDriver: AVPictureInPictureControllerDelegate {
       }
       // User tapped the PiP expand button: bring the player back first.
       isRestoring = true
+      AppLogger.playback.info("pip driver: restore requested")
       onRestore?()
       completionHandler(true)
     }
@@ -268,6 +274,8 @@ extension LivePictureInPictureDriver: AVPictureInPictureControllerDelegate {
       controlsRefreshPending = true
       let wasRestoring = isRestoring
       isRestoring = false
+      AppLogger.playback
+        .info("pip driver: did stop, restoring=\(wasRestoring, privacy: .public)")
       onChange?()
       if !wasRestoring {
         // User closed the PiP window: end playback like the system expects.

@@ -120,6 +120,8 @@ extension LivePlayerController {
   }
 
   private func setNativePlaying(_ playing: Bool) {
+    AppLogger.playback
+      .info("native setPlaying=\(playing, privacy: .public) state=\(String(describing: self.state), privacy: .public)")
     guard nativePlayback != nil, playing != (state == .playing) else { return }
     togglePlayback()
   }

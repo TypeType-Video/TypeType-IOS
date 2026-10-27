@@ -82,7 +82,7 @@ extension LiveAuthenticatedAppView {
   /// badge shows active downloads on the library tab like beta does.
   @available(iOS 18.0, *)
   private var modernTabs: some View {
-    TabView(selection: $selectedTab) {
+    TabView(selection: selectedTab) {
       Tab("Home", systemImage: "house", value: LiveAuthenticatedTab.home) {
         homeTab
       }
@@ -100,7 +100,7 @@ extension LiveAuthenticatedAppView {
   }
 
   private var legacyTabs: some View {
-    TabView(selection: $selectedTab) {
+    TabView(selection: selectedTab) {
       homeTab
         .tabItem { Label("Home", systemImage: "house") }
         .tag(LiveAuthenticatedTab.home)
@@ -133,7 +133,7 @@ extension LiveAuthenticatedAppView {
   private var searchTab: some View {
     // In tab mode "closing" search means going back to the feed tab.
     LiveSearchView(coordinator: coordinator) {
-      selectedTab = .home
+      selectedTab.wrappedValue = .home
     }
   }
 

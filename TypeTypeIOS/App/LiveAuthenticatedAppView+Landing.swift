@@ -24,24 +24,24 @@ extension LiveAuthenticatedAppView {
     // old per-collection landing pages keep their meaning.
     switch settings.defaultLandingPage {
     case "subscriptions":
-      selectedTab = .subscriptions
+      selectedTab.wrappedValue = .subscriptions
     case "history":
       librarySection = .history
-      selectedTab = .library
+      selectedTab.wrappedValue = .library
     case "playlists":
       librarySection = .playlists
-      selectedTab = .library
+      selectedTab.wrappedValue = .library
     case "watch-later":
       librarySection = .watchLater
-      selectedTab = .library
+      selectedTab.wrappedValue = .library
     case "favorites":
       librarySection = .favorites
-      selectedTab = .library
+      selectedTab.wrappedValue = .library
     case "downloads":
       librarySection = .downloads
-      selectedTab = .library
+      selectedTab.wrappedValue = .library
     default:
-      selectedTab = .home
+      selectedTab.wrappedValue = .home
     }
   }
 }

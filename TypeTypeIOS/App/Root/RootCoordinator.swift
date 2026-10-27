@@ -8,6 +8,8 @@ final class RootCoordinator: ObservableObject {
   @Published var selectedServer: ServerProfile?
   @Published var instance: InstanceMetadata?
   @Published var currentUser: AuthUser?
+  /// The active tab survives theme rebuilds (the shell re-inits @State).
+  @Published var selectedTab: LiveAuthenticatedTab = .home
   @Published var pendingIncomingURL: URL?
   @Published var isUsingOfflineSession = false
   @Published var connectionError: String?

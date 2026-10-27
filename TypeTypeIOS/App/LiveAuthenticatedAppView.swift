@@ -7,7 +7,12 @@ struct LiveAuthenticatedAppView: View {
   @ObservedObject var downloadCenter: LiveDownloadCenter
   @ObservedObject var playbackCoordinator: LivePlaybackCoordinator
   @ObservedObject var connectivityMonitor: LiveConnectivityMonitor
-  @State var selectedTab = LiveAuthenticatedTab.home
+  var selectedTab: Binding<LiveAuthenticatedTab> {
+    Binding(
+      get: { coordinator.selectedTab },
+      set: { coordinator.selectedTab = $0 }
+    )
+  }
   @State var librarySection = LiveLibrarySection.history
   @State var didApplyDefaultLandingPage = false
   @State var presentsExpandedPlayback = false
