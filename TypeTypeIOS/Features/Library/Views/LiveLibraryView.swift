@@ -29,15 +29,13 @@ struct LiveLibraryView: View {
       // strip's sections (auto-animated, index-bound to the strip), each
       // page keeps its own scroll state while the strip stays pinned.
       TabView(selection: $section) {
-        ForEach(LiveLibrarySection.allCases) { section in
-          sectionContent
-            .id(section)
+        ForEach(LiveLibrarySection.allCases) { page in
+          sectionContent(page)
             .navigationBarTitleDisplayMode(.inline)
-            .tag(section)
+            .tag(page)
         }
       }
       .tabViewStyle(.page(indexDisplayMode: .never))
-      .onChange(of: section) { _, _ in }
       .toolbar {
         ToolbarItem(placement: .principal) {
           LiveLibrarySectionStrip(selection: $section)
@@ -50,7 +48,9 @@ struct LiveLibraryView: View {
   }
 
   @ViewBuilder
-  private var sectionContent: some View {
+  private func sectionContent(
+    _ section: LiveLibrarySection
+  ) -> some View {
     switch section {
     case .history:
       LiveHistoryView(coordinator: coordinator)
