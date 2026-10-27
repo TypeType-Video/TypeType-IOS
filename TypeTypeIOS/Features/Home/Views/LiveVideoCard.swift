@@ -42,7 +42,6 @@ struct LiveVideoCard: View {
       }
     }
     // On the whole card, thumbnail included: that is where most taps land.
-    .livePrewarmOnPress { Self.onPrewarm?(video) }
     .task { await deArrowStore.prepare(video) }
     .contentShape(Rectangle())
   }
