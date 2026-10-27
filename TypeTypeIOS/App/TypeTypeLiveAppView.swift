@@ -21,6 +21,7 @@ struct TypeTypeLiveAppView: View {
     )
     DemoTheme.update(preferences: preferences.preferences)
     DemoTheme.applyUIKitAppearance(preferences.preferences)
+    DemoTheme.refreshLiveBars()
   }
 
   var body: some View {
@@ -89,6 +90,7 @@ struct TypeTypeLiveAppView: View {
       colorScheme: colorScheme
     )
     DemoTheme.applyUIKitAppearance(preferences.preferences)
+    DemoTheme.refreshLiveBars()
   }
 
 
