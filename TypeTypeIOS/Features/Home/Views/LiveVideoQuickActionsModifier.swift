@@ -74,7 +74,7 @@ struct LiveVideoQuickActionsModifier: ViewModifier {
 
 /// The vertical "⋮" menu glyph, drawn from shapes: SF Symbols in menu
 /// labels get tinted by the accent colour, and their weight cannot be
-/// controlled. Three dots in the title colour, guaranteed.
+/// controlled.
 struct LiveDotsGlyph: View {
   var body: some View {
     VStack(spacing: 2.5) {

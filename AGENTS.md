@@ -22,3 +22,13 @@
 - Do not require, plan, or claim physical iPhone or iPad validation.
 - Use simulator network/server interruptions as the offline and airplane-mode
   equivalents.
+
+## Comment style
+
+- Comments explain WHY something is non-obvious or protects a decision (a
+  constraint, a workaround, a failure that was hit). They never state what
+  the next line obviously does ("this makes the button purple") and never
+  editorialise ("guaranteed", "simply", "just").
+- Prefer deleting a comment to keeping it: if the code plus names already
+  say it, the comment is noise.
+- No narrating comments while porting code between branches or platforms.
