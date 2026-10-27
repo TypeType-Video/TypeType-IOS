@@ -123,7 +123,10 @@ struct LiveDotMenu<Content: View>: View {
     }
     .popover(
       isPresented: $isPresented,
-      attachmentAnchor: .rect(.bounds)
+      // Anchor at the glyph's TOP edge: when the system flips the bubble
+      // above the anchor near the bottom, the bubble ends at the glyph's
+      // top and leaves the floating tab bar alone.
+      attachmentAnchor: .point(.init(x: 0.5, y: 0.0))
     ) {
       VStack(alignment: .leading, spacing: 0) {
         content
