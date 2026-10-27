@@ -99,6 +99,7 @@ struct LiveLibraryView: View {
 private struct LiveLibrarySectionStrip: View {
   @Binding var selection: LiveLibrarySection
   @Environment(\.demoTheme) private var palette
+  @State private var stripPosition: LiveLibrarySection?
 
   var body: some View {
     ScrollView(.horizontal, showsIndicators: false) {
@@ -124,13 +125,28 @@ private struct LiveLibrarySectionStrip: View {
               )
           }
           .buttonStyle(.plain)
+          .id(section)
           .accessibilityAddTraits(
             section == selection ? [.isSelected] : []
           )
         }
       }
       .padding(.horizontal, 16)
+      .padding(.trailing, 96)
+      .scrollTargetLayout()
     }
+    // The active pill stays centred: pager swipes flip the selection and
+    // this binding scrolls the strip along instead of clipping the pill at
+    // the screen edge.
+    .scrollPosition(id: $stripPosition, anchor: .center)
+    .scrollTargetBehavior(.viewAligned)
+    .onChange(of: selection) { _, newValue in
+      guard stripPosition != newValue else { return }
+      withAnimation(.easeInOut(duration: 0.28)) {
+        stripPosition = newValue
+      }
+    }
+    .onAppear { stripPosition = selection }
     .padding(.vertical, 4)
     .background(palette.background)
   }
