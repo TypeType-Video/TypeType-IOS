@@ -47,6 +47,8 @@ final class LiveLandscapeHostingController: UIHostingController<LiveNativeFullsc
 
   @MainActor
   static func present(for controller: LivePlayerController) {
+    AppLogger.playback
+      .info("fullscreen: present requested", privacy: .public)
     controller.pictureInPicture.uninstallNativeContent()
     controller.isPresentingFullscreen = true
     Task { @MainActor in
@@ -74,6 +76,8 @@ final class LiveLandscapeHostingController: UIHostingController<LiveNativeFullsc
       )
       created.modalPresentationStyle = .fullScreen
       created.onDisappear = { [weak controller] in
+        AppLogger.playback
+          .info("fullscreen: host disappeared", privacy: .public)
         controller?.isPresentingFullscreen = false
       }
       host = created

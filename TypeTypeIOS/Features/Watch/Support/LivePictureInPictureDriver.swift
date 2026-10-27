@@ -88,6 +88,8 @@ final class LivePictureInPictureDriver: NSObject, ObservableObject {
     )
     controller.delegate = self
     controller.canStartPictureInPictureAutomaticallyFromInline = false
+    AppLogger.playback
+      .info("pip engine: native content installed", privacy: .public)
     pipController = controller
   }
 
@@ -102,6 +104,8 @@ final class LivePictureInPictureDriver: NSObject, ObservableObject {
   /// to Picture in Picture by the system, which is what started PiP over
   /// the landscape full screen.
   func uninstallNativeContent() {
+    AppLogger.playback
+      .info("pip engine: native content released", privacy: .public)
     nativeLayer = nil
     pipController = nil
     contentLayer?.isHidden = false

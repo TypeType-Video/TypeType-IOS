@@ -166,7 +166,10 @@ extension LivePlayerController {
 
   func fallBackFromNative(reason: String) {
     guard let playback = nativePlayback else { return }
-    AppLogger.playback.error("Native playback failed, using AVPlayer: \(reason, privacy: .public)")
+    AppLogger.playback.error(
+      "Native playback failed in fullscreen=\(controller.isPresentingFullscreen), "
+        + "using AVPlayer: \(reason, privacy: .public)"
+    )
     let resumeAt = playback.hasStarted ? position : playback.preparation.resumeTime
     let autoplay = providerRecoveryDesiredAutoplay || state == .playing || !playback.hasStarted
     playback.stop()
