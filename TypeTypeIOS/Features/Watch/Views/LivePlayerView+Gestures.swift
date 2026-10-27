@@ -8,10 +8,8 @@ extension LivePlayerView {
     // Pull-down is only allowed while the page is at the top: the player
     // must sit below the status bar and well above the bottom edge.
     // Rotating into full screen moves this surface; that is not the reader scrolling away.
-    // Auto-starting in-house PiP against the landscape modal leaves
-    // surfaces inconsistent; the native path gets auto-PiP later.
-    guard !controller.isPresentingFullscreen, controller.nativePlayback == nil
-    else { return }
+    // The landscape stage owns the layer; everything else may float away.
+    guard !controller.isPresentingFullscreen else { return }
     let screenH = UIScreen.main.bounds.height
     controller.isPlayerSurfaceFullyVisible =
       frame.minY >= 44 && frame.maxY <= screenH - 100
