@@ -24,6 +24,8 @@ final class LivePlayerController: ObservableObject {
   @Published var stream: LivePlaybackStream?
   @Published var nativePlayback: LiveNativePlayback?
   var nativeFallbackUsed = false
+  // Tracks the presented native full screen host so gestures stay away from it.
+  var isPresentingFullscreen = false
   @Published var preparation: LivePlaybackPreparation?
   /// Milliseconds from loading to the first playing frame of the last start.
   @Published var lastStartupMilliseconds: Int?

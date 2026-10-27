@@ -48,7 +48,9 @@ struct LivePlayerView: View {
         swipeAdjustmentOverlay
         statusOverlay
         if controller.nativePlayback != nil {
-          LiveNativePlayerControls(controller: controller, controls: nativeControls)
+          LiveNativePlayerControls(controller: controller, controls: nativeControls) {
+            LiveLandscapeHostingController.present(for: controller)
+          }
         }
         // Above the transport controls: the UIKit overlay below never received taps.
         LiveSponsorBlockOverlay(

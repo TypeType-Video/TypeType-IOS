@@ -3,6 +3,8 @@ import SwiftUI
 struct LiveNativePlayerControls: View {
   @ObservedObject var controller: LivePlayerController
   @ObservedObject var controls: LiveNativeControlsState
+  var isFullscreen = false
+  var onFullscreen: () -> Void
   @State private var scrubPosition: TimeInterval?
 
   var body: some View {
@@ -76,6 +78,17 @@ struct LiveNativePlayerControls: View {
       .accessibilityLabel("Playback position")
       .accessibilityIdentifier("live.player.timeline")
       Text(LivePlaybackChapterNavigator.clockText(seconds: Int(controller.duration)))
+      Button {
+        onFullscreen()
+      } label: {
+        Image(systemName: isFullscreen ? "arrow.down.right.and.arrow.up.left" : "arrow.up.left.and.arrow.down.right")
+          .font(.system(size: 15, weight: .semibold))
+          .frame(width: 32, height: 32)
+          .contentShape(Rectangle())
+      }
+      .buttonStyle(.plain)
+      .accessibilityLabel(isFullscreen ? "Exit full screen" : "Full screen")
+      .accessibilityIdentifier("live.player.fullscreen-toggle")
     }
     .font(.caption2)
     .monospacedDigit()
