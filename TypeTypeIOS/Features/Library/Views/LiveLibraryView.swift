@@ -22,6 +22,8 @@ enum LiveLibrarySection: String, CaseIterable, Identifiable {
 struct LiveLibraryView: View {
   @ObservedObject var coordinator: RootCoordinator
   @Binding var section: LiveLibrarySection
+  @State private var collectionSortMenu = false
+  @State private var createsPlaylist = false
 
   /// Two-way bridge: the pager writes during the drag (the strip follows
   /// the finger), pill taps animate the pager to the section.
@@ -54,11 +56,46 @@ struct LiveLibraryView: View {
     // The strip sits above the stack as an inset, so no page chrome (the
     // History search field) can slide over it.
     .safeAreaInset(edge: .top, spacing: 0) {
-      LiveLibrarySectionStrip(selection: $section)
-        .background(DemoTheme.background)
-        .accessibilityIdentifier("live.library.sections")
+      HStack(spacing: 8) {
+        LiveLibrarySectionStrip(selection: $section)
+        trailingActions
+      }
+      .background(DemoTheme.background)
+    }
+    .sheet(isPresented: $createsPlaylist) {
+      NavigationStack {
+        LivePlaylistEditView(coordinator: coordinator)
+      }
     }
     .accessibilityIdentifier("live.library.screen")
+  }
+
+  @ViewBuilder
+  private var trailingActions: some View {
+    switch section {
+    case .history:
+      NavigationLink {
+        LiveHistoryDateSheet { date in
+          Task { await coordinator.dependencies.historyService
+            .history(query: nil, from: Int64(date.timeIntervalSince1970),
+              to: nil, limit: 1, offset: 0)
+          }
+        }
+      } label: {
+        Image(systemName: "calendar")
+      }
+    case .favorites, .watchLater:
+      EmptyView()
+    case .playlists:
+      Button {
+        createsPlaylist = true
+      } label: {
+        Image(systemName: "plus")
+      }
+      .accessibilityIdentifier("live.playlists.add")
+    case .downloads:
+      EmptyView()
+    }
   }
 
   @ViewBuilder
