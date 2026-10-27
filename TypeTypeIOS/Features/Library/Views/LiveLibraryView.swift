@@ -88,10 +88,18 @@ struct LiveLibraryView: View {
     // in the same row — plain SwiftUI, no bar machinery that the pager
     // could hide.
     .safeAreaInset(edge: .top, spacing: 0) {
-      HStack(spacing: 10) {
+      HStack(spacing: 6) {
         LiveLibrarySectionStrip(selection: $section)
         sectionAction
+          .frame(width: 44, height: 40)
+          .font(.body.weight(.semibold))
+          .foregroundStyle(Color.primary)
+          .background(
+            DemoTheme.groupedSurface,
+            in: RoundedRectangle(cornerRadius: 14, style: .continuous)
+          )
       }
+      .padding(.horizontal, 16)
       .background(DemoTheme.background)
     }
     .confirmationDialog(
@@ -239,7 +247,6 @@ private struct LiveLibrarySectionStrip: View {
         }
       }
       .padding(.horizontal, 16)
-      .padding(.trailing, 96)
       .scrollTargetLayout()
     }
     // The active pill stays centred: pager swipes flip the selection and
