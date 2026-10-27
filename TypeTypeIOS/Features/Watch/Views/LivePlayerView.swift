@@ -51,7 +51,6 @@ struct LivePlayerView: View {
           LiveNativePlayerControls(controller: controller, controls: nativeControls)
         }
         // Above the transport controls: the UIKit overlay below never received taps.
- (feat: show the in-house player with its own controls)
         LiveSponsorBlockOverlay(
           controller: controller,
           fillsAvailableSpace: false
