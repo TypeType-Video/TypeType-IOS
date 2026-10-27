@@ -146,6 +146,46 @@ struct LiveVideoMetadataContentView: View {
     }
     .externalLinkAlert(pendingURL: $pendingExternalURL)
     .accessibilityIdentifier("live.video.metadata")
+    // The landscape stage is a sibling of the scroll, not scroll content:
+    // the video layer stays in its window and only its frame changes.
+    .overlay {
+      if playerController.isPresentingFullscreen,
+        let playback = playerController.nativePlayback {
+        ZStack(alignment: .bottom) {
+          Color.black.ignoresSafeArea()
+          LiveNativeVideoView(
+            playback: playback,
+            controller: playerController,
+            surface: .fullscreen
+          )
+          .ignoresSafeArea()
+          .onTapGesture { fullscreenControls.tap() }
+          LiveNativePlayerControls(
+            controller: playerController,
+            controls: fullscreenControls,
+            isFullscreen: true
+          ) {
+            playerController.exitNativeFullscreen()
+          }
+        }
+        .transition(.opacity)
+        .gesture(
+          DragGesture(minimumDistance: 30)
+            .onEnded { value in
+              // Dragging down returns the player page with the window.
+              guard value.translation.height > 120,
+                abs(value.translation.width) < value.translation.height
+              else { return }
+              playerController.exitNativeFullscreen()
+            }
+        )
+      }
+    }
+    .toolbar(
+      playerController.isPresentingFullscreen ? .hidden : .automatic,
+      for: .navigationBar
+    )
+    .statusBarHidden(playerController.isPresentingFullscreen)
     .liveStartupProbe(playerController.lastStartupMilliseconds)
     .environment(\.liveWatchExtrasEnabled, playerController.extrasReleased)
     .task(id: "\(libraryActionsIdentity)|\(playerController.extrasReleased)") {
