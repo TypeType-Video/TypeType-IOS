@@ -31,21 +31,35 @@ struct LiveVideoQuickActionsModifier: ViewModifier {
     self.onRemove = onRemove
   }
 
-  /// The toast content: big enough to read at video-notice distance, with
-  /// a shape-neutral size so the glass capsule hugs it evenly.
-  private func toastLabel(_ message: String) -> some View {
-    Text(message)
-      .font(.callout.weight(.semibold))
-      .foregroundStyle(.primary)
-      .padding(.horizontal, 22)
-      .padding(.vertical, 13)
-      .transition(.opacity)
-      .task {
-        try? await Task.sleep(for: .seconds(2.2))
-        withAnimation(.easeOut(duration: 0.25)) {
-          viewModel.dismissMessage()
+  /// Center glass card: green check, message, swipe-to-dismiss with a slow
+  /// fade, plus the auto-dismiss timer.
+  private func toastCard(_ message: String) -> some View {
+    HStack(spacing: 12) {
+      Image(systemName: "checkmark.circle.fill")
+        .font(.title3.weight(.semibold))
+        .foregroundStyle(DemoTheme.accent)
+      Text(message)
+        .font(.callout.weight(.semibold))
+        .foregroundStyle(.primary)
+        .multilineTextAlignment(.leading)
+    }
+    .padding(.horizontal, 22)
+    .padding(.vertical, 16)
+    .transition(.opacity)
+    .gesture(
+      DragGesture(minimumDistance: 24)
+        .onEnded { _ in
+          withAnimation(.easeOut(duration: 0.6)) {
+            viewModel.dismissMessage()
+          }
         }
+    )
+    .task {
+      try? await Task.sleep(for: .seconds(2.6))
+      withAnimation(.easeOut(duration: 0.35)) {
+        viewModel.dismissMessage()
       }
+    }
   }
 
   func body(content: Content) -> some View {
@@ -65,15 +79,15 @@ struct LiveVideoQuickActionsModifier: ViewModifier {
             }
         )
       )
-      // Confirmations are toasts on Liquid Glass: the system glass material
-      // over the video area, same texts, fading out by themselves.
-      .overlay(alignment: .bottom) {
+      // Center confirmation on Liquid Glass with a checkmark; it fades by
+      // itself and can be swiped away, the swipe fading it slowly out.
+      .overlay {
         if let message = viewModel.message {
           if #available(iOS 26.0, *) {
-            toastLabel(message)
+            toastCard(message)
               .glassEffect(.regular, in: .capsule)
           } else {
-            toastLabel(message)
+            toastCard(message)
               .background(.black.opacity(0.85), in: Capsule())
           }
         }
