@@ -91,8 +91,8 @@ struct LiveLibraryView: View {
       HStack(spacing: 6) {
         LiveLibrarySectionStrip(selection: $section)
         sectionAction
-          .frame(width: 44, height: 40)
-          .font(.body.weight(.semibold))
+          .frame(width: 48, height: 44)
+          .font(.title3.weight(.semibold))
           .foregroundStyle(Color.primary)
           .modifier(LiveLibraryActionGlass())
       }
