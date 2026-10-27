@@ -95,7 +95,6 @@ final class LivePictureInPictureDriver: NSObject, ObservableObject {
     if nativeLayer != nil {
       pipController?.invalidatePlaybackState()
     }
->>>>>>> 1e602b4 (feat: Picture in Picture and lock-screen controls for the in-house player)
   }
 
   func relayout() {
