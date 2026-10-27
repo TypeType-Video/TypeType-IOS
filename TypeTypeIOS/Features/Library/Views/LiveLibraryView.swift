@@ -28,11 +28,14 @@ struct LiveLibraryView: View {
       sectionContent
         .id(section)
         .navigationBarTitleDisplayMode(.inline)
-        .safeAreaInset(edge: .top, spacing: 0) {
-          LiveLibrarySectionStrip(selection: $section)
-            .background(DemoTheme.background)
-            .accessibilityIdentifier("live.library.sections")
-        }
+    }
+    // Outside the stack: the section pages pin their own title and search
+    // field in the bar area, which would slide over an inset strip. Above
+    // the stack no page chrome can ever cover it.
+    .safeAreaInset(edge: .top, spacing: 0) {
+      LiveLibrarySectionStrip(selection: $section)
+        .background(DemoTheme.background)
+        .accessibilityIdentifier("live.library.sections")
     }
     .accessibilityIdentifier("live.library.screen")
   }
@@ -82,12 +85,12 @@ private struct LiveLibrarySectionStrip: View {
             selection = section
           } label: {
             Text(section.title)
-              .font(.subheadline.weight(.semibold))
+              .font(.body.weight(.semibold))
               .foregroundStyle(
                 section == selection ? Color.primary : Color.secondary
               )
-              .padding(.horizontal, 14)
-              .frame(height: 32)
+              .padding(.horizontal, 18)
+              .frame(height: 40)
               .background(
                 section == selection
                   ? palette.surface
