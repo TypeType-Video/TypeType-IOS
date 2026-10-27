@@ -77,7 +77,7 @@ final class LiveLandscapeHostingController: UIHostingController<LiveNativeFullsc
       created.modalPresentationStyle = .fullScreen
       created.onDisappear = { [weak controller] in
         AppLogger.playback
-          .info("fullscreen: host disappeared", privacy: .public)
+          .info("fullscreen: host disappeared")
         controller?.isPresentingFullscreen = false
       }
       host = created
