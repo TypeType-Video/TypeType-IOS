@@ -114,6 +114,7 @@ private struct LiveLibrarySectionStrip: View {
         }
       }
       .padding(.horizontal, 16)
+      .padding(.trailing, 96)
     }
     .padding(.vertical, 4)
     .background(palette.background)
