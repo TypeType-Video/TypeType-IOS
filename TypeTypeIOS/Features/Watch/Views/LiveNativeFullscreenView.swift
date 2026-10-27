@@ -67,7 +67,7 @@ final class LiveLandscapeHostingController: UIHostingController<LiveNativeFullsc
       // shows no rotation transition, so the fullscreen lands on an
       // already-landscape window.
       LiveScreenOrientation.set(.landscape)
-      try? await Task.sleep(for: .milliseconds(280))
+      try? await Task.sleep(for: .milliseconds(220))
       guard let scene = UIApplication.shared.connectedScenes
         .compactMap({ $0 as? UIWindowScene })
         .first(where: { $0.activationState == .foregroundActive }),
@@ -86,6 +86,9 @@ final class LiveLandscapeHostingController: UIHostingController<LiveNativeFullsc
         }
       )
       created.modalPresentationStyle = .fullScreen
+      // Cross-fade in and out instead of popping the full screen in, so
+      // the window rotation and the modal read as one move.
+      created.modalTransitionStyle = .crossDissolve
       created.onDisappear = {
         AppLogger.playback
           .info("fullscreen: host disappeared")
