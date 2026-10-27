@@ -147,9 +147,15 @@ struct LiveLibraryView: View {
     for model: LiveCollectionViewModel
   ) -> some View {
     Menu {
-      Picker("Sort", selection: $model.sort) {
-        ForEach(LiveCollectionViewModel.Sort.allCases) {
-          Text($0.title).tag($0)
+      Picker(
+        "Sort",
+        selection: Binding(
+          get: { model.sort },
+          set: { model.sort = $0 }
+        )
+      ) {
+        ForEach(LiveCollectionViewModel.Sort.allCases) { order in
+          Text(order.title).tag(order)
         }
       }
     } label: {
