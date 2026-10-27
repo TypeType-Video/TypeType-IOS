@@ -135,8 +135,9 @@ struct LiveDotMenu<Content: View>: View {
       // matching menu behaviour.
       .simultaneousGesture(TapGesture().onEnded { isPresented = false })
       .presentationCompactAdaptation(.popover)
-      .presentationBackground(DemoTheme.surface)
-      .presentationCornerRadius(20)
+      // No background or radius override: on the new design the system
+      // presents popovers as Liquid Glass and spaces them from the floating
+      // tab bar by itself.
     }
   }
 }
