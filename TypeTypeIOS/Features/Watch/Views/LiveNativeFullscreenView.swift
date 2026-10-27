@@ -47,6 +47,7 @@ final class LiveLandscapeHostingController: UIHostingController<LiveNativeFullsc
 
   @MainActor
   static func present(for controller: LivePlayerController) {
+    controller.pictureInPicture.uninstallNativeContent()
     controller.isPresentingFullscreen = true
     Task { @MainActor in
       // Rotate the window first: presenting a modal into a portrait window
