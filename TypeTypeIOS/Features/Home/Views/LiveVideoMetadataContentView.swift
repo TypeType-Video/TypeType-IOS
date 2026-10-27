@@ -32,6 +32,8 @@ struct LiveVideoMetadataContentView: View {
     )
   }
 
+  @StateObject private var fullscreenControls = LiveNativeControlsState()
+
   var body: some View {
     ScrollView {
       VStack(alignment: .leading, spacing: 18) {
