@@ -38,7 +38,10 @@ struct LiveNativeVideoView: UIViewRepresentable {
       view.owner = playback.layerOwner
       if view.window != nil { playback.layerOwner.attach(view) }
     }
-    if surface == .page {
+    // While the landscape full screen owns the layer, the page must not
+    // re-bind it: a controller installed on a layer that then jumps
+    // windows is what the system auto-promotes to Picture in Picture.
+    if surface == .page, !controller.isPresentingFullscreen {
       controller.pictureInPicture.installNativeContent(
         layer: playback.player.videoLayer,
         playback: playback.pictureInPictureSource
