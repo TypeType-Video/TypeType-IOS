@@ -79,7 +79,7 @@ final class LiveLandscapeHostingController: UIHostingController<LiveNativeFullsc
         AppLogger.playback
           .info("fullscreen: host disappeared")
         controller?.isPresentingFullscreen = false
-          // The window was rotated on entry; the dismissal owns the return.
+        // The window was rotated on entry; the dismissal owns the return.
         LiveScreenOrientation.set(.portrait)
       }
       host = created
