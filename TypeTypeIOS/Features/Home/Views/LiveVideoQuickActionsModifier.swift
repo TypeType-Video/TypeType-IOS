@@ -31,15 +31,14 @@ struct LiveVideoQuickActionsModifier: ViewModifier {
     self.onRemove = onRemove
   }
 
-  /// The toast text with its own shape-independent styling; the caller adds
-  /// either the system glass or a dark capsule fallback.
+  /// The toast content: big enough to read at video-notice distance, with
+  /// a shape-neutral size so the glass capsule hugs it evenly.
   private func toastLabel(_ message: String) -> some View {
     Text(message)
-      .font(.footnote.weight(.medium))
+      .font(.callout.weight(.semibold))
       .foregroundStyle(.primary)
-      .padding(.horizontal, 16)
-      .padding(.vertical, 10)
-      .padding(.bottom, 24)
+      .padding(.horizontal, 22)
+      .padding(.vertical, 13)
       .transition(.opacity)
       .task {
         try? await Task.sleep(for: .seconds(2.2))
@@ -72,10 +71,10 @@ struct LiveVideoQuickActionsModifier: ViewModifier {
         if let message = viewModel.message {
           if #available(iOS 26.0, *) {
             toastLabel(message)
-              .glassEffect()
+              .glassEffect(.regular, in: .capsule)
           } else {
             toastLabel(message)
-              .background(.black.opacity(0.82), in: Capsule())
+              .background(.black.opacity(0.85), in: Capsule())
           }
         }
       }
