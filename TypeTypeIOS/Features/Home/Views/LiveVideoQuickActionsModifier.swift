@@ -123,8 +123,7 @@ struct LiveDotMenu<Content: View>: View {
     }
     .popover(
       isPresented: $isPresented,
-      attachmentAnchor: .rect(.bounds),
-      arrowEdge: .top
+      attachmentAnchor: .rect(.bounds)
     ) {
       VStack(alignment: .leading, spacing: 0) {
         content
