@@ -25,17 +25,28 @@ struct LiveLibraryView: View {
 
   var body: some View {
     NavigationStack {
-      // One paged container per section: horizontal swipes move between the
-      // strip's sections (auto-animated, index-bound to the strip), each
-      // page keeps its own scroll state while the strip stays pinned.
-      TabView(selection: $section) {
-        ForEach(LiveLibrarySection.allCases) { page in
-          sectionContent(page)
-            .navigationBarTitleDisplayMode(.inline)
-            .tag(page)
-        }
+      // A horizontal swipe swaps the section with a crossfade: only one
+      // section is ever on screen (the paged style showed the neighbour
+      // while dragging, which read as two screens at once).
+      ZStack {
+        sectionContent(section)
+          .id(section)
+          .transition(.opacity)
       }
-      .tabViewStyle(.page(indexDisplayMode: .never))
+      .animation(.easeInOut(duration: 0.24), value: section)
+      .simultaneousGesture(
+        DragGesture(minimumDistance: 28)
+          .onEnded { value in
+            guard abs(value.translation.width) > 60,
+              abs(value.translation.width) > abs(value.translation.height)
+            else { return }
+            let all = LiveLibrarySection.allCases
+            guard let index = all.firstIndex(of: section) else { return }
+            let next = value.translation.width < 0 ? index + 1 : index - 1
+            guard all.indices.contains(next) else { return }
+            section = all[next]
+          }
+      )
       .toolbar {
         ToolbarItem(placement: .principal) {
           LiveLibrarySectionStrip(selection: $section)
@@ -51,6 +62,8 @@ struct LiveLibraryView: View {
   private func sectionContent(
     _ section: LiveLibrarySection
   ) -> some View {
+    // Single-instance switch: scroll state resets per section on purpose,
+    // the paged TabView kept it only by holding every page alive.
     switch section {
     case .history:
       LiveHistoryView(coordinator: coordinator)
