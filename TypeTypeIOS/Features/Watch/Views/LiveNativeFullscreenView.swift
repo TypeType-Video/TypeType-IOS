@@ -21,6 +21,17 @@ struct LiveNativeFullscreenView: View {
     .onChange(of: controller.nativePlayback == nil) {
       if controller.nativePlayback == nil { onClose() }
     }
+    .gesture(
+      // Dragging down drops back to the player page, like every system
+      // full-screen video. Sideways drags stay with the seek gestures.
+      DragGesture(minimumDistance: 30)
+        .onEnded { value in
+          guard value.translation.height > 120,
+            abs(value.translation.width) < value.translation.height
+          else { return }
+          onClose()
+        }
+    )
     .accessibilityIdentifier("live.player.fullscreen")
   }
 }
