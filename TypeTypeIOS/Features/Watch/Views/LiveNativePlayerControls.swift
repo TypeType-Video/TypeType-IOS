@@ -143,3 +143,27 @@ final class LiveLandscapeHostingController: UIHostingController<LiveNativeFullsc
     top.present(created, animated: true)
   }
 }
+
+struct LiveNativeFullscreenView: View {
+  @ObservedObject var controller: LivePlayerController
+  let onClose: () -> Void
+  @StateObject private var controls = LiveNativeControlsState()
+
+  var body: some View {
+    ZStack {
+      Color.black.ignoresSafeArea()
+      if let playback = controller.nativePlayback {
+        LiveNativeVideoView(playback: playback, controller: controller, surface: .fullscreen)
+          .ignoresSafeArea()
+          .onTapGesture { controls.tap() }
+      }
+      LiveNativePlayerControls(controller: controller, controls: controls, isFullscreen: true) {
+        onClose()
+      }
+    }
+    .onChange(of: controller.nativePlayback == nil) {
+      if controller.nativePlayback == nil { onClose() }
+    }
+    .accessibilityIdentifier("live.player.fullscreen")
+  }
+}
