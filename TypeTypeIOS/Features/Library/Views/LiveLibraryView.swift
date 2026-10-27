@@ -67,10 +67,12 @@ struct LiveLibraryView: View {
   }
 }
 
-/// The segment strip above the library content, drawn with the app's own
-/// theme colours (no beta design tokens needed).
+/// The segment strip above the library content. It reads the palette from
+/// the environment: as a safe-area inset it sits outside the themed list
+/// and would otherwise keep the previous theme's resolved colours.
 private struct LiveLibrarySectionStrip: View {
   @Binding var selection: LiveLibrarySection
+  @Environment(\.demoTheme) private var palette
 
   var body: some View {
     ScrollView(.horizontal, showsIndicators: false) {
@@ -88,7 +90,7 @@ private struct LiveLibrarySectionStrip: View {
               .frame(height: 32)
               .background(
                 section == selection
-                  ? DemoTheme.groupedSurface
+                  ? palette.surface
                   : Color.clear,
                 in: Capsule()
               )
@@ -102,5 +104,6 @@ private struct LiveLibrarySectionStrip: View {
       .padding(.horizontal, 16)
     }
     .padding(.vertical, 4)
+    .background(palette.background)
   }
 }
