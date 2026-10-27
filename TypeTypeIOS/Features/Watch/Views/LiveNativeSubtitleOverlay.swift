@@ -8,7 +8,7 @@ struct LiveNativeSubtitleOverlay: View {
       TimelineView(.animation(minimumInterval: 0.2, paused: controller.state != .playing)) { _ in
         if let cue = LiveWebVTT.cue(at: playback.player.currentTime, in: controller.nativeSubtitleCues) {
           Text(cue.text)
-            .typeTypeFont(.bodyMedium, weight: .medium)
+            .font(.subheadline.weight(.medium))
             .multilineTextAlignment(.center)
             .foregroundStyle(.white)
             .padding(.horizontal, 10)

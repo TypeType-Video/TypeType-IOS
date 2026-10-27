@@ -26,7 +26,9 @@ final class LiveNowPlaying {
     register(commands)
     guard let artworkURL else { return }
     artworkTask = Task { [weak self] in
-      guard let image = await TypeTypeImagePipeline.shared.image(for: artworkURL, maxPixelSize: 600),
+      guard
+        let (data, _) = try? await URLSession.shared.data(from: artworkURL),
+        let image = UIImage(data: data),
         !Task.isCancelled, let self
       else {
         return
