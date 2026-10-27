@@ -123,10 +123,12 @@ struct LiveDotMenu<Content: View>: View {
     }
     .popover(
       isPresented: $isPresented,
-      // Anchor at the glyph's TOP edge: when the system flips the bubble
-      // above the anchor near the bottom, the bubble ends at the glyph's
-      // top and leaves the floating tab bar alone.
-      attachmentAnchor: .point(.init(x: 0.5, y: 0.0))
+      // Always open ABOVE the anchor from the glyph's top edge: the system
+      // popover ignores the floating iOS 26 tab bar, and a bubble that ends
+      // at the glyph's top can never cover it. Top-of-screen rows clamp to
+      // the window edge but keep every row visible.
+      attachmentAnchor: .point(.init(x: 0.5, y: 0.0)),
+      arrowEdge: .bottom
     ) {
       VStack(alignment: .leading, spacing: 0) {
         content
