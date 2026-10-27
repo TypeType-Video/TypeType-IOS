@@ -34,6 +34,12 @@ struct LiveNativeVideoView: UIViewRepresentable {
 
   func updateUIView(_ view: LiveNativeVideoHostView, context: Context) {
     playback.player.videoLayer.videoGravity = controller.imageMode.videoGravity
+    if view.window != nil && view.bounds.size.width > 0 {
+      view.setNeedsLayout()
+      view.layer.setNeedsLayout()
+      view.layoutIfNeeded()
+    }
+    view.surface = surface
     if view.owner !== playback.layerOwner {
       view.owner = playback.layerOwner
       if view.window != nil { playback.layerOwner.attach(view) }

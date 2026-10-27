@@ -188,6 +188,7 @@ struct LiveVideoMetadataContentView: View {
       for: .navigationBar
     )
     .statusBarHidden(playerController.isPresentingFullscreen)
+    .animation(.easeInOut(duration: 0.5), value: playerController.isPresentingFullscreen)
     .liveStartupProbe(playerController.lastStartupMilliseconds)
     .environment(\.liveWatchExtrasEnabled, playerController.extrasReleased)
     .task(id: "\(libraryActionsIdentity)|\(playerController.extrasReleased)") {
