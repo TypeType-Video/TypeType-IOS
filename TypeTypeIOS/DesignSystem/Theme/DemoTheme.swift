@@ -141,6 +141,43 @@ enum DemoTheme {
     UITabBar.appearance().scrollEdgeAppearance = tabAppearance
   }
 
+  /// Pushes the freshly built appearances onto every bar already on
+  /// screen: appearance proxies only reach bars created afterwards, which
+  /// is why a system light/dark flip used to leave the top area stale. No
+  /// view teardown involved — navigation stacks and tabs keep their state.
+  static func refreshLiveBars() {
+    for scene in UIApplication.shared.connectedScenes
+      .compactMap({ $0 as? UIWindowScene }) {
+      for window in scene.windows {
+        walkBars(from: window.rootViewController)
+      }
+    }
+  }
+
+  private static func walkBars(from controller: UIViewController?) {
+    guard let controller else { return }
+    if let navigationBar = (
+      controller as? UINavigationController
+    )?.navigationBar {
+      let appearance = UINavigationBarAppearance()
+      appearance.configureWithOpaqueBackground()
+      appearance.backgroundColor = dynamicColor(role: .background)
+      navigationBar.standardAppearance = appearance
+      navigationBar.scrollEdgeAppearance = appearance
+      navigationBar.compactAppearance = appearance
+    }
+    if let tabBar = (
+      controller as? UITabBarController
+    )?.tabBar {
+      let appearance = UITabBarAppearance()
+      appearance.configureWithOpaqueBackground()
+      appearance.backgroundColor = dynamicColor(role: .background)
+      tabBar.standardAppearance = appearance
+      tabBar.scrollEdgeAppearance = appearance
+    }
+    controller.children.forEach(walkBars)
+  }
+
   /// Resolves immediately (no dynamic provider): UIKit caches dynamic
   /// colours per trait, which left pages on stale palettes after a theme
   /// switch. Combined with the pre-render sync and the render token, every

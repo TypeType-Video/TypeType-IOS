@@ -43,7 +43,6 @@ struct TypeTypeLiveAppView: View {
       }
     }
     .environment(\.demoTheme, palette)
-    .id(themeIdentity)
     .task {
       if let launchURL = AppConfig.debugIncomingURL {
         coordinator.receiveIncomingURL(launchURL)
@@ -92,14 +91,6 @@ struct TypeTypeLiveAppView: View {
     DemoTheme.applyUIKitAppearance(preferences.preferences)
   }
 
-  /// Rebuilds the whole hierarchy ONLY on a system light/dark flip: UIKit
-  /// bars keep their appearance proxies otherwise, leaving the top area
-  /// stale. Everyday preference changes repaint through the themed loop and
-  /// must keep navigation — a full rebuild threw every theme change back to
-  /// the home tab.
-  private var themeIdentity: String {
-    colorScheme == .dark ? "sysDark" : "sysLight"
-  }
 
   private var preferredColorScheme: ColorScheme? {
     if AppConfig.debugForcesLightAppearance { return .light }
