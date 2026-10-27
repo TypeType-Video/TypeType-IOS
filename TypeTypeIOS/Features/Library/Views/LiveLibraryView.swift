@@ -28,13 +28,12 @@ struct LiveLibraryView: View {
       // A horizontal swipe swaps the section with a crossfade: only one
       // section is ever on screen (the paged style showed the neighbour
       // while dragging, which read as two screens at once).
-      // Instant swap: a crossfade keeps the outgoing page's toolbar items
-      // in the bar during the fade, which showed both sections' controls at
-      // once. Only one section exists in the hierarchy at any instant.
       ZStack {
         sectionContent(section)
           .id(section)
+          .transition(.opacity)
       }
+      .animation(.easeInOut(duration: 0.24), value: section)
       .simultaneousGesture(
         DragGesture(minimumDistance: 28)
           .onEnded { value in
