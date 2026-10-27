@@ -25,13 +25,17 @@ struct LiveLibraryView: View {
 
   var body: some View {
     NavigationStack {
-      sectionContent
-        .id(section)
-        .navigationBarTitleDisplayMode(.inline)
+      TabView(selection: $section) {
+        ForEach(LiveLibrarySection.allCases) { page in
+          sectionContent(page)
+            .navigationBarTitleDisplayMode(.inline)
+            .tag(page)
+        }
+      }
+      .tabViewStyle(.page(indexDisplayMode: .never))
     }
-    // Outside the stack: the section pages pin their own title and search
-    // field in the bar area, which would slide over an inset strip. Above
-    // the stack no page chrome can ever cover it.
+    // The strip sits above the stack as an inset, so no page chrome (the
+    // History search field) can slide over it.
     .safeAreaInset(edge: .top, spacing: 0) {
       LiveLibrarySectionStrip(selection: $section)
         .background(DemoTheme.background)
@@ -41,7 +45,9 @@ struct LiveLibraryView: View {
   }
 
   @ViewBuilder
-  private var sectionContent: some View {
+  private func sectionContent(
+    _ section: LiveLibrarySection
+  ) -> some View {
     switch section {
     case .history:
       LiveHistoryView(coordinator: coordinator)
