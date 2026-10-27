@@ -23,16 +23,33 @@ struct LiveLibraryView: View {
   @ObservedObject var coordinator: RootCoordinator
   @Binding var section: LiveLibrarySection
 
+  /// Two-way bridge: the pager writes during the drag (the strip follows
+  /// the finger), pill taps animate the pager to the section.
+  private var sectionIDBinding: Binding<LiveLibrarySection?> {
+    Binding(
+      get: { $section.wrappedValue },
+      set: { newValue in
+        if let newValue { $section.wrappedValue = newValue }
+      }
+    )
+  }
+
   var body: some View {
     NavigationStack {
-      TabView(selection: $section) {
-        ForEach(LiveLibrarySection.allCases) { page in
-          sectionContent(page)
-            .navigationBarTitleDisplayMode(.inline)
-            .tag(page)
+      ScrollView(.horizontal) {
+        LazyHStack(spacing: 0) {
+          ForEach(LiveLibrarySection.allCases) { page in
+            sectionContent(page)
+              .navigationBarTitleDisplayMode(.inline)
+              .containerRelativeFrame(.horizontal)
+              .id(page)
+          }
         }
+        .scrollTargetLayout()
       }
-      .tabViewStyle(.page(indexDisplayMode: .never))
+      .scrollPosition(id: sectionIDBinding)
+      .scrollTargetBehavior(.viewAligned)
+      .scrollIndicators(.hidden)
     }
     // The strip sits above the stack as an inset, so no page chrome (the
     // History search field) can slide over it.
@@ -88,7 +105,9 @@ private struct LiveLibrarySectionStrip: View {
       HStack(spacing: 8) {
         ForEach(LiveLibrarySection.allCases) { section in
           Button {
-            selection = section
+            withAnimation(.easeInOut(duration: 0.28)) {
+              selection = section
+            }
           } label: {
             Text(section.title)
               .font(.body.weight(.semibold))
