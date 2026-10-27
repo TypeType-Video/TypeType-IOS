@@ -84,6 +84,8 @@ struct LiveNativePlayerControls: View {
         Image(systemName: isFullscreen ? "arrow.down.right.and.arrow.up.left" : "arrow.up.left.and.arrow.down.right")
           .font(.system(size: 15, weight: .semibold))
           .frame(width: 32, height: 32)
+          .padding(.horizontal, 8)
+          .padding(.vertical, 12)
           .contentShape(Rectangle())
       }
       .buttonStyle(.plain)
@@ -93,7 +95,7 @@ struct LiveNativePlayerControls: View {
     .font(.caption2)
     .monospacedDigit()
     .foregroundStyle(.white)
-    .padding(.horizontal, 12)
-    .padding(.bottom, 6)
+    .padding(.horizontal, isFullscreen ? 26 : 12)
+    .padding(.bottom, isFullscreen ? 24 : 6)
   }
 }
