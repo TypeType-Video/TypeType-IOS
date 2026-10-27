@@ -34,7 +34,10 @@ struct LivePlayerLayerView: UIViewControllerRepresentable {
     playerController.player = player
     playerController.showsPlaybackControls = true
     playerController.allowsPictureInPicturePlayback = true
-    playerController.canStartPictureInPictureAutomaticallyFromInline = true
+    // Auto-PiP for the idle player must never fire while the native player
+    // presents the landscape full screen — that is what swapped white
+    // surfaces in on dismissal.
+    playerController.canStartPictureInPictureAutomaticallyFromInline = false
     playerController.entersFullScreenWhenPlaybackBegins = false
     playerController.exitsFullScreenWhenPlaybackEnds = false
     playerController.videoGravity = controller.imageMode.videoGravity
@@ -71,6 +74,8 @@ struct LivePlayerLayerView: UIViewControllerRepresentable {
     }
     playerController.videoGravity = controller.imageMode.videoGravity
     context.coordinator.update(controller, in: playerController)
+    playerController.canStartPictureInPictureAutomaticallyFromInline =
+      controller.nativePlayback == nil && !controller.isPresentingFullscreen
     controller.pictureInPicture.installContentLayer(
       on: playerController.view,
       player: player

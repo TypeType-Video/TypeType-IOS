@@ -206,7 +206,8 @@ private extension LiveAuthenticatedAppView {
   var minimizePullDown: some Gesture {
     DragGesture(minimumDistance: 30)
       .onEnded { value in
-        guard value.startLocation.y < 320,
+        guard playbackCoordinator.controller?.isPresentingFullscreen != true,
+          value.startLocation.y < 320,
           value.translation.height > 120,
           abs(value.translation.height) > abs(value.translation.width),
           // Only from the top of the page: scrolling through the content
