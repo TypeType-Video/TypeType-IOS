@@ -109,6 +109,8 @@ private struct LiveDotMenuRowStyle: ButtonStyle {
 /// the button froze at a fixed screen spot instead of following the card.
 struct LiveDotMenu<Content: View>: View {
   @State private var isPresented = false
+  @State private var anchorFrame: CGRect?
+  @State private var opensUpward = true
   private let content: Content
 
   init(@ViewBuilder content: () -> Content) {
@@ -117,32 +119,40 @@ struct LiveDotMenu<Content: View>: View {
 
   var body: some View {
     Button {
+      // The side is picked at open time from the button's screen position:
+      // in the upper half the bubble opens downward, otherwise upward, so
+      // it always fits between the screen edges.
+      if let frame = anchorFrame {
+        opensUpward = frame.midY > UIScreen.main.bounds.height / 2
+      }
       isPresented = true
     } label: {
       LiveDotsGlyph()
     }
+    .onGeometryChange(for: CGRect.self) { proxy in
+      proxy.frame(in: .global)
+    } action: { frame in
+      anchorFrame = frame
+    }
     .popover(
       isPresented: $isPresented,
-      // Always open ABOVE the anchor from the glyph's top edge: the system
-      // popover ignores the floating iOS 26 tab bar, and a bubble that ends
-      // at the glyph's top can never cover it. Top-of-screen rows clamp to
-      // the window edge but keep every row visible.
       attachmentAnchor: .point(.init(x: 0.5, y: 0.0)),
-      arrowEdge: .bottom
+      arrowEdge: opensUpward ? .bottom : .top
     ) {
-      VStack(alignment: .leading, spacing: 0) {
-        content
+      ScrollView {
+        VStack(alignment: .leading, spacing: 0) {
+          content
+        }
       }
       .buttonStyle(LiveDotMenuRowStyle())
       .padding(8)
       .frame(width: 300, alignment: .leading)
+      // Never taller than the screen can show: excess rows scroll.
+      .frame(maxHeight: 460)
       // Any tap inside fires the row's action AND closes the popup,
       // matching menu behaviour.
       .simultaneousGesture(TapGesture().onEnded { isPresented = false })
       .presentationCompactAdaptation(.popover)
-      // No background or radius override: on the new design the system
-      // presents popovers as Liquid Glass and spaces them from the floating
-      // tab bar by itself.
     }
   }
 }

@@ -170,7 +170,7 @@ struct LiveVideoMetadataContentView: View {
             playerController.exitNativeFullscreen()
           }
         }
-        .transition(.opacity)
+        .transition(.asymmetric(insertion: .opacity, removal: .identity))
         .gesture(
           DragGesture(minimumDistance: 30)
             .onEnded { value in

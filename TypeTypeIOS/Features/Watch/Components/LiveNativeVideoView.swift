@@ -115,6 +115,9 @@ final class LiveNativeVideoHostView: UIView {
     guard layer.superlayer !== self.layer else { return }
     layer.removeFromSuperlayer()
     self.layer.addSublayer(layer)
+    // Adopting across surfaces keeps the previous frame; sizing here means
+    // no stale fullscreen-sized band can render before the layout pass.
+    layer.frame = bounds
     setNeedsLayout()
   }
 
