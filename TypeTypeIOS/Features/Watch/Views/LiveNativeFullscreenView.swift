@@ -75,10 +75,10 @@ final class LiveLandscapeHostingController: UIHostingController<LiveNativeFullsc
         }
       )
       created.modalPresentationStyle = .fullScreen
-      created.onDisappear = { [weak controller] in
+      created.onDisappear = {
         AppLogger.playback
           .info("fullscreen: host disappeared")
-        controller?.isPresentingFullscreen = false
+        controller.isPresentingFullscreen = false
         // The window was rotated on entry; the dismissal owns the return.
         LiveScreenOrientation.set(.portrait)
       }

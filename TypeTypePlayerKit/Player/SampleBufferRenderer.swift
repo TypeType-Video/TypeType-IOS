@@ -3,6 +3,10 @@ import AVFoundation
 // AVFoundation's renderers and synchronizer accept calls from any thread.
 final class SampleBufferRenderer: @unchecked Sendable {
   let displayLayer: AVSampleBufferDisplayLayer
+  // Newer SDKs mark the layer's renderer main-actor isolated; the engine
+  // lives off the main queue, so the renderer is captured once here and
+  // marked unsafe-nonisolated, matching how AVFoundation actually treats it.
+  private nonisolated(unsafe) let videoRenderer: AVSampleBufferVideoRenderer
   let audioRenderer = AVSampleBufferAudioRenderer()
   let synchronizer = AVSampleBufferRenderSynchronizer()
   private let feedQueue = DispatchQueue(label: "dev.typetype.player.feed", qos: .userInitiated)
@@ -13,7 +17,8 @@ final class SampleBufferRenderer: @unchecked Sendable {
     displayLayer.videoGravity = .resizeAspect
     // The engine decides when there is enough data; a delayed start would keep the old clock time.
     synchronizer.delaysRateChangeUntilHasSufficientMediaData = false
-    synchronizer.addRenderer(displayLayer.sampleBufferRenderer)
+    videoRenderer = displayLayer.sampleBufferRenderer
+    synchronizer.addRenderer(videoRenderer)
     synchronizer.addRenderer(audioRenderer)
     audioRenderer.audioTimePitchAlgorithm = .timeDomain
   }
@@ -23,14 +28,14 @@ final class SampleBufferRenderer: @unchecked Sendable {
 
   func enqueue(_ buffer: CMSampleBuffer, for kind: MP4TrackKind) {
     switch kind {
-    case .video: displayLayer.sampleBufferRenderer.enqueue(buffer)
+    case .video: videoRenderer.enqueue(buffer)
     case .audio: audioRenderer.enqueue(buffer)
     }
   }
 
   func isReady(for kind: MP4TrackKind) -> Bool {
     switch kind {
-    case .video: displayLayer.sampleBufferRenderer.isReadyForMoreMediaData
+    case .video: videoRenderer.isReadyForMoreMediaData
     case .audio: audioRenderer.isReadyForMoreMediaData
     }
   }
@@ -45,7 +50,7 @@ final class SampleBufferRenderer: @unchecked Sendable {
         continuation.resume()
       }
       switch kind {
-      case .video: displayLayer.sampleBufferRenderer.requestMediaDataWhenReady(on: feedQueue, using: request)
+      case .video: videoRenderer.requestMediaDataWhenReady(on: feedQueue, using: request)
       case .audio: audioRenderer.requestMediaDataWhenReady(on: feedQueue, using: request)
       }
     }
@@ -53,7 +58,7 @@ final class SampleBufferRenderer: @unchecked Sendable {
 
   private func stopRequesting(_ kind: MP4TrackKind) {
     switch kind {
-    case .video: displayLayer.sampleBufferRenderer.stopRequestingMediaData()
+    case .video: videoRenderer.stopRequestingMediaData()
     case .audio: audioRenderer.stopRequestingMediaData()
     }
   }
@@ -78,7 +83,7 @@ final class SampleBufferRenderer: @unchecked Sendable {
   }
 
   func flush() {
-    displayLayer.sampleBufferRenderer.flush()
+    videoRenderer.flush()
     audioRenderer.flush()
   }
 
@@ -91,11 +96,11 @@ final class SampleBufferRenderer: @unchecked Sendable {
   }
 
   var failure: Error? {
-    displayLayer.sampleBufferRenderer.error ?? audioRenderer.error
+    videoRenderer.error ?? audioRenderer.error
   }
 
   var requiresVideoFlush: Bool {
-    displayLayer.sampleBufferRenderer.requiresFlushToResumeDecoding
+    videoRenderer.requiresFlushToResumeDecoding
   }
 }
 
