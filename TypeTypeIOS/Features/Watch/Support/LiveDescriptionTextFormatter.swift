@@ -77,7 +77,7 @@ enum LiveDescriptionTextFormatter {
     return result
   }
 
-  private static func decodingHTMLEntities(in value: String) -> String {
+  static func decodingHTMLEntities(in value: String) -> String {
     let document = value.replacingOccurrences(of: "\n", with: "<br>")
     guard let data = document.data(using: .utf8),
       let attributed = try? NSAttributedString(
