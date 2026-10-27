@@ -25,17 +25,26 @@ struct LiveLibraryView: View {
 
   var body: some View {
     NavigationStack {
-      sectionContent
-        .id(section)
-        .navigationBarTitleDisplayMode(.inline)
-    }
-    // Outside the stack: the section pages pin their own title and search
-    // field in the bar area, which would slide over an inset strip. Above
-    // the stack no page chrome can ever cover it.
-    .safeAreaInset(edge: .top, spacing: 0) {
-      LiveLibrarySectionStrip(selection: $section)
-        .background(DemoTheme.background)
-        .accessibilityIdentifier("live.library.sections")
+      // One paged container per section: horizontal swipes move between the
+      // strip's sections (auto-animated, index-bound to the strip), each
+      // page keeps its own scroll state while the strip stays pinned.
+      TabView(selection: $section) {
+        ForEach(LiveLibrarySection.allCases) { section in
+          sectionContent
+            .id(section)
+            .navigationBarTitleDisplayMode(.inline)
+            .tag(section)
+        }
+      }
+      .tabViewStyle(.page(indexDisplayMode: .never))
+      .onChange(of: section) { _, _ in }
+      .toolbar {
+        ToolbarItem(placement: .principal) {
+          LiveLibrarySectionStrip(selection: $section)
+            .background(DemoTheme.background)
+            .accessibilityIdentifier("live.library.sections")
+        }
+      }
     }
     .accessibilityIdentifier("live.library.screen")
   }
