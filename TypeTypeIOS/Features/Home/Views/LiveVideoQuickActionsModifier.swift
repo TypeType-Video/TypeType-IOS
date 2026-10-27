@@ -48,24 +48,17 @@ struct LiveVideoQuickActionsModifier: ViewModifier {
             }
         )
       )
-      // Confirmations are toasts: they show the same texts and fade out by
-      // themselves instead of demanding an OK tap.
+      // Confirmations are toasts on Liquid Glass: the system glass material
+      // over the video area, same texts, fading out by themselves.
       .overlay(alignment: .bottom) {
         if let message = viewModel.message {
-          Text(message)
-            .font(.footnote.weight(.medium))
-            .foregroundStyle(.white)
-            .padding(.horizontal, 14)
-            .padding(.vertical, 9)
-            .background(.black.opacity(0.82), in: Capsule())
-            .padding(.bottom, 24)
-            .transition(.opacity)
-            .task {
-              try? await Task.sleep(for: .seconds(2.2))
-              withAnimation(.easeOut(duration: 0.25)) {
-                viewModel.dismissMessage()
-              }
-            }
+          if #available(iOS 26.0, *) {
+            toastLabel(message)
+              .glassEffect()
+          } else {
+            toastLabel(message)
+              .background(.black.opacity(0.82), in: Capsule())
+          }
         }
       }
       .animation(.easeIn(duration: 0.18), value: viewModel.message)
@@ -161,6 +154,24 @@ struct LiveDotMenu<Content: View>: View {
       .presentationCompactAdaptation(.popover)
     }
   }
+}
+
+/// The toast text with its own shape-independent styling; the caller adds
+/// either the system glass or a dark capsule fallback.
+private func toastLabel(_ message: String) -> some View {
+  Text(message)
+    .font(.footnote.weight(.medium))
+    .foregroundStyle(.primary)
+    .padding(.horizontal, 16)
+    .padding(.vertical, 10)
+    .padding(.bottom, 24)
+    .transition(.opacity)
+    .task {
+      try? await Task.sleep(for: .seconds(2.2))
+      withAnimation(.easeOut(duration: 0.25)) {
+        viewModel.dismissMessage()
+      }
+    }
 }
 
 /// The quick-actions menu content is handed to video cards via the
