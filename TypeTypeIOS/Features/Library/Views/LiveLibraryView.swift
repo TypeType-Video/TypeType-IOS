@@ -25,32 +25,23 @@ struct LiveLibraryView: View {
 
   var body: some View {
     NavigationStack {
-      // One paged container per section: horizontal swipes move between the
-      // strip's sections (auto-animated, index-bound to the strip), each
-      // page keeps its own scroll state while the strip stays pinned.
-      TabView(selection: $section) {
-        ForEach(LiveLibrarySection.allCases) { page in
-          sectionContent(page)
-            .navigationBarTitleDisplayMode(.inline)
-            .tag(page)
-        }
-      }
-      .tabViewStyle(.page(indexDisplayMode: .never))
-      .toolbar {
-        ToolbarItem(placement: .principal) {
-          LiveLibrarySectionStrip(selection: $section)
-            .background(DemoTheme.background)
-            .accessibilityIdentifier("live.library.sections")
-        }
-      }
+      sectionContent
+        .id(section)
+        .navigationBarTitleDisplayMode(.inline)
+    }
+    // Outside the stack: the section pages pin their own title and search
+    // field in the bar area, which would slide over an inset strip. Above
+    // the stack no page chrome can ever cover it.
+    .safeAreaInset(edge: .top, spacing: 0) {
+      LiveLibrarySectionStrip(selection: $section)
+        .background(DemoTheme.background)
+        .accessibilityIdentifier("live.library.sections")
     }
     .accessibilityIdentifier("live.library.screen")
   }
 
   @ViewBuilder
-  private func sectionContent(
-    _ section: LiveLibrarySection
-  ) -> some View {
+  private var sectionContent: some View {
     switch section {
     case .history:
       LiveHistoryView(coordinator: coordinator)
@@ -114,7 +105,6 @@ private struct LiveLibrarySectionStrip: View {
         }
       }
       .padding(.horizontal, 16)
-      .padding(.trailing, 96)
     }
     .padding(.vertical, 4)
     .background(palette.background)
