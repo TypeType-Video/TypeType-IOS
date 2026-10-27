@@ -25,11 +25,12 @@ struct LivePlaylistsView: View {
     )
   }
 
+  // No nested stack: the library pager hosts this section inside the
+  // library's stack, whose bar carries the New playlist button.
   var body: some View {
-    NavigationStack {
-      content
-        .navigationTitle("Playlists")
-        .navigationBarTitleDisplayMode(.inline)
+    content
+      .navigationTitle("Playlists")
+      .navigationBarTitleDisplayMode(.inline)
         .toolbar {
           ToolbarItem(placement: .topBarTrailing) {
             Button("New playlist", systemImage: "plus") {
@@ -52,13 +53,12 @@ struct LivePlaylistsView: View {
             dependencies: coordinator.dependencies
           )
         }
-        .navigationDestination(item: $selectedCollection) { kind in
-          LiveCollectionView(
-            kind: kind,
-            dependencies: coordinator.dependencies
-          )
-        }
-    }
+      .navigationDestination(item: $selectedCollection) { kind in
+        LiveCollectionView(
+          kind: kind,
+          dependencies: coordinator.dependencies
+        )
+      }
     .task {
       await viewModel.prepare()
       openRequestedCollection()
