@@ -146,7 +146,7 @@ final class LiveAuthenticationUITests: XCTestCase {
   private func exerciseProductionSearch(
     in app: XCUIApplication
   ) {
-    let search = app.buttons["live.home.search"]
+    let search = app.searchTabButton
     XCTAssertTrue(search.waitForExistence(timeout: 3))
     search.tap()
     let field = app.searchFields[
@@ -190,7 +190,7 @@ final class LiveAuthenticationUITests: XCTestCase {
         return
       }
     }
-    let tabButton = app.tabBars.buttons["More"]
+    let tabButton = app.buttons["live.home.settings"]
     XCTAssertTrue(tabButton.waitForExistence(timeout: 2))
     tabButton.tap()
   }

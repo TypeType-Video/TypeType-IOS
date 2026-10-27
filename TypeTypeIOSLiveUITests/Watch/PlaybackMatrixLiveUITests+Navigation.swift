@@ -26,7 +26,7 @@ extension PlaybackMatrixLiveUITests {
       app.otherElements["live.home.screen"]
         .waitForExistence(timeout: 20)
     )
-    app.buttons["live.home.search"].tap()
+    app.searchTabButton.tap()
     XCTAssertTrue(
       app.searchFields["Search videos, channels..."]
         .waitForExistence(timeout: 10)
@@ -53,7 +53,7 @@ extension PlaybackMatrixLiveUITests {
     option.tap()
     RunLoop.current.run(until: Date().addingTimeInterval(2))
     if !selectsFromSearch {
-      app.buttons["live.home.search"].tap()
+      app.searchTabButton.tap()
       XCTAssertTrue(
         app.searchFields["Search videos, channels..."]
           .waitForExistence(timeout: 10)

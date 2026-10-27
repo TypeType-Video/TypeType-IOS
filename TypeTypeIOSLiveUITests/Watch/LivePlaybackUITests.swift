@@ -188,7 +188,7 @@ final class LivePlaybackUITests: XCTestCase {
       )
     }
 
-    app.buttons["live.home.search"].tap()
+    app.searchTabButton.tap()
     let field = app.searchFields["Search videos, channels..."]
     XCTAssertTrue(field.waitForExistence(timeout: 5))
     field.tap()

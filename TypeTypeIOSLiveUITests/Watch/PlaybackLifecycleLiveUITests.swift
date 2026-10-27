@@ -35,7 +35,7 @@ final class PlaybackLifecycleLiveUITests: XCTestCase {
     in app: XCUIApplication,
     query: String
   ) -> String {
-    let search = app.buttons["live.home.search"]
+    let search = app.searchTabButton
     if search.waitForExistence(timeout: 5) {
       search.tap()
     }

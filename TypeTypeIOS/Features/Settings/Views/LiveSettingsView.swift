@@ -160,7 +160,7 @@ struct LiveSettingsView: View {
           )
         }
         LiveSettingsLinkRow(
-          title: "Import",
+          title: "Import data",
           icon: "square.and.arrow.down.fill",
           iconColor: .systemGreen
         ) {

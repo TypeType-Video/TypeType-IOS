@@ -1,11 +1,13 @@
 import Foundation
 
+/// The three content tabs plus the iOS-18 search tab: history, playlists,
+/// and collection kinds live INSIDE the library tab now (like beta), and
+/// the account flow hangs off the home toolbar instead of its own tab.
 enum LiveAuthenticatedTab: Hashable {
   case home
   case subscriptions
-  case history
-  case playlists
-  case more
+  case library
+  case search
 }
 
 extension LiveAuthenticatedAppView {
@@ -18,19 +20,26 @@ extension LiveAuthenticatedAppView {
     else {
       return
     }
+    // Landing pages now open the tab AND pick the library section, so the
+    // old per-collection landing pages keep their meaning.
     switch settings.defaultLandingPage {
     case "subscriptions":
       selectedTab = .subscriptions
     case "history":
-      selectedTab = .history
+      librarySection = .history
+      selectedTab = .library
     case "playlists":
-      selectedTab = .playlists
+      librarySection = .playlists
+      selectedTab = .library
     case "watch-later":
-      startupCollection = .watchLater
-      selectedTab = .playlists
+      librarySection = .watchLater
+      selectedTab = .library
     case "favorites":
-      startupCollection = .favorites
-      selectedTab = .playlists
+      librarySection = .favorites
+      selectedTab = .library
+    case "downloads":
+      librarySection = .downloads
+      selectedTab = .library
     default:
       selectedTab = .home
     }

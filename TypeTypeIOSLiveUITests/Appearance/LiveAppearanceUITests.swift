@@ -29,23 +29,15 @@ final class LiveAppearanceUITests: XCTestCase {
 
     let more = firstElement(
       [
-        app.tabBars.buttons["More"],
-        app.tabBars.buttons["Plus"],
+        app.buttons["live.home.settings"],
       ],
       timeout: 15
     )
     let moreButton = try XCTUnwrap(more)
     moreButton.tap()
 
-    let settings = firstElement(
-      [
-        element(in: app, labelled: "Settings"),
-        element(in: app, labelled: "Réglages"),
-      ],
-      timeout: 5
-    )
-    let settingsButton = try XCTUnwrap(settings)
-    settingsButton.tap()
+    let settingsScreen = app.collectionViews["live.settings.screen"]
+    _ = settingsScreen.waitForExistence(timeout: 5)
 
     let appearanceButton = try XCTUnwrap(firstElement(
       [

@@ -2,17 +2,14 @@ import SwiftUI
 
 struct LiveHomeView: View {
   @ObservedObject var coordinator: RootCoordinator
+  @ObservedObject var notificationCenter: LiveNotificationCenter
   @StateObject var viewModel: LiveHomeViewModel
   @State var selectedVideo: LiveVideoItem?
   @State var selectedChannelURL: String?
-  let onPresentSearch: () -> Void
 
-  init(
-    coordinator: RootCoordinator,
-    onPresentSearch: @escaping () -> Void
-  ) {
+  init(coordinator: RootCoordinator) {
     self.coordinator = coordinator
-    self.onPresentSearch = onPresentSearch
+    notificationCenter = coordinator.dependencies.notificationCenter
     _viewModel = StateObject(
       wrappedValue: LiveHomeViewModel(
         service: coordinator.dependencies.homeFeedService,
@@ -31,7 +28,7 @@ struct LiveHomeView: View {
         .toolbar {
           brandToolbar
           serviceToolbar
-          searchToolbar
+          accountsToolbar
         }
         .onChange(of: selectedVideo) { _, video in
           guard let video else { return }

@@ -26,7 +26,7 @@ final class LiveSearchUITests: XCTestCase {
 
     connect(app, address: serverURL.absoluteString)
     app.buttons["live.auth.guest"].tap()
-    let searchButton = app.buttons["live.home.search"]
+    let searchButton = app.searchTabButton
     XCTAssertTrue(searchButton.waitForExistence(timeout: 10))
     searchButton.tap()
 

@@ -8,9 +8,8 @@ struct LiveAuthenticatedAppView: View {
   @ObservedObject var playbackCoordinator: LivePlaybackCoordinator
   @ObservedObject var connectivityMonitor: LiveConnectivityMonitor
   @State var selectedTab = LiveAuthenticatedTab.home
-  @State var startupCollection: LiveLibraryCollectionKind?
+  @State var librarySection = LiveLibrarySection.history
   @State var didApplyDefaultLandingPage = false
-  @State var presentsSearch = false
   @State var presentsExpandedPlayback = false
   @State var tabBarTopY: CGFloat?
   @State var incomingMediaLink: LiveIncomingMediaLink?
@@ -42,7 +41,6 @@ struct LiveAuthenticatedAppView: View {
       }
     }
     .animation(.snappy.delay(0.25), value: playbackCoordinator.showsMiniPlayer)
-    .animation(.snappy, value: presentsSearch)
     .task {
       coordinator.dependencies.playbackService?.preconnectMedia()
       LiveVideoCard.onPrewarm = { video in

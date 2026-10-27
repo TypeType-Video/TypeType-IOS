@@ -122,24 +122,12 @@ final class LiveHomeUITests: XCTestCase {
     try XCTUnwrap(
       firstElement(
         [
-          app.tabBars.buttons["More"],
-          app.tabBars.buttons["Plus"],
+          app.buttons["live.home.settings"],
         ],
         timeout: 3
       )
     )
     .tap()
-    let settings = try XCTUnwrap(
-      firstElement(
-        [
-          element(in: app, labelled: "Settings"),
-          element(in: app, labelled: "Réglages"),
-        ],
-        timeout: 3
-      )
-    )
-    XCTAssertTrue(settings.waitForExistence(timeout: 3))
-    settings.tap()
     let settingsScreen = app.collectionViews[
       "live.settings.screen"
     ]
@@ -342,9 +330,7 @@ final class LiveHomeUITests: XCTestCase {
     let more = try XCTUnwrap(
       firstElement(
         [
-          app.tabBars.buttons["More"],
-          app.buttons["More"].firstMatch,
-          element(in: app, labelled: "More"),
+          app.buttons["live.home.settings"],
         ],
         timeout: 15
       )
@@ -427,9 +413,7 @@ final class LiveHomeUITests: XCTestCase {
     let more = try XCTUnwrap(
       firstElement(
         [
-          app.tabBars.buttons["More"],
-          app.buttons["More"].firstMatch,
-          element(in: app, labelled: "More"),
+          app.buttons["live.home.settings"],
         ],
         timeout: 5
       )
@@ -527,9 +511,7 @@ final class LiveHomeUITests: XCTestCase {
     let more = try XCTUnwrap(
       firstElement(
         [
-          app.tabBars.buttons["More"],
-          app.buttons["More"].firstMatch,
-          element(in: app, labelled: "More"),
+          app.buttons["live.home.settings"],
         ],
         timeout: 5
       )
@@ -596,9 +578,7 @@ final class LiveHomeUITests: XCTestCase {
     let more = try XCTUnwrap(
       firstElement(
         [
-          app.tabBars.buttons["More"],
-          app.buttons["More"].firstMatch,
-          element(in: app, labelled: "More"),
+          app.buttons["live.home.settings"],
         ],
         timeout: 5
       )
@@ -646,7 +626,7 @@ final class LiveHomeUITests: XCTestCase {
     app.launch()
     connect(app, address: serverURL.absoluteString)
     app.buttons["live.auth.guest"].tap()
-    let more = app.tabBars.buttons["More"]
+    let more = app.buttons["live.home.settings"]
     XCTAssertTrue(more.waitForExistence(timeout: 15))
     more.tap()
     let settings = element(in: app, labelled: "Settings")

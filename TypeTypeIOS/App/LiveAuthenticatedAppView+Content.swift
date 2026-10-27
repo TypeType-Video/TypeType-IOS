@@ -2,18 +2,7 @@ import SwiftUI
 
 extension LiveAuthenticatedAppView {
   var shell: some View {
-    ZStack {
-      tabs
-      if presentsSearch {
-        LiveSearchView(coordinator: coordinator) {
-          presentsSearch = false
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .transition(.move(edge: .trailing))
-        .zIndex(1)
-      }
-    }
-    
+    tabs
     .onChange(of: playbackCoordinator.presentation) { _, newValue in
       // System PiP restore: bring the expanded player back. The cover must
       // appear WITHOUT its slide — the system animates the PiP window back
@@ -53,36 +42,12 @@ extension LiveAuthenticatedAppView {
   }
 
   private var tabs: some View {
-    TabView(selection: $selectedTab) {
-      LiveHomeView(
-        coordinator: coordinator,
-        onPresentSearch: { presentsSearch = true }
-      )
-      .background(tabBarTopProbe)
-      .tabItem { Label("Home", systemImage: "house") }
-      .tag(LiveAuthenticatedTab.home)
-
-      LiveSubscriptionsView(coordinator: coordinator)
-        .tabItem { Label("Subscriptions", systemImage: "bell") }
-        .tag(LiveAuthenticatedTab.subscriptions)
-
-      LiveHistoryView(coordinator: coordinator)
-        .tabItem { Label("History", systemImage: "clock") }
-        .tag(LiveAuthenticatedTab.history)
-
-      LivePlaylistsView(
-        coordinator: coordinator,
-        requestedCollection: $startupCollection
-      )
-      .tabItem {
-        Label("Playlists", systemImage: "rectangle.stack.badge.play")
+    Group {
+      if #available(iOS 18.0, *) {
+        modernTabs
+      } else {
+        legacyTabs
       }
-      .tag(LiveAuthenticatedTab.playlists)
-
-      LiveAccountView(coordinator: coordinator)
-        .tabItem { Label("More", systemImage: "line.3.horizontal") }
-        .badge(notificationCenter.unreadCount)
-        .tag(LiveAuthenticatedTab.more)
     }
     // The tab bar floats in a glass pill; without a full-bleed page
     // background the area below it shows the window's black — only the
@@ -107,6 +72,65 @@ extension LiveAuthenticatedAppView {
           tabBarBand: max(measuredBand, 0)
         )
       }
+    }
+  }
+
+  /// iOS 18+: search rides the tab bar as the system search tab, and the
+  /// badge shows active downloads on the library tab like beta does.
+  @available(iOS 18.0, *)
+  private var modernTabs: some View {
+    TabView(selection: $selectedTab) {
+      Tab("Home", systemImage: "house", value: LiveAuthenticatedTab.home) {
+        homeTab
+      }
+      Tab("Subscriptions", systemImage: "play.square.stack", value: LiveAuthenticatedTab.subscriptions) {
+        subscriptionsTab
+      }
+      Tab("Library", systemImage: "rectangle.stack.badge.play", value: LiveAuthenticatedTab.library) {
+        libraryTab
+      }
+      .badge(downloadCenter.activeCount)
+      Tab(value: LiveAuthenticatedTab.search, role: .search) {
+        searchTab
+      }
+    }
+  }
+
+  private var legacyTabs: some View {
+    TabView(selection: $selectedTab) {
+      homeTab
+        .tabItem { Label("Home", systemImage: "house") }
+        .tag(LiveAuthenticatedTab.home)
+      subscriptionsTab
+        .tabItem { Label("Subscriptions", systemImage: "play.square.stack") }
+        .tag(LiveAuthenticatedTab.subscriptions)
+      libraryTab
+        .tabItem { Label("Library", systemImage: "rectangle.stack.badge.play") }
+        .badge(downloadCenter.activeCount)
+        .tag(LiveAuthenticatedTab.library)
+      searchTab
+        .tabItem { Label("Search", systemImage: "magnifyingglass") }
+        .tag(LiveAuthenticatedTab.search)
+    }
+  }
+
+  private var homeTab: some View {
+    LiveHomeView(coordinator: coordinator)
+      .background(tabBarTopProbe)
+  }
+
+  private var subscriptionsTab: some View {
+    LiveSubscriptionsView(coordinator: coordinator)
+  }
+
+  private var libraryTab: some View {
+    LiveLibraryView(coordinator: coordinator, section: $librarySection)
+  }
+
+  private var searchTab: some View {
+    // In tab mode "closing" search means going back to the feed tab.
+    LiveSearchView(coordinator: coordinator) {
+      selectedTab = .home
     }
   }
 
