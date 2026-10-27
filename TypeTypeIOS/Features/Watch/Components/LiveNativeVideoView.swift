@@ -69,7 +69,6 @@ struct LiveNativeVideoView: UIViewRepresentable {
 final class LiveNativeLayerOwner {
   private let layer: AVSampleBufferDisplayLayer
   private var hosts: [WeakHost] = []
-  private var currentHost: LiveNativeVideoHostView?
 
   private struct WeakHost {
     weak var view: LiveNativeVideoHostView?
@@ -93,13 +92,10 @@ final class LiveNativeLayerOwner {
   private func place() {
     let visible = hosts.compactMap(\.view).filter { $0.window != nil }
     guard let host = visible.max(by: { $0.surface.rawValue <= $1.surface.rawValue }) else { return }
-    let changed = host !== currentHost
-    currentHost = host
-    if changed {
-      // A surface switch must not carry the previous surface's last buffer
-      // into the new bounds: it smears a stale band below the controls.
-      layer.sampleBufferRenderer.flush()
-    }
+    // No flush here: discarding the video renderer's queue starves the
+    // picture until the next segment arrives, while audio keeps playing.
+    // Both hosts use the same 16:9 container, so the one carried frame is
+    // aspect-correct and replaced within a frame tick.
     host.adopt(layer)
   }
 }
