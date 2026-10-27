@@ -48,7 +48,7 @@ final class LiveLandscapeHostingController: UIHostingController<LiveNativeFullsc
   @MainActor
   static func present(for controller: LivePlayerController) {
     AppLogger.playback
-      .info("fullscreen: present requested", privacy: .public)
+      .info("fullscreen: present requested")
     controller.pictureInPicture.uninstallNativeContent()
     controller.isPresentingFullscreen = true
     Task { @MainActor in
