@@ -3,11 +3,16 @@ import Foundation
 
 final class LiveLibraryServiceStub: LiveLibraryServiceProtocol {
   var favoriteItems: [LiveFavoriteItem] = []
+  var favoritesDelays: [Duration] = []
   var watchLaterItems: [LiveWatchLaterItem] = []
   private(set) var actions: [String] = []
 
   func favorites() async throws -> [LiveFavoriteItem] {
-    favoriteItems
+    let snapshot = favoriteItems
+    if !favoritesDelays.isEmpty {
+      try await Task.sleep(for: favoritesDelays.removeFirst())
+    }
+    return snapshot
   }
 
   func favorite(videoURL: String) async throws -> LiveFavoriteItem? {
