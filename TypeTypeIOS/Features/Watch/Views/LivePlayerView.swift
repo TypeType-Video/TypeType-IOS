@@ -30,8 +30,7 @@ struct LivePlayerView: View {
   @State var autoPictureInPictureArmed = true
   @State var autoPictureInPictureActive = false
   @StateObject var nativeControls = LiveNativeControlsState()
-  @State private var lastDeviceOrientation: UIDeviceOrientation = .unknown
-  @State private var rotationEnterArmedAt = Date()
+  @Environment(\.verticalSizeClass) private var verticalSizeClass
 
 
   var body: some View {
@@ -62,58 +61,48 @@ struct LivePlayerView: View {
         statusOverlay
         if controller.nativePlayback != nil {
           LiveNativeSubtitleOverlay(controller: controller)
-          // Fullscreen chrome floats in the transparent orientation
-          // controller above; the surface keeps only the picture.
-          if !controller.isPresentingFullscreen {
-            LiveNativePlayerControls(
-              controller: controller,
-              controls: nativeControls,
-              isFullscreen: false
-            ) {
-              AppLogger.playback.info("fullscreen: toggle pressed flag=\(controller.isPresentingFullscreen, privacy: .public)")
-              if controller.isPresentingFullscreen {
-                controller.exitNativeFullscreen("player-toggle")
-              } else {
-                controller.enterNativeFullscreen("player-toggle")
-              }
+          LiveNativePlayerControls(
+            controller: controller,
+            controls: nativeControls,
+            isFullscreen: showsFullscreenLayout
+          ) {
+            AppLogger.playback.info("fullscreen: toggle pressed flag=\(controller.isPresentingFullscreen, privacy: .public)")
+            if controller.isPresentingFullscreen {
+              controller.exitNativeFullscreen("player-toggle")
+            } else {
+              controller.enterNativeFullscreen("player-toggle")
             }
           }
         }
         // Above the transport controls: the UIKit overlay below never received taps.
-        // Hidden in fullscreen: the chrome controller above owns the taps.
-        if !controller.isPresentingFullscreen {
-          LiveSponsorBlockOverlay(
-            controller: controller,
-            fillsAvailableSpace: false
-          )
-          .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-          .padding(.top, 10)
-        }
+        LiveSponsorBlockOverlay(
+          controller: controller,
+          fillsAvailableSpace: false
+        )
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .padding(.top, 10)
         playbackStatusAccessibilityElement
         playbackPositionAccessibilityElement
 
-        // Hidden in fullscreen: the chrome controller above owns the taps.
-        if !controller.isPresentingFullscreen {
-          Button {
-            showsOptions = true
-          } label: {
-            overlayIcon("slider.horizontal.3")
-          }
-          .buttonStyle(.plain)
-          .frame(
-            maxWidth: .infinity,
-            maxHeight: .infinity,
-            alignment: .topTrailing
-          )
-          .padding(10)
-          .accessibilityLabel("Player options")
-          .accessibilityIdentifier("live.player.options")
+        Button {
+          showsOptions = true
+        } label: {
+          overlayIcon("slider.horizontal.3")
         }
+        .buttonStyle(.plain)
+        .frame(
+          maxWidth: .infinity,
+          maxHeight: .infinity,
+          alignment: .topTrailing
+        )
+        .padding(10)
+        .accessibilityLabel("Player options")
+        .accessibilityIdentifier("live.player.options")
       }
     }
     .modifier(
       LivePlayerSizing(
-        isFullscreen: controller.isPresentingFullscreen,
+        isFullscreen: showsFullscreenLayout,
         cinemaMode: cinemaMode
       )
     )
@@ -128,7 +117,7 @@ struct LivePlayerView: View {
         }
     )
     .overlay(alignment: .top) {
-      if !controller.isPresentingFullscreen,
+      if !showsFullscreenLayout,
         let remaining = coordinator.autoplayCountdownRemaining {
         HStack(spacing: 10) {
           Text("Next video in \(remaining)s")
@@ -150,31 +139,15 @@ struct LivePlayerView: View {
         .accessibilityIdentifier("live.player.autoplay-countdown")
       }
     }
-    .onReceive(NotificationCenter.default.publisher(for: UIDevice.orientationDidChangeNotification)) { _ in
-      let orientation = UIDevice.current.orientation
-      let previous = lastDeviceOrientation
-      lastDeviceOrientation = orientation
-      let isLandscape = orientation == .landscapeLeft || orientation == .landscapeRight
-      let wasLandscape = previous == .landscapeLeft || previous == .landscapeRight
-      // Rotation is a control: turning the phone to landscape while the
-      // watch page is up opens fullscreen. Edge-triggered so a button exit
-      // while still holding landscape does not bounce straight back in.
-      guard isLandscape, !wasLandscape,
-        !controller.isPresentingFullscreen,
-        controller.nativePlayback != nil,
-        coordinator.presentation == .expanded,
-        Date().timeIntervalSince(rotationEnterArmedAt) > 0.8
-      else { return }
-      AppLogger.playback.info("fullscreen: enter via rotation-landscape")
-      controller.enterNativeFullscreen("rotation-landscape")
-    }
     .onAppear {
-      rotationEnterArmedAt = Date()
-      UIDevice.current.beginGeneratingDeviceOrientationNotifications()
+      controller.fullscreen.isPageActive = followsDeviceRotation
+    }
+    .onChange(of: followsDeviceRotation) { _, follows in
+      controller.fullscreen.isPageActive = follows
     }
     .onDisappear {
-      UIDevice.current.endGeneratingDeviceOrientationNotifications()
       restoreSystemBrightness()
+      controller.fullscreen.isPageActive = false
     }
 
     .sheet(isPresented: $showsOptions) {
@@ -186,36 +159,12 @@ struct LivePlayerView: View {
       )
     }
   }
-}
 
-/// Inline the player is a 16:9 card; full screen it fills the window and
-/// rides the system rotation animation instead of fading over it. The
-/// layout priority wins the page's VStack so the pinned metadata below
-/// collapses to nothing while fullscreen.
-struct LivePlayerSizing: ViewModifier {
-  let isFullscreen: Bool
-  let cinemaMode: Bool
+  private var showsFullscreenLayout: Bool {
+    controller.showsFullscreenLayout(verticalSizeClass: verticalSizeClass)
+  }
 
-  @ViewBuilder
-  func body(content: Content) -> some View {
-    if isFullscreen {
-      content
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .ignoresSafeArea()
-        // Outermost: a priority buried inside another modifier never
-        // reaches the parent VStack, and the metadata then splits the
-        // height with the player instead of collapsing.
-        .layoutPriority(1)
-    } else {
-      content
-        .aspectRatio(16 / 9, contentMode: .fit)
-        .clipShape(
-          RoundedRectangle(
-            cornerRadius: cinemaMode ? 0 : 16,
-            style: .continuous
-          )
-        )
-    }
+  private var followsDeviceRotation: Bool {
+    coordinator.presentation == .expanded && controller.nativePlayback != nil
   }
 }
-
