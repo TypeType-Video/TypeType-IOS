@@ -242,3 +242,29 @@ struct LiveVideoMetadataContentView: View {
     return channelMetadataViewModel.subscriberCount
   }
 }
+
+/// The docked corner card while the reader scrolls past the player.
+private struct LiveDockedVideoCard: View {
+  let playback: LiveNativePlayback
+  let controller: LivePlayerController
+  let onUndock: () -> Void
+
+  var body: some View {
+    LiveNativeVideoView(
+      playback: playback,
+      controller: controller,
+      surface: .mini
+    )
+    .aspectRatio(16 / 9, contentMode: .fit)
+    .frame(width: 220)
+    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+    .overlay(
+      RoundedRectangle(cornerRadius: 14, style: .continuous)
+        .strokeBorder(DemoTheme.separator, lineWidth: 1)
+    )
+    .shadow(color: .black.opacity(0.35), radius: 12, y: 6)
+    .onTapGesture { onUndock() }
+    .accessibilityLabel("Return video to page")
+    .accessibilityIdentifier("live.player.dock")
+  }
+}
