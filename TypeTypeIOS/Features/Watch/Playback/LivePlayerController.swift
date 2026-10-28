@@ -28,6 +28,7 @@ final class LivePlayerController: ObservableObject {
   var nativeFallbackUsed = false
   // Tracks the presented native full screen host so gestures stay away from it.
   @Published var isPresentingFullscreen = false
+  lazy var fullscreen = LiveNativeFullscreenPresenter(controller: self)
   /// True while the in-house video sits in the docked corner card (the
   /// scroll-away state) instead of the inline player position.
   @Published var isVideoDocked = false
