@@ -46,15 +46,7 @@ struct LiveVideoMetadataContentView: View {
       ScrollView {
       VStack(alignment: .leading, spacing: 18) {
         LiveVideoMetadataHeader(
-          video: resolvedVideo,
-          title: playerController.stream?.title ?? branding.title,
-          description: playbackDescription,
-          subscriberCount: subscriberCount,
-          onChannel: {
-            selectedChannelURL = resolvedVideo.uploaderURL
-          },
-          onSeekTimestamp: playerController.seek,
-          onOpenURL: routeLink
+          title: playerController.stream?.title ?? branding.title
         )
 
         LiveVideoEngagementView(
@@ -70,7 +62,7 @@ struct LiveVideoMetadataContentView: View {
         .id(engagementIdentity)
 
         if let playbackDescription, !playbackDescription.isEmpty {
-          LiveVideoDescriptionCard(
+          LiveVideoDescriptionTile(
             video: resolvedVideo,
             text: playbackDescription,
             likeCount: playerController.stream?.likeCount ?? -1,
