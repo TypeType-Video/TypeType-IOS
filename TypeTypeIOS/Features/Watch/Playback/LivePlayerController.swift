@@ -154,7 +154,6 @@ final class LivePlayerController: ObservableObject {
     bulletCommentSize = min(max(storedSize, 0.5), 2)
     player.automaticallyWaitsToMinimizeStalling = true
     installPeriodicObserver()
-    installOrientationObserver()
   }
 
 
