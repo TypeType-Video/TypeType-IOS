@@ -202,15 +202,6 @@ struct LiveVideoMetadataContentView: View {
       for: .navigationBar
     )
     .statusBarHidden(playerController.isPresentingFullscreen)
-    .onGeometryChange(for: CGSize.self) { proxy in
-      proxy.size
-    } action: { size in
-      // Geometry is the single source of truth: landscape = fullscreen.
-      // This only flips the flag — the inline player grows to the window
-      // (riding the system rotation animation); the modal exists solely
-      // for the button, whose force-rotate bypasses the rotation lock.
-      playerController.isPresentingFullscreen = size.width > size.height
-    }
     .animation(.easeInOut(duration: 0.5), value: playerController.isPresentingFullscreen)
     .liveStartupProbe(playerController.lastStartupMilliseconds)
     .environment(\.liveWatchExtrasEnabled, playerController.extrasReleased)

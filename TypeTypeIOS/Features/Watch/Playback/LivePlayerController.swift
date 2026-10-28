@@ -153,9 +153,15 @@ final class LivePlayerController: ObservableObject {
     bulletCommentSize = min(max(storedSize, 0.5), 2)
     player.automaticallyWaitsToMinimizeStalling = true
     installPeriodicObserver()
+    installOrientationObserver()
   }
 
+  private var orientationObserverToken: NSObjectProtocol?
+
   deinit {
+    if let orientationObserverToken {
+      NotificationCenter.default.removeObserver(orientationObserverToken)
+    }
     playbackSessionProgressTask?.cancel()
     presentationResumeTask?.cancel()
     sabrStallRecoveryTask?.cancel()
