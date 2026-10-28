@@ -72,6 +72,7 @@ struct LiveRelatedVideosSection: View {
 private struct LiveRelatedVideoRow: View {
   let video: LiveVideoItem
   @ObservedObject var deArrowStore: LiveDeArrowStore
+  @ObservedObject private var watchProgress = LiveWatchProgressStore.shared
 
   var body: some View {
     HStack(alignment: .top, spacing: 12) {
@@ -92,6 +93,9 @@ private struct LiveRelatedVideoRow: View {
             .padding(5)
           }
         }
+        .liveThumbnailProgress(
+          watchProgress.fraction(forVideoID: video.canonicalID)
+        )
         .clipShape(
           RoundedRectangle(cornerRadius: 10, style: .continuous)
         )
