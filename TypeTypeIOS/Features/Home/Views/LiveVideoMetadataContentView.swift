@@ -33,8 +33,6 @@ struct LiveVideoMetadataContentView: View {
     )
   }
 
-  @StateObject private var fullscreenControls = LiveNativeControlsState()
-
   var body: some View {
     ScrollViewReader { proxy in
     VStack(spacing: 0) {
@@ -198,48 +196,6 @@ struct LiveVideoMetadataContentView: View {
       )
     }
     }
-    // The landscape stage hangs on the whole layout, not on the scroll:
-    // the video layer stays in its window and only its frame changes.
-    .overlay {
-      if playerController.isPresentingFullscreen,
-        let playback = playerController.nativePlayback {
-        ZStack(alignment: .bottom) {
-          Color.black.ignoresSafeArea()
-          LiveNativeVideoView(
-            playback: playback,
-            controller: playerController,
-            surface: .fullscreen
-          )
-          // Same 16:9 container shape as the page player: the video keeps
-          // its anchoring while the window rotates instead of jumping to a
-          // full-window frame.
-          .aspectRatio(16 / 9, contentMode: .fit)
-          .frame(maxWidth: .infinity, maxHeight: .infinity)
-          .onTapGesture { fullscreenControls.tap() }
-          LiveNativePlayerControls(
-            controller: playerController,
-            controls: fullscreenControls,
-            isFullscreen: true
-          ) {
-            playerController.exitNativeFullscreen()
-          }
-        }
-        .transition(.asymmetric(insertion: .opacity, removal: .identity))
-        .gesture(
-          DragGesture(minimumDistance: 30)
-            .onEnded { value in
-              // Dragging down returns the player page with the window.
-              guard value.translation.height > 120,
-                abs(value.translation.width) < value.translation.height
-              else { return }
-              playerController.exitNativeFullscreen()
-            }
-        )
-      }
-    }
-    }
-    .externalLinkAlert(pendingURL: $pendingExternalURL)
-    .accessibilityIdentifier("live.video.metadata")
     .toolbar(
       playerController.isPresentingFullscreen ? .hidden : .automatic,
       for: .navigationBar

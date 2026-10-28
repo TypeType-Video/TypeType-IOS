@@ -1,7 +1,10 @@
 import SwiftUI
 
 extension LivePlayerView {
-  func videoSurface(width: CGFloat) -> some View {
+  func videoSurface(
+    width: CGFloat,
+    surface: LiveNativeVideoView.Surface = .page
+  ) -> some View {
     surfaceContent
       .accessibilityIdentifier("live.player.surface")
       .overlay {
@@ -40,6 +43,15 @@ extension LivePlayerView {
           setLongPressBoost(active: pressing)
         }
       )
+      .simultaneousGesture(
+        DragGesture(minimumDistance: 10)
+          .onChanged { value in
+            // The ramp rides the same touch as the long-press boost; the
+            // UIKit pans are cancelled while the hold owns the touch.
+            guard longPressBaseRate != nil else { return }
+            applySpeedRamp(translationHeight: value.translation.height)
+          }
+      )
   }
 
   @ViewBuilder
@@ -48,6 +60,7 @@ extension LivePlayerView {
       LiveNativeVideoView(
         playback: playback,
         controller: controller,
+        surface: surface,
         onSwipeAdjustment: { handleSwipeAdjustment($0) },
         onHorizontalSeek: { handleHorizontalSeek($0) }
       )

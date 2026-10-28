@@ -30,6 +30,7 @@ struct LivePlayerView: View {
   @State var autoPictureInPictureArmed = true
   @State var autoPictureInPictureActive = false
   @StateObject var nativeControls = LiveNativeControlsState()
+  @StateObject private var fullscreenControls = LiveNativeControlsState()
 
 
   var body: some View {
@@ -97,6 +98,34 @@ struct LivePlayerView: View {
         style: .continuous
       )
     )
+    // The landscape stage: the player's own surface builder with the full
+    // gesture chain, covering the player frame while the window is rotated.
+    .overlay {
+      if controller.isPresentingFullscreen,
+        let playback = controller.nativePlayback {
+        ZStack(alignment: .bottom) {
+          Color.black.ignoresSafeArea()
+          videoSurface(width: proxy.size.width, surface: .fullscreen)
+          LiveNativePlayerControls(
+            controller: controller,
+            controls: fullscreenControls,
+            isFullscreen: true
+          ) {
+            controller.exitNativeFullscreen()
+          }
+        }
+        .transition(.asymmetric(insertion: .opacity, removal: .identity))
+        .gesture(
+          DragGesture(minimumDistance: 30)
+            .onEnded { value in
+              guard value.translation.height > 120,
+                abs(value.translation.width) < value.translation.height
+              else { return }
+              controller.exitNativeFullscreen()
+            }
+        )
+      }
+    }
     .overlay(alignment: .top) {
       if let remaining = coordinator.autoplayCountdownRemaining {
         HStack(spacing: 10) {

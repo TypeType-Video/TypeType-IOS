@@ -103,15 +103,6 @@ extension LivePlayerView {
     if case let .began(kind, _) = event {
       LivePlayerView.logGesture("swipe began \(kind)")
     }
-    // While the long-press boost is held, the vertical drag ramps the
-    // speed instead of volume/brightness (Android-style).
-    let isEnded: Bool
-    if case .ended = event { isEnded = true } else { isEnded = false }
-    if longPressBaseRate != nil, !isEnded {
-      if case let .began(_, fraction) = event { applySpeedRamp(fraction) }
-      if case let .updated(_, fraction) = event { applySpeedRamp(fraction) }
-      return
-    }
     guard preferences.preferences.playerSwipeBrightnessVolumeEnabled else {
       return
     }
@@ -135,11 +126,12 @@ extension LivePlayerView {
     }
   }
 
-  /// Hold baseline is 2x; the drag maps the fraction onto 1x–4x in
-  /// half-step clicks. The HUD shows the live rate.
-  func applySpeedRamp(_ fraction: CGFloat) {
-    let steps = CGFloat(Int((fraction * 6).rounded()))
-    let rate = Float(1 + steps * 0.5)
+  /// Hold baseline is 2x; dragging up ramps toward 4x, down toward 1x,
+  /// in half-step clicks (100pt = 2x of travel). The HUD shows the rate.
+  func applySpeedRamp(translationHeight: CGFloat) {
+    let raw = 2.0 + (-translationHeight / 100.0) * 2.0
+    let stepped = (raw * 2).rounded() / 2
+    let rate = Float(min(max(stepped, 1), 4))
     speedBoostRate = rate
     controller.setPlaybackRate(rate)
   }
