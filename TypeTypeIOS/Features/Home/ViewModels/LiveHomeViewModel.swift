@@ -222,8 +222,20 @@ final class LiveHomeViewModel: ObservableObject {
     }
   }
 
+  /// Background warm-up for what the user is about to see: the pipeline
+  /// dedups, caches and runs at utility priority, so media always wins.
+  private func prefetchThumbnails(for items: [LiveVideoItem]) {
+    for item in items.prefix(8) {
+      guard let url = LiveImageURLResolver.resolve(item.thumbnail) else { continue }
+      Task.detached(priority: .utility) {
+        _ = await TypeTypeImagePipeline.shared.image(for: url, maxPixelSize: 640)
+      }
+    }
+  }
+
   private func applyInitial(_ page: HomeRecommendationsPage) {
     videos = Self.uniqueVisibleVideos(page.items)
+    prefetchThumbnails(for: page.items)
     nextCursor = page.nextCursor
     canLoadMore = page.hasMore && page.nextCursor?.isEmpty == false
     state = videos.isEmpty && continueWatching.isEmpty
@@ -233,6 +245,7 @@ final class LiveHomeViewModel: ObservableObject {
 
   private func append(_ page: HomeRecommendationsPage) {
     videos = Self.uniqueVisibleVideos(videos + page.items)
+    prefetchThumbnails(for: page.items)
     nextCursor = page.nextCursor
     canLoadMore = page.hasMore && page.nextCursor?.isEmpty == false
     state = videos.isEmpty && continueWatching.isEmpty

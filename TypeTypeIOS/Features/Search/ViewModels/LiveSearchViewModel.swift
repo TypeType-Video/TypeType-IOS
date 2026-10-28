@@ -183,8 +183,22 @@ final class LiveSearchViewModel: ObservableObject {
       await submit(submittedQuery)
     }
   }
+  /// Warm the results' thumbnails in the background at utility priority:
+  /// the user sees cache hits, media keeps the resources.
+  private func prefetchThumbnails() {
+    for result in results.prefix(10) {
+      guard case let .video(item) = result,
+        let url = LiveImageURLResolver.resolve(item.thumbnail)
+      else { continue }
+      Task.detached(priority: .utility) {
+        _ = await TypeTypeImagePipeline.shared.image(for: url, maxPixelSize: 640)
+      }
+    }
+  }
+
   private func applyInitial(_ page: LiveSearchPage) {
     results = LiveSearchResultMapper.uniqueVisibleResults(from: page)
+    prefetchThumbnails()
     updatePageMetadata(page)
     state = results.isEmpty ? .empty : .loaded
   }
@@ -193,6 +207,7 @@ final class LiveSearchViewModel: ObservableObject {
     results = LiveSearchResultMapper.unique(
       results + LiveSearchResultMapper.results(from: page)
     )
+    prefetchThumbnails()
     updatePageMetadata(page)
     state = results.isEmpty ? .empty : .loaded
   }
