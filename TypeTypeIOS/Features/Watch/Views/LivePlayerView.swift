@@ -1,5 +1,30 @@
 import SwiftUI
 
+/// Fullscreen: the player frame IS the window (the rotation drives it);
+/// inline: the 16:9 card.
+struct LivePlayerSizing: ViewModifier {
+  let isFullscreen: Bool
+  let rounded: Bool
+
+  func body(content: Content) -> some View {
+    if isFullscreen {
+      content
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .ignoresSafeArea()
+        .clipShape(Rectangle())
+    } else {
+      content
+        .aspectRatio(16 / 9, contentMode: .fit)
+        .clipShape(
+          RoundedRectangle(
+            cornerRadius: rounded ? 16 : 0,
+            style: .continuous
+          )
+        )
+    }
+  }
+}
+
 struct LivePlayerView: View {
   @ObservedObject var controller: LivePlayerController
   @ObservedObject var coordinator: LivePlaybackCoordinator
@@ -98,22 +123,10 @@ struct LivePlayerView: View {
         .accessibilityIdentifier("live.player.options")
       }
     }
-    // Fullscreen = the player frame IS the window (landscape rotation
-    // drives it); inline = the 16:9 card.
-    .aspectRatio(
-      controller.isPresentingFullscreen
-        ? UIScreen.main.bounds.width / UIScreen.main.bounds.height
-        : 16 / 9,
-      contentMode: .fit
-    )
-    .ignoresSafeArea(
-      controller.isPresentingFullscreen ? .container : SafeAreaRegions(),
-      edges: .all
-    )
-    .clipShape(
-      RoundedRectangle(
-        cornerRadius: (cinemaMode || controller.isPresentingFullscreen) ? 0 : 16,
-        style: .continuous
+    .modifier(
+      LivePlayerSizing(
+        isFullscreen: controller.isPresentingFullscreen,
+        rounded: !cinemaMode
       )
     )
     .gesture(
