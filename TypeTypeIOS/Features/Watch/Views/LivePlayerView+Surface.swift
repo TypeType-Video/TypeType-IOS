@@ -5,7 +5,7 @@ extension LivePlayerView {
     width: CGFloat,
     surface: LiveNativeVideoView.Surface = .page
   ) -> some View {
-    surfaceContent
+    surfaceContent(surface: surface)
       .accessibilityIdentifier("live.player.surface")
       .overlay {
         LivePictureInPictureNotice(pictureInPicture: controller.pictureInPicture)
@@ -55,7 +55,9 @@ extension LivePlayerView {
   }
 
   @ViewBuilder
-  private var surfaceContent: some View {
+  private func surfaceContent(
+    surface: LiveNativeVideoView.Surface
+  ) -> some View {
     if let playback = controller.nativePlayback {
       LiveNativeVideoView(
         playback: playback,
