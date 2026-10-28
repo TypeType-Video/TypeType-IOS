@@ -45,6 +45,30 @@ extension LivePlayerView {
   }
 
   @ViewBuilder
+  var gestureDebugHUD: some View {
+    #if DEBUG
+    VStack {
+      Spacer()
+      HStack {
+        VStack(alignment: .leading, spacing: 2) {
+          ForEach(
+            Array(LivePlayerView.gestureLog.enumerated()),
+            id: \.offset
+          ) { _, entry in
+            Text(entry)
+              .font(.system(size: 9, weight: .medium).monospaced())
+              .foregroundStyle(.yellow)
+          }
+        }
+        .padding(6)
+        Spacer()
+      }
+    }
+    .allowsHitTesting(false)
+    #endif
+  }
+
+  @ViewBuilder
   var speedBoostOverlay: some View {
     if let rate = speedBoostRate {
       VStack {

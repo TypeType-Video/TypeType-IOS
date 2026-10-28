@@ -53,6 +53,7 @@ extension LivePlayerView {
     at location: CGPoint,
     width: CGFloat
   ) {
+    LivePlayerView.logGesture("doubleTap x=\(Int(location.x))")
     guard
       !preferences.preferences.playerAccessibleControlsEnabled,
       preferences.preferences.playerDoubleTapSeekEnabled
@@ -99,6 +100,9 @@ extension LivePlayerView {
   func handleSwipeAdjustment(
     _ event: PlayerSwipeAdjustmentEvent
   ) {
+    if case let .began(kind, _) = event {
+      LivePlayerView.logGesture("swipe began \(kind)")
+    }
     // While the long-press boost is held, the vertical drag ramps the
     // speed instead of volume/brightness (Android-style).
     let isEnded: Bool
@@ -174,6 +178,7 @@ extension LivePlayerView {
   }
 
   func setLongPressBoost(active: Bool) {
+    LivePlayerView.logGesture(active ? "longPress ON" : "longPress OFF")
     guard preferences.preferences.playerLongPressSpeedEnabled else { return }
     longPressBoostTask?.cancel()
     longPressBoostTask = nil

@@ -14,6 +14,15 @@ struct LivePlayerView: View {
   @State var doubleTapSeekTask: Task<Void, Never>?
   @State var swipeAdjustment: PlayerSwipeAdjustmentState?
   @State var speedBoostRate: Float?
+  nonisolated(unsafe) static var gestureLog: [String] = []
+
+  static func logGesture(_ text: String) {
+    #if DEBUG
+    gestureLog.insert(text, at: 0)
+    if gestureLog.count > 4 { gestureLog.removeLast() }
+    AppLogger.playback.info("gesture: \(text, privacy: .public)")
+    #endif
+  }
   @State var systemBrightnessBeforeSwipe: CGFloat?
   @State var longPressBaseRate: Float?
   @State var longPressBoostTask: Task<Void, Never>?
