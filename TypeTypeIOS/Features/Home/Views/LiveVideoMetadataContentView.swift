@@ -207,11 +207,15 @@ struct LiveVideoMetadataContentView: View {
     .onGeometryChange(for: CGSize.self) { proxy in
       proxy.size
     } action: { size in
-      // Rotating the phone IS the fullscreen toggle (dev spec): landscape
-      // presents the stage, and while the stage is up it keeps the window
-      // landscape until it is dismissed.
+      // Rotating the phone IS the fullscreen toggle (dev spec). The modal
+      // must not present while the cover's own presentation is still
+      // animating — that is an instant UIKit crash — so the presentation
+      // waits out the cover's slide first.
       let landscape = size.width > size.height
-      if landscape, !playerController.isPresentingFullscreen {
+      guard landscape, !playerController.isPresentingFullscreen else { return }
+      Task { @MainActor in
+        try? await Task.sleep(for: .milliseconds(600))
+        guard !playerController.isPresentingFullscreen else { return }
         playerController.enterNativeFullscreen()
       }
     }
