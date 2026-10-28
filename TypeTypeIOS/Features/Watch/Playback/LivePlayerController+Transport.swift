@@ -171,8 +171,15 @@ extension LivePlayerController {
   func seek(to seconds: TimeInterval) {
     let bounded = min(max(seconds, 0), max(duration, 0))
     if let nativePlayback {
+      let wasPlaying = state == .playing
       position = bounded
       nativePlayback.seek(to: bounded)
+      if wasPlaying {
+        // A seek can leave the in-house player reporting paused; the user
+        // never asked to stop, so playback is asserted back on.
+        nativePlayback.player.play()
+        state = .playing
+      }
       reportPlaybackSessionProgress()
       return
     }

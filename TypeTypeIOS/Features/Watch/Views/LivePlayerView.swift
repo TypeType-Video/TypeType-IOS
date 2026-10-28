@@ -57,8 +57,6 @@ struct LivePlayerView: View {
           .allowsHitTesting(false)
         }
 
-        seekFeedbackOverlay
-        horizontalSeekOverlay
         speedBoostOverlay
         swipeAdjustmentOverlay
         statusOverlay
@@ -77,6 +75,10 @@ struct LivePlayerView: View {
             }
           }
         }
+        // The seek preview draws above the controls: the pause button used
+        // to cover the mm:ss target and the seek icon.
+        seekFeedbackOverlay
+        horizontalSeekOverlay
         // Above the transport controls: the UIKit overlay below never received taps.
         LiveSponsorBlockOverlay(
           controller: controller,
