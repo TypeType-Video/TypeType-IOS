@@ -159,10 +159,12 @@ final class LivePlaybackService: LivePlaybackServiceProtocol {
     attempt: Int
   ) async throws -> LivePlaybackStream {
     do {
+      // This loop owns the retries: client retries inside it multiplied 4 attempts into 12 requests.
       return try await requestStream(
         path: path,
         videoURL: videoURL,
-        retryToken: attempt == 0 ? nil : UUID().uuidString
+        retryToken: attempt == 0 ? nil : UUID().uuidString,
+        retriesTransientFailures: false
       )
     } catch {
       guard attempt < 3, isRetryableSABRBootstrap(error) else {
