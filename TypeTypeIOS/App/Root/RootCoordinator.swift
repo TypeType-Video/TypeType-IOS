@@ -107,7 +107,11 @@ final class RootCoordinator: ObservableObject {
   }
 
   func signOut() async {
-    try? await dependencies.authService.logout()
+    do {
+      try await dependencies.authService.logout()
+    } catch {
+      AppLogger.auth.failure("Signing out on the server", error)
+    }
     endSession()
   }
 

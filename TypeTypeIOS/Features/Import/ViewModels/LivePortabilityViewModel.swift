@@ -177,7 +177,11 @@ final class LivePortabilityViewModel: ObservableObject {
     selectedFileName = nil
     watchTask?.cancel()
     if let oldJob {
-      try? await service.delete(id: oldJob.id)
+      do {
+        try await service.delete(id: oldJob.id)
+      } catch {
+        AppLogger.network.failure("Deleting a finished portability job", error)
+      }
     }
   }
 

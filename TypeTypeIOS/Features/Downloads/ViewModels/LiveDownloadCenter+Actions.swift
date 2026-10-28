@@ -148,7 +148,11 @@ extension LiveDownloadCenter {
     if let localURL = artifactURL(for: record) {
       try? fileManager.removeItem(at: localURL)
     }
-    try? await service.delete(id: record.job.id)
+    do {
+      try await service.delete(id: record.job.id)
+    } catch {
+      AppLogger.network.failure("Deleting the server copy of a download", error)
+    }
     records.removeAll { $0.id == id }
     persist()
   }
