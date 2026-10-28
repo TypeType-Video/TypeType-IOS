@@ -105,7 +105,10 @@ struct LivePlayerView: View {
         let playback = controller.nativePlayback {
         ZStack(alignment: .bottom) {
           Color.black.ignoresSafeArea()
-          videoSurface(width: proxy.size.width, surface: .fullscreen)
+          videoSurface(
+            width: UIScreen.main.bounds.width,
+            surface: .fullscreen
+          )
           LiveNativePlayerControls(
             controller: controller,
             controls: fullscreenControls,
