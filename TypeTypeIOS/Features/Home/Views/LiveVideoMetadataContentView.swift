@@ -208,8 +208,7 @@ struct LiveVideoMetadataContentView: View {
         ) {
           withAnimation(.snappy(duration: 0.3)) {
             playerController.isVideoDocked = false
-            }
-  }
+          }
           proxy.scrollTo(Self.playerAnchorID, anchor: .top)
         }
         .padding(.trailing, 16)
@@ -232,6 +231,7 @@ struct LiveVideoMetadataContentView: View {
       )
     }
     .onDisappear { playerController.flushHistory() }
+    }
   }
 
   private var subscriberCount: Int64? {
