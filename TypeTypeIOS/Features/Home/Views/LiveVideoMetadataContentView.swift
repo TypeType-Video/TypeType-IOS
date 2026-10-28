@@ -2,7 +2,6 @@ import SwiftUI
 
 struct LiveVideoMetadataContentView: View {
 
-  static let playerAnchorID = "live.player.anchor"
   let video: LiveVideoItem
   let dependencies: AppDependencies
   @ObservedObject var deArrowStore: LiveDeArrowStore
@@ -38,18 +37,20 @@ struct LiveVideoMetadataContentView: View {
 
   var body: some View {
     ScrollViewReader { proxy in
-    ScrollView {
-      VStack(alignment: .leading, spacing: 18) {
-        LivePlayerView(
-          controller: playerController,
-          coordinator: playbackCoordinator,
-          dependencies: dependencies,
-          posterURL: posterURL,
-          cinemaMode: $cinemaMode
-        )
-        .id(Self.playerAnchorID)
-        .padding(.horizontal, cinemaMode ? -16 : 0)
+    VStack(spacing: 0) {
+      // The player stays pinned: the lower part scrolls under it, the video
+      // never leaves the screen (no scroll-away PiP at all).
+      LivePlayerView(
+        controller: playerController,
+        coordinator: playbackCoordinator,
+        dependencies: dependencies,
+        posterURL: posterURL,
+        cinemaMode: $cinemaMode
+      )
+      .padding(.horizontal, cinemaMode ? -16 : 0)
 
+      ScrollView {
+      VStack(alignment: .leading, spacing: 18) {
         LiveVideoMetadataHeader(
           video: resolvedVideo,
           title: playerController.stream?.title ?? branding.title,
@@ -191,31 +192,13 @@ struct LiveVideoMetadataContentView: View {
         )
       }
     }
+    }
     .toolbar(
       playerController.isPresentingFullscreen ? .hidden : .automatic,
       for: .navigationBar
     )
     .statusBarHidden(playerController.isPresentingFullscreen)
     .animation(.easeInOut(duration: 0.5), value: playerController.isPresentingFullscreen)
-    // The docked card: the in-house video floating in the corner while the
-    // reader is below the player. One window, no system scene, no stall.
-    .overlay(alignment: .bottomTrailing) {
-      if playerController.isVideoDocked,
-        let playback = playerController.nativePlayback {
-        LiveDockedVideoCard(
-          playback: playback,
-          controller: playerController
-        ) {
-          withAnimation(.snappy(duration: 0.3)) {
-            playerController.isVideoDocked = false
-          }
-          proxy.scrollTo(Self.playerAnchorID, anchor: .top)
-        }
-        .padding(.trailing, 16)
-        .padding(.bottom, 24)
-        .transition(.scale(scale: 0.7).combined(with: .opacity))
-      }
-    }
     .liveStartupProbe(playerController.lastStartupMilliseconds)
     .environment(\.liveWatchExtrasEnabled, playerController.extrasReleased)
     .task(id: "\(libraryActionsIdentity)|\(playerController.extrasReleased)") {
@@ -240,86 +223,5 @@ struct LiveVideoMetadataContentView: View {
       return count
     }
     return channelMetadataViewModel.subscriberCount
-  }
-}
-
-/// The docked corner card while the reader scrolls past the player.
-private struct LiveDockedVideoCard: View {
-  let playback: LiveNativePlayback
-  let controller: LivePlayerController
-  let onUndock: () -> Void
-  // Persisted offset from the upper-right home slot, so the card comes
-  // back where the user left it.
-  @AppStorage("live.dock.offsetX") private var offsetX: Double = 0
-  @AppStorage("live.dock.offsetY") private var offsetY: Double = 0
-  @GestureState private var dragOffset: CGSize = .zero
-
-  var body: some View {
-    GeometryReader { geo in
-      let base = CGPoint(x: geo.size.width - 126, y: 74)
-      let dragged = CGPoint(
-        x: base.x + offsetX + dragOffset.width,
-        y: base.y + offsetY + dragOffset.height
-      )
-      // Clamped to the window: the card can never leave the screen.
-      let clamped = CGPoint(
-        x: min(max(dragged.x, 118), geo.size.width - 118),
-        y: min(max(dragged.y, 74), geo.size.height - 104)
-      )
-      card
-        .position(x: clamped.x, y: clamped.y)
-        .gesture(
-          DragGesture(minimumDistance: 8)
-            .updating($dragOffset) { value, state, _ in
-              state = value.translation
-            }
-            .onEnded { value in
-              offsetX = Double(
-                min(max(base.x + offsetX + value.translation.width, 118),
-                  geo.size.width - 118) - base.x
-              )
-              offsetY = Double(
-                min(max(base.y + offsetY + value.translation.height, 74),
-                  geo.size.height - 104) - base.y
-              )
-            }
-        )
-    }
-  }
-
-  private var card: some View {
-    LiveNativeVideoView(
-      playback: playback,
-      controller: controller,
-      surface: .mini
-    )
-    .aspectRatio(16 / 9, contentMode: .fit)
-    .frame(width: 220)
-    .overlay(alignment: .bottomLeading) {
-      Button {
-        controller.togglePlayback()
-      } label: {
-        Image(
-          systemName: controller.state == .playing
-            ? "pause.fill" : "play.fill"
-        )
-        .font(.system(size: 13, weight: .bold))
-        .foregroundStyle(.white)
-        .frame(width: 30, height: 30)
-        .background(.black.opacity(0.72), in: Circle())
-      }
-      .buttonStyle(.plain)
-      .padding(8)
-      .accessibilityLabel(controller.state == .playing ? "Pause" : "Play")
-    }
-    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-    .overlay(
-      RoundedRectangle(cornerRadius: 14, style: .continuous)
-        .strokeBorder(DemoTheme.separator, lineWidth: 1)
-    )
-    .shadow(color: .black.opacity(0.35), radius: 12, y: 6)
-    .onTapGesture { onUndock() }
-    .accessibilityLabel("Return video to page")
-    .accessibilityIdentifier("live.player.dock")
   }
 }
