@@ -23,6 +23,8 @@ final class LivePlayerLayerCoordinator:
   var horizontalSeekHandler: ((PlayerHorizontalSeekEvent) -> Void)?
   var pictureInPictureUIRestoreHandler:
     (((@escaping (Bool) -> Void)) -> Void)? = nil
+  private weak var swipeGestureRecognizer: UIPanGestureRecognizer?
+  private weak var horizontalSeekGestureRecognizer: UIPanGestureRecognizer?
   private var swipeGestureKind: PlayerSwipeAdjustmentKind?
   private var swipeGestureBaseFraction: CGFloat = 0.5
   private var horizontalSeekBasePosition: TimeInterval = 0
@@ -104,6 +106,7 @@ final class LivePlayerLayerCoordinator:
     )
     recognizer.cancelsTouchesInView = false
     recognizer.delegate = self
+    swipeGestureRecognizer = recognizer
     view.addGestureRecognizer(recognizer)
   }
 
@@ -114,6 +117,7 @@ final class LivePlayerLayerCoordinator:
     )
     recognizer.cancelsTouchesInView = false
     recognizer.delegate = self
+    horizontalSeekGestureRecognizer = recognizer
     view.addGestureRecognizer(recognizer)
   }
 
@@ -195,15 +199,19 @@ extension LivePlayerLayerCoordinator: UIGestureRecognizerDelegate {
 
     let startLocation = recognizer.location(in: view)
     let translation = recognizer.translation(in: view)
-    let isHorizontalSeek = abs(translation.x) > 14
-      && abs(translation.x) > abs(translation.y) * 1.25
-    if isHorizontalSeek {
-      guard LiveAppPreferencesStore.shared.preferences.playerSwipeSeekEnabled,
+    // Each recognizer owns ONE direction: the seek pan only horizontal, the
+    // adjustment pan only vertical — so a brightness swipe never pops the
+    // mm:ss preview and a scrub never starts an adjustment.
+    if recognizer === horizontalSeekGestureRecognizer {
+      guard abs(translation.x) > 14,
+        abs(translation.x) > abs(translation.y) * 1.25,
+        LiveAppPreferencesStore.shared.preferences.playerSwipeSeekEnabled,
         controller.duration > 0
       else { return false }
       horizontalSeekBasePosition = controller.position
       return true
     }
+    guard recognizer === swipeGestureRecognizer else { return false }
     guard let kind = PlayerSwipeAdjustmentRules.kind(
       startLocation: startLocation,
       size: view.bounds.size,

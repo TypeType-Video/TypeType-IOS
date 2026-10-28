@@ -52,14 +52,15 @@ extension LivePlayerView {
             applySpeedRamp(translationHeight: value.translation.height)
           }
       )
-      // Swipe down leaves full screen. Lives in the surface chain because
-      // that is the touch path that reliably coexists with the UIKit pans.
+      // Swipe down leaves full screen — from the centre third only, so it
+      // never fights the brightness/volume swipes on the outer thirds.
       .simultaneousGesture(
         DragGesture(minimumDistance: 30)
           .onEnded { value in
             guard showsFullscreenLayout || controller.isPresentingFullscreen,
               value.translation.height > 120,
-              abs(value.translation.width) < value.translation.height
+              abs(value.translation.width) < value.translation.height,
+              abs(value.startLocation.x - width / 2) < width / 6
             else { return }
             controller.exitNativeFullscreen("surface-drag")
           }

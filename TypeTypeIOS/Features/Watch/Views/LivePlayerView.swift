@@ -110,16 +110,6 @@ struct LivePlayerView: View {
         isScrolled: isScrolled
       )
     )
-    .gesture(
-      DragGesture(minimumDistance: 30)
-        .onEnded { value in
-          guard showsFullscreenLayout || controller.isPresentingFullscreen,
-            value.translation.height > 120,
-            abs(value.translation.width) < value.translation.height
-          else { return }
-          controller.exitNativeFullscreen("player-drag")
-        }
-    )
     .overlay(alignment: .top) {
       if !showsFullscreenLayout,
         let remaining = coordinator.autoplayCountdownRemaining {

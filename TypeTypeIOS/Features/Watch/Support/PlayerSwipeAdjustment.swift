@@ -52,6 +52,11 @@ enum PlayerSwipeAdjustmentRules {
     guard abs(translation.height) >= abs(translation.width) * verticalBias
     else { return nil }
 
+    // Outer thirds only — the centre third belongs to the gestures that
+    // leave (swipe down), so they never fight the adjustment swipes.
+    guard startLocation.x < size.width / 3
+      || startLocation.x > size.width * 2 / 3
+    else { return nil }
     return startLocation.x < size.width / 2 ? .brightness : .volume
   }
 
