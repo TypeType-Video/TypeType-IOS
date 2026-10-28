@@ -13,6 +13,7 @@ struct LivePlayerView: View {
   @State var doubleTapSeek: (target: TimeInterval, seconds: Int, direction: PlayerDoubleTapSeekDirection, at: Date)?
   @State var doubleTapSeekTask: Task<Void, Never>?
   @State var swipeAdjustment: PlayerSwipeAdjustmentState?
+  @State var speedBoostRate: Float?
   @State var systemBrightnessBeforeSwipe: CGFloat?
   @State var longPressBaseRate: Float?
   @State var longPressBoostTask: Task<Void, Never>?
@@ -45,6 +46,7 @@ struct LivePlayerView: View {
 
         seekFeedbackOverlay
         horizontalSeekOverlay
+        speedBoostOverlay
         swipeAdjustmentOverlay
         statusOverlay
         if controller.nativePlayback != nil {

@@ -99,6 +99,13 @@ extension LivePlayerView {
   func handleSwipeAdjustment(
     _ event: PlayerSwipeAdjustmentEvent
   ) {
+    // While the long-press boost is held, the vertical drag ramps the
+    // speed instead of volume/brightness (Android-style).
+    if longPressBaseRate != nil, event != .ended {
+      if case let .began(_, fraction) = event { applySpeedRamp(fraction) }
+      if case let .updated(_, fraction) = event { applySpeedRamp(fraction) }
+      return
+    }
     guard preferences.preferences.playerSwipeBrightnessVolumeEnabled else {
       return
     }
@@ -120,6 +127,15 @@ extension LivePlayerView {
     case .ended:
       swipeAdjustment = nil
     }
+  }
+
+  /// Hold baseline is 2x; the drag maps the fraction onto 1x–4x in
+  /// half-step clicks. The HUD shows the live rate.
+  func applySpeedRamp(_ fraction: CGFloat) {
+    let steps = CGFloat(Int((fraction * 6).rounded()))
+    let rate = Float(1 + steps * 0.5)
+    speedBoostRate = rate
+    controller.setPlaybackRate(rate)
   }
 
   func handleHorizontalSeek(
@@ -170,6 +186,7 @@ extension LivePlayerView {
     } else if let baseRate = longPressBaseRate {
       controller.setPlaybackRate(baseRate)
       longPressBaseRate = nil
+      speedBoostRate = nil
     }
   }
 }

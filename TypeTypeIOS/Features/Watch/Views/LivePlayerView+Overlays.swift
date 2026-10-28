@@ -45,6 +45,25 @@ extension LivePlayerView {
   }
 
   @ViewBuilder
+  var speedBoostOverlay: some View {
+    if let rate = speedBoostRate {
+      VStack {
+        Text(String(format: rate.truncatingRemainder(dividingBy: 1) == 0 ? "%.0fx" : "%.1fx", rate))
+          .font(.callout.weight(.bold))
+          .monospacedDigit()
+          .foregroundStyle(.white)
+          .padding(.horizontal, 16)
+          .padding(.vertical, 8)
+          .background(.black.opacity(0.72), in: Capsule())
+          .padding(.top, 12)
+        Spacer()
+      }
+      .frame(maxWidth: .infinity)
+      .transition(.opacity)
+    }
+  }
+
+  @ViewBuilder
   var swipeAdjustmentOverlay: some View {
     if let adjustment = swipeAdjustment {
       HStack {
