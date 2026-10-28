@@ -102,7 +102,7 @@ final class LiveLandscapeHostingController: UIHostingController<LiveNativeFullsc
       let controller = host.controller
       if let coordinator = host.transitionCoordinator {
         coordinator.animate(alongsideTransition: { _ in
-          withAnimation(.easeInOut(duration: coordinator.duration)) {
+          withAnimation(.easeInOut(duration: coordinator.transitionDuration)) {
             controller?.isPresentingFullscreen = false
           }
         })
@@ -206,10 +206,10 @@ final class LiveLandscapeHostingController: UIHostingController<LiveNativeFullsc
       created.onRotate = { host, coordinator in
         guard !host.isBeingDismissed, !controller.isPresentingFullscreen else { return }
         AppLogger.playback.info(
-          "fullscreen: rotation hook fired duration=\(coordinator.duration, privacy: .public)"
+          "fullscreen: rotation hook fired duration=\(coordinator.transitionDuration, privacy: .public)"
         )
         coordinator.animate(alongsideTransition: { _ in
-          withAnimation(.easeInOut(duration: coordinator.duration)) {
+          withAnimation(.easeInOut(duration: coordinator.transitionDuration)) {
             controller.isPresentingFullscreen = true
           }
         })
