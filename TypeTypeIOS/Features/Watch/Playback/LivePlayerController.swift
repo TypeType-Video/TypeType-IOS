@@ -157,7 +157,9 @@ final class LivePlayerController: ObservableObject {
     installOrientationObserver()
   }
 
-  private var orientationObserverToken: NSObjectProtocol?
+  // The fullscreen observer token; installed and removed in the core
+  // lifecycle, assigned from the Native extension.
+  var orientationObserverToken: NSObjectProtocol?
 
   deinit {
     if let orientationObserverToken {
