@@ -101,7 +101,9 @@ extension LivePlayerView {
   ) {
     // While the long-press boost is held, the vertical drag ramps the
     // speed instead of volume/brightness (Android-style).
-    if longPressBaseRate != nil, event != .ended {
+    let isEnded: Bool
+    if case .ended = event { isEnded = true } else { isEnded = false }
+    if longPressBaseRate != nil, !isEnded {
       if case let .began(_, fraction) = event { applySpeedRamp(fraction) }
       if case let .updated(_, fraction) = event { applySpeedRamp(fraction) }
       return
