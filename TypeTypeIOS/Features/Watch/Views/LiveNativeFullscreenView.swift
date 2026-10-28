@@ -216,9 +216,12 @@ final class LiveLandscapeHostingController: UIHostingController<LiveNativeFullsc
       // One motion: the stage growth, the metadata collapse and the chrome
       // fade ride the system rotation through its transition coordinator.
       created.onRotate = { host, coordinator in
-        guard !host.isBeingDismissed, !controller.isPresentingFullscreen else { return }
         let duration =
           coordinator.transitionDuration > 0.05 ? coordinator.transitionDuration : growthDuration
+        guard !host.isBeingDismissed, !controller.isPresentingFullscreen else {
+          AppLogger.playback.info("fullscreen: rotation hook skipped (dismissing or already growing)")
+          return
+        }
         AppLogger.playback.info(
           "fullscreen: rotation hook fired duration=\(duration, privacy: .public)"
         )
@@ -246,7 +249,10 @@ final class LiveLandscapeHostingController: UIHostingController<LiveNativeFullsc
         LiveScreenOrientation.set(.landscape)
         created.setNeedsUpdateOfSupportedInterfaceOrientations()
         Task { @MainActor in
-          try? await Task.sleep(for: .milliseconds(200))
+          // The system starts the rotation ~300 ms after the request, so the
+          // fallback must lose the race to the rotation hook — only a real
+          // miss grows on this timer.
+          try? await Task.sleep(for: .milliseconds(800))
           guard !controller.isPresentingFullscreen, active === created else { return }
           AppLogger.playback.info("fullscreen: rotation hook missed, growing on fallback timer")
           withAnimation(.easeInOut(duration: growthDuration)) {
