@@ -207,7 +207,13 @@ struct LiveVideoMetadataContentView: View {
     .onGeometryChange(for: CGSize.self) { proxy in
       proxy.size
     } action: { size in
-      playerController.isPresentingFullscreen = size.width > size.height
+      // Rotating the phone IS the fullscreen toggle (dev spec): landscape
+      // presents the stage, and while the stage is up it keeps the window
+      // landscape until it is dismissed.
+      let landscape = size.width > size.height
+      if landscape, !playerController.isPresentingFullscreen {
+        playerController.enterNativeFullscreen()
+      }
     }
     .animation(.easeInOut(duration: 0.5), value: playerController.isPresentingFullscreen)
     .liveStartupProbe(playerController.lastStartupMilliseconds)

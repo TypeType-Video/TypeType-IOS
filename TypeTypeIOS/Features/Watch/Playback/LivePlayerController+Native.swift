@@ -166,11 +166,12 @@ extension LivePlayerController {
     }
   }
 
-  /// The button only rotates the window; the fullscreen state itself is
-  /// derived from the geometry (landscape = fullscreen), so a device
-  /// rotation does the same thing as the button.
+  /// Presents beta's landscape-forced host: the presented controller's
+  /// orientations override the user's rotation lock, which a plain window
+  /// rotation request cannot. The host clears the flag on dismissal.
   func enterNativeFullscreen() {
-    LiveScreenOrientation.set(.landscape)
+    guard !isPresentingFullscreen else { return }
+    LiveLandscapeHostingController.present(for: self)
   }
 
   func exitNativeFullscreen() {
