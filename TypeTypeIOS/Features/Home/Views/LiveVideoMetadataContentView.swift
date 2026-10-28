@@ -85,13 +85,6 @@ struct LiveVideoMetadataContentView: View {
 
         LivePlaybackQueueView(coordinator: playbackCoordinator)
 
-        if !displayedChapters.isEmpty {
-          LiveVideoChaptersView(
-            chapters: displayedChapters,
-            onSeek: playerController.seek
-          )
-        }
-
         // The stream arrives with an EMPTY relatedStreams array before the
         // real list loads — an empty list means "still loading" here.
         let relatedReady = !(

@@ -98,14 +98,24 @@ struct LiveNativePlayerControls: View {
         .buttonStyle(.plain)
         .popover(
           isPresented: $presentsChapters,
-          attachmentAnchor: .point(.init(x: 0.5, y: 1.0)),
-          arrowEdge: .top
+          // Full screen puts the bar by the bottom edge: the popover opens
+          // upward there, downward everywhere else.
+          attachmentAnchor: .point(.init(x: 0.5, y: isFullscreen ? 0.0 : 1.0)),
+          arrowEdge: isFullscreen ? .bottom : .top
         ) {
           LivePlayerChaptersView(controller: controller) {
             presentsChapters = false
           }
           .frame(width: 320, height: 380)
           .presentationCompactAdaptation(.popover)
+        }
+        // The controls must stay up while the chapter list is open.
+        .onChange(of: presentsChapters) {
+          if presentsChapters {
+            controls.keepVisible()
+          } else {
+            controls.scheduleHide()
+          }
         }
         .accessibilityLabel("Chapters")
         .accessibilityIdentifier("live.player.chapters.open")
