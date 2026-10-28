@@ -100,15 +100,36 @@ struct LiveVideoMetadataContentView: View {
           )
         }
 
-        if !(playerController.settings.hideRelatedVideos),
-          let related = playerController.stream?.relatedStreams {
-          LiveRelatedVideosSection(
-            playerController: playerController,
-            videos: related,
-            deArrowStore: deArrowStore,
-            dependencies: dependencies,
-            onSelect: { selectedRelatedVideo = $0 }
-          )
+        if !(playerController.settings.hideRelatedVideos) {
+          if let related = playerController.stream?.relatedStreams {
+            LiveRelatedVideosSection(
+              playerController: playerController,
+              videos: related,
+              deArrowStore: deArrowStore,
+              dependencies: dependencies,
+              onSelect: { selectedRelatedVideo = $0 }
+            )
+          } else {
+            // The related section's slot holds a skeleton while the stream
+            // loads, so the page shape is stable from the start.
+            VStack(alignment: .leading, spacing: 12) {
+              TypeTypeSkeleton(cornerRadius: 6)
+                .frame(width: 140, height: 14)
+              ForEach(0..<2, id: \.self) { _ in
+                HStack(alignment: .top, spacing: 10) {
+                  TypeTypeSkeleton(cornerRadius: 8)
+                    .frame(width: 160, height: 90)
+                  VStack(alignment: .leading, spacing: 6) {
+                    TypeTypeSkeleton(cornerRadius: 4)
+                      .frame(height: 12)
+                    TypeTypeSkeleton(cornerRadius: 4)
+                      .frame(width: 180, height: 10)
+                  }
+                }
+              }
+            }
+            .accessibilityLabel("Loading related videos")
+          }
         }
 
         if !playerController.supportsBulletComments {
