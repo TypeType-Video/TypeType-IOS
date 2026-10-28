@@ -141,7 +141,10 @@ extension LiveAuthenticatedAppView {
     containerSize: CGSize,
     tabBarBand: CGFloat
   ) -> some View {
-    if playbackCoordinator.showsMiniPlayer {
+    // The in-app card is the FALLBACK for a failed or unavailable PiP —
+    // while the system PiP window is engaged it would only duplicate it.
+    if playbackCoordinator.showsMiniPlayer,
+      playbackCoordinator.controller?.pictureInPicture.isEngaged != true {
       LiveMiniPlayerView(
         coordinator: playbackCoordinator,
         onExpand: {
