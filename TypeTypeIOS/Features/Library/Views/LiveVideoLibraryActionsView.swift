@@ -26,69 +26,11 @@ struct LiveVideoLibraryActionsView: View {
   }
 
   var body: some View {
-    HStack(spacing: 18) {
-      iconButton(
-        systemImage: viewModel.isFavorite ? "heart.fill" : "heart",
-        label: viewModel.isFavorite ? "Favorited" : "Favorite",
-        isActive: viewModel.isFavorite
-      ) {
-        Task { await viewModel.toggleFavorite() }
-      }
-      .accessibilityIdentifier("live.video.favorite")
-
-      iconButton(
-        systemImage: viewModel.isInWatchLater
-          ? "clock.badge.checkmark"
-          : "clock",
-        label: viewModel.isInWatchLater ? "Saved for later" : "Watch later",
-        isActive: viewModel.isInWatchLater
-      ) {
-        Task { await viewModel.toggleWatchLater() }
-      }
-      .accessibilityIdentifier("live.video.watch-later")
-
-      playlistMenu
-
-      if let shareURL {
-        LiveShareAsLinkButton(
-          typeTypeURL: shareURL,
-          originalURL: LiveShareURLBuilder.original(
-            sourceURL: video.url
-          )
-        ) {
-          iconLabel("square.and.arrow.up", isActive: false)
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel("Share")
-        .accessibilityIdentifier("live.video.share")
-      }
-
-      iconButton(
-        systemImage: "arrow.down.circle",
-        label: "Download",
-        isActive: false
-      ) {
-        presentsDownload = true
-      }
-      .accessibilityIdentifier("live.video.download")
-
-      iconButton(
-        systemImage: "timer",
-        label: "Sleep timer",
-        isActive: playbackCoordinator.sleepTimer.isActive
-      ) {
-        presentsSleepTimer = true
-      }
-      .accessibilityIdentifier("live.video.sleep-timer")
-      .popover(
-        isPresented: $presentsSleepTimer,
-        attachmentAnchor: .point(.init(x: 0.5, y: 1.0)),
-        arrowEdge: .top
-      ) {
-        LivePlaybackSleepTimerPopover(coordinator: playbackCoordinator)
-      }
-
-      Spacer(minLength: 0)
+    // Six fixed 44 pt buttons: the 18 pt gaps alone overflowed a 375 pt iPhone and widened the whole page.
+    ViewThatFits(in: .horizontal) {
+      actionsRow(spacing: 18)
+      actionsRow(spacing: 10)
+      actionsRow(spacing: 4)
     }
     .frame(maxWidth: .infinity, alignment: .leading)
     .disabled(viewModel.isBusy)
@@ -150,6 +92,71 @@ struct LiveVideoLibraryActionsView: View {
     .buttonStyle(.plain)
     .accessibilityLabel("Save to playlist")
     .accessibilityIdentifier("live.video.save-playlist")
+  }
+
+  private func actionsRow(spacing: CGFloat) -> some View {
+    HStack(spacing: spacing) {
+      iconButton(
+        systemImage: viewModel.isFavorite ? "heart.fill" : "heart",
+        label: viewModel.isFavorite ? "Favorited" : "Favorite",
+        isActive: viewModel.isFavorite
+      ) {
+        Task { await viewModel.toggleFavorite() }
+      }
+      .accessibilityIdentifier("live.video.favorite")
+
+      iconButton(
+        systemImage: viewModel.isInWatchLater
+          ? "clock.badge.checkmark"
+          : "clock",
+        label: viewModel.isInWatchLater ? "Saved for later" : "Watch later",
+        isActive: viewModel.isInWatchLater
+      ) {
+        Task { await viewModel.toggleWatchLater() }
+      }
+      .accessibilityIdentifier("live.video.watch-later")
+
+      playlistMenu
+
+      if let shareURL {
+        LiveShareAsLinkButton(
+          typeTypeURL: shareURL,
+          originalURL: LiveShareURLBuilder.original(
+            sourceURL: video.url
+          )
+        ) {
+          iconLabel("square.and.arrow.up", isActive: false)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Share")
+        .accessibilityIdentifier("live.video.share")
+      }
+
+      iconButton(
+        systemImage: "arrow.down.circle",
+        label: "Download",
+        isActive: false
+      ) {
+        presentsDownload = true
+      }
+      .accessibilityIdentifier("live.video.download")
+
+      iconButton(
+        systemImage: "timer",
+        label: "Sleep timer",
+        isActive: playbackCoordinator.sleepTimer.isActive
+      ) {
+        presentsSleepTimer = true
+      }
+      .accessibilityIdentifier("live.video.sleep-timer")
+      .popover(
+        isPresented: $presentsSleepTimer,
+        attachmentAnchor: .point(.init(x: 0.5, y: 1.0)),
+        arrowEdge: .top
+      ) {
+        LivePlaybackSleepTimerPopover(coordinator: playbackCoordinator)
+      }
+    }
   }
 
   private func iconButton(
