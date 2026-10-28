@@ -62,6 +62,19 @@ Beta already built all of this; we port it and re-skin to iOS/DemoTheme.
 - Port `34a04e5` (DeArrow thumbnails keep their query instead of 404ing) and
   `736bca8` (LIVE badge + watching count).
 
+### Task 1.5 — Dev-added: progressive loading + prefetch worker
+- Skeletons EVERYWHERE (sweep every remaining spinner).
+- Load what the user can SEE first; background-worker prefetches the next
+  items the user is about to see (feed pages prefetch their thumbnails on
+  load; the pipeline keeps off-screen loads running).
+- PRIORITY RULE (dev): video and audio always first — image fetches run at
+  utility priority and must never compete with the media pipeline.
+
+### Task 1.5a — done pieces
+- Image pipeline task priority: `.utility` (was `.userInitiated`).
+- Feed prefetch: on feed page load, warm the page's thumbnails through the
+  pipeline (cache hit by the time cells render).
+
 **Files touched in phase 1:** `Core/Networking/` (new pipeline),
 `Features/Home/Views/LiveRemoteImage.swift`, one new `LiveSkeleton.swift`,
 the screen views listed above, `Features/Home/Views/LiveVideoCard.swift`.

@@ -22,7 +22,7 @@ struct LivePrivacyDataView: View {
     Group {
       switch viewModel.state {
       case .idle, .loading:
-        ProgressView("Loading stored data")
+        TypeTypeSkeletonList(layout: .rows, count: 6, scrolls: false)
       case let .failed(message):
         ContentUnavailableView {
           Label("Stored data unavailable", systemImage: "externaldrive.badge.exclamationmark")

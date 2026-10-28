@@ -26,7 +26,7 @@ struct LiveSubscriptionGroupsView: View {
     .navigationBarTitleDisplayMode(.inline)
     .overlay {
       if viewModel.isRefreshing, viewModel.groups.isEmpty {
-        ProgressView("Loading groups")
+        TypeTypeSkeletonList(layout: .rows, count: 6, scrolls: false)
       }
     }
     .refreshable {

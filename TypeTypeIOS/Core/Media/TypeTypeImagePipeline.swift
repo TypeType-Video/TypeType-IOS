@@ -26,7 +26,9 @@ actor TypeTypeImagePipeline {
     if let cached = memory.image(for: key) { return cached }
     if let running = inFlight[key] { return await running.value }
     let session = session
-    let task = Task.detached(priority: .userInitiated) {
+    // Video and audio always win: image fetches run at utility priority so
+    // they never compete with the media pipeline for resources.
+    let task = Task.detached(priority: .utility) {
       await Self.load(url, maxPixelSize: Self.bucket(maxPixelSize), session: session)
     }
     inFlight[key] = task

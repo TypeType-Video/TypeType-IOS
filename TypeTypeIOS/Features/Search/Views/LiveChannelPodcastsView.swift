@@ -29,7 +29,7 @@ struct LiveChannelPodcastsView: View {
       }
 
       if isLoading, podcasts.isEmpty {
-        ProgressView("Loading podcasts")
+        TypeTypeSkeletonList(layout: .rows, count: 6, scrolls: false)
           .frame(maxWidth: .infinity)
           .padding(.vertical, 24)
       } else {

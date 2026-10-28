@@ -25,7 +25,7 @@ struct LiveAdminAllowListView: View {
     Group {
       switch viewModel.state {
       case .idle, .loading:
-        ProgressView("Loading access rules")
+        TypeTypeSkeletonList(layout: .rows, count: 6, scrolls: false)
       case let .failed(message):
         ContentUnavailableView {
           Label("Access rules unavailable", systemImage: "lock.trianglebadge.exclamationmark")

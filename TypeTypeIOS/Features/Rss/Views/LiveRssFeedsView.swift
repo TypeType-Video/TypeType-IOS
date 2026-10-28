@@ -20,8 +20,7 @@ struct LiveRssFeedsView: View {
     Group {
       switch viewModel.state {
       case .idle, .loading:
-        ProgressView("Loading RSS feeds")
-          .frame(maxWidth: .infinity, maxHeight: .infinity)
+        TypeTypeSkeletonList(layout: .rows, count: 8)
       case let .failed(message):
         ContentUnavailableView {
           Label("RSS unavailable", systemImage: "dot.radiowaves.left.and.right")
