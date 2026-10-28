@@ -46,7 +46,7 @@ struct LiveAuthenticatedAppView: View {
       }
     }
     .animation(.snappy.delay(0.25), value: playbackCoordinator.showsMiniPlayer)
-    .onChange(of: scenePhase) { _, phase in
+    .onChange(of: scenePhase) { phase in
       // Leaving the app with the in-house player active hands the video to
       // the system PiP; returning brings it back to the player page.
       guard let controller = playbackCoordinator.controller,
@@ -55,7 +55,7 @@ struct LiveAuthenticatedAppView: View {
       if phase == .background,
         !controller.pictureInPicture.isEngaged,
         playbackCoordinator.hasActivePlayback {
-        startSystemPictureInPicture()
+        playbackCoordinator.startSystemPictureInPicture()
       }
       if phase == .active, controller.pictureInPicture.isEngaged {
         controller.pictureInPicture.bringInline()
