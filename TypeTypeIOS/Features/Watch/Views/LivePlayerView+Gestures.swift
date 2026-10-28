@@ -127,9 +127,9 @@ extension LivePlayerView {
   }
 
   /// Hold baseline is 2x; dragging up ramps toward 4x, down toward 1x,
-  /// in half-step clicks (100pt = 2x of travel). The HUD shows the rate.
+  /// in half-step clicks (200pt = 2x of travel). The HUD shows the rate.
   func applySpeedRamp(translationHeight: CGFloat) {
-    let raw = 2.0 + (-translationHeight / 100.0) * 2.0
+    let raw = 2.0 + (-translationHeight / 200.0) * 2.0
     let stepped = (raw * 2).rounded() / 2
     let rate = Float(min(max(stepped, 1), 4))
     speedBoostRate = rate
