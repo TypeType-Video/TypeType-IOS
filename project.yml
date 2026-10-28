@@ -83,7 +83,7 @@ targets:
         PRODUCT_NAME: TypeTypePlayerKit
 
   TypeTypeLiveActivity:
-    type: app.extension
+    type: app-extension
     platform: iOS
     deploymentTarget: "17.0"
     sources:
