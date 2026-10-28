@@ -36,16 +36,12 @@ struct LiveVideoMetadataContentView: View {
   var body: some View {
     ScrollViewReader { proxy in
     VStack(spacing: 0) {
-      // The player stays pinned: the lower part scrolls under it, the video
-      // never leaves the screen (no scroll-away PiP at all).
-      LivePlayerView(
-        controller: playerController,
-        coordinator: playbackCoordinator,
-        dependencies: dependencies,
-        posterURL: posterURL,
-        cinemaMode: $cinemaMode
-      )
-      .padding(.horizontal, cinemaMode ? -16 : 0)
+      // Placeholder slot for the player, which floats as a page-level
+      // overlay (see below): in fullscreen the stage grows OVER the still
+      // surroundings instead of pushing them away — one visible motion.
+      Color.clear
+        .aspectRatio(16 / 9, contentMode: .fit)
+        .padding(.horizontal, cinemaMode ? -16 : 0)
 
       ScrollView {
       VStack(alignment: .leading, spacing: 18) {
@@ -169,10 +165,6 @@ struct LiveVideoMetadataContentView: View {
     }
     .background(DemoThemeBackground())
       .liveThemeRepaint()
-      // Fullscreen is the video alone: the scroll area collapses instead of
-      // splitting the VStack with the player (it stays mounted, so no
-      // metadata re-fetch on the way back).
-      .frame(maxHeight: playerController.isPresentingFullscreen ? 0 : .infinity)
     .navigationTitle("Video")
     .navigationBarTitleDisplayMode(.inline)
     .navigationDestination(
@@ -200,6 +192,19 @@ struct LiveVideoMetadataContentView: View {
       )
     }
     }
+    }
+    .overlay(alignment: .top) {
+      // The player floats over the page: pinned in its slot inline, filling
+      // (and covering) everything in fullscreen. The surroundings never
+      // move — the growing stage covers them, one figure.
+      LivePlayerView(
+        controller: playerController,
+        coordinator: playbackCoordinator,
+        dependencies: dependencies,
+        posterURL: posterURL,
+        cinemaMode: $cinemaMode
+      )
+      .padding(.horizontal, cinemaMode ? -16 : 0)
     }
     .toolbar(
       playerController.isPresentingFullscreen ? .hidden : .automatic,

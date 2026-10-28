@@ -101,8 +101,10 @@ final class LiveLandscapeHostingController: UIHostingController<LiveNativeFullsc
       // rotation through the transition coordinator, not after them.
       let controller = host.controller
       if let coordinator = host.transitionCoordinator {
+        let duration =
+          coordinator.transitionDuration > 0.05 ? coordinator.transitionDuration : growthDuration
         coordinator.animate(alongsideTransition: { _ in
-          withAnimation(.easeInOut(duration: coordinator.transitionDuration)) {
+          withAnimation(.easeInOut(duration: duration)) {
             controller?.isPresentingFullscreen = false
           }
         })
@@ -205,11 +207,13 @@ final class LiveLandscapeHostingController: UIHostingController<LiveNativeFullsc
       // fade ride the system rotation through its transition coordinator.
       created.onRotate = { host, coordinator in
         guard !host.isBeingDismissed, !controller.isPresentingFullscreen else { return }
+        let duration =
+          coordinator.transitionDuration > 0.05 ? coordinator.transitionDuration : growthDuration
         AppLogger.playback.info(
-          "fullscreen: rotation hook fired duration=\(coordinator.transitionDuration, privacy: .public)"
+          "fullscreen: rotation hook fired duration=\(duration, privacy: .public)"
         )
         coordinator.animate(alongsideTransition: { _ in
-          withAnimation(.easeInOut(duration: coordinator.transitionDuration)) {
+          withAnimation(.easeInOut(duration: duration)) {
             controller.isPresentingFullscreen = true
           }
         })
@@ -232,7 +236,7 @@ final class LiveLandscapeHostingController: UIHostingController<LiveNativeFullsc
         LiveScreenOrientation.set(.landscape)
         created.setNeedsUpdateOfSupportedInterfaceOrientations()
         Task { @MainActor in
-          try? await Task.sleep(for: .milliseconds(450))
+          try? await Task.sleep(for: .milliseconds(200))
           guard !controller.isPresentingFullscreen, active === created else { return }
           AppLogger.playback.info("fullscreen: rotation hook missed, growing on fallback timer")
           withAnimation(.easeInOut(duration: growthDuration)) {
