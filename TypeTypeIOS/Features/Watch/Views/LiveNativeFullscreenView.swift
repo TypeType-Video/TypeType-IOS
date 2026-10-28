@@ -16,11 +16,15 @@ struct LiveNativeFullscreenView: View {
       }
       LiveNativeSubtitleOverlay(controller: controller)
       LiveNativePlayerControls(controller: controller, controls: controls, isFullscreen: true) {
+        AppLogger.playback.info("fullscreen: onClose via exit-button")
         onClose()
       }
     }
     .onChange(of: controller.nativePlayback == nil) {
-      if controller.nativePlayback == nil { onClose() }
+      if controller.nativePlayback == nil {
+        AppLogger.playback.info("fullscreen: onClose via playback-nil")
+        onClose()
+      }
     }
     // The system can rotate the window out from under this landscape-locked
     // modal when the phone is turned. Own geometry is the truth: once the
@@ -32,6 +36,7 @@ struct LiveNativeFullscreenView: View {
       if landscape {
         wasLandscape = true
       } else if wasLandscape {
+        AppLogger.playback.info("fullscreen: onClose via geometry-portrait")
         onClose()
       }
     }
@@ -43,6 +48,7 @@ struct LiveNativeFullscreenView: View {
           guard value.translation.height > 120,
             abs(value.translation.width) < value.translation.height
           else { return }
+          AppLogger.playback.info("fullscreen: onClose via modal-drag")
           onClose()
         }
     )
@@ -54,9 +60,13 @@ struct LiveNativeFullscreenView: View {
 final class LiveLandscapeHostingController: UIHostingController<LiveNativeFullscreenView> {
   static weak var active: LiveLandscapeHostingController?
 
-  static func dismissActive() {
-    if let active, !active.isBeingDismissed {
-      active.dismiss(animated: true)
+  static func dismissActive(reason: String = "unspecified") {
+    let host = active
+    AppLogger.playback.info(
+      "fullscreen: dismissActive reason=\(reason, privacy: .public) host=\(host != nil, privacy: .public) isBeingDismissed=\(host?.isBeingDismissed ?? false, privacy: .public) isBeingPresented=\(host?.isBeingPresented ?? false, privacy: .public) hostInWindow=\(host?.viewIfLoaded?.window != nil, privacy: .public) presenting=\(host?.presentingViewController != nil, privacy: .public)"
+    )
+    if let host, !host.isBeingDismissed {
+      host.dismiss(animated: true)
     }
   }
   override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
@@ -71,6 +81,9 @@ final class LiveLandscapeHostingController: UIHostingController<LiveNativeFullsc
 
   override func viewDidDisappear(_ animated: Bool) {
     super.viewDidDisappear(animated)
+    AppLogger.playback.info(
+      "fullscreen: viewDidDisappear animated=\(animated, privacy: .public) presentingGone=\(self.presentingViewController == nil, privacy: .public)"
+    )
     onDisappear?()
   }
 
@@ -80,7 +93,7 @@ final class LiveLandscapeHostingController: UIHostingController<LiveNativeFullsc
   @MainActor
   static func present(for controller: LivePlayerController) {
     AppLogger.playback
-      .info("fullscreen: present requested")
+      .info("fullscreen: present requested flag=\(controller.isPresentingFullscreen, privacy: .public) host=\(active != nil, privacy: .public)")
     controller.pictureInPicture.uninstallNativeContent()
     controller.isPresentingFullscreen = true
     Task { @MainActor in
@@ -103,7 +116,8 @@ final class LiveLandscapeHostingController: UIHostingController<LiveNativeFullsc
       weak var host: LiveLandscapeHostingController?
       let created = LiveLandscapeHostingController(
         rootView: LiveNativeFullscreenView(controller: controller) {
-          LiveLandscapeHostingController.dismissActive()
+          AppLogger.playback.info("fullscreen: onClose closure fired")
+          LiveLandscapeHostingController.dismissActive(reason: "modal-onClose")
         }
       )
       created.modalPresentationStyle = .fullScreen
@@ -112,14 +126,23 @@ final class LiveLandscapeHostingController: UIHostingController<LiveNativeFullsc
       created.modalTransitionStyle = .crossDissolve
       created.onDisappear = {
         AppLogger.playback
-          .info("fullscreen: host disappeared")
+          .info("fullscreen: host disappeared flag=\(controller.isPresentingFullscreen, privacy: .public)")
         controller.isPresentingFullscreen = false
         // The window was rotated on entry; the dismissal owns the return.
         LiveScreenOrientation.set(.portrait)
       }
       host = created
       active = created
+      AppLogger.playback.info(
+        "fullscreen: presenting host top=\(String(describing: type(of: top)), privacy: .public)"
+      )
       top.present(created, animated: true)
+      Task { @MainActor in
+        try? await Task.sleep(for: .milliseconds(400))
+        AppLogger.playback.info(
+          "fullscreen: present settled presented=\(created.presentingViewController != nil, privacy: .public) inWindow=\(created.viewIfLoaded?.window != nil, privacy: .public) isBeingDismissed=\(created.isBeingDismissed, privacy: .public)"
+        )
+      }
     }
   }
 }

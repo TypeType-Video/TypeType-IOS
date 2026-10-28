@@ -24,7 +24,7 @@ extension LiveAuthenticatedAppView {
       isPresented: $presentsExpandedPlayback,
       onDismiss: {
         if playbackCoordinator.controller?.isPresentingFullscreen == true {
-          playbackCoordinator.controller?.exitNativeFullscreen()
+          playbackCoordinator.controller?.exitNativeFullscreen("cover-dismiss")
         }
         guard playbackCoordinator.presentation == .expanded else { return }
         playbackCoordinator.minimize()

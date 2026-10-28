@@ -5,6 +5,8 @@ import UIKit
 /// this only asks the scene to follow the player.
 enum LiveScreenOrientation {
   static func set(_ orientation: UIInterfaceOrientationMask) {
+    AppLogger.playback
+      .info("fullscreen: orientation set \(String(describing: orientation), privacy: .public)")
     DispatchQueue.main.async {
       guard let scene = UIApplication.shared.connectedScenes
         .compactMap({ $0 as? UIWindowScene })

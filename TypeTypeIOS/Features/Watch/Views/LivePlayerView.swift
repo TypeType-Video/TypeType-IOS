@@ -65,8 +65,9 @@ struct LivePlayerView: View {
             controls: nativeControls,
             isFullscreen: controller.isPresentingFullscreen
           ) {
+            AppLogger.playback.info("fullscreen: toggle pressed flag=\(controller.isPresentingFullscreen, privacy: .public)")
             if controller.isPresentingFullscreen {
-              controller.exitNativeFullscreen()
+              controller.exitNativeFullscreen("player-toggle")
             } else {
               controller.enterNativeFullscreen()
             }
@@ -112,7 +113,7 @@ struct LivePlayerView: View {
             value.translation.height > 120,
             abs(value.translation.width) < value.translation.height
           else { return }
-          controller.exitNativeFullscreen()
+          controller.exitNativeFullscreen("player-drag")
         }
     )
     .overlay(alignment: .top) {

@@ -170,12 +170,16 @@ extension LivePlayerController {
   /// orientations override the user's rotation lock, which a plain window
   /// rotation request cannot. The host clears the flag on dismissal.
   func enterNativeFullscreen() {
+    AppLogger.playback
+      .info("fullscreen: enter requested flag=\(self.isPresentingFullscreen, privacy: .public)")
     guard !isPresentingFullscreen else { return }
     LiveLandscapeHostingController.present(for: self)
   }
 
-  func exitNativeFullscreen() {
-    LiveLandscapeHostingController.dismissActive()
+  func exitNativeFullscreen(_ reason: String = "unspecified") {
+    AppLogger.playback
+      .info("fullscreen: exit requested reason=\(reason, privacy: .public) flag=\(self.isPresentingFullscreen, privacy: .public)")
+    LiveLandscapeHostingController.dismissActive(reason: reason)
   }
 
   func fallBackFromNative(reason: String) {

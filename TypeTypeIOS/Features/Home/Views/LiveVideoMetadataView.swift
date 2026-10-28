@@ -50,10 +50,12 @@ struct LiveVideoMetadataView: View {
             controls: fullscreenControls,
             isFullscreen: true
           ) {
-            controller.exitNativeFullscreen()
+            controller.exitNativeFullscreen("metadata-button")
           }
         }
         .transition(.opacity)
+        .onAppear { AppLogger.playback.info("fullscreen: metadata overlay appeared") }
+        .onDisappear { AppLogger.playback.info("fullscreen: metadata overlay disappeared") }
         .gesture(
           // Dragging down inside the landscape stage returns the player
           // page and the window together with it.
@@ -62,7 +64,7 @@ struct LiveVideoMetadataView: View {
               guard value.translation.height > 120,
                 abs(value.translation.width) < value.translation.height
               else { return }
-              controller.exitNativeFullscreen()
+              controller.exitNativeFullscreen("metadata-drag")
             }
         )
       }
