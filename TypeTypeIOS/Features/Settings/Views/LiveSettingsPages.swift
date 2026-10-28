@@ -122,11 +122,6 @@ struct LiveSettingsAppearanceView: View {
   let dependencies: AppDependencies
   @ObservedObject var viewModel: LiveSettingsViewModel
   @ObservedObject var preferences: LiveAppPreferencesStore
-  @Environment(\.demoTheme) private var palette
-
-  private var previewIsManga: Bool {
-    preferences.preferences.appearancePersonality == .manga
-  }
 
   var body: some View {
     LiveSettingsEditingPage(
@@ -134,16 +129,18 @@ struct LiveSettingsAppearanceView: View {
       dependencies: dependencies
     ) {
       Section {
-        LiveOptionMenu(
-          "Accent color",
-          selection: preferences.binding(\.accentColor),
-          options: LiveAccentColor.allCases.map { ($0, $0.title) }
+        LiveAppearanceThemeTiles(
+          selection: preferences.binding(\.appearanceTheme),
+          isDark: isEffectivelyDark
         )
-        LiveOptionMenu(
-          "Personality",
-          selection: preferences.binding(\.appearancePersonality),
-          options: LiveAppearancePersonality.allCases.map { ($0, $0.title) }
+        LiveAppearanceAccentDots(
+          selection: preferences.binding(\.accentColor)
         )
+      } header: {
+        Text("Appearance").liveSectionHeader()
+      }
+
+      Section {
         LiveOptionMenu(
           "Color scheme",
           selection: preferences.binding(\.appearanceMode),
@@ -155,11 +152,6 @@ struct LiveSettingsAppearanceView: View {
           Toggle("AMOLED black", isOn: preferences.binding(\.appearanceAmoled)).liveRowFill()
         }
         LiveOptionMenu(
-          "Theme",
-          selection: preferences.binding(\.appearanceTheme),
-          options: LiveAppearanceTheme.allCases.map { ($0, $0.title) }
-        )
-        LiveOptionMenu(
           "Font",
           selection: preferences.binding(\.appearanceFont),
           options: LiveAppearanceFont.allCases.map { ($0, $0.title) }
@@ -169,120 +161,143 @@ struct LiveSettingsAppearanceView: View {
           selection: preferences.binding(\.appearanceMotion),
           options: LiveAppearanceMotion.allCases.map { ($0, $0.title) }
         )
-      } header: {
-        Text("Appearance").liveSectionHeader()
-      }
-
-      if preferences.preferences.appearancePersonality == .manga {
-        Section {
-          LiveOptionMenu(
-            "Paper",
-            selection: preferences.binding(\.mangaPaper),
-            options: LiveMangaPaper.allCases.map { ($0, $0.title) }
-          )
-          LiveOptionMenu(
-            "Headline marker",
-            selection: preferences.binding(\.mangaHeadlineMarker),
-            options: LiveMangaHeadlineMarker.allCases.map { ($0, $0.title) }
-          )
-          Toggle(
-            "Screentone",
-            isOn: preferences.binding(\.mangaScreentone)
-          ).liveRowFill()
-          Toggle(
-            "Speed lines",
-            isOn: preferences.binding(\.mangaSpeedLines)
-          ).liveRowFill()
-          Toggle(
-            "Starburst",
-            isOn: preferences.binding(\.mangaStarburst)
-          ).liveRowFill()
-          Toggle(
-            "Inked icons",
-            isOn: preferences.binding(\.mangaInkedIcons)
-          ).liveRowFill()
-          Toggle(
-            "Panel tilt",
-            isOn: preferences.binding(\.mangaPanelTilt)
-          ).liveRowFill()
-        } header: {
-        Text("Manga").liveSectionHeader()
-      }
-      }
-
-      Section {
-        ZStack {
-          // Android `AppearancePreview`: classic = Surface with tonal
-          // elevation 2dp (the tinted variant role — plain surface reads as
-          // "no theme" in light mode); manga = surface + 2dp outline border.
-          RoundedRectangle(cornerRadius: 16, style: .continuous)
-            .fill(previewIsManga ? palette.surface : palette.groupedSurface)
-            .overlay {
-              if previewIsManga, preferences.preferences.mangaScreentone {
-                  Canvas { context, size in
-                    var x: CGFloat = 8
-                    while x < size.width {
-                      var y: CGFloat = 8
-                      while y < size.height {
-                        context.fill(
-                          Path(ellipseIn: CGRect(x: x, y: y, width: 2, height: 2)),
-                          with: .color(.primary.opacity(0.10))
-                        )
-                        y += 12
-                      }
-                      x += 12
-                    }
-                  }
-                }
-            }
-            .frame(height: 132)
-            .overlay {
-              if previewIsManga {
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                  .strokeBorder(palette.elevatedSurface, lineWidth: 2)
-              }
-            }
-            .rotationEffect(
-              .degrees(
-                previewIsManga
-                  && preferences.preferences.mangaPanelTilt ? -1 : 0
-              )
-            )
-
-            VStack(alignment: .leading, spacing: 6) {
-              Text("TypeType")
-                .accessibilityIdentifier("live.settings.appearance.preview")
-                .font(
-                  preferences.preferences.appearancePersonality == .manga
-                    ? .title2.weight(.black).monospaced()
-                    : .title2.weight(.semibold)
-                )
-              Text("Theme preview")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(20)
-          }
-          HStack(spacing: 8) {
-            Circle()
-              .fill(preferences.preferences.accentColor.color)
-              .frame(width: 24, height: 24)
-              .overlay(Circle().strokeBorder(palette.separator))
-            Text(preferences.preferences.accentColor.title)
-              .font(.caption)
-            Spacer()
-            Text(preferences.preferences.appearanceTheme.title)
-              .font(.caption)
-              .foregroundStyle(.secondary)
-          }
-        } header: {
-        Text("Preview").liveSectionHeader()
       }
     }
     .navigationTitle("Appearance")
     .navigationBarTitleDisplayMode(.inline)
     .accessibilityIdentifier("live.settings.appearance")
+  }
+}
+
+/// Theme picker as live preview tiles: each theme's real surface colours in
+/// a mini feed mock-up (dev feedback, plan 6.1; adapted from beta 9b680fe).
+struct LiveAppearanceThemeTiles: View {
+  @Binding var selection: LiveAppearanceTheme
+  let isDark: Bool
+
+  var body: some View {
+    ScrollView(.horizontal) {
+      HStack(alignment: .top, spacing: 12) {
+        ForEach(LiveAppearanceTheme.allCases) { theme in
+          Button {
+            selection = theme
+          } label: {
+            VStack(spacing: 6) {
+              LiveAppearanceMiniScreen(theme: theme, isDark: isDark)
+                .frame(width: 66, height: 96)
+                .overlay {
+                  RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .strokeBorder(
+                      DemoTheme.accent,
+                      lineWidth: selection == theme ? 2.5 : 0
+                    )
+                }
+              Text(theme.title)
+                .font(
+                  .caption2.weight(selection == theme ? .semibold : .regular)
+                )
+                .foregroundStyle(selection == theme ? DemoTheme.accent : .primary)
+            }
+            .contentShape(Rectangle())
+          }
+          .buttonStyle(.plain)
+          .accessibilityLabel(theme.title)
+          .accessibilityAddTraits(selection == theme ? .isSelected : [])
+          .accessibilityIdentifier("live.settings.appearance.theme.\(theme.id)")
+        }
+      }
+      .padding(.vertical, 8)
+    }
+    .scrollIndicators(.hidden)
+    .accessibilityIdentifier("live.settings.appearance.themes")
+  }
+}
+
+/// A tiny feed mock-up drawn in one theme's real surface colours.
+struct LiveAppearanceMiniScreen: View {
+  let theme: LiveAppearanceTheme
+  let isDark: Bool
+
+  var body: some View {
+    let colors = DemoTheme.themeSurfaceColors(isDark: isDark, theme: theme)
+    return RoundedRectangle(cornerRadius: 12, style: .continuous)
+      .fill(colors.background)
+      .overlay(alignment: .topLeading) {
+        VStack(alignment: .leading, spacing: 4) {
+          RoundedRectangle(cornerRadius: 4, style: .continuous)
+            .fill(colors.variant)
+            .frame(height: 26)
+          Capsule()
+            .fill(textPrimary.opacity(0.75))
+            .frame(width: 40, height: 5)
+          Capsule()
+            .fill(textSecondary.opacity(0.5))
+            .frame(width: 28, height: 4)
+          Capsule()
+            .fill(DemoTheme.accent)
+            .frame(width: 22, height: 7)
+        }
+        .padding(7)
+      }
+      .overlay {
+        RoundedRectangle(cornerRadius: 12, style: .continuous)
+          .strokeBorder(colors.outline, lineWidth: 1)
+      }
+      .accessibilityHidden(true)
+  }
+
+  // Android text roles: onSurface = Zinc950 light / Zinc100 dark and
+  // onSurfaceVariant = Zinc700 light / Zinc400 dark, not tinted per theme.
+  private var textPrimary: Color {
+    isDark
+      ? Color(red: 0.957, green: 0.957, blue: 0.961)  // F4F4F5
+      : Color(red: 0.035, green: 0.035, blue: 0.043)  // 09090B
+  }
+
+  private var textSecondary: Color {
+    isDark
+      ? Color(red: 0.631, green: 0.631, blue: 0.667)  // A1A1AA
+      : Color(red: 0.247, green: 0.247, blue: 0.275)  // 3F3F46
+  }
+}
+
+/// Accent colours as compact circles with a checkmark on the selected one.
+struct LiveAppearanceAccentDots: View {
+  @Binding var selection: LiveAccentColor
+
+  var body: some View {
+    HStack(spacing: 0) {
+      ForEach(LiveAccentColor.allCases) { accent in
+        Button {
+          selection = accent
+        } label: {
+          Circle()
+            .fill(accent.color)
+            .frame(width: 28, height: 28)
+            .overlay {
+              if accent == selection {
+                Image(systemName: "checkmark")
+                  .font(.system(size: 12, weight: .bold))
+                  .foregroundStyle(.white)
+              }
+            }
+            .overlay {
+              Circle().strokeBorder(
+                DemoTheme.separator.opacity(0.55),
+                lineWidth: 0.5
+              )
+            }
+            .frame(maxWidth: .infinity)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(accent.title)
+        .accessibilityAddTraits(accent == selection ? .isSelected : [])
+        .accessibilityIdentifier("live.settings.appearance.accent.\(accent.id)")
+      }
+    }
+    .padding(.vertical, 8)
+    .accessibilityIdentifier("live.settings.appearance.accent")
   }
 }
 
