@@ -48,17 +48,6 @@ struct LiveCollectionView: View {
         )
       }
       .task { await viewModel.prepare() }
-      .confirmationDialog(
-        "Remove from \(viewModel.kind.title)?",
-        isPresented: removalBinding,
-        titleVisibility: .visible
-      ) {
-        Button("Remove", role: .destructive) {
-          guard let item = pendingRemoval else { return }
-          Task { await viewModel.remove(item) }
-          pendingRemoval = nil
-        }
-      }
       .alert("Library", isPresented: errorBinding) {
         Button("OK") { viewModel.dismissError() }
       } message: {
@@ -109,6 +98,22 @@ struct LiveCollectionView: View {
               onSelect: { selectedVideo = item.video },
               onRemove: { pendingRemoval = item }
             )
+            .popover(
+              isPresented: Binding(
+                get: { pendingRemoval?.id == item.id },
+                set: { if !$0 { pendingRemoval = nil } }
+              ),
+              attachmentAnchor: .point(.init(x: 0.5, y: 1.0)),
+              arrowEdge: .top
+            ) {
+              LiveConfirmCard(
+                title: "Remove from \(viewModel.kind.title)?",
+                confirmTitle: "Remove"
+              ) {
+                Task { await viewModel.remove(item) }
+                pendingRemoval = nil
+              }
+            }
           }
         }
         .padding(16)
@@ -127,13 +132,6 @@ struct LiveCollectionView: View {
         alignment: .top
       ),
     ]
-  }
-
-  private var removalBinding: Binding<Bool> {
-    Binding(
-      get: { pendingRemoval != nil },
-      set: { if !$0 { pendingRemoval = nil } }
-    )
   }
 
   private var errorBinding: Binding<Bool> {

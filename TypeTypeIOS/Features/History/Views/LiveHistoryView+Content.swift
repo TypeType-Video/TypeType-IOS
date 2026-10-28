@@ -53,6 +53,23 @@ extension LiveHistoryView {
               },
               onRemove: { pendingRemoval = item }
             )
+            .popover(
+              isPresented: Binding(
+                get: { pendingRemoval?.id == item.id },
+                set: { if !$0 { pendingRemoval = nil } }
+              ),
+              attachmentAnchor: .point(.init(x: 0.5, y: 1.0)),
+              arrowEdge: .top
+            ) {
+              LiveConfirmCard(
+                title: "Remove from history?",
+                confirmTitle: "Remove"
+              ) {
+                guard let item = pendingRemoval else { return }
+                pendingRemoval = nil
+                Task { await viewModel.remove(item) }
+              }
+            }
           }
           DemoIncrementalLoadingTrigger(
             canLoadMore: viewModel.canLoadMore,
@@ -80,13 +97,6 @@ extension LiveHistoryView {
         alignment: .top
       ),
     ]
-  }
-
-  var removalBinding: Binding<Bool> {
-    Binding(
-      get: { pendingRemoval != nil },
-      set: { if !$0 { pendingRemoval = nil } }
-    )
   }
 
   var errorBinding: Binding<Bool> {

@@ -6,7 +6,6 @@ struct LiveHistoryView: View {
   @State var selectedVideo: LiveVideoItem?
   @State var selectedChannelURL: String?
   @State var pendingRemoval: LiveHistoryItem?
-  @State var confirmsClear = false
   @State var choosesDate = false
 
   init(coordinator: RootCoordinator, viewModel: LiveHistoryViewModel) {
@@ -45,25 +44,6 @@ struct LiveHistoryView: View {
     .sheet(isPresented: $choosesDate) {
       LiveHistoryDateSheet { date in
         viewModel.setFilter(.date(date))
-      }
-    }
-    .sheet(isPresented: $confirmsClear) {
-      LiveConfirmCard(
-        title: "Clear watch history?",
-        message: "This removes every video from your watch history.",
-        confirmTitle: "Clear all"
-      ) {
-        Task { await viewModel.clear() }
-      }
-    }
-    .sheet(isPresented: removalBinding) {
-      LiveConfirmCard(
-        title: "Remove from history?",
-        confirmTitle: "Remove"
-      ) {
-        guard let item = pendingRemoval else { return }
-        pendingRemoval = nil
-        Task { await viewModel.remove(item) }
       }
     }
     .alert(
