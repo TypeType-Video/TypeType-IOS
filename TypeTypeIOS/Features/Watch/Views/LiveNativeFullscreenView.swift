@@ -89,7 +89,7 @@ final class LiveLandscapeHostingController: UIHostingController<LiveNativeFullsc
       weak var host: LiveLandscapeHostingController?
       let created = LiveLandscapeHostingController(
         rootView: LiveNativeFullscreenView(controller: controller) {
-          host?.dismiss(animated: true)
+          LiveLandscapeHostingController.dismissActive()
         }
       )
       created.modalPresentationStyle = .fullScreen
