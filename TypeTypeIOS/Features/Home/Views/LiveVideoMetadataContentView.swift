@@ -13,7 +13,6 @@ struct LiveVideoMetadataContentView: View {
   @State var selectedRelatedVideo: LiveVideoItem?
   @State var selectedPublicPlaylist: LivePlaylistResult?
   @State var pendingExternalURL: URL?
-  @State private var coverAppearedAt = Date()
   @AppStorage("typetype.player.cinema-mode")
   private var cinemaMode = true
 
@@ -203,34 +202,15 @@ struct LiveVideoMetadataContentView: View {
       for: .navigationBar
     )
     .statusBarHidden(playerController.isPresentingFullscreen)
-    // Rotation IS the fullscreen toggle (dev spec), crash-safe edition:
-    // the modal waits out the cover's presentation before presenting.
     .onGeometryChange(for: CGSize.self) { proxy in
       proxy.size
     } action: { size in
-      let landscape = size.width > size.height
-      if landscape {
-        guard !playerController.isPresentingFullscreen else { return }
-        // The cover's own presentation also fires this with landscape
-        // values while the phone is landscape-held; presenting during it
-        // crashes. After the cover settles, present immediately.
-        if Date().timeIntervalSince(coverAppearedAt) > 0.8 {
-          playerController.enterNativeFullscreen()
-        } else {
-          Task { @MainActor in
-            try? await Task.sleep(for: .milliseconds(700))
-            guard !playerController.isPresentingFullscreen,
-              UIScreen.main.bounds.width > UIScreen.main.bounds.height
-            else { return }
-            playerController.enterNativeFullscreen()
-          }
-        }
-      } else if playerController.isPresentingFullscreen {
-        // Rotating back out leaves fullscreen.
-        playerController.exitNativeFullscreen()
-      }
+      // Geometry is the single source of truth: landscape = fullscreen.
+      // This only flips the flag — the inline player grows to the window
+      // (riding the system rotation animation); the modal exists solely
+      // for the button, whose force-rotate bypasses the rotation lock.
+      playerController.isPresentingFullscreen = size.width > size.height
     }
-    .onAppear { coverAppearedAt = Date() }
     .animation(.easeInOut(duration: 0.5), value: playerController.isPresentingFullscreen)
     .liveStartupProbe(playerController.lastStartupMilliseconds)
     .environment(\.liveWatchExtrasEnabled, playerController.extrasReleased)
