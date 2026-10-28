@@ -202,23 +202,6 @@ struct LiveVideoMetadataContentView: View {
       for: .navigationBar
     )
     .statusBarHidden(playerController.isPresentingFullscreen)
-    // Rotation IS the fullscreen state: landscape window = fullscreen,
-    // portrait window = the inline player. The button just rotates.
-    .onGeometryChange(for: CGSize.self) { proxy in
-      proxy.size
-    } action: { size in
-      // Rotating the phone IS the fullscreen toggle (dev spec). The modal
-      // must not present while the cover's own presentation is still
-      // animating — that is an instant UIKit crash — so the presentation
-      // waits out the cover's slide first.
-      let landscape = size.width > size.height
-      guard landscape, !playerController.isPresentingFullscreen else { return }
-      Task { @MainActor in
-        try? await Task.sleep(for: .milliseconds(600))
-        guard !playerController.isPresentingFullscreen else { return }
-        playerController.enterNativeFullscreen()
-      }
-    }
     .animation(.easeInOut(duration: 0.5), value: playerController.isPresentingFullscreen)
     .liveStartupProbe(playerController.lastStartupMilliseconds)
     .environment(\.liveWatchExtrasEnabled, playerController.extrasReleased)
