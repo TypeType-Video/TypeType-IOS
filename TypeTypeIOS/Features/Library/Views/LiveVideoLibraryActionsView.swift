@@ -80,6 +80,15 @@ struct LiveVideoLibraryActionsView: View {
         presentsSleepTimer = true
       }
       .accessibilityIdentifier("live.video.sleep-timer")
+      .popover(
+        isPresented: $presentsSleepTimer,
+        attachmentAnchor: .point(.init(x: 0.5, y: 1.0)),
+        arrowEdge: .top
+      ) {
+        LivePlaybackSleepTimerView(coordinator: playbackCoordinator)
+          .frame(width: 320, height: 300)
+          .presentationCompactAdaptation(.popover)
+      }
 
       Spacer(minLength: 0)
     }
@@ -102,16 +111,6 @@ struct LiveVideoLibraryActionsView: View {
     }
     .sheet(isPresented: $presentsDownload) {
       LiveDownloadSheet(video: video, dependencies: dependencies)
-    }
-    .sheet(isPresented: $presentsSleepTimer) {
-      NavigationStack {
-        LivePlaybackSleepTimerView(coordinator: playbackCoordinator)
-        .toolbar {
-          ToolbarItem(placement: .cancellationAction) {
-            Button("Close") { presentsSleepTimer = false }
-          }
-        }
-      }
     }
     .alert("Library", isPresented: errorBinding) {
       Button("OK") { viewModel.dismissError() }
