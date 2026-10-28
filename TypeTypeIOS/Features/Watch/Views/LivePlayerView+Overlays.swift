@@ -122,10 +122,18 @@ extension LivePlayerView {
   var statusOverlay: some View {
     switch controller.state {
     case .idle, .loading:
-      ProgressView()
-        .controlSize(.large)
-        .tint(.white)
-        .accessibilityLabel("Preparing video")
+      // The video's own thumbnail as the poster while it prepares; the
+      // spinner rides on top of it, small.
+      ZStack {
+        if let poster = posterURL {
+          LiveRemoteImage(url: poster)
+            .opacity(0.55)
+        }
+        ProgressView()
+          .controlSize(.large)
+          .tint(.white)
+      }
+      .accessibilityLabel("Preparing video")
     case let .failed(message):
       VStack(spacing: 12) {
         Image(systemName: "exclamationmark.triangle")

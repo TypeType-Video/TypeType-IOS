@@ -45,12 +45,25 @@ struct LiveCommentsSectionView: View {
   private var content: some View {
     switch viewModel.state {
     case .idle, .loading:
-      HStack(spacing: 10) {
-        ProgressView()
-        Text("Loading comments")
-          .foregroundStyle(.secondary)
+      VStack(alignment: .leading, spacing: 14) {
+        ForEach(0..<4, id: \.self) { _ in
+          HStack(alignment: .top, spacing: 10) {
+            TypeTypeSkeleton(cornerRadius: 18)
+              .frame(width: 36, height: 36)
+            VStack(alignment: .leading, spacing: 6) {
+              TypeTypeSkeleton(cornerRadius: 4)
+                .frame(width: 120, height: 10)
+              TypeTypeSkeleton(cornerRadius: 4)
+                .frame(height: 10)
+              TypeTypeSkeleton(cornerRadius: 4)
+                .frame(width: 220, height: 10)
+            }
+          }
+        }
       }
       .frame(maxWidth: .infinity, alignment: .leading)
+      .padding(.top, 4)
+      .accessibilityLabel("Loading comments")
     case .hidden:
       statusCard(
         title: "Hidden by your settings",
