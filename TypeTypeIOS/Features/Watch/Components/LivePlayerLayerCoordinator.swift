@@ -203,8 +203,11 @@ extension LivePlayerLayerCoordinator: UIGestureRecognizerDelegate {
     // adjustment pan only vertical — so a brightness swipe never pops the
     // mm:ss preview and a scrub never starts an adjustment.
     if recognizer === horizontalSeekGestureRecognizer {
-      guard abs(translation.x) > 14,
-        abs(translation.x) > abs(translation.y) * 1.25,
+      // Direction only here too: the pan decides to begin after ~10 pt, so
+      // a distance gate fails every scrub before it starts. The long-press
+      // owns the touch while held (the UIKit pans get cancelled), so the
+      // speed ramp never fights this seek.
+      guard abs(translation.x) > abs(translation.y) * 1.25,
         LiveAppPreferencesStore.shared.preferences.playerSwipeSeekEnabled,
         controller.duration > 0
       else { return false }
