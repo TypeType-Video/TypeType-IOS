@@ -38,7 +38,7 @@ extension LivePlaylistDetailView {
           if !playlist.description.isEmpty {
             Section {
               Text(playlist.description)
-                .foregroundStyle(theme.palette.onSurfaceVariant)
+                .foregroundStyle(.secondary)
             }
           }
           Section {

@@ -116,14 +116,14 @@ struct LivePodcastEpisodesView: View {
         .clipShape(RoundedRectangle(cornerRadius: 16))
       VStack(alignment: .leading, spacing: 5) {
         Label("Podcast", systemImage: "mic.fill")
-          .typeTypeFont(.bodySmall, weight: .semibold)
-          .foregroundStyle(theme.palette.onSurfaceVariant)
+          .font(.caption.weight(.semibold))
+          .foregroundStyle(.secondary)
         Text(viewModel.podcast.title)
-          .typeTypeFont(.titleLarge, weight: .bold)
+          .font(.title3.weight(.bold))
           .lineLimit(2)
         Text(viewModel.podcast.uploaderName)
-          .typeTypeFont(.bodyMedium)
-          .foregroundStyle(theme.palette.onSurfaceVariant)
+          .font(.subheadline)
+          .foregroundStyle(.secondary)
           .lineLimit(1)
       }
     }
