@@ -17,11 +17,6 @@ struct LivePictureInPictureNotice: View {
           Text("Playing in Picture in Picture")
             .font(.headline)
             .foregroundStyle(.white)
-          #if DEBUG
-          Text(LivePictureInPictureDriver.lastTimingLog)
-            .font(.caption2.monospaced())
-            .foregroundStyle(.white.opacity(0.7))
-          #endif
           Button("Show in Player") {
             pictureInPicture.bringInline()
           }
