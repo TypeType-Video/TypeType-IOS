@@ -68,21 +68,6 @@ struct LivePlaybackSleepTimerView: View {
   private static let minuteOptions = [30, 60, 90]
 }
 
-struct LivePlaybackSleepTimerLink: View {
-  @ObservedObject var coordinator: LivePlaybackCoordinator
-
-  var body: some View {
-    NavigationLink {
-      LivePlaybackSleepTimerView(coordinator: coordinator)
-    } label: {
-      LabeledContent(
-        "Sleep timer",
-        value: coordinator.sleepTimer.summary
-      )
-    }
-    .accessibilityIdentifier("live.player.sleep-timer.open")
-  }
-}
 
 /// Compact popup for the actions-row button. The full page keeps its List;
 /// a List inside a popover clips its rows, so this one is sized to content.

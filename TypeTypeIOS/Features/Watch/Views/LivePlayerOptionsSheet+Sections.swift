@@ -33,7 +33,6 @@ extension LivePlayerOptionsSheet {
           Text(rate.title).tag(rate.value)
         }
       }
-      LivePlaybackSleepTimerLink(coordinator: coordinator)
     } header: { Text("Playback").liveSectionHeader() }
   }
 
@@ -89,22 +88,6 @@ extension LivePlayerOptionsSheet {
         subtitlePicker
       }
     } header: { Text("Tracks").liveSectionHeader() }
-  }
-
-  @ViewBuilder var chaptersSection: some View {
-    if !controller.availableChapters.isEmpty {
-      Section {
-        NavigationLink {
-          LivePlayerChaptersView(controller: controller)
-        } label: {
-          LabeledContent(
-            "Chapters",
-            value: controller.currentChapter?.title ?? "Not started"
-          )
-        }
-        .accessibilityIdentifier("live.player.chapters.link")
-      } header: { Text("Chapters").liveSectionHeader() }
-    }
   }
 
   private var subtitlePicker: some View {

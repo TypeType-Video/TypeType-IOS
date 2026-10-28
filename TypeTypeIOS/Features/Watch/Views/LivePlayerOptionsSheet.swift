@@ -28,7 +28,6 @@ struct LivePlayerOptionsSheet: View {
         playbackSection
         qualitySection
         tracksSection
-        chaptersSection
         presentationSection
         communitySection
         streamInformationSection
