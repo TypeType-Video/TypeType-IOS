@@ -16,6 +16,12 @@ extension LivePlayerOptionsSheet {
         "Muted",
         isOn: binding(\.muted, setter: controller.setMuted)
       ).liveRowFill()
+      Toggle(
+        "Brightness and volume swipe",
+        isOn: LiveAppPreferencesStore.shared.binding(
+          \.playerSwipeBrightnessVolumeEnabled
+        )
+      ).liveRowFill()
       Picker(
         "Speed",
         selection: binding(

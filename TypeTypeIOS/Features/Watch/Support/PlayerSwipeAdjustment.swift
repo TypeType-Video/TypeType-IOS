@@ -35,7 +35,6 @@ enum PlayerHorizontalSeekEvent: Equatable {
 }
 
 enum PlayerSwipeAdjustmentRules {
-  static let activationDistance: CGFloat = 18
   static let verticalBias: CGFloat = 1.5
   static let travelFactor: CGFloat = 0.7
 
@@ -48,8 +47,9 @@ enum PlayerSwipeAdjustmentRules {
     guard startLocation.y > size.height * 0.10,
       startLocation.y < size.height * 0.66
     else { return nil }
-    guard abs(translation.height) >= activationDistance,
-      abs(translation.height) >= abs(translation.width) * verticalBias
+    // Direction only: the recognizer decides to begin after ~10 pt of
+    // travel, so a distance gate here fails every swipe before it starts.
+    guard abs(translation.height) >= abs(translation.width) * verticalBias
     else { return nil }
 
     return startLocation.x < size.width / 2 ? .brightness : .volume
