@@ -65,7 +65,7 @@ struct LivePlaybackSleepTimerView: View {
       && coordinator.sleepTimer.duration == TimeInterval(minutes * 60)
   }
 
-  private static let minuteOptions = [15, 30, 45, 60, 90]
+  private static let minuteOptions = [30, 60, 90]
 }
 
 struct LivePlaybackSleepTimerLink: View {

@@ -48,22 +48,17 @@ final class LiveAppearanceUITests: XCTestCase {
     ))
     appearanceButton.tap()
 
-    let preview = app.staticTexts["live.settings.appearance.preview"]
-    _ = preview.waitForExistence(timeout: 5)
+    let tiles = app.scrollViews["live.settings.appearance.themes"]
+    _ = tiles.waitForExistence(timeout: 5)
     capture(app, named: "Appearance · Initial")
 
-    try selectMenuOption("Manga", in: app, pickerLabel: "Personality")
-    XCTAssertTrue(
-      element(in: app, labelled: "Screentone").waitForExistence(timeout: 3)
-    )
+    let nord = element(in: app, labelled: "Nord")
+    nord.tap()
+    capture(app, named: "Appearance · Nord theme")
 
-    try selectMenuOption("Nord", in: app, pickerLabel: "Theme")
-    capture(app, named: "Appearance · Manga Nord")
-
-    try selectMenuOption("Blue", in: app, pickerLabel: "Accent color")
-    XCTAssertTrue(
-      element(in: app, labelled: "Blue").waitForExistence(timeout: 3)
-    )
+    let blue = element(in: app, labelled: "Blue")
+    XCTAssertTrue(blue.waitForExistence(timeout: 3))
+    blue.tap()
     capture(app, named: "Appearance · Blue accent")
 
     app.swipeDown()

@@ -47,26 +47,23 @@ struct LiveHistoryView: View {
         viewModel.setFilter(.date(date))
       }
     }
-    .confirmationDialog(
-      "Clear watch history?",
-      isPresented: $confirmsClear,
-      titleVisibility: .visible
-    ) {
-      Button("Clear all", role: .destructive) {
+    .sheet(isPresented: $confirmsClear) {
+      LiveConfirmCard(
+        title: "Clear watch history?",
+        message: "This removes every video from your watch history.",
+        confirmTitle: "Clear all"
+      ) {
         Task { await viewModel.clear() }
       }
-    } message: {
-      Text("This removes every video from your watch history.")
     }
-    .confirmationDialog(
-      "Remove from history?",
-      isPresented: removalBinding,
-      titleVisibility: .visible
-    ) {
-      Button("Remove", role: .destructive) {
+    .sheet(isPresented: removalBinding) {
+      LiveConfirmCard(
+        title: "Remove from history?",
+        confirmTitle: "Remove"
+      ) {
         guard let item = pendingRemoval else { return }
-        Task { await viewModel.remove(item) }
         pendingRemoval = nil
+        Task { await viewModel.remove(item) }
       }
     }
     .alert(

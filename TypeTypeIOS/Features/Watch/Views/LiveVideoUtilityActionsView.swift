@@ -10,7 +10,12 @@ struct LiveVideoUtilityActionsView: View {
   var body: some View {
     HStack(spacing: 10) {
       if let shareURL {
-        ShareLink(item: shareURL) {
+        LiveShareAsLinkButton(
+          typeTypeURL: shareURL,
+          originalURL: LiveShareURLBuilder.original(
+            sourceURL: video.url
+          )
+        ) {
           actionLabel("Share", symbol: "square.and.arrow.up")
         }
         .buttonStyle(LiveChipButtonStyle())

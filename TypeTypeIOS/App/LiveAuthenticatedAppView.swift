@@ -10,7 +10,15 @@ struct LiveAuthenticatedAppView: View {
   var selectedTab: Binding<LiveAuthenticatedTab> {
     Binding(
       get: { coordinator.selectedTab },
-      set: { coordinator.selectedTab = $0 }
+      set: { newValue in
+        // TabView writes the binding even when the active tab is tapped
+        // again — that re-tap is the "back to this tab's input" gesture.
+        if newValue == coordinator.selectedTab {
+          coordinator.handleTabReselection(newValue)
+        } else {
+          coordinator.selectedTab = newValue
+        }
+      }
     )
   }
   @State var librarySection = LiveLibrarySection.history

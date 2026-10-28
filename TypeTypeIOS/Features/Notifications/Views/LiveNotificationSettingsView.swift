@@ -49,6 +49,8 @@ struct LiveNotificationSettingsView: View {
         )
       } }
     .onChange(of: viewModel.permissionStatus) { }
+    .overlay { toastOverlay }
+    .animation(.easeIn(duration: 0.18), value: viewModel.toast)
     .alert(
       "Notification settings",
       isPresented: errorBinding
@@ -73,33 +75,79 @@ struct LiveNotificationSettingsView: View {
     } else {
       List {
         permissionSection
-        ForEach(preferences) { preference in
-          Toggle(isOn: binding(for: preference)) {
-            VStack(alignment: .leading, spacing: 4) {
-              Text(
-                channelNames[preference.channelURL]
-                  ?? Self.channelName(preference.channelURL)
-              )
-                .foregroundStyle(.primary)
-                .lineLimit(1)
-              Text(preference.channelURL)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .lineLimit(1)
+        Section {
+          ForEach(preferences) { preference in
+            Toggle(isOn: binding(for: preference)) {
+              VStack(alignment: .leading, spacing: 4) {
+                Text(
+                  channelNames[preference.channelURL]
+                    ?? Self.channelName(preference.channelURL)
+                )
+                  .foregroundStyle(.primary)
+                  .lineLimit(1)
+                Text(preference.channelURL)
+                  .font(.caption)
+                  .foregroundStyle(.secondary)
+                  .lineLimit(1)
+              }
             }
+            .liveRowFill()
+            .disabled(
+              viewModel.isBulkUpdating
+                || viewModel.updatingURLs.contains(preference.channelURL)
+            )
+            .accessibilityIdentifier(
+              "live.notification-settings.\(preference.channelURL)"
+            )
           }
-          .liveRowFill()
-          .disabled(
-            viewModel.updatingURLs.contains(preference.channelURL)
-          )
-          .accessibilityIdentifier(
-            "live.notification-settings.\(preference.channelURL)"
-          )
+        } header: {
+          channelSectionHeader
+        } footer: {
+          Text(viewModel.budgetFooterText)
+            .liveSectionSlotChrome()
+            .accessibilityIdentifier("live.notification-settings.budget")
         }
       }
         .liveThemedList()
       .liveThemeRepaint()
     }
+  }
+
+  /// "Enable all"/"Disable all" beside the styled caption; the remaining
+  /// polling budget is spelled out in the section footer below.
+  private var channelSectionHeader: some View {
+    HStack(spacing: 12) {
+      Text("Channel notifications").liveSectionHeader()
+      bulkButton(
+        "Enable all",
+        enabled: viewModel.canEnableAll
+      ) {
+        Task { await viewModel.setAllEnabled(true) }
+      }
+      .accessibilityIdentifier("live.notification-settings.enable-all")
+      bulkButton(
+        "Disable all",
+        enabled: viewModel.canDisableAll
+      ) {
+        Task { await viewModel.setAllEnabled(false) }
+      }
+      .accessibilityIdentifier("live.notification-settings.disable-all")
+    }
+    .liveSectionSlotChrome()
+  }
+
+  private func bulkButton(
+    _ title: String,
+    enabled: Bool,
+    action: @escaping () -> Void
+  ) -> some View {
+    Button(action: action) {
+      Text(title)
+        .font(.caption.weight(.semibold))
+        .foregroundStyle(enabled ? DemoTheme.accent : Color.secondary)
+    }
+    .buttonStyle(.plain)
+    .disabled(!enabled)
   }
 
   @ViewBuilder
@@ -144,6 +192,53 @@ struct LiveNotificationSettingsView: View {
     Section {
       Text("Notification preferences appear after you subscribe to a channel.")
         .foregroundStyle(.secondary)
+    }
+  }
+
+  /// Center glass card (the favourites toast pattern): symbol, message,
+  /// swipe-to-dismiss with a slow fade, plus the auto-dismiss timer.
+  private func toastCard(
+    _ toast: LiveNotificationSettingsViewModel.Toast
+  ) -> some View {
+    HStack(spacing: 12) {
+      Image(systemName: toast.systemImage)
+        .font(.title3.weight(.semibold))
+        .foregroundStyle(DemoTheme.accent)
+      Text(toast.message)
+        .font(.callout.weight(.semibold))
+        .foregroundStyle(.primary)
+        .multilineTextAlignment(.leading)
+    }
+    .padding(.horizontal, 22)
+    .padding(.vertical, 16)
+    .transition(.opacity)
+    .gesture(
+      DragGesture(minimumDistance: 24)
+        .onEnded { _ in
+          withAnimation(.easeOut(duration: 0.6)) {
+            viewModel.dismissToast()
+          }
+        }
+    )
+    .task(id: toast) {
+      try? await Task.sleep(for: .seconds(2.6))
+      withAnimation(.easeOut(duration: 0.35)) {
+        viewModel.dismissToast()
+      }
+    }
+    .accessibilityIdentifier("live.notification-settings.toast")
+  }
+
+  @ViewBuilder
+  private var toastOverlay: some View {
+    if let toast = viewModel.toast {
+      if #available(iOS 26.0, *) {
+        toastCard(toast)
+          .glassEffect(.regular, in: .capsule)
+      } else {
+        toastCard(toast)
+          .background(.black.opacity(0.85), in: Capsule())
+      }
     }
   }
 

@@ -31,6 +31,9 @@ struct LivePlayerView: View {
   @State var autoPictureInPictureActive = false
   @StateObject var nativeControls = LiveNativeControlsState()
   @Environment(\.verticalSizeClass) private var verticalSizeClass
+  /// Drives the rounded lower corners: the "content slides under the
+  /// pinned player" hint while the watch page is scrolled.
+  var isScrolled = false
 
 
   var body: some View {
@@ -103,7 +106,8 @@ struct LivePlayerView: View {
     .modifier(
       LivePlayerSizing(
         isFullscreen: showsFullscreenLayout,
-        cinemaMode: cinemaMode
+        cinemaMode: cinemaMode,
+        isScrolled: isScrolled
       )
     )
     .gesture(

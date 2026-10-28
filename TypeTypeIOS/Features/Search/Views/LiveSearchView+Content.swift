@@ -3,31 +3,66 @@ import SwiftUI
 extension LiveSearchView {
   @ViewBuilder
   var content: some View {
-    if viewModel.submittedQuery.isEmpty {
-      discovery
-    } else {
-      switch viewModel.state {
-      case .idle:
+    VStack(spacing: 0) {
+      // Service chips pinned at the top of search (dev feedback, plan 4.1):
+      // always visible, bound to the shared service selection like the
+      // home toolbar.
+      if viewModel.services.count > 1 {
+        serviceChipRow
+      }
+      if viewModel.submittedQuery.isEmpty {
         discovery
-      case .loading:
-        searchLoading
-      case .empty:
-        searchEmpty
-      case let .failed(message):
-        searchError(message)
-      case .loaded:
-        searchResults
+      } else {
+        switch viewModel.state {
+        case .idle:
+          discovery
+        case .loading:
+          searchLoading
+        case .empty:
+          searchEmpty
+        case let .failed(message):
+          searchError(message)
+        case .loaded:
+          searchResults
+        }
       }
     }
   }
 
+  private var serviceChipRow: some View {
+    ScrollView(.horizontal) {
+      HStack(spacing: 8) {
+        ForEach(viewModel.services) { service in
+          Button {
+            Task { await viewModel.selectService(service.id) }
+          } label: {
+            HStack(spacing: 5) {
+              if service.id == viewModel.selectedServiceID {
+                Image(systemName: "checkmark")
+                  .font(.caption2.weight(.bold))
+              }
+              Text(verbatim: service.name)
+            }
+            .font(.caption.weight(.semibold))
+            .padding(.horizontal, 11)
+            .padding(.vertical, 8)
+            .background(DemoTheme.surface, in: Capsule())
+          }
+          .buttonStyle(.plain)
+          .accessibilityIdentifier(
+            "live.search.service.chip.\(service.id)"
+          )
+        }
+      }
+      .padding(.horizontal, 16)
+      .padding(.vertical, 10)
+    }
+    .scrollIndicators(.hidden)
+    .accessibilityIdentifier("live.search.services")
+  }
+
   private var discovery: some View {
-    LiveSearchHistoryView(
-      viewModel: viewModel,
-      dependencies: coordinator.dependencies,
-      onVideo: { selectedVideo = $0 },
-      onChannel: { selectedVideoChannelURL = $0 }
-    )
+    LiveSearchHistoryView(viewModel: viewModel)
   }
 
   private var searchLoading: some View {

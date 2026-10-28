@@ -14,6 +14,7 @@ extension LivePlayerController {
 struct LivePlayerSizing: ViewModifier {
   let isFullscreen: Bool
   let cinemaMode: Bool
+  var isScrolled = false
 
   @ViewBuilder
   func body(content: Content) -> some View {
@@ -29,11 +30,23 @@ struct LivePlayerSizing: ViewModifier {
       content
         .aspectRatio(16 / 9, contentMode: .fit)
         .clipShape(
-          RoundedRectangle(
-            cornerRadius: cinemaMode ? 0 : 16,
+          UnevenRoundedRectangle(
+            topLeadingRadius: cinemaMode ? 0 : 16,
+            bottomLeadingRadius: lowerRadius,
+            bottomTrailingRadius: lowerRadius,
+            topTrailingRadius: cinemaMode ? 0 : 16,
             style: .continuous
           )
         )
     }
+  }
+
+  /// Scrolled state rounds the lower corners — the "content slides under
+  /// the pinned player" hint. In cinema mode the player bleeds 16 pt past
+  /// each screen edge, so the radius covers that distance to land the
+  /// visible curve on the screen edge instead of off-screen.
+  private var lowerRadius: CGFloat {
+    guard isScrolled else { return cinemaMode ? 0 : 16 }
+    return cinemaMode ? 32 : 16
   }
 }

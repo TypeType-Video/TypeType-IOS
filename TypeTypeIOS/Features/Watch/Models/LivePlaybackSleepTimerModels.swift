@@ -4,6 +4,7 @@ enum LivePlaybackSleepTimerMode: Equatable {
   case off
   case timed
   case endOfVideo
+  case stoppedForTheNight
 }
 
 struct LivePlaybackSleepTimerState: Equatable {
@@ -21,6 +22,8 @@ struct LivePlaybackSleepTimerState: Equatable {
       return "Off"
     case .endOfVideo:
       return "End of video"
+    case .stoppedForTheNight:
+      return "Stopped for the night"
     case .timed:
       return Self.format(remaining)
     }

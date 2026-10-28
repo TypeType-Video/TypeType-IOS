@@ -32,12 +32,6 @@ enum LiveAccentColor: String, Codable, CaseIterable, Identifiable {
   }
 }
 
-enum LiveAppearancePersonality: String, Codable, CaseIterable, Identifiable {
-  case classic, manga
-  var id: String { rawValue }
-  var title: String { self == .classic ? "Classic" : "Manga" }
-}
-
 enum LiveAppearanceTheme: String, Codable, CaseIterable, Identifiable {
   case typetype, snow, nord, cream, forest, plum
   var id: String { rawValue }
@@ -92,40 +86,13 @@ enum LiveAppearanceMotion: String, Codable, CaseIterable, Identifiable {
   }
 }
 
-enum LiveMangaPaper: String, Codable, CaseIterable, Identifiable {
-  case day, night, nord
-  var id: String { rawValue }
-  var title: String { rawValue.capitalized }
-}
-
-enum LiveMangaHeadlineMarker: String, Codable, CaseIterable, Identifiable {
-  case none, stamp, speedLines
-  var id: String { rawValue }
-
-  var title: String {
-    switch self {
-    case .none: return "None"
-    case .stamp: return "Stamp"
-    case .speedLines: return "Speed lines"
-    }
-  }
-}
-
 struct LiveAppPreferences: Codable, Equatable {
   var accentColor = LiveAccentColor.red
-  var appearancePersonality = LiveAppearancePersonality.classic
   var appearanceMode = LiveAppearanceMode.system
   var appearanceAmoled = false
   var appearanceTheme = LiveAppearanceTheme.typetype
   var appearanceFont = LiveAppearanceFont.system
   var appearanceMotion = LiveAppearanceMotion.subtle
-  var mangaPaper = LiveMangaPaper.day
-  var mangaHeadlineMarker = LiveMangaHeadlineMarker.stamp
-  var mangaScreentone = true
-  var mangaSpeedLines = true
-  var mangaStarburst = true
-  var mangaInkedIcons = true
-  var mangaPanelTilt = false
   var playerDoubleTapSeekEnabled = true
   var playerDoubleTapSeekSeconds = 10
   var playerPreferredCodec = "recommended"
@@ -143,10 +110,8 @@ struct LiveAppPreferences: Codable, Equatable {
   var danmakuSize = 1.0
 
   enum CodingKeys: String, CodingKey {
-    case accentColor, appearancePersonality, appearanceMode, appearanceAmoled
-    case appearanceTheme, appearanceFont, appearanceMotion, mangaPaper
-    case mangaHeadlineMarker, mangaScreentone, mangaSpeedLines
-    case mangaStarburst, mangaInkedIcons, mangaPanelTilt
+    case accentColor, appearanceMode, appearanceAmoled
+    case appearanceTheme, appearanceFont, appearanceMotion
     case playerDoubleTapSeekEnabled = "playerDoubleTapSeek"
     case playerDoubleTapSeekSeconds = "playerDoubleTapSeekSeconds"
     case playerPreferredCodec, playerSwipeSeekEnabled
@@ -164,9 +129,6 @@ struct LiveAppPreferences: Codable, Equatable {
     accentColor = try values.decodeIfPresent(
       LiveAccentColor.self, forKey: .accentColor
     ) ?? .red
-    appearancePersonality = try values.decodeIfPresent(
-      LiveAppearancePersonality.self, forKey: .appearancePersonality
-    ) ?? .classic
     appearanceMode = try values.decodeIfPresent(
       LiveAppearanceMode.self, forKey: .appearanceMode
     ) ?? .system
@@ -182,27 +144,6 @@ struct LiveAppPreferences: Codable, Equatable {
     appearanceMotion = try values.decodeIfPresent(
       LiveAppearanceMotion.self, forKey: .appearanceMotion
     ) ?? .subtle
-    mangaPaper = try values.decodeIfPresent(
-      LiveMangaPaper.self, forKey: .mangaPaper
-    ) ?? .day
-    mangaHeadlineMarker = try values.decodeIfPresent(
-      LiveMangaHeadlineMarker.self, forKey: .mangaHeadlineMarker
-    ) ?? .stamp
-    mangaScreentone = try values.decodeIfPresent(
-      Bool.self, forKey: .mangaScreentone
-    ) ?? true
-    mangaSpeedLines = try values.decodeIfPresent(
-      Bool.self, forKey: .mangaSpeedLines
-    ) ?? true
-    mangaStarburst = try values.decodeIfPresent(
-      Bool.self, forKey: .mangaStarburst
-    ) ?? true
-    mangaInkedIcons = try values.decodeIfPresent(
-      Bool.self, forKey: .mangaInkedIcons
-    ) ?? true
-    mangaPanelTilt = try values.decodeIfPresent(
-      Bool.self, forKey: .mangaPanelTilt
-    ) ?? false
     playerDoubleTapSeekEnabled = try values.decodeIfPresent(
       Bool.self, forKey: .playerDoubleTapSeekEnabled
     ) ?? true

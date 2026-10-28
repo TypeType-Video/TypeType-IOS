@@ -156,7 +156,8 @@ final class LiveChannelViewModel: ObservableObject {
     submittedQuery = ""
     if tab == .playlists {
       await loadPlaylists()
-    } else {
+    } else if tab != .about {
+      // About renders the already-loaded channel details: no fetch.
       await reloadChannel()
     }
   }
@@ -165,23 +166,6 @@ final class LiveChannelViewModel: ObservableObject {
     guard sort != nextSort else { return }
     sort = nextSort
     guard selectedTab != .playlists else { return }
-    await reloadChannel()
-  }
-
-  func submitChannelSearch() async {
-    let term = query.trimmingCharacters(
-      in: .whitespacesAndNewlines
-    )
-    guard term != submittedQuery else { return }
-    submittedQuery = term
-    selectedTab = .videos
-    await reloadChannel()
-  }
-
-  func clearChannelSearch() async {
-    query = ""
-    guard !submittedQuery.isEmpty else { return }
-    submittedQuery = ""
     await reloadChannel()
   }
 

@@ -1,6 +1,17 @@
 import SwiftUI
 import UIKit
 
+/// The system's list and header chrome configures its blur by sending
+/// `setEffect:` to the view it expects in `backgroundView`. The empty
+/// background view exists to keep that chrome invisible, so the selector
+/// is answered with a no-op — a plain UIView crashes with an unrecognized
+/// selector the first time glass chrome (menus, share sheet, interactive
+/// headers) is configured.
+final class EmptyChromeBackgroundView: UIView {
+  @objc(setEffect:) func setEffect(_ effect: Any?) {}
+  @objc(effect) func effect() -> Any? { nil }
+}
+
 enum DemoTheme {
   static var accent = Color(red: 1, green: 0.30, blue: 0.32)
   static var appearanceMode = LiveAppearanceMode.system
@@ -14,8 +25,6 @@ enum DemoTheme {
   /// `.system` mode instead of UITraitCollection so system changes react.
   static var systemColorScheme: ColorScheme?
   static var appearanceTheme = LiveAppearanceTheme.typetype
-  static var appearancePersonality = LiveAppearancePersonality.classic
-  static var mangaPaper = LiveMangaPaper.day
 
   static var background: Color {
     themed(.background)
@@ -63,8 +72,6 @@ enum DemoTheme {
     appearanceMode = preferences.appearanceMode
     appearanceAmoled = preferences.appearanceAmoled
     appearanceTheme = preferences.appearanceTheme
-    appearancePersonality = preferences.appearancePersonality
-    mangaPaper = preferences.mangaPaper
     // Was never assigned before: `.system` mode fell back to the UIKit
     // trait collection and missed environment scheme flips.
     systemColorScheme = colorScheme
@@ -77,9 +84,7 @@ enum DemoTheme {
       preferences.appearanceMode.rawValue,
       preferences.appearanceAmoled.description,
       preferences.appearanceTheme.rawValue,
-      preferences.appearancePersonality.rawValue,
       preferences.appearanceFont.rawValue,
-      preferences.mangaPaper.rawValue,
     ].joined(separator: "|")
     rebuildToken()
   }
@@ -111,9 +116,9 @@ enum DemoTheme {
     // transparent cell backgrounds, empty background views (kills the
     // Liquid Glass row fill), clear table backgrounds.
     UITableViewCell.appearance().backgroundColor = .clear
-    UITableViewCell.appearance().backgroundView = UIView()
+    UITableViewCell.appearance().backgroundView = EmptyChromeBackgroundView()
     UICollectionViewCell.appearance().backgroundColor = .clear
-    UICollectionViewCell.appearance().backgroundView = UIView()
+    UICollectionViewCell.appearance().backgroundView = EmptyChromeBackgroundView()
     UITableView.appearance().backgroundColor = .clear
     UICollectionView.appearance().backgroundColor = .clear
     // Transparent, not a surface color: painting this white put a square
@@ -121,7 +126,7 @@ enum DemoTheme {
     UITableViewHeaderFooterView.appearance().backgroundColor = .clear
     // iOS 27 paints header chrome through backgroundView (a blur material),
     // which backgroundColor alone does not replace.
-    UITableViewHeaderFooterView.appearance().backgroundView = UIView()
+    UITableViewHeaderFooterView.appearance().backgroundView = EmptyChromeBackgroundView()
     // iOS 26 paints the navigation bar through `_UIBarBackground`, which
     // SwiftUI's `toolbarBackground` does not reach (the white strip at the
     // top of every page). Bind the UIKit appearance to the same resolver.
@@ -205,9 +210,6 @@ enum DemoTheme {
         return UIColor(red: 0.247, green: 0.247, blue: 0.271, alpha: 1)  // 3F3F46
       }
     }
-    if appearancePersonality == .manga {
-      return mangaColor(role: role, isDark: isDark)
-    }
     switch appearanceTheme {
     case .typetype:
       return lightBase(role).resolvedColor(
@@ -275,59 +277,6 @@ enum DemoTheme {
 
   private static func themed(_ role: SurfaceRole) -> Color {
     Color(uiColor: dynamicColor(role: role))
-  }
-
-  /// Android `mangaScheme`: the classic themes keep the paper surfaces
-  /// (background + surface; variant and container-highest share the paper
-  /// surface), the palette themes take the theme's own surface set.
-  private static func mangaColor(role: SurfaceRole, isDark: Bool) -> UIColor {
-    if mangaUsesPaperSurfaces {
-      let paperBackground: UIColor
-      let paperSurface: UIColor
-      switch mangaPaper {
-      case .day:
-        let darkSurface = mangaDarkSurface(isDark: isDark)
-        paperBackground = darkSurface
-          ? UIColor(red: 0.129, green: 0.122, blue: 0.102, alpha: 1)  // 211F1A
-          : UIColor(red: 1, green: 0.992, blue: 0.961, alpha: 1)  // FFFDF5
-        paperSurface = darkSurface
-          ? UIColor(red: 0.188, green: 0.169, blue: 0.137, alpha: 1)  // 302B23
-          : UIColor(red: 1, green: 0.980, blue: 0.910, alpha: 1)  // FFFAE8
-      case .night:
-        paperBackground = .black
-        paperSurface = UIColor(red: 0.071, green: 0.071, blue: 0.071, alpha: 1)  // 121212
-      case .nord:
-        paperBackground = UIColor(red: 0.180, green: 0.204, blue: 0.251, alpha: 1)  // 2E3440
-        paperSurface = UIColor(red: 0.231, green: 0.259, blue: 0.322, alpha: 1)  // 3B4252
-      }
-      switch role {
-      case .background, .groupedBackground, .pageBackground:
-        return paperBackground
-      case .surface, .groupedSurface, .elevatedSurface:
-        return paperSurface
-      }
-    }
-    let colors = themeSurfaceColors(isDark: isDark)
-    switch role {
-    case .background, .groupedBackground, .pageBackground:
-      return UIColor(colors.background)
-    case .surface:
-      return UIColor(colors.surface)
-    case .groupedSurface, .elevatedSurface:
-      return UIColor(colors.variant)
-    }
-  }
-
-  /// Android `mangaScheme`: the classic theme (TypeType) paints the paper,
-  /// every palette theme (Snow/Nord/Cream/Forest/Plum) takes the theme's
-  /// own surface set instead.
-  private static var mangaUsesPaperSurfaces: Bool {
-    appearanceTheme == .typetype
-  }
-
-  /// Android `mangaScheme`: Night paper reads dark even in light mode.
-  private static func mangaDarkSurface(isDark: Bool) -> Bool {
-    mangaUsesPaperSurfaces ? (isDark || mangaPaper != .day) : isDark
   }
 }
 
@@ -405,14 +354,8 @@ extension DemoTheme {
 
   /// Text roles follow the Android rule exactly: classic and palette
   /// themes share the scheme text (`onSurface` = Zinc950/Zinc100, NOT
-  /// tinted per theme), manga paints ink on paper.
+  /// tinted per theme).
   private static func textPrimaryColor() -> Color {
-    if appearancePersonality == .manga {
-      // Android mangaScheme `ink`.
-      return mangaDarkSurface(isDark: isDarkResolved)
-        ? Color(red: 0.961, green: 0.953, blue: 0.918)  // F5F3EA
-        : Color(red: 0.090, green: 0.090, blue: 0.090)  // 171717
-    }
     // Android `onSurface`: Zinc100 dark / Zinc950 light.
     return isDarkResolved
       ? Color(red: 0.957, green: 0.957, blue: 0.961)  // F4F4F5
@@ -420,10 +363,6 @@ extension DemoTheme {
   }
 
   private static func textSecondaryColor() -> Color {
-    if appearancePersonality == .manga {
-      // Android mangaScheme `onSurfaceVariant` = ink at 72%.
-      return textPrimaryColor().opacity(0.72)
-    }
     // Android `onSurfaceVariant`: Zinc400 dark / Zinc700 light.
     return isDarkResolved
       ? Color(red: 0.631, green: 0.631, blue: 0.667)  // A1A1AA
@@ -432,8 +371,11 @@ extension DemoTheme {
 
   /// Android `themeSurfaceColors`: one surface set per theme and per
   /// light/dark mode — `(background, surface, variant, outline)`.
-  static func themeSurfaceColors(isDark: Bool) -> (background: Color, surface: Color, variant: Color, outline: Color) {
-    switch appearanceTheme {
+  static func themeSurfaceColors(
+    isDark: Bool,
+    theme: LiveAppearanceTheme? = nil
+  ) -> (background: Color, surface: Color, variant: Color, outline: Color) {
+    switch theme ?? appearanceTheme {
     case .typetype:
       // Never reached through `dynamicColor` (the system surfaces win
       // there); kept total so the function stays non-optional.
@@ -910,4 +852,43 @@ extension Color {
   static let systemGreen = Color(uiColor: .systemGreen)
   static let systemTeal = Color(uiColor: .systemTeal)
   static let systemGray = Color(uiColor: .systemGray)
+}
+
+/// Compact confirmation card presented as a dropping-down popover — the
+/// user wants confirms to open like the dropdowns (downward), never as a
+/// sheet sliding up from the bottom.
+struct LiveConfirmCard: View {
+  let title: String
+  var message: String? = nil
+  let confirmTitle: String
+  let onConfirm: () -> Void
+  @Environment(\.dismiss) private var dismiss
+
+  var body: some View {
+    VStack(spacing: 14) {
+      Text(title)
+        .font(.headline)
+        .multilineTextAlignment(.center)
+      if let message, !message.isEmpty {
+        Text(message)
+          .font(.footnote)
+          .foregroundStyle(.secondary)
+          .multilineTextAlignment(.center)
+      }
+      Button(role: .destructive) {
+        dismiss()
+        onConfirm()
+      } label: {
+        Text(confirmTitle)
+          .frame(maxWidth: .infinity, minHeight: 48)
+      }
+      .buttonStyle(.borderedProminent)
+      Button("Cancel") { dismiss() }
+        .frame(maxWidth: .infinity, minHeight: 48)
+        .buttonStyle(.bordered)
+    }
+    .padding(24)
+    .frame(width: 280)
+    .presentationCompactAdaptation(.popover)
+  }
 }
