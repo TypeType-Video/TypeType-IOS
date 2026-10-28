@@ -112,13 +112,34 @@ struct LiveVideoMetadataContentView: View {
         }
 
         if !playerController.supportsBulletComments {
-          LiveCommentsSectionView(
-            videoURL: resolvedVideo.url,
-            dependencies: dependencies,
-            onChannel: { selectedChannelURL = $0 },
-            onSeekTimestamp: playerController.seek,
-            onOpenURL: routeLink
-          )
+          if playerController.settings.hideRelatedVideos
+            || playerController.stream?.relatedStreams != nil {
+            LiveCommentsSectionView(
+              videoURL: resolvedVideo.url,
+              dependencies: dependencies,
+              onChannel: { selectedChannelURL = $0 },
+              onSeekTimestamp: playerController.seek,
+              onOpenURL: routeLink
+            )
+          } else {
+            // The page stays put: comments wait in skeleton until the
+            // related section exists, so nothing jumps when it arrives.
+            VStack(alignment: .leading, spacing: 14) {
+              ForEach(0..<3, id: \.self) { _ in
+                HStack(alignment: .top, spacing: 10) {
+                  TypeTypeSkeleton(cornerRadius: 18)
+                    .frame(width: 36, height: 36)
+                  VStack(alignment: .leading, spacing: 6) {
+                    TypeTypeSkeleton(cornerRadius: 4)
+                      .frame(width: 120, height: 10)
+                    TypeTypeSkeleton(cornerRadius: 4)
+                      .frame(height: 10)
+                  }
+                }
+              }
+            }
+            .accessibilityLabel("Loading comments")
+          }
         }
       }
       .padding(16)
