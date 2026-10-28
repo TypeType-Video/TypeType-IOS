@@ -168,7 +168,7 @@ extension LivePlayerView {
       // The video's own thumbnail as the poster while it prepares; the
       // spinner rides on top of it, small.
       ZStack {
-        if let poster = posterURL {
+        if !controller.extrasReleased, let poster = posterURL {
           LiveRemoteImage(url: poster)
             .opacity(0.55)
         }
