@@ -196,6 +196,7 @@ struct LiveVideoMetadataContentView: View {
       )
     }
     }
+    }
     .toolbar(
       playerController.isPresentingFullscreen ? .hidden : .automatic,
       for: .navigationBar
