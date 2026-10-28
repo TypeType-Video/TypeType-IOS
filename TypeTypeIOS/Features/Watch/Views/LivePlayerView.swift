@@ -39,6 +39,8 @@ struct LivePlayerView: View {
   @State var doubleTapSeekTask: Task<Void, Never>?
   @State var swipeAdjustment: PlayerSwipeAdjustmentState?
   @State var speedBoostRate: Float?
+  @State var fullscreenSwipeBase: CGFloat?
+  @State var fullscreenSwipeLowest: CGFloat?
   nonisolated(unsafe) static var gestureLog: [String] = []
 
   static func logGesture(_ text: String) {
@@ -128,16 +130,6 @@ struct LivePlayerView: View {
         isFullscreen: controller.isPresentingFullscreen,
         rounded: !cinemaMode
       )
-    )
-    .gesture(
-      DragGesture(minimumDistance: 30)
-        .onEnded { value in
-          guard controller.isPresentingFullscreen,
-            value.translation.height > 120,
-            abs(value.translation.width) < value.translation.height
-          else { return }
-          controller.exitNativeFullscreen()
-        }
     )
     .overlay(alignment: .top) {
       if let remaining = coordinator.autoplayCountdownRemaining {
