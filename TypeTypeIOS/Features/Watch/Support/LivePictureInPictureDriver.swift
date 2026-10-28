@@ -106,7 +106,10 @@ final class LivePictureInPictureDriver: NSObject, ObservableObject {
       contentSource: .init(sampleBufferDisplayLayer: layer, playbackDelegate: playback)
     )
     controller.delegate = self
-    controller.canStartPictureInPictureAutomaticallyFromInline = false
+    // The SYSTEM performs the background hand-off itself and cannot lose
+    // the race against its own suspension (a manual start at .inactive
+    // lost it: "scene invalidated before create completion").
+    controller.canStartPictureInPictureAutomaticallyFromInline = true
     AppLogger.playback
       .info("pip engine: native content installed")
     pipController = controller
