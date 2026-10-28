@@ -28,10 +28,6 @@ final class LiveSearchViewModel: ObservableObject {
   @Published private(set) var isCorrectedSearch = false
   @Published var suggestions: [String] = []
   @Published var history: [LiveSearchHistoryItem] = []
-  @Published var trending: [LiveVideoItem] = []
-  @Published var isLoadingTrending = false
-  @Published var trendingError: String?
-  @Published var trendingLimit = 8
 
   let services: [VideoService]
   let searchService: LiveSearchServiceProtocol
@@ -43,7 +39,6 @@ final class LiveSearchViewModel: ObservableObject {
   var searchTask: Task<LiveSearchPage, Error>?
   var paginationTask: Task<LiveSearchPage, Error>?
   var suggestionTask: Task<[String], Error>?
-  var trendingRequestID = UUID()
   var historyPage = 1
   var canLoadMoreHistory = false
   init(
@@ -154,15 +149,12 @@ final class LiveSearchViewModel: ObservableObject {
   private func applyGlobalService(_ serviceID: Int) async {
     guard selectedServiceID != serviceID else { return }
     requestID = UUID()
-    trendingRequestID = UUID()
     searchTask?.cancel()
     paginationTask?.cancel()
     selectedServiceID = serviceID
     selectedContentFilter = nil
     selectedSortFilter = nil
-    async let filters: Void = loadFilters()
-    async let trending: Void = loadTrending()
-    _ = await (filters, trending)
+    await loadFilters()
     if !submittedQuery.isEmpty {
       await submit(submittedQuery)
     }
@@ -228,17 +220,5 @@ final class LiveSearchViewModel: ObservableObject {
     nextPage = nil
     canLoadMore = false
     state = .idle
-  }
-
-  var visibleTrending: [LiveVideoItem] {
-    Array(trending.prefix(trendingLimit))
-  }
-
-  var canLoadMoreTrending: Bool {
-    trendingLimit < trending.count
-  }
-
-  func revealMoreTrending() {
-    trendingLimit = min(trendingLimit + 8, trending.count)
   }
 }
