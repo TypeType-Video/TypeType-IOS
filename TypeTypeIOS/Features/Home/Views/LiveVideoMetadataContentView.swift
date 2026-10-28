@@ -197,9 +197,7 @@ struct LiveVideoMetadataContentView: View {
         dependencies: dependencies
       )
     }
-    .externalLinkAlert(pendingURL: $pendingExternalURL)
-    .accessibilityIdentifier("live.video.metadata")
-    // The landscape stage is a sibling of the scroll, not scroll content:
+    // The landscape stage hangs on the whole layout, not on the scroll:
     // the video layer stays in its window and only its frame changes.
     .overlay {
       if playerController.isPresentingFullscreen,
@@ -239,6 +237,8 @@ struct LiveVideoMetadataContentView: View {
       }
     }
     }
+    .externalLinkAlert(pendingURL: $pendingExternalURL)
+    .accessibilityIdentifier("live.video.metadata")
     .toolbar(
       playerController.isPresentingFullscreen ? .hidden : .automatic,
       for: .navigationBar
