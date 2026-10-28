@@ -197,6 +197,7 @@ struct LiveVideoMetadataContentView: View {
         dependencies: dependencies
       )
     }
+    }
     // The landscape stage hangs on the whole layout, not on the scroll:
     // the video layer stays in its window and only its frame changes.
     .overlay {
@@ -260,7 +261,6 @@ struct LiveVideoMetadataContentView: View {
       )
     }
     .onDisappear { playerController.flushHistory() }
-    }
   }
 
   private var subscriberCount: Int64? {
