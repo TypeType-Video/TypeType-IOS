@@ -32,9 +32,11 @@ final class LiveNativeFullscreenPresenter {
   }
 
   func dismiss() {
-    guard let controller, controller.isPresentingFullscreen else { return }
+    guard let controller else { return }
     closesOnPortrait = false
     cancelPortraitExit()
+    // Idempotent: a landscape window with the full screen layout leaves
+    // even when the flag is out of step with it.
     controller.isPresentingFullscreen = false
     if isPageActive {
       LiveOrientationLock.shared.refresh()

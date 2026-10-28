@@ -113,7 +113,7 @@ struct LivePlayerView: View {
     .gesture(
       DragGesture(minimumDistance: 30)
         .onEnded { value in
-          guard controller.isPresentingFullscreen,
+          guard showsFullscreenLayout || controller.isPresentingFullscreen,
             value.translation.height > 120,
             abs(value.translation.width) < value.translation.height
           else { return }
@@ -164,7 +164,7 @@ struct LivePlayerView: View {
     }
   }
 
-  private var showsFullscreenLayout: Bool {
+  var showsFullscreenLayout: Bool {
     controller.showsFullscreenLayout(verticalSizeClass: verticalSizeClass)
   }
 
