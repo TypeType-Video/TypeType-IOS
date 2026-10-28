@@ -5,6 +5,9 @@ extension LivePlaybackCoordinator {
     guard queue.isActive, queue.videos.indices.contains(index) else {
       return
     }
+    if sleepTimer.mode == .stoppedForTheNight {
+      sleepTimer = LivePlaybackSleepTimerState()
+    }
     if index == queue.currentIndex {
       presentation = .expanded
       return
@@ -99,6 +102,9 @@ extension LivePlaybackCoordinator {
   }
 
   func skipAutoplayCountdown() {
+    if sleepTimer.mode == .stoppedForTheNight {
+      sleepTimer = LivePlaybackSleepTimerState()
+    }
     guard let index = pendingAutoplayIndex else { return }
     commitAutoplayAdvance(to: index)
   }
