@@ -11,13 +11,12 @@ struct LiveNativeFullscreenView: View {
 
   var body: some View {
     ZStack {
-      Color.black.ignoresSafeArea()
-      if let playback = controller.nativePlayback {
-        LiveNativeVideoView(playback: playback, controller: controller, surface: .fullscreen)
-          .ignoresSafeArea()
-          .onTapGesture { controls.tap() }
-      }
-      LiveNativeSubtitleOverlay(controller: controller)
+      // The video stays in the PAGE surface behind this controller: the
+      // modal is a transparent orientation authority holding only the
+      // chrome, so the picture never swaps surfaces and rides the rotation.
+      Color.clear
+        .contentShape(Rectangle())
+        .onTapGesture { controls.tap() }
       LiveNativePlayerControls(controller: controller, controls: controls, isFullscreen: true) {
         AppLogger.playback.info("fullscreen: onClose via exit-button")
         onClose()
@@ -91,12 +90,16 @@ final class LiveLandscapeHostingController: UIHostingController<LiveNativeFullsc
       // in after the fade.
       host.relaxesForExit = true
       host.setNeedsUpdateOfSupportedInterfaceOrientations()
+      // The page surface shrinks with the return rotation (its layout
+      // change animates on the page); this controller only fades chrome.
+      host.controller?.isPresentingFullscreen = false
       LiveScreenOrientation.set(.portrait)
       host.dismiss(animated: true)
     }
   }
 
   var relaxesForExit = false
+  weak var controller: LivePlayerController?
 
   override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
     if traitCollection.userInterfaceIdiom != .phone { return .all }
@@ -156,7 +159,13 @@ final class LiveLandscapeHostingController: UIHostingController<LiveNativeFullsc
           LiveLandscapeHostingController.dismissActive(reason: "modal-onClose")
         }
       )
-      created.modalPresentationStyle = .fullScreen
+      // overFullScreen keeps the page surface attached below — it renders
+      // the picture for the whole transition (a removed presenter blanks).
+      // The controller is transparent: it only floats chrome above the
+      // growing page surface, so the cross-fade fades controls, not video.
+      created.modalPresentationStyle = .overFullScreen
+      created.view.backgroundColor = .clear
+      created.controller = controller
       // Cross-fade in and out instead of popping the full screen in, so
       // the window rotation and the modal read as one move.
       created.modalTransitionStyle = .crossDissolve
