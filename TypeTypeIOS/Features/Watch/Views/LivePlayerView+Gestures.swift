@@ -18,8 +18,11 @@ extension LivePlayerView {
     let isAway = frame.maxY <= 0
     if !isAway {
       autoPictureInPictureArmed = true
-      // Only auto-started PiP windows return here; a manual mini player stays.
-      if autoPictureInPictureActive {
+      // Only auto-started PiP windows return here; a manual mini player
+      // stays. The return waits until the player is about half re-entered,
+      // so the window flies to a visible rect instead of an off-screen one.
+      if autoPictureInPictureActive,
+        frame.maxY >= frame.height * 0.5 {
         autoPictureInPictureActive = false
         if controller.pictureInPicture.isEngaged {
           controller.pictureInPicture.bringInline()

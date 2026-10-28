@@ -65,13 +65,26 @@ final class LivePictureInPictureDriver: NSObject, ObservableObject {
   /// layer.
   func loadPoster(url: URL?) async {
     guard let url else { return }
-    guard
-      let (data, _) = try? await URLSession.shared.data(from: url),
-      let image = UIImage(data: data),
-      let cgImage = image.cgImage
-    else {
-      return
+    // A slow poster download must not hold the PiP start hostage: race the
+    // fetch against a short budget and start regardless (an empty layer
+    // falls back to the in-app card, which is an acceptable degradation).
+    let image: UIImage? = await withTaskGroup(
+      of: UIImage?.self
+    ) { group in
+      group.addTask {
+        guard let (data, _) = try? await URLSession.shared.data(from: url)
+        else { return nil }
+        return UIImage(data: data)
+      }
+      group.addTask {
+        try? await Task.sleep(for: .milliseconds(1_200))
+        return nil
+      }
+      let first = await group.next() ?? nil
+      group.cancelAll()
+      return first
     }
+    guard let image, let cgImage = image.cgImage else { return }
     contentLayer?.contents = cgImage
     contentLayer?.contentsGravity = .resizeAspect
   }
