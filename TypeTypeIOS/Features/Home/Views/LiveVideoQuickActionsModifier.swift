@@ -101,27 +101,28 @@ struct LiveVideoQuickActionsModifier: ViewModifier {
           dependencies: dependencies
         )
       }
-      .confirmationDialog(
-        "Share as",
+      .popover(
         isPresented: $presentsShareChoice,
-        titleVisibility: .visible
+        attachmentAnchor: .point(.init(x: 0.5, y: 1.0)),
+        arrowEdge: .top
       ) {
-        if let typeTypeURL = LiveShareURLBuilder.video(
-          serverURL: dependencies.serverStore.selectedServer()?.baseURL,
-          sourceURL: viewModel.video.url
-        ) {
-          Button("TypeType link") {
-            shareSheetURL = typeTypeURL
-          }
-        }
-        if let originalURL = LiveShareURLBuilder.original(
-          sourceURL: viewModel.video.url
-        ) {
-          Button("Original link") {
-            shareSheetURL = originalURL
-          }
-        }
-        Button("Cancel", role: .cancel) {}
+        LiveShareChoiceCard(
+          hasOriginal: LiveShareURLBuilder.original(
+            sourceURL: viewModel.video.url
+          ) != nil,
+          onTypeType: {
+            shareSheetURL = LiveShareURLBuilder.video(
+              serverURL: dependencies.serverStore.selectedServer()?.baseURL,
+              sourceURL: viewModel.video.url
+            )
+          },
+          onOriginal: {
+            shareSheetURL = LiveShareURLBuilder.original(
+              sourceURL: viewModel.video.url
+            )
+          },
+          onCancel: { presentsShareChoice = false }
+        )
       }
       .sheet(isPresented: shareSheetBinding) {
         if let shareSheetURL {

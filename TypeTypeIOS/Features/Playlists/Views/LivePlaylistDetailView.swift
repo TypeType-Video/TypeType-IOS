@@ -65,33 +65,6 @@ struct LivePlaylistDetailView: View {
           }
         }
       }
-      .confirmationDialog(
-        "Remove video?",
-        isPresented: removalBinding,
-        titleVisibility: .visible
-      ) {
-        Button("Remove", role: .destructive) {
-          guard let video = pendingRemoval else { return }
-          Task { await viewModel.remove(video) }
-          pendingRemoval = nil
-        }
-      }
-      .confirmationDialog(
-        "Delete playlist?",
-        isPresented: $confirmsDeletion,
-        titleVisibility: .visible
-      ) {
-        Button("Delete", role: .destructive) {
-          Task {
-            if await viewModel.delete() {
-              onChanged()
-              dismiss()
-            }
-          }
-        }
-      } message: {
-        Text("This action cannot be undone.")
-      }
       .alert("Playlist", isPresented: errorBinding) {
         Button("OK") { viewModel.dismissError() }
       } message: {

@@ -72,10 +72,27 @@ struct LiveAdminUserView: View {
           confirmsSuspension = true
         }
         .disabled(isCurrentUser || viewModel.isBusy)
+        .liveConfirmPopover(
+          isPresented: $confirmsSuspension,
+          title: viewModel.user.suspended ? "Restore user?" : "Suspend user?",
+          confirmTitle: viewModel.user.suspended ? "Restore" : "Suspend",
+          destructive: !viewModel.user.suspended
+        ) {
+          Task { await viewModel.toggleSuspended() }
+        }
         Button("Create password reset token") {
           confirmsReset = true
         }
         .disabled(viewModel.isBusy)
+        .liveConfirmPopover(
+          isPresented: $confirmsReset,
+          title: "Create token?",
+          message: "The reset token is shown in diagnostics logs and expires after 15 minutes.",
+          confirmTitle: "Create token",
+          destructive: false
+        ) {
+          Task { await viewModel.generateResetToken() }
+        }
       } header: { Text("Security").liveSectionHeader() }
 
       if let token = viewModel.resetToken {
@@ -100,27 +117,6 @@ struct LiveAdminUserView: View {
       .liveThemeRepaint()
     .navigationTitle(viewModel.user.name)
     .navigationBarTitleDisplayMode(.inline)
-    .confirmationDialog(
-      viewModel.user.suspended ? "Restore user?" : "Suspend user?",
-      isPresented: $confirmsSuspension,
-      titleVisibility: .visible
-    ) {
-      Button(
-        viewModel.user.suspended ? "Restore" : "Suspend",
-        role: viewModel.user.suspended ? nil : .destructive
-      ) {
-        Task { await viewModel.toggleSuspended() }
-      }
-    }
-    .confirmationDialog(
-      "Create a password reset token?",
-      isPresented: $confirmsReset,
-      titleVisibility: .visible
-    ) {
-      Button("Create token") {
-        Task { await viewModel.generateResetToken() }
-      }
-    }
     .alert("Administration", isPresented: errorBinding) {
       Button("OK") { viewModel.dismissError() }
     } message: {

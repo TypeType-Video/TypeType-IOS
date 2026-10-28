@@ -38,23 +38,6 @@ struct LivePrivacyDataView: View {
     .navigationTitle("Stored data")
     .navigationBarTitleDisplayMode(.inline)
     .task { await viewModel.prepare() }
-    .confirmationDialog(
-      confirmation?.title ?? "",
-      isPresented: Binding(
-        get: { confirmation != nil },
-        set: { if !$0 { confirmation = nil } }
-      ),
-      titleVisibility: .visible
-    ) {
-      if let confirmation {
-        Button(confirmation.button, role: .destructive) {
-          perform(confirmation)
-        }
-      }
-      Button("Cancel", role: .cancel) {}
-    } message: {
-      Text("This action cannot be undone.")
-    }
   }
 
   private var list: some View {
@@ -107,6 +90,16 @@ struct LivePrivacyDataView: View {
         confirmation = action
       }
       .disabled(count == 0 || viewModel.isBusy)
+      .liveConfirmPopover(
+        isPresented: Binding(
+          get: { confirmation?.title == action.title },
+          set: { if !$0 { confirmation = nil } }
+        ),
+        title: action.title,
+        confirmTitle: action.button
+      ) {
+        perform(action)
+      }
     }
   }
 

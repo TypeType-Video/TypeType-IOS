@@ -84,22 +84,17 @@ struct LiveShareAsLinkButton<Label: View>: View {
     } label: {
       label
     }
-    .confirmationDialog(
-      "Share as",
+    .popover(
       isPresented: $presentsLinkChoice,
-      titleVisibility: .visible
+      attachmentAnchor: .point(.init(x: 0.5, y: 1.0)),
+      arrowEdge: .top
     ) {
-      if let typeTypeURL {
-        Button("TypeType link") {
-          shareSheetURL = typeTypeURL
-        }
-      }
-      if let originalURL {
-        Button("Original link") {
-          shareSheetURL = originalURL
-        }
-      }
-      Button("Cancel", role: .cancel) {}
+      LiveShareChoiceCard(
+        hasOriginal: originalURL != nil,
+        onTypeType: { shareSheetURL = typeTypeURL },
+        onOriginal: { shareSheetURL = originalURL },
+        onCancel: { presentsLinkChoice = false }
+      )
     }
     .sheet(isPresented: shareSheetBinding) {
       if let shareSheetURL {
@@ -113,5 +108,41 @@ struct LiveShareAsLinkButton<Label: View>: View {
       get: { shareSheetURL != nil },
       set: { if !$0 { shareSheetURL = nil } }
     )
+  }
+}
+
+/// "Share as" choice card — the same dropping glass card as the confirms.
+struct LiveShareChoiceCard: View {
+  var hasOriginal = true
+  let onTypeType: () -> Void
+  let onOriginal: () -> Void
+  let onCancel: () -> Void
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 0) {
+      row("TypeType link", action: onTypeType)
+      Divider()
+      if hasOriginal {
+        row("Original link", action: onOriginal)
+        Divider()
+      }
+      row("Cancel", action: onCancel)
+    }
+    .frame(width: 280)
+    .presentationCompactAdaptation(.popover)
+    .accessibilityIdentifier("live.share.choice")
+  }
+
+  private func row(_ title: String, action: @escaping () -> Void) -> some View {
+    Button {
+      action()
+    } label: {
+      Text(title)
+        .foregroundStyle(title == "Cancel" ? Color.systemRed : .primary)
+        .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+        .padding(.horizontal, 16)
+        .contentShape(Rectangle())
+    }
+    .buttonStyle(.plain)
   }
 }

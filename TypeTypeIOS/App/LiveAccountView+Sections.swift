@@ -167,6 +167,14 @@ extension LiveAccountView {
           .frame(height: 44)
       }
       .accessibilityIdentifier("live.account.sign-out")
+      .liveConfirmPopover(
+        isPresented: $confirmsSignOut,
+        title: "Sign out of this instance?",
+        message: "You can sign back in any time.",
+        confirmTitle: "Sign out"
+      ) {
+        Task { await coordinator.signOut() }
+      }
     }
   }
 

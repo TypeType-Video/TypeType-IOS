@@ -867,6 +867,7 @@ struct LiveConfirmCard: View {
   let title: String
   var message: String? = nil
   let confirmTitle: String
+  var destructive = true
   let onConfirm: () -> Void
   @Environment(\.dismiss) private var dismiss
 
@@ -889,13 +890,13 @@ struct LiveConfirmCard: View {
 
       Divider()
 
-      Button(role: .destructive) {
+      Button(role: destructive ? .destructive : nil) {
         dismiss()
         onConfirm()
       } label: {
         Text(confirmTitle)
           .fontWeight(.semibold)
-          .foregroundStyle(Color.systemRed)
+          .foregroundStyle(destructive ? Color.systemRed : .tint)
           .frame(maxWidth: .infinity, minHeight: 50)
       }
       .buttonStyle(.plain)
@@ -910,5 +911,32 @@ struct LiveConfirmCard: View {
     }
     .frame(width: 280)
     .presentationCompactAdaptation(.popover)
+  }
+}
+
+extension View {
+  /// The app's standard confirm: a glass card dropping from the attached
+  /// element (see LiveConfirmCard). Replaces every confirmationDialog.
+  func liveConfirmPopover(
+    isPresented: Binding<Bool>,
+    title: String,
+    message: String? = nil,
+    confirmTitle: String,
+    destructive: Bool = true,
+    onConfirm: @escaping () -> Void
+  ) -> some View {
+    popover(
+      isPresented: isPresented,
+      attachmentAnchor: .point(.init(x: 0.5, y: 1.0)),
+      arrowEdge: .top
+    ) {
+      LiveConfirmCard(
+        title: title,
+        message: message,
+        confirmTitle: confirmTitle,
+        destructive: destructive,
+        onConfirm: onConfirm
+      )
+    }
   }
 }

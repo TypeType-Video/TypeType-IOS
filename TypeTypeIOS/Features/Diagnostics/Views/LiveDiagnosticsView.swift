@@ -65,21 +65,19 @@ struct LiveDiagnosticsView: View {
             Image(systemName: "trash")
           }
           .accessibilityLabel("Clear diagnostics")
+          .liveConfirmPopover(
+            isPresented: $confirmsClear,
+            title: "Clear diagnostics?",
+            message: "The stored logs are removed.",
+            confirmTitle: "Clear all"
+          ) {
+            Task { await clear() }
+          }
         }
       }
     }
     .refreshable { await reload() }
     .task { await reload() }
-    .confirmationDialog(
-      "Clear diagnostics on this device?",
-      isPresented: $confirmsClear,
-      titleVisibility: .visible
-    ) {
-      Button("Clear diagnostics", role: .destructive) {
-        Task { await clear() }
-      }
-      Button("Cancel", role: .cancel) {}
-    }
     .overlay(alignment: .bottom) {
       if copiedRequestID != nil {
         Text("Request ID copied")

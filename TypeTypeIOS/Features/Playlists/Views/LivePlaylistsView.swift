@@ -73,32 +73,6 @@ struct LivePlaylistsView: View {
         }
       }
     }
-    .confirmationDialog(
-      "Delete playlist?",
-      isPresented: playlistDeletionBinding,
-      titleVisibility: .visible
-    ) {
-      Button("Delete", role: .destructive) {
-        guard let playlist = pendingPlaylistDeletion else { return }
-        Task { await viewModel.delete(playlist) }
-        pendingPlaylistDeletion = nil
-      }
-    } message: {
-      Text("This action cannot be undone.")
-    }
-    .confirmationDialog(
-      "Remove saved playlist?",
-      isPresented: savedDeletionBinding,
-      titleVisibility: .visible
-    ) {
-      Button("Remove", role: .destructive) {
-        guard let playlist = pendingSavedDeletion else { return }
-        Task { await viewModel.removeSaved(playlist) }
-        pendingSavedDeletion = nil
-      }
-    } message: {
-      Text("Only the saved reference is removed from your library.")
-    }
     .alert("Playlists", isPresented: errorBinding) {
       Button("OK") { viewModel.dismissError() }
     } message: {

@@ -27,17 +27,6 @@ struct LiveAccountView: View {
       .navigationTitle("More")
       .navigationBarTitleDisplayMode(.inline)
     }
-    .confirmationDialog(
-      "Sign out of this instance?",
-      isPresented: $confirmsSignOut,
-      titleVisibility: .visible
-    ) {
-      Button("Sign out", role: .destructive) {
-        Task { await coordinator.signOut() }
-      }
-    } message: {
-      Text("You can sign back in any time.")
-    }
     .accessibilityIdentifier("live.account.screen")
   }
 }

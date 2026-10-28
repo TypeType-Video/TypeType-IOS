@@ -80,6 +80,17 @@ extension LivePlaylistDetailView {
                 },
                 onRemove: { pendingRemoval = video }
               )
+              .liveConfirmPopover(
+                isPresented: Binding(
+                  get: { pendingRemoval?.id == video.id },
+                  set: { if !$0 { pendingRemoval = nil } }
+                ),
+                title: "Remove video?",
+                confirmTitle: "Remove"
+              ) {
+                Task { await viewModel.remove(video) }
+                pendingRemoval = nil
+              }
             }
             .onMove { source, destination in
               Task {
@@ -121,18 +132,24 @@ extension LivePlaylistDetailView {
       } label: {
         Label("Playlist options", systemImage: "ellipsis.circle")
       }
+      .liveConfirmPopover(
+        isPresented: $confirmsDeletion,
+        title: "Delete playlist?",
+        message: "This action cannot be undone.",
+        confirmTitle: "Delete"
+      ) {
+        Task {
+          if await viewModel.delete() {
+            onChanged()
+            dismiss()
+          }
+        }
+      }
       if viewModel.sort == .manual,
         viewModel.playlist?.videos.isEmpty == false {
         EditButton()
       }
     }
-  }
-
-  var removalBinding: Binding<Bool> {
-    Binding(
-      get: { pendingRemoval != nil },
-      set: { if !$0 { pendingRemoval = nil } }
-    )
   }
 
   var errorBinding: Binding<Bool> {
