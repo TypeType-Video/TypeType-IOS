@@ -35,6 +35,11 @@ struct LiveVideoMetadataContentView: View {
     )
   }
 
+  // Nothing around the player has a margin to cancel: a negative inset pushed it 16 pt off both screen edges.
+  private var playerInset: CGFloat {
+    showsFullscreenLayout || cinemaMode ? 0 : 16
+  }
+
   private var showsFullscreenLayout: Bool {
     playerController.showsFullscreenLayout(verticalSizeClass: verticalSizeClass)
   }
@@ -47,7 +52,7 @@ struct LiveVideoMetadataContentView: View {
       // surroundings instead of pushing them away — one visible motion.
       Color.clear
         .aspectRatio(16 / 9, contentMode: .fit)
-        .padding(.horizontal, cinemaMode ? -16 : 0)
+        .padding(.horizontal, playerInset)
 
       ScrollView {
       VStack(alignment: .leading, spacing: 18) {
@@ -210,7 +215,7 @@ struct LiveVideoMetadataContentView: View {
         cinemaMode: $cinemaMode,
         isScrolled: isScrolled
       )
-      .padding(.horizontal, cinemaMode ? -16 : 0)
+      .padding(.horizontal, playerInset)
     }
     .toolbar(showsFullscreenLayout ? .hidden : .automatic, for: .navigationBar)
     .statusBarHidden(showsFullscreenLayout)
