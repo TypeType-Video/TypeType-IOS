@@ -76,9 +76,9 @@ the screen views listed above, `Features/Home/Views/LiveVideoCard.swift`.
   (`evaluateAutoPictureInPicture`).
 - Current trigger: fires whenever `frame.maxY < frame.height * 0.3` while
   armed. Reading comments near the top re-triggers instantly.
-- Change: require the surface to be clearly off-screen
-  (`frame.maxY < 0` i.e. fully scrolled out), add a re-arm cooldown of ~1.5 s
-  after restore, and never start PiP while a scroll gesture is still settling.
+- Dev-confirmed spec: PiP only when the box is FULLY out of view
+  (`frame.maxY <= 0`), restore the moment any part re-enters the viewport
+  (smooth, predicted by the same geometry evaluator).
 - Acceptance: scrolling comments does NOT drop into PiP unless the player is
   fully off-screen; scrolling back still restores inline.
 
@@ -98,6 +98,14 @@ the screen views listed above, `Features/Home/Views/LiveVideoCard.swift`.
   timestamps; tapping seeks (`controller.seek`). Inline card row above the
   description (like beta `d9c0eff`, iOS-skinned) if the options sheet alone
   feels hidden — decide after first build.
+
+### Task 2.3b — Sleep timer in the actions row (dev-specified)
+- Asset exists: `LivePlaybackSleepTimerView.swift` (recon its current API).
+- Dev spec: options = end of current video (stop playback AND block the app
+  so autoplay cannot start the next one), 30 / 60 / 90 minutes. The end-of-
+  video option must also cancel the autoplay countdown. After firing, the
+  app shows a quiet "stopped for the night" state (no autoplay until the
+  user interacts).
 - Verify 4× rate works on the in-house engine while in there.
 
 ### Task 2.4 — In-house PiP return/restore (open bug from earlier session)
@@ -185,7 +193,7 @@ Files: `Features/Settings/Views/LiveSettingsAppearanceView*`.
   iOS controls beneath. Replaces flat list rows.
 
 ### Task 6.2 — Manga personality (needs user decision)
-- If removing: delete manga personality + its options from
+- DECIDED: remove completely. Delete manga personality + its options from
   `LiveSettingsAppearanceView` and `LiveAppPreferences` (keep decode
   tolerance so old stored values don't crash), drop the tokens from
   `DemoTheme`.
@@ -233,7 +241,7 @@ needs the user's log). Each phase = 1–3 commits, each ≤390 lines.
 ## Open questions (asked via clarify)
 
 1. Manga personality: remove entirely or hide?
-2. Extra action buttons row (user unsure): do it or skip?
+2. DECIDED: yes — extra actions incl. a sleep-timer shortcut ("minuteur"); LivePlaybackSleepTimerView already exists to host.
 3. Share dialog: default choice?
 4. Skeleton style: pulsing shimmer or static blocks?
 5. Auto-PiP: keep with a much bigger threshold, or remove the feature

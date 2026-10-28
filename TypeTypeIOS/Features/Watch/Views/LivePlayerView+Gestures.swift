@@ -10,10 +10,9 @@ extension LivePlayerView {
     // Rotating into full screen moves this surface; that is not the reader scrolling away.
     // The landscape stage owns the layer; everything else may float away.
     guard !controller.isPresentingFullscreen else { return }
-    let screenH = UIScreen.main.bounds.height
-    controller.isPlayerSurfaceFullyVisible =
-      frame.minY >= 44 && frame.maxY <= screenH - 100
-    let isAway = frame.maxY < frame.height * 0.3
+    // Dev spec: PiP only when the box is FULLY out of view, and back the
+    // moment any part of it re-enters the viewport.
+    let isAway = frame.maxY <= 0
     if !isAway {
       autoPictureInPictureArmed = true
       // Only auto-started PiP windows return here; a manual mini player stays.
