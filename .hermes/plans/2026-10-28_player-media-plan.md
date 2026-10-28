@@ -153,17 +153,20 @@ in Xcode, and reports.
 
 ## Phase 4 — Notifications: 120-request budget
 
-### Task 4.1 — Verify the budget guard after the merge
-- Files: `TypeTypeIOS/Features/Notifications/ViewModels/
-  LiveNotificationSettingsViewModel.swift`, `TypeTypeIOS/Features/
-  Notifications/Views/LiveNotificationSettingsView.swift`, `TypeTypeIOS/
-  Features/Notifications/Services/LivePushNotificationsService.swift`.
-- Already implemented on dev (cap 120 queries/user, remaining-budget
-  footer, enable/disable all with budget-aware skipping, per-channel PUTs
-  throttled to 200 ms). This task only re-verifies after the PR merge and
-  keeps the identifiers (`live.notification-settings.*`).
-- Acceptance: enable-all stops at the budget and toasts the skipped count;
-  a single enable past the cap is blocked with a toast; no 429s.
+### Task 4.1 — Bulk toggle through the Android bulk endpoint (DONE 28 Oct)
+- Reference: `TypeType-Android` — `TypeTypeNotificationsApi.kt` declares
+  `@PUT("notifications/channel-preferences/bulk")` with
+  `ChannelNotificationPreferencesBulkRequestDto { enabled, channelUrls }`.
+  The server DOES expose a bulk endpoint; the earlier per-channel loop was
+  the cause of the "too many requests".
+- Implemented: `LivePushNotificationsService.setChannelPreferences(enabled:
+  channelURLs:)` sends ONE `PUT /notifications/channel-preferences/bulk`
+  (payload keys `enabled` + `channelUrls`); the throttled per-channel loop
+  is gone. The protocol keeps a per-channel default for stubs/tests.
+  `setAllEnabled` passes the uniform flip; the single-toggle path is
+  unchanged (`PUT /notifications/channel-preferences`).
+- Acceptance: enable-all/disable-all issues exactly one request (check
+  the proxy log); no 429s; the budget footer/toast behaviour unchanged.
 
 ### Task 4.2 (optional) — Server-reported budget
 - If the instance ever reports a limit, prefer it over the constant

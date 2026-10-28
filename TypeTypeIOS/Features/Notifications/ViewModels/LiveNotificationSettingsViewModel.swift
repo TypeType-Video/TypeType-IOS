@@ -203,12 +203,8 @@ final class LiveNotificationSettingsViewModel: ObservableObject {
 
     do {
       let updated = try await service.setChannelPreferences(
-        appliedTargets.map {
-          LiveChannelNotificationPreferencePayload(
-            channelURL: $0.channelURL,
-            enabled: enabled
-          )
-        }
+        enabled: enabled,
+        channelURLs: appliedTargets.map(\.channelURL)
       )
       for preference in updated {
         if let index = indexOf(preference) {

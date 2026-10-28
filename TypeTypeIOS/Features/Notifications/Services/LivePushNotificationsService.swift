@@ -8,31 +8,27 @@ protocol LivePushNotificationsServiceProtocol {
     channelURL: String,
     enabled: Bool
   ) async throws -> LiveChannelNotificationPreference
-  /// Bulk toggle behind "Enable all"/"Disable all": applied in order,
-  /// returns the channels that were updated.
+  /// Bulk toggle behind "Enable all"/"Disable all": one request with the
+  /// channels to flip (TypeType-Android: PUT
+  /// notifications/channel-preferences/bulk).
   func setChannelPreferences(
-    _ updates: [LiveChannelNotificationPreferencePayload]
+    enabled: Bool,
+    channelURLs: [String]
   ) async throws -> [LiveChannelNotificationPreference]
 }
 
 extension LivePushNotificationsServiceProtocol {
-  /// Default bulk path: the server only exposes one PUT per channel, so a
-  /// batch is a loop. Lives in the protocol so the settings view model can
-  /// drive bulk toggles without every stub implementing it.
+  /// Per-channel fallback for stubs and tests; the real service replaces
+  /// it with the single bulk request.
   func setChannelPreferences(
-    _ updates: [LiveChannelNotificationPreferencePayload]
+    enabled: Bool,
+    channelURLs: [String]
   ) async throws -> [LiveChannelNotificationPreference] {
     var applied: [LiveChannelNotificationPreference] = []
-    for update in updates {
+    for channelURL in channelURLs {
       applied.append(
-        try await setChannelPreference(
-          channelURL: update.channelURL,
-          enabled: update.enabled
-        )
+        try await setChannelPreference(channelURL: channelURL, enabled: enabled)
       )
-      // The instance rate-limits: space the per-channel PUTs so a bulk
-      // sweep cannot burst into "429 Too Many Requests".
-      try? await Task.sleep(for: .milliseconds(200))
     }
     return applied
   }
@@ -76,5 +72,36 @@ final class LivePushNotificationsService: LivePushNotificationsServiceProtocol {
       ),
       as: LiveChannelNotificationPreference.self
     )
+  }
+
+  func setChannelPreferences(
+    enabled: Bool,
+    channelURLs: [String]
+  ) async throws -> [LiveChannelNotificationPreference] {
+    try await apiClient.request(
+      APIEndpoint(
+        path: "/notifications/channel-preferences/bulk",
+        method: .put,
+        body: try APIEndpoint.jsonBody(
+          LiveChannelNotificationPreferencesBulkPayload(
+            enabled: enabled,
+            channelURLs: channelURLs
+          )
+        ),
+        requiresAuth: true
+      ),
+      as: [LiveChannelNotificationPreference].self
+    )
+  }
+}
+
+/// Mirrors TypeType-Android's `ChannelNotificationPreferencesBulkRequestDto`.
+private struct LiveChannelNotificationPreferencesBulkPayload: Encodable {
+  let enabled: Bool
+  let channelURLs: [String]
+
+  enum CodingKeys: String, CodingKey {
+    case enabled
+    case channelURLs = "channelUrls"
   }
 }
