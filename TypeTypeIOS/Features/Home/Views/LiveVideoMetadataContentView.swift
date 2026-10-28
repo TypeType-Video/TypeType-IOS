@@ -202,6 +202,19 @@ struct LiveVideoMetadataContentView: View {
       for: .navigationBar
     )
     .statusBarHidden(playerController.isPresentingFullscreen)
+    // Rotation IS the fullscreen toggle (dev spec), crash-safe edition:
+    // the modal waits out the cover's presentation before presenting.
+    .onGeometryChange(for: CGSize.self) { proxy in
+      proxy.size
+    } action: { size in
+      let landscape = size.width > size.height
+      guard landscape, !playerController.isPresentingFullscreen else { return }
+      Task { @MainActor in
+        try? await Task.sleep(for: .milliseconds(600))
+        guard !playerController.isPresentingFullscreen else { return }
+        playerController.enterNativeFullscreen()
+      }
+    }
     .animation(.easeInOut(duration: 0.5), value: playerController.isPresentingFullscreen)
     .liveStartupProbe(playerController.lastStartupMilliseconds)
     .environment(\.liveWatchExtrasEnabled, playerController.extrasReleased)
