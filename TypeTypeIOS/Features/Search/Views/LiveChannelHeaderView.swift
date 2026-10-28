@@ -13,9 +13,11 @@ struct LiveChannelHeaderView: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 14) {
       if !channel.bannerURL.isEmpty {
+        // Compact banner (dev feedback, plan task 5): a slim strip above the
+        // identity row instead of the oversized banner block.
         LiveRemoteImage(url: channel.banner)
           .frame(maxWidth: .infinity)
-          .aspectRatio(4.4, contentMode: .fit)
+          .aspectRatio(8, contentMode: .fit)
           .clipped()
           .clipShape(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
@@ -101,13 +103,8 @@ struct LiveChannelHeaderView: View {
         .disabled(isChangingSubscription)
         .accessibilityIdentifier("live.channel.subscription")
       }
-
-      if !channel.description.isEmpty {
-        Text(channel.description)
-          .font(.footnote)
-          .foregroundStyle(.secondary)
-          .lineLimit(3)
-      }
+      // The description lives in the About tab: the header is identity +
+      // subscribe only (dev feedback, plan task 5).
     }
   }
 }

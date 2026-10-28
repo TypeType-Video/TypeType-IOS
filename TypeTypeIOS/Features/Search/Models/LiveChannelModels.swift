@@ -25,6 +25,7 @@ enum LiveChannelTab: String, CaseIterable, Identifiable {
   case videos
   case live
   case playlists
+  case about
 
   var id: String {
     rawValue

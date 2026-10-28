@@ -27,7 +27,8 @@ struct LiveChannelView: View {
 
   var body: some View {
     content
-      .modifier(LiveChannelSearchModifier(viewModel: viewModel))
+      // The in-page search bar is gone (dev feedback, plan task 5):
+      // searching belongs to the search tab.
       .navigationTitle(viewModel.channel?.name ?? "Channel")
       .navigationBarTitleDisplayMode(.inline)
       .task {

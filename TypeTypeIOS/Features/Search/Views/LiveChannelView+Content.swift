@@ -83,8 +83,31 @@ extension LiveChannelView {
       ).liveThemedEmptyState()
       .padding(.vertical, 50)
     case .loaded:
-      loadedContent
+      if viewModel.selectedTab == .about {
+        aboutContent
+      } else {
+        loadedContent
+      }
     }
+  }
+
+  private var aboutContent: some View {
+    VStack(alignment: .leading, spacing: 12) {
+      Text("About")
+        .font(.headline)
+      if let channel = viewModel.channel, !channel.description.isEmpty {
+        Text(channel.description)
+          .font(.subheadline)
+          .foregroundStyle(.secondary)
+          .textSelection(.enabled)
+      } else {
+        Text("This channel has no description.")
+          .font(.subheadline)
+          .foregroundStyle(.secondary)
+      }
+    }
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .accessibilityIdentifier("live.channel.about")
   }
 
   private var loadedContent: some View {
@@ -146,9 +169,6 @@ extension LiveChannelView {
   }
 
   private var emptyDescription: String {
-    if !viewModel.submittedQuery.isEmpty {
-      return "No channel results for “\(viewModel.submittedQuery)”."
-    }
-    return "This channel has no content in the selected section."
+    "This channel has no content in the selected section."
   }
 }

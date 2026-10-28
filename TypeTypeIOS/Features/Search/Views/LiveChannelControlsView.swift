@@ -7,9 +7,11 @@ struct LiveChannelControlsView: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
       HStack(spacing: 10) {
-        if isYouTube {
-          Menu {
-            ForEach(LiveChannelTab.allCases) { tab in
+        Menu {
+          if isYouTube {
+            ForEach(
+              LiveChannelTab.allCases.filter { $0 != .about }
+            ) { tab in
               Button {
                 Task { await viewModel.selectTab(tab) }
               } label: {
@@ -19,16 +21,24 @@ struct LiveChannelControlsView: View {
                 )
               }
             }
+          }
+          Button {
+            Task { await viewModel.selectTab(.about) }
           } label: {
-            dropdownLabel(
-              viewModel.selectedTab.title,
-              systemImage: sectionSymbol
+            menuLabel(
+              "About",
+              selected: viewModel.selectedTab == .about
             )
           }
-          .accessibilityLabel("Channel section")
-          .accessibilityValue(viewModel.selectedTab.title)
-          .accessibilityIdentifier("live.channel.tabs")
+        } label: {
+          dropdownLabel(
+            viewModel.selectedTab.title,
+            systemImage: sectionSymbol
+          )
         }
+        .accessibilityLabel("Channel section")
+        .accessibilityValue(viewModel.selectedTab.title)
+        .accessibilityIdentifier("live.channel.tabs")
 
         if viewModel.selectedTab == .videos,
           viewModel.submittedQuery.isEmpty {
@@ -56,19 +66,6 @@ struct LiveChannelControlsView: View {
 
         Spacer(minLength: 0)
       }
-
-      if !viewModel.submittedQuery.isEmpty {
-        HStack {
-          Text("Results for “\(viewModel.submittedQuery)”")
-            .font(.caption)
-            .foregroundStyle(.secondary)
-          Spacer()
-          Button("Back to all videos") {
-            Task { await viewModel.clearChannelSearch() }
-          }
-          .font(.caption.weight(.semibold))
-        }
-      }
     }
   }
 
@@ -81,6 +78,7 @@ struct LiveChannelControlsView: View {
     case .videos: return "play.rectangle"
     case .live: return "dot.radiowaves.left.and.right"
     case .playlists: return "rectangle.stack"
+    case .about: return "info.circle"
     }
   }
 
