@@ -8,6 +8,7 @@ struct LiveNativeFullscreenView: View {
   // Rotation is a control: turning the phone to portrait leaves fullscreen.
   // Debounced — mid-turn sensor samples pass through portrait.
   @State private var portraitRotationExit: Task<Void, Never>?
+  @State private var geometryPortraitExit: Task<Void, Never>?
 
   var body: some View {
     ZStack {
@@ -37,9 +38,18 @@ struct LiveNativeFullscreenView: View {
       let landscape = size.width > size.height
       if landscape {
         wasLandscape = true
+        geometryPortraitExit?.cancel()
+        geometryPortraitExit = nil
       } else if wasLandscape {
-        AppLogger.playback.info("fullscreen: onClose via geometry-portrait")
-        onClose()
+        // Debounced: a rotation that restarts mid-flight flashes portrait
+        // layout passes — only a settled portrait leaves fullscreen.
+        guard geometryPortraitExit == nil else { return }
+        geometryPortraitExit = Task { @MainActor in
+          try? await Task.sleep(for: .milliseconds(250))
+          guard !Task.isCancelled else { return }
+          AppLogger.playback.info("fullscreen: onClose via geometry-portrait")
+          onClose()
+        }
       }
     }
     .gesture(
@@ -200,8 +210,8 @@ final class LiveLandscapeHostingController: UIHostingController<LiveNativeFullsc
             controller.isPresentingFullscreen = false
           }
         }
-        // The window was rotated on entry; the dismissal owns the return.
-        LiveScreenOrientation.set(.portrait)
+        // No rotation request here: the dismissal already owns the return
+        // and asking again re-kicks the rotation animation.
       }
       // One motion: the stage growth, the metadata collapse and the chrome
       // fade ride the system rotation through its transition coordinator.
