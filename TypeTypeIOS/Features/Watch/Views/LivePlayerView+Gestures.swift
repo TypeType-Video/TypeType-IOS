@@ -16,6 +16,14 @@ extension LivePlayerView {
     // Dev spec: PiP only when the box is FULLY out of view, and back the
     // moment any part of it re-enters the viewport.
     let isAway = frame.maxY <= 0
+    if controller.nativePlayback != nil {
+      // The in-house player docks into an in-app corner card instead of the
+      // system PiP: no scene hand-off (that was the app-wide stall), no
+      // window flying, and the video stays in this window.
+      controller.isVideoDocked = isAway
+      autoPictureInPictureArmed = !isAway
+      return
+    }
     if !isAway {
       autoPictureInPictureArmed = true
       // Only auto-started PiP windows return here; a manual mini player

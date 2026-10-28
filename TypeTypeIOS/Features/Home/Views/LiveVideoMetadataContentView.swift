@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct LiveVideoMetadataContentView: View {
+
+  static let playerAnchorID = "live.player.anchor"
   let video: LiveVideoItem
   let dependencies: AppDependencies
   @ObservedObject var deArrowStore: LiveDeArrowStore
@@ -35,6 +37,7 @@ struct LiveVideoMetadataContentView: View {
   @StateObject private var fullscreenControls = LiveNativeControlsState()
 
   var body: some View {
+    ScrollViewReader { proxy in
     ScrollView {
       VStack(alignment: .leading, spacing: 18) {
         LivePlayerView(
@@ -44,6 +47,7 @@ struct LiveVideoMetadataContentView: View {
           posterURL: posterURL,
           cinemaMode: $cinemaMode
         )
+        .id(Self.playerAnchorID)
         .padding(.horizontal, cinemaMode ? -16 : 0)
 
         LiveVideoMetadataHeader(
@@ -193,6 +197,26 @@ struct LiveVideoMetadataContentView: View {
     )
     .statusBarHidden(playerController.isPresentingFullscreen)
     .animation(.easeInOut(duration: 0.5), value: playerController.isPresentingFullscreen)
+    // The docked card: the in-house video floating in the corner while the
+    // reader is below the player. One window, no system scene, no stall.
+    .overlay(alignment: .bottomTrailing) {
+      if playerController.isVideoDocked,
+        let playback = playerController.nativePlayback {
+        LiveDockedVideoCard(
+          playback: playback,
+          controller: playerController
+        ) {
+          withAnimation(.snappy(duration: 0.3)) {
+            playerController.isVideoDocked = false
+            }
+  }
+          proxy.scrollTo(Self.playerAnchorID, anchor: .top)
+        }
+        .padding(.trailing, 16)
+        .padding(.bottom, 24)
+        .transition(.scale(scale: 0.7).combined(with: .opacity))
+      }
+    }
     .liveStartupProbe(playerController.lastStartupMilliseconds)
     .environment(\.liveWatchExtrasEnabled, playerController.extrasReleased)
     .task(id: "\(libraryActionsIdentity)|\(playerController.extrasReleased)") {

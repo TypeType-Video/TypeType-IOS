@@ -3,9 +3,11 @@ import SwiftUI
 
 struct LiveNativeVideoView: UIViewRepresentable {
   enum Surface: Int {
-    case mini
-    case page
-    case fullscreen
+    // Priority by raw value: the docked card outranks the scrolled-out
+    // page, the landscape stage outranks both.
+    case page = 1
+    case mini = 2
+    case fullscreen = 3
   }
 
   let playback: LiveNativePlayback
