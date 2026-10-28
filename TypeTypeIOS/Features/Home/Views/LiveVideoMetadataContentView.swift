@@ -204,7 +204,7 @@ struct LiveVideoMetadataContentView: View {
     .statusBarHidden(playerController.isPresentingFullscreen)
     // Rotation IS the fullscreen state: landscape window = fullscreen,
     // portrait window = the inline player. The button just rotates.
-    .onGeometryChange(for: CGRect.self) { proxy in
+    .onGeometryChange(for: CGSize.self) { proxy in
       proxy.size
     } action: { size in
       playerController.isPresentingFullscreen = size.width > size.height
