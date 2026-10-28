@@ -204,6 +204,13 @@ struct LiveVideoMetadataContentView: View {
       for: .navigationBar
     )
     .statusBarHidden(playerController.isPresentingFullscreen)
+    // The fullscreen player owns the WHOLE window: expand the cover
+    // content past the safe areas, or the page background peeks out as
+    // white bars around the video.
+    .ignoresSafeArea(
+      playerController.isPresentingFullscreen ? .container : [],
+      edges: .all
+    )
     .animation(.easeInOut(duration: 0.5), value: playerController.isPresentingFullscreen)
     .liveStartupProbe(playerController.lastStartupMilliseconds)
     .environment(\.liveWatchExtrasEnabled, playerController.extrasReleased)
