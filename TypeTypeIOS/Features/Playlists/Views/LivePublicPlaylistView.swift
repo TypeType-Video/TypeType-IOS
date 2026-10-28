@@ -21,6 +21,7 @@ struct LivePublicPlaylistView: View {
 
   var body: some View {
     content
+      .liveLibrarySectionSwipe()
       .navigationTitle("Playlist")
       .navigationBarTitleDisplayMode(.inline)
       .onChange(of: selectedVideo) { _, video in

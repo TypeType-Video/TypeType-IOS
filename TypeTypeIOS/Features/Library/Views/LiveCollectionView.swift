@@ -32,6 +32,7 @@ struct LiveCollectionView: View {
 
   var body: some View {
     content
+      .liveLibrarySectionSwipe()
       .navigationTitle(viewModel.kind.title)
       .navigationBarTitleDisplayMode(.inline)
       .onChange(of: selectedVideo) { _, video in

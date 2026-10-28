@@ -28,6 +28,7 @@ struct LivePlaylistDetailView: View {
 
   var body: some View {
     content
+      .liveLibrarySectionSwipe()
       .navigationTitle(viewModel.playlist?.name ?? "Playlist")
       .navigationBarTitleDisplayMode(.inline)
       .toolbar { toolbarContent }
