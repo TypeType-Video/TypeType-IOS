@@ -2,6 +2,7 @@ import SwiftUI
 
 struct LivePlayerChaptersView: View {
   @ObservedObject var controller: LivePlayerController
+  var onSelect: (() -> Void)? = nil
 
   var body: some View {
     List(controller.availableChapters) { chapter in
@@ -32,6 +33,7 @@ struct LivePlayerChaptersView: View {
       controller.seek(
         to: LivePlaybackChapterNavigator.seekTarget(for: chapter)
       )
+      onSelect?()
     } label: {
       HStack(spacing: 12) {
         Text(LivePlaybackChapterNavigator.timeText(for: chapter))

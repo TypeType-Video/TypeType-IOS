@@ -6,6 +6,7 @@ struct LiveNativePlayerControls: View {
   var isFullscreen = false
   var onFullscreen: () -> Void
   @State private var scrubPosition: TimeInterval?
+  @State private var presentsChapters = false
 
   var body: some View {
     ZStack {
@@ -81,6 +82,32 @@ struct LiveNativePlayerControls: View {
         sponsorSegmentBands
       }
       Text(LivePlaybackChapterNavigator.clockText(seconds: Int(controller.duration)))
+      if !controller.availableChapters.isEmpty {
+        Button {
+          presentsChapters = true
+        } label: {
+          Image(systemName: "list.bullet.rectangle")
+            .font(.system(size: 15, weight: .semibold))
+            .frame(width: 32, height: 32)
+            .padding(.horizontal, 4)
+            .padding(.vertical, 12)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .popover(
+          isPresented: $presentsChapters,
+          attachmentAnchor: .point(.init(x: 0.5, y: 1.0)),
+          arrowEdge: .top
+        ) {
+          LivePlayerChaptersView(controller: controller) {
+            presentsChapters = false
+          }
+          .frame(width: 320, height: 380)
+          .presentationCompactAdaptation(.popover)
+        }
+        .accessibilityLabel("Chapters")
+        .accessibilityIdentifier("live.player.chapters.open")
+      }
       Button {
         onFullscreen()
       } label: {
