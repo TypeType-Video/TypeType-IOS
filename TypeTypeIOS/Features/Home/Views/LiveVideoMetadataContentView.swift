@@ -248,6 +248,8 @@ private struct LiveDockedVideoCard: View {
   let playback: LiveNativePlayback
   let controller: LivePlayerController
   let onUndock: () -> Void
+  @GestureState private var dragOffset: CGSize = .zero
+  @State private var restingOffset: CGSize = .zero
 
   var body: some View {
     LiveNativeVideoView(
@@ -257,13 +259,46 @@ private struct LiveDockedVideoCard: View {
     )
     .aspectRatio(16 / 9, contentMode: .fit)
     .frame(width: 220)
+    .overlay(alignment: .bottomLeading) {
+      Button {
+        controller.togglePlayback()
+      } label: {
+        Image(
+          systemName: controller.state == .playing
+            ? "pause.fill" : "play.fill"
+        )
+        .font(.system(size: 13, weight: .bold))
+        .foregroundStyle(.white)
+        .frame(width: 30, height: 30)
+        .background(.black.opacity(0.72), in: Circle())
+      }
+      .buttonStyle(.plain)
+      .padding(8)
+      .accessibilityLabel(controller.state == .playing ? "Pause" : "Play")
+    }
     .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
     .overlay(
       RoundedRectangle(cornerRadius: 14, style: .continuous)
         .strokeBorder(DemoTheme.separator, lineWidth: 1)
     )
     .shadow(color: .black.opacity(0.35), radius: 12, y: 6)
+    .offset(
+      x: restingOffset.width + dragOffset.width,
+      y: restingOffset.height + dragOffset.height
+    )
     .onTapGesture { onUndock() }
+    .gesture(
+      DragGesture(minimumDistance: 8)
+        .updating($dragOffset) { value, state, _ in
+          state = value.translation
+        }
+        .onEnded { value in
+          restingOffset = CGSize(
+            width: restingOffset.width + value.translation.width,
+            height: restingOffset.height + value.translation.height
+          )
+        }
+    )
     .accessibilityLabel("Return video to page")
     .accessibilityIdentifier("live.player.dock")
   }
