@@ -13,6 +13,7 @@ struct APIEndpoint {
   let retriesTransientFailures: Bool
   /// Media bytes for playback: sent on the media session, ahead of the rest.
   let isMedia: Bool
+  let handlesCookies: Bool
 
   init(
     path: String,
@@ -23,7 +24,8 @@ struct APIEndpoint {
     requiresAuth: Bool = false,
     timeoutInterval: TimeInterval? = nil,
     retriesTransientFailures: Bool = true,
-    isMedia: Bool = false
+    isMedia: Bool = false,
+    handlesCookies: Bool = true
   ) {
     self.path = path
     self.method = method
@@ -34,6 +36,7 @@ struct APIEndpoint {
     self.timeoutInterval = timeoutInterval
     self.retriesTransientFailures = retriesTransientFailures
     self.isMedia = isMedia
+    self.handlesCookies = handlesCookies
   }
 
   func asMedia() -> APIEndpoint {
@@ -46,7 +49,8 @@ struct APIEndpoint {
       requiresAuth: requiresAuth,
       timeoutInterval: timeoutInterval,
       retriesTransientFailures: retriesTransientFailures,
-      isMedia: true
+      isMedia: true,
+      handlesCookies: handlesCookies
     )
   }
 

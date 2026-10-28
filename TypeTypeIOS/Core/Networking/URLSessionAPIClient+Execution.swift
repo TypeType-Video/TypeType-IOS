@@ -23,6 +23,7 @@ extension URLSessionAPIClient {
         requestID: http.value(forHTTPHeaderField: "X-Request-Id"),
         startedAt: startedAt
       )
+      captureRefreshCookie(from: http)
       guard (200...299).contains(http.statusCode) else {
         throw NetworkError.statusCode(
           http.statusCode,

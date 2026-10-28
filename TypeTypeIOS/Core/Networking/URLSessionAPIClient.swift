@@ -12,6 +12,7 @@ final class URLSessionAPIClient: APIClient {
   let diagnosticScopeProvider: () -> LiveDiagnosticScope?
   let tokenRefreshGate = TokenRefreshGate()
   var tokenRefreshHandler: TokenRefreshHandler?
+  var refreshCookieObserver: ((String?) -> Void)?
 
   init(
     serverURLProvider: @escaping () -> URL?,
@@ -35,6 +36,10 @@ final class URLSessionAPIClient: APIClient {
 
   func setTokenRefreshHandler(_ handler: @escaping TokenRefreshHandler) {
     tokenRefreshHandler = handler
+  }
+
+  func setRefreshCookieObserver(_ observer: @escaping (String?) -> Void) {
+    refreshCookieObserver = observer
   }
 
   func request<T: Decodable>(

@@ -31,6 +31,7 @@ extension URLSessionAPIClient {
     var request = URLRequest(url: url)
     request.httpMethod = endpoint.method.rawValue
     request.httpBody = endpoint.body
+    request.httpShouldHandleCookies = endpoint.handlesCookies
     if let timeoutInterval = endpoint.timeoutInterval {
       request.timeoutInterval = timeoutInterval
     }

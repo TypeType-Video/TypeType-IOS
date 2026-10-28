@@ -32,9 +32,17 @@ final class RootCoordinator: ObservableObject {
 
   let dependencies: AppDependencies
   private var didBootstrap = false
+  private var sessionExpiryObservation: AnyCancellable?
 
   init(dependencies: AppDependencies) {
     self.dependencies = dependencies
+    sessionExpiryObservation = NotificationCenter.default
+      .publisher(for: .liveSessionExpired)
+      .compactMap { $0.userInfo?[LiveSessionExpiry.serverIDKey] as? String }
+      .receive(on: DispatchQueue.main)
+      .sink { [weak self] serverID in
+        self?.sessionDidExpire(serverID: serverID)
+      }
   }
 
   func bootstrap() async {
@@ -100,6 +108,15 @@ final class RootCoordinator: ObservableObject {
 
   func signOut() async {
     try? await dependencies.authService.logout()
+    endSession()
+  }
+
+  private func sessionDidExpire(serverID: String) {
+    guard serverID == selectedServer?.id, state == .authenticated, !isUsingOfflineSession else { return }
+    endSession()
+  }
+
+  private func endSession() {
     dependencies.invalidateIdentityScopedRuntimeState()
     if let serverID = selectedServer?.id {
       dependencies.sessionStore.clearSession(forServerID: serverID)
