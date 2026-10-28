@@ -44,7 +44,8 @@ final class LivePushNotificationsService: LivePushNotificationsServiceProtocol {
   func channelPreferences() async throws -> [
     LiveChannelNotificationPreference
   ] {
-    try await apiClient.request(
+    await LiveNotificationRequestGate.shared.acquire()
+    return try await apiClient.request(
       APIEndpoint(
         path: "/notifications/channel-preferences",
         method: .get,
@@ -58,7 +59,8 @@ final class LivePushNotificationsService: LivePushNotificationsServiceProtocol {
     channelURL: String,
     enabled: Bool
   ) async throws -> LiveChannelNotificationPreference {
-    try await apiClient.request(
+    await LiveNotificationRequestGate.shared.acquire()
+    return try await apiClient.request(
       APIEndpoint(
         path: "/notifications/channel-preferences",
         method: .put,
@@ -78,7 +80,8 @@ final class LivePushNotificationsService: LivePushNotificationsServiceProtocol {
     enabled: Bool,
     channelURLs: [String]
   ) async throws -> [LiveChannelNotificationPreference] {
-    try await apiClient.request(
+    await LiveNotificationRequestGate.shared.acquire()
+    return try await apiClient.request(
       APIEndpoint(
         path: "/notifications/channel-preferences/bulk",
         method: .put,
@@ -103,5 +106,23 @@ private struct LiveChannelNotificationPreferencesBulkPayload: Encodable {
   enum CodingKeys: String, CodingKey {
     case enabled
     case channelURLs = "channelUrls"
+  }
+}
+
+/// Ceiling on outgoing notifications requests per second — the backend
+/// allows 120/s, this holds the client at ~60/s.
+private actor LiveNotificationRequestGate {
+  static let shared = LiveNotificationRequestGate()
+  private var nextSlot: ContinuousClock.Instant = .now
+  private let spacing: Duration = .milliseconds(17)
+
+  /// Waits until this request's slot before the caller performs it.
+  func acquire() async {
+    let now = ContinuousClock.Instant.now
+    let slot = max(nextSlot, now)
+    nextSlot = slot.advanced(by: spacing)
+    if slot > now {
+      try? await Task.sleep(for: slot - now)
+    }
   }
 }
