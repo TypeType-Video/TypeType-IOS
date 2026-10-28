@@ -1,6 +1,17 @@
 import SwiftUI
 import UIKit
 
+/// The system's list and header chrome configures its blur by sending
+/// `setEffect:` to the view it expects in `backgroundView`. The empty
+/// background view exists to keep that chrome invisible, so the selector
+/// is answered with a no-op — a plain UIView crashes with an unrecognized
+/// selector the first time glass chrome (menus, share sheet, interactive
+/// headers) is configured.
+final class EmptyChromeBackgroundView: UIView {
+  @objc(setEffect:) func setEffect(_ effect: Any?) {}
+  @objc(effect) func effect() -> Any? { nil }
+}
+
 enum DemoTheme {
   static var accent = Color(red: 1, green: 0.30, blue: 0.32)
   static var appearanceMode = LiveAppearanceMode.system
@@ -105,9 +116,9 @@ enum DemoTheme {
     // transparent cell backgrounds, empty background views (kills the
     // Liquid Glass row fill), clear table backgrounds.
     UITableViewCell.appearance().backgroundColor = .clear
-    UITableViewCell.appearance().backgroundView = UIView()
+    UITableViewCell.appearance().backgroundView = EmptyChromeBackgroundView()
     UICollectionViewCell.appearance().backgroundColor = .clear
-    UICollectionViewCell.appearance().backgroundView = UIView()
+    UICollectionViewCell.appearance().backgroundView = EmptyChromeBackgroundView()
     UITableView.appearance().backgroundColor = .clear
     UICollectionView.appearance().backgroundColor = .clear
     // Transparent, not a surface color: painting this white put a square
@@ -115,7 +126,7 @@ enum DemoTheme {
     UITableViewHeaderFooterView.appearance().backgroundColor = .clear
     // iOS 27 paints header chrome through backgroundView (a blur material),
     // which backgroundColor alone does not replace.
-    UITableViewHeaderFooterView.appearance().backgroundView = UIView()
+    UITableViewHeaderFooterView.appearance().backgroundView = EmptyChromeBackgroundView()
     // iOS 26 paints the navigation bar through `_UIBarBackground`, which
     // SwiftUI's `toolbarBackground` does not reach (the white strip at the
     // top of every page). Bind the UIKit appearance to the same resolver.

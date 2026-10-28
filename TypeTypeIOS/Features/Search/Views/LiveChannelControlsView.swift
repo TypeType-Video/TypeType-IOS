@@ -8,10 +8,10 @@ struct LiveChannelControlsView: View {
     VStack(alignment: .leading, spacing: 12) {
       HStack(spacing: 10) {
         Menu {
-          if isYouTube {
-            ForEach(
-              LiveChannelTab.allCases.filter { $0 != .about }
-            ) { tab in
+          ForEach(LiveChannelTab.allCases) { tab in
+            // Content tabs need the YouTube listing endpoints; About is
+            // local channel data and always available.
+            if isYouTube || tab == .about {
               Button {
                 Task { await viewModel.selectTab(tab) }
               } label: {
@@ -21,14 +21,6 @@ struct LiveChannelControlsView: View {
                 )
               }
             }
-          }
-          Button {
-            Task { await viewModel.selectTab(.about) }
-          } label: {
-            menuLabel(
-              "About",
-              selected: viewModel.selectedTab == .about
-            )
           }
         } label: {
           dropdownLabel(
