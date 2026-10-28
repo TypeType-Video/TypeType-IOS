@@ -4,6 +4,7 @@ struct LiveNativeFullscreenView: View {
   @ObservedObject var controller: LivePlayerController
   let onClose: () -> Void
   @StateObject private var controls = LiveNativeControlsState()
+  @State private var wasLandscape = false
 
   var body: some View {
     ZStack {
@@ -20,6 +21,19 @@ struct LiveNativeFullscreenView: View {
     }
     .onChange(of: controller.nativePlayback == nil) {
       if controller.nativePlayback == nil { onClose() }
+    }
+    // The system can rotate the window out from under this landscape-locked
+    // modal when the phone is turned. Own geometry is the truth: once the
+    // modal has been landscape, turning portrait dismisses it.
+    .onGeometryChange(for: CGSize.self) { proxy in
+      proxy.size
+    } action: { size in
+      let landscape = size.width > size.height
+      if landscape {
+        wasLandscape = true
+      } else if wasLandscape {
+        onClose()
+      }
     }
     .gesture(
       // Dragging down drops back to the player page, like every system
