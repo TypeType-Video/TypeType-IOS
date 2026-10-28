@@ -85,9 +85,7 @@ struct LiveVideoLibraryActionsView: View {
         attachmentAnchor: .point(.init(x: 0.5, y: 1.0)),
         arrowEdge: .top
       ) {
-        LivePlaybackSleepTimerView(coordinator: playbackCoordinator)
-          .frame(width: 320, height: 300)
-          .presentationCompactAdaptation(.popover)
+        LivePlaybackSleepTimerPopover(coordinator: playbackCoordinator)
       }
 
       Spacer(minLength: 0)
