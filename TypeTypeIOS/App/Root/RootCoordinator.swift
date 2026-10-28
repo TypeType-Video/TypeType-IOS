@@ -10,6 +10,15 @@ final class RootCoordinator: ObservableObject {
   @Published var currentUser: AuthUser?
   /// The active tab survives theme rebuilds (the shell re-inits @State).
   @Published var selectedTab: LiveAuthenticatedTab = .home
+  /// Bumped when the user re-taps the active Search tab: the search screen
+  /// returns to its input state so a new search is one tap away.
+  @Published var searchTabRetaps = 0
+
+  func handleTabReselection(_ tab: LiveAuthenticatedTab) {
+    if tab == .search {
+      searchTabRetaps += 1
+    }
+  }
   @Published var pendingIncomingURL: URL?
   @Published var isUsingOfflineSession = false
   @Published var connectionError: String?

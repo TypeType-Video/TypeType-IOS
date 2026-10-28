@@ -29,15 +29,6 @@ struct LiveSearchHistoryView: View {
     .refreshable {
       await viewModel.loadHistory()
     }
-    .sheet(isPresented: $confirmsClear) {
-      LiveConfirmSheet(
-        title: "Clear search history?",
-        message: "This removes all saved searches from your account.",
-        confirmTitle: "Clear all"
-      ) {
-        Task { await viewModel.clearHistory() }
-      }
-    }
     .accessibilityIdentifier("live.search.history")
   }
 
@@ -51,6 +42,19 @@ struct LiveSearchHistoryView: View {
           confirmsClear = true
         }
         .font(.subheadline)
+        .popover(
+          isPresented: $confirmsClear,
+          attachmentAnchor: .point(.init(x: 0.5, y: 1.0)),
+          arrowEdge: .top
+        ) {
+          LiveConfirmCard(
+            title: "Clear search history?",
+            message: "This removes all saved searches from your account.",
+            confirmTitle: "Clear all"
+          ) {
+            Task { await viewModel.clearHistory() }
+          }
+        }
       }
       ForEach(viewModel.history) { item in
         Button {

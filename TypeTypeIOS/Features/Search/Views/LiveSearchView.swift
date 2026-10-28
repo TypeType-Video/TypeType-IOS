@@ -63,6 +63,13 @@ struct LiveSearchView: View {
         .onChange(of: viewModel.query) {
           viewModel.queryDidChange()
         }
+        // Re-tapping the Search tab returns to the search input: the
+        // results clear and the field takes focus again.
+        .onChange(of: coordinator.searchTabRetaps) {
+          viewModel.query = ""
+          viewModel.queryDidChange()
+          searchIsFocused = true
+        }
         .onChange(of: selectedVideo) { _, video in
           guard let video else { return }
           selectedVideo = nil

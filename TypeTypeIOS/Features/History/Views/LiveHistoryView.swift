@@ -48,7 +48,7 @@ struct LiveHistoryView: View {
       }
     }
     .sheet(isPresented: $confirmsClear) {
-      LiveConfirmSheet(
+      LiveConfirmCard(
         title: "Clear watch history?",
         message: "This removes every video from your watch history.",
         confirmTitle: "Clear all"
@@ -57,7 +57,7 @@ struct LiveHistoryView: View {
       }
     }
     .sheet(isPresented: removalBinding) {
-      LiveConfirmSheet(
+      LiveConfirmCard(
         title: "Remove from history?",
         confirmTitle: "Remove"
       ) {

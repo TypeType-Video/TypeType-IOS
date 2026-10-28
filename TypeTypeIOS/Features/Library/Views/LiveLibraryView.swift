@@ -99,17 +99,6 @@ struct LiveLibraryView: View {
       .padding(.horizontal, 16)
       .background(DemoTheme.background)
     }
-    .confirmationDialog(
-      "Clear watch history?",
-      isPresented: $historyConfirmsClear,
-      titleVisibility: .visible
-    ) {
-      Button("Clear all", role: .destructive) {
-        Task { await historyModel.clear() }
-      }
-    } message: {
-      Text("This removes every video from your watch history.")
-    }
     .accessibilityIdentifier("live.library.screen")
   }
 
@@ -126,6 +115,19 @@ struct LiveLibraryView: View {
       .foregroundStyle(.red)
       .disabled(historyModel.items.isEmpty)
       .accessibilityLabel("Clear history")
+      .popover(
+        isPresented: $historyConfirmsClear,
+        attachmentAnchor: .point(.init(x: 0.5, y: 1.0)),
+        arrowEdge: .top
+      ) {
+        LiveConfirmCard(
+          title: "Clear watch history?",
+          message: "This removes every video from your watch history.",
+          confirmTitle: "Clear all"
+        ) {
+          Task { await historyModel.clear() }
+        }
+      }
     case .favorites:
       sortMenu(for: favoritesModel)
     case .watchLater:

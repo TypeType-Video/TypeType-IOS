@@ -854,9 +854,10 @@ extension Color {
   static let systemGray = Color(uiColor: .systemGray)
 }
 
-/// Compact confirmation card that always slides up from the bottom edge
-/// (user preference: confirms open to the bottom like the dropdowns).
-struct LiveConfirmSheet: View {
+/// Compact confirmation card presented as a dropping-down popover — the
+/// user wants confirms to open like the dropdowns (downward), never as a
+/// sheet sliding up from the bottom.
+struct LiveConfirmCard: View {
   let title: String
   var message: String? = nil
   let confirmTitle: String
@@ -887,7 +888,7 @@ struct LiveConfirmSheet: View {
         .buttonStyle(.bordered)
     }
     .padding(24)
-    .presentationDetents([.height(300)])
-    .presentationDragIndicator(.visible)
+    .frame(width: 280)
+    .presentationCompactAdaptation(.popover)
   }
 }
