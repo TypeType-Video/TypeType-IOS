@@ -103,27 +103,6 @@ extension LivePlayerView {
     if case let .began(kind, _) = event {
       LivePlayerView.logGesture("swipe began \(kind)")
     }
-    // In fullscreen the vertical swipe IS the exit gesture: a solid drag
-    // down drops out. This runs ahead of the preference gate so the exit
-    // is always available.
-    if controller.isPresentingFullscreen {
-      switch event {
-      case let .began(_, fraction):
-        fullscreenSwipeBase = fraction
-        fullscreenSwipeLowest = fraction
-      case let .updated(_, fraction):
-        fullscreenSwipeLowest = min(fullscreenSwipeLowest ?? fraction, fraction)
-      case .ended:
-        if let base = fullscreenSwipeBase,
-          let lowest = fullscreenSwipeLowest,
-          base - lowest > 0.25 {
-          controller.exitNativeFullscreen()
-        }
-        fullscreenSwipeBase = nil
-        fullscreenSwipeLowest = nil
-      }
-      return
-    }
     guard preferences.preferences.playerSwipeBrightnessVolumeEnabled else {
       return
     }

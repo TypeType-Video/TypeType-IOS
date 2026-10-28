@@ -47,7 +47,6 @@ struct LiveVideoMetadataContentView: View {
       )
       .padding(.horizontal, cinemaMode ? -16 : 0)
 
-      if !playerController.isPresentingFullscreen {
       ScrollView {
       VStack(alignment: .leading, spacing: 18) {
         LiveVideoMetadataHeader(
@@ -188,15 +187,14 @@ struct LiveVideoMetadataContentView: View {
         dependencies: dependencies
       )
     }
-      .navigationDestination(
-        item: $selectedPublicPlaylist
-      ) { playlist in
-        LivePublicPlaylistView(
-          playlist: playlist,
-          dependencies: dependencies
-        )
-      }
-      }
+    .navigationDestination(
+      item: $selectedPublicPlaylist
+    ) { playlist in
+      LivePublicPlaylistView(
+        playlist: playlist,
+        dependencies: dependencies
+      )
+    }
     }
     }
     .toolbar(
@@ -204,13 +202,6 @@ struct LiveVideoMetadataContentView: View {
       for: .navigationBar
     )
     .statusBarHidden(playerController.isPresentingFullscreen)
-    // The fullscreen player owns the WHOLE window: expand the cover
-    // content past the safe areas, or the page background peeks out as
-    // white bars around the video.
-    .ignoresSafeArea(
-      playerController.isPresentingFullscreen ? .container : [],
-      edges: .all
-    )
     .animation(.easeInOut(duration: 0.5), value: playerController.isPresentingFullscreen)
     .liveStartupProbe(playerController.lastStartupMilliseconds)
     .environment(\.liveWatchExtrasEnabled, playerController.extrasReleased)

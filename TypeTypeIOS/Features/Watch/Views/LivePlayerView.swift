@@ -1,30 +1,5 @@
 import SwiftUI
 
-/// Fullscreen: the player frame rides the window (geometry-driven, so
-/// rotating animates naturally); inline: the 16:9 card.
-struct LivePlayerSizing: ViewModifier {
-  let isFullscreen: Bool
-  let rounded: Bool
-
-  func body(content: Content) -> some View {
-    if isFullscreen {
-      content
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .ignoresSafeArea()
-        .clipShape(Rectangle())
-    } else {
-      content
-        .aspectRatio(16 / 9, contentMode: .fit)
-        .clipShape(
-          RoundedRectangle(
-            cornerRadius: rounded ? 16 : 0,
-            style: .continuous
-          )
-        )
-    }
-  }
-}
-
 struct LivePlayerView: View {
   @ObservedObject var controller: LivePlayerController
   @ObservedObject var coordinator: LivePlaybackCoordinator
@@ -39,8 +14,6 @@ struct LivePlayerView: View {
   @State var doubleTapSeekTask: Task<Void, Never>?
   @State var swipeAdjustment: PlayerSwipeAdjustmentState?
   @State var speedBoostRate: Float?
-  @State var fullscreenSwipeBase: CGFloat?
-  @State var fullscreenSwipeLowest: CGFloat?
   nonisolated(unsafe) static var gestureLog: [String] = []
 
   static func logGesture(_ text: String) {
@@ -125,11 +98,22 @@ struct LivePlayerView: View {
         .accessibilityIdentifier("live.player.options")
       }
     }
-    .modifier(
-      LivePlayerSizing(
-        isFullscreen: controller.isPresentingFullscreen,
-        rounded: !cinemaMode
+    .aspectRatio(16 / 9, contentMode: .fit)
+    .clipShape(
+      RoundedRectangle(
+        cornerRadius: cinemaMode ? 0 : 16,
+        style: .continuous
       )
+    )
+    .gesture(
+      DragGesture(minimumDistance: 30)
+        .onEnded { value in
+          guard controller.isPresentingFullscreen,
+            value.translation.height > 120,
+            abs(value.translation.width) < value.translation.height
+          else { return }
+          controller.exitNativeFullscreen()
+        }
     )
     .overlay(alignment: .top) {
       if let remaining = coordinator.autoplayCountdownRemaining {

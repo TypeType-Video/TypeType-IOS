@@ -1,5 +1,4 @@
 import AVFoundation
-import UIKit
 import Foundation
 
 @MainActor
@@ -155,7 +154,6 @@ final class LivePlayerController: ObservableObject {
     player.automaticallyWaitsToMinimizeStalling = true
     installPeriodicObserver()
   }
-
 
   deinit {
     playbackSessionProgressTask?.cancel()

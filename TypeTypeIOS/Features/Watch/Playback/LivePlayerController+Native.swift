@@ -1,5 +1,4 @@
 import Foundation
-import UIKit
 import TypeTypePlayerKit
 
 extension LivePlayerController {
@@ -167,23 +166,17 @@ extension LivePlayerController {
     }
   }
 
-  /// The window's interface orientation is the single source of truth for
-  /// fullscreen: landscape = fullscreen, portrait = inline.
-  /// The button: flip the flag and ask the window to follow. No observers,
-  /// no derived state — the flag is the truth.
+  /// Presents beta's landscape-forced host: the presented controller's
+  /// orientations override the user's rotation lock, which a plain window
+  /// rotation request cannot. The host clears the flag on dismissal.
   func enterNativeFullscreen() {
-    isPresentingFullscreen = true
-    LiveScreenOrientation.set(.landscape)
+    guard !isPresentingFullscreen else { return }
+    LiveLandscapeHostingController.present(for: self)
   }
 
   func exitNativeFullscreen() {
-    isPresentingFullscreen = false
     LiveScreenOrientation.set(.portrait)
   }
-
-  /// The device notification fires for physical rotations; a programmatic
-  /// request needs an explicit re-read. Both are idempotent reads of the
-  /// window's real orientation — no loops possible.
 
   func fallBackFromNative(reason: String) {
     guard let playback = nativePlayback else { return }
