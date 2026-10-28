@@ -100,8 +100,13 @@ struct LiveVideoMetadataContentView: View {
           )
         }
 
+        // The stream arrives with an EMPTY relatedStreams array before the
+        // real list loads — an empty list means "still loading" here.
+        let relatedReady = !(
+          playerController.stream?.relatedStreams.isEmpty ?? true
+        )
         if !(playerController.settings.hideRelatedVideos) {
-          if let related = playerController.stream?.relatedStreams {
+          if relatedReady, let related = playerController.stream?.relatedStreams {
             LiveRelatedVideosSection(
               playerController: playerController,
               videos: related,
@@ -133,8 +138,7 @@ struct LiveVideoMetadataContentView: View {
         }
 
         if !playerController.supportsBulletComments {
-          if playerController.settings.hideRelatedVideos
-            || playerController.stream?.relatedStreams != nil {
+          if playerController.settings.hideRelatedVideos || relatedReady {
             LiveCommentsSectionView(
               videoURL: resolvedVideo.url,
               dependencies: dependencies,
