@@ -59,24 +59,27 @@ struct LiveNativePlayerControls: View {
   private var timeline: some View {
     HStack(spacing: 10) {
       Text(LivePlaybackChapterNavigator.clockText(seconds: Int(scrubPosition ?? controller.position)))
-      Slider(
-        value: Binding(
-          get: { scrubPosition ?? controller.position },
-          set: { scrubPosition = $0 }
-        ),
-        in: 0...max(controller.duration, 1)
-      ) { editing in
-        if editing {
-          controls.keepVisible()
-        } else if let target = scrubPosition {
-          controller.seek(to: target)
-          scrubPosition = nil
-          controls.scheduleHide()
+      ZStack {
+        Slider(
+          value: Binding(
+            get: { scrubPosition ?? controller.position },
+            set: { scrubPosition = $0 }
+          ),
+          in: 0...max(controller.duration, 1)
+        ) { editing in
+          if editing {
+            controls.keepVisible()
+          } else if let target = scrubPosition {
+            controller.seek(to: target)
+            scrubPosition = nil
+            controls.scheduleHide()
+          }
         }
+        .tint(.white)
+        .accessibilityLabel("Playback position")
+        .accessibilityIdentifier("live.player.timeline")
+        sponsorSegmentBands
       }
-      .tint(.white)
-      .accessibilityLabel("Playback position")
-      .accessibilityIdentifier("live.player.timeline")
       Text(LivePlaybackChapterNavigator.clockText(seconds: Int(controller.duration)))
       Button {
         onFullscreen()
@@ -97,5 +100,41 @@ struct LiveNativePlayerControls: View {
     .foregroundStyle(.white)
     .padding(.horizontal, isFullscreen ? 26 : 12)
     .padding(.bottom, isFullscreen ? 24 : 6)
+  }
+
+  /// SponsorBlock segments over the track — shown for the mark/skip
+  /// categories (the policy filters disabled ones out), one colour per
+  /// category, display-only (plan task 2.1).
+  private var sponsorSegmentBands: some View {
+    GeometryReader { proxy in
+      ForEach(controller.visibleSponsorBlockWindows) { window in
+        let span = max(controller.duration, 1)
+        let start = min(max(window.start / span, 0), 1)
+        let end = min(max(window.end / span, 0), 1)
+        Capsule()
+          .fill(sponsorBandColor(window.segment.category).opacity(0.55))
+          .frame(
+            width: max(proxy.size.width * (end - start), 3),
+            height: 5
+          )
+          .position(
+            x: proxy.size.width * (start + end) / 2,
+            y: proxy.size.height / 2
+          )
+      }
+    }
+    .allowsHitTesting(false)
+    .accessibilityHidden(true)
+  }
+
+  private func sponsorBandColor(_ category: String) -> Color {
+    switch category {
+    case "sponsor": return .systemOrange
+    case "selfpromo": return .systemBlue
+    case "interaction": return .systemPurple
+    case "intro", "outro": return .systemGreen
+    case "music", "music_offtopic": return .systemRed
+    default: return .systemGray
+    }
   }
 }
