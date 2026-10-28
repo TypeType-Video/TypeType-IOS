@@ -865,29 +865,43 @@ struct LiveConfirmCard: View {
   @Environment(\.dismiss) private var dismiss
 
   var body: some View {
-    VStack(spacing: 14) {
-      Text(title)
-        .font(.headline)
-        .multilineTextAlignment(.center)
-      if let message, !message.isEmpty {
-        Text(message)
-          .font(.footnote)
-          .foregroundStyle(.secondary)
+    VStack(spacing: 0) {
+      VStack(spacing: 8) {
+        Text(title)
+          .font(.headline)
           .multilineTextAlignment(.center)
+        if let message, !message.isEmpty {
+          Text(message)
+            .font(.footnote)
+            .foregroundStyle(.secondary)
+            .multilineTextAlignment(.center)
+        }
       }
+      .padding(.horizontal, 20)
+      .padding(.top, 20)
+      .padding(.bottom, 16)
+
+      Divider()
+
       Button(role: .destructive) {
         dismiss()
         onConfirm()
       } label: {
         Text(confirmTitle)
-          .frame(maxWidth: .infinity, minHeight: 48)
+          .fontWeight(.semibold)
+          .foregroundStyle(Color.systemRed)
+          .frame(maxWidth: .infinity, minHeight: 50)
       }
-      .buttonStyle(.borderedProminent)
+      .buttonStyle(.plain)
+
+      Divider()
+
       Button("Cancel") { dismiss() }
-        .frame(maxWidth: .infinity, minHeight: 48)
-        .buttonStyle(.bordered)
+        .fontWeight(.semibold)
+        .foregroundStyle(.tint)
+        .frame(maxWidth: .infinity, minHeight: 50)
+        .buttonStyle(.plain)
     }
-    .padding(24)
     .frame(width: 280)
     .presentationCompactAdaptation(.popover)
   }

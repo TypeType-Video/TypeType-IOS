@@ -16,7 +16,6 @@ struct LiveVideoMetadataContentView: View {
   @State var pendingExternalURL: URL?
   @AppStorage("typetype.player.cinema-mode")
   private var cinemaMode = true
-  @State private var isScrolled = false
 
   init(
     video: LiveVideoItem,
@@ -160,23 +159,9 @@ struct LiveVideoMetadataContentView: View {
         }
       }
       .padding(16)
-      .background(
-        GeometryReader { proxy in
-          Color.clear.preference(
-            key: LiveWatchScrollOffsetKey.self,
-            value: proxy.frame(in: .named("watchScroll")).minY
-          )
-        }
-      )
     }
-    .coordinateSpace(name: "watchScroll")
     .background(DemoThemeBackground())
       .liveThemeRepaint()
-      // The rounded lower corners on the pinned player follow this: the
-      // "content slides under" hint while the page is scrolled.
-      .onPreferenceChange(LiveWatchScrollOffsetKey.self) { offset in
-        isScrolled = offset < -8
-      }
     .navigationTitle("Video")
     .navigationBarTitleDisplayMode(.inline)
     .navigationDestination(
@@ -214,8 +199,7 @@ struct LiveVideoMetadataContentView: View {
         coordinator: playbackCoordinator,
         dependencies: dependencies,
         posterURL: posterURL,
-        cinemaMode: $cinemaMode,
-        isScrolled: isScrolled
+        cinemaMode: $cinemaMode
       )
       .padding(.horizontal, cinemaMode ? -16 : 0)
     }
@@ -245,13 +229,5 @@ struct LiveVideoMetadataContentView: View {
       return count
     }
     return channelMetadataViewModel.subscriberCount
-  }
-}
-
-private struct LiveWatchScrollOffsetKey: PreferenceKey {
-  static var defaultValue: CGFloat = 0
-
-  static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
-    value = nextValue()
   }
 }
