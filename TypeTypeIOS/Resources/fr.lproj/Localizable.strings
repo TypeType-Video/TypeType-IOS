@@ -361,3 +361,6 @@
 "Playback position" = "Position de lecture";
 "Full screen" = "Plein écran";
 "Exit full screen" = "Quitter le plein écran";
+"Shows the description" = "Affiche la description";
+"Hides the description" = "Masque la description";
+"%@ likes" = "%@ j'aime";
