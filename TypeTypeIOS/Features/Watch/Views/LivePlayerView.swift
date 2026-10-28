@@ -32,9 +32,6 @@ struct LivePlayerView: View {
   @StateObject var nativeControls = LiveNativeControlsState()
   @State private var lastDeviceOrientation: UIDeviceOrientation = .unknown
   @State private var rotationEnterArmedAt = Date()
-  /// Drives the rounded lower corners: the "content slides under the
-  /// pinned player" hint while the watch page is scrolled.
-  var isScrolled = false
 
 
   var body: some View {
@@ -117,8 +114,7 @@ struct LivePlayerView: View {
     .modifier(
       LivePlayerSizing(
         isFullscreen: controller.isPresentingFullscreen,
-        cinemaMode: cinemaMode,
-        isScrolled: isScrolled
+        cinemaMode: cinemaMode
       )
     )
     .gesture(
@@ -199,7 +195,6 @@ struct LivePlayerView: View {
 struct LivePlayerSizing: ViewModifier {
   let isFullscreen: Bool
   let cinemaMode: Bool
-  var isScrolled = false
 
   @ViewBuilder
   func body(content: Content) -> some View {
@@ -226,13 +221,12 @@ struct LivePlayerSizing: ViewModifier {
     }
   }
 
-  /// Scrolled state rounds the lower corners — the "content slides under
-  /// the pinned player" hint. In cinema mode the player bleeds 16 pt past
-  /// each screen edge, so the radius covers that distance to land the
-  /// visible curve on the screen edge instead of off-screen.
+  /// Rounded lower corners = the "content continues below" cue under the
+  /// pinned player. In cinema mode the player bleeds 16 pt past each
+  /// screen edge, so the radius covers that distance to land the visible
+  /// curve on the screen edge instead of off-screen.
   private var lowerRadius: CGFloat {
-    guard isScrolled else { return cinemaMode ? 0 : 16 }
-    return cinemaMode ? 32 : 16
+    cinemaMode ? 32 : 16
   }
 }
 
