@@ -29,8 +29,8 @@ in Xcode, and reports.
 ## Phase 0 — Land PR #3 and reconcile
 
 ### Task 0.1 — Merge PR #3 into dev
-- Merge `fix/rotation-fullscreen` (PR #3). The developer merges or
-  authorises it; do not merge without that.
+- DECIDED: this plan merges `fix/rotation-fullscreen` (PR #3) as its first
+  executed task, **after the user says go**. Do not start before that.
 - Resolve conflicts **in favour of the PR's design** (it deletes the
   transparent host, the `onRotate` hook, the fallback timers and the
   `dismissActive` machinery). Keep `bdef757`'s `fullscreen:` logging only
@@ -87,10 +87,12 @@ in Xcode, and reports.
   LiveSponsorBlockOverlay.swift` (reference only).
 - Behaviour: when the user's SponsorBlock action is **mark** or **skip**,
   draw each segment as a thin band over the timeline track at
-  `start/duration … end/duration` fractions. One colour per category is
-  out of scope — one band style, `Color.systemOrange` at 55 % opacity over
-  the track. Hidden when SponsorBlock is off or set to fill/other actions.
-  The bands are display-only (no tap targets) — YAGNI.
+  `start/duration … end/duration` fractions. DECIDED: **one colour per
+  category** — map `LivePlaybackSponsorSegment`'s category to a small
+  fixed palette (sponsor orange, selfpromo blue, interaction purple,
+  intro/outro green, music red, preview grey; unknown = grey), bands at
+  55 % opacity over the track. Hidden when SponsorBlock is off or set to
+  fill/other actions. The bands are display-only (no tap targets) — YAGNI.
 - Implementation note: the `Slider` track can't carry subviews; lay the
   bands in a `ZStack` UNDER the slider with `allowsHitTesting(false)`, the
   slider's own track made transparent (`.tint(.white)` stays for the thumb).
@@ -174,16 +176,14 @@ in Xcode, and reports.
 Phase 0 → 1 → 2 → 4 → 3. The Dynamic Island is last: it needs a new
 extension target, signing, and the most device-side verification.
 
-## Open questions (ask via clarify)
+## Open questions — DECIDED (28 Oct 2026)
 
-1. Thumbnail progress: only partially watched, or completed videos too
-   (full bar)? Assumed: every video with progress, full bar included.
-2. SponsorBlock bands: one colour fine (assumed), or per category? Tappable?
-3. Chapters button: trailing edge of the timeline OK (assumed)?
-4. Dynamic Island: full Live Activity with the widget extension (assumed)
-   — or is the system's built-in now-playing capsule enough?
-5. PR #3: who merges it — the developer, or should this plan include the
-   merge as its first executed task after their go-ahead?
+1. Thumbnail progress: every watched video shows the bar; completed videos
+   show a full bar. ✓
+2. SponsorBlock bands: **colour per category** (see Task 2.1). ✓
+3. Chapters button: trailing edge of the timeline. ✓
+4. Dynamic Island: full Live Activity with the widget extension. ✓
+5. PR #3: the plan merges it as Task 0.1, once the user says go. ✓
 
 ## Risks
 
