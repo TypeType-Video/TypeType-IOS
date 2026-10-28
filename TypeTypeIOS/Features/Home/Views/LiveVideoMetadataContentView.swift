@@ -169,6 +169,10 @@ struct LiveVideoMetadataContentView: View {
     }
     .background(DemoThemeBackground())
       .liveThemeRepaint()
+      // Fullscreen is the video alone: the scroll area collapses instead of
+      // splitting the VStack with the player (it stays mounted, so no
+      // metadata re-fetch on the way back).
+      .frame(maxHeight: playerController.isPresentingFullscreen ? 0 : .infinity)
     .navigationTitle("Video")
     .navigationBarTitleDisplayMode(.inline)
     .navigationDestination(

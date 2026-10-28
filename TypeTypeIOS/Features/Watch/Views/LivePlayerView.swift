@@ -201,8 +201,11 @@ struct LivePlayerSizing: ViewModifier {
     if isFullscreen {
       content
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .layoutPriority(1)
         .ignoresSafeArea()
+        // Outermost: a priority buried inside another modifier never
+        // reaches the parent VStack, and the metadata then splits the
+        // height with the player instead of collapsing.
+        .layoutPriority(1)
     } else {
       content
         .aspectRatio(16 / 9, contentMode: .fit)
