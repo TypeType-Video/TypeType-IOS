@@ -3,30 +3,43 @@ import SwiftUI
 
 struct LiveChannelControlsView: View {
   @ObservedObject var viewModel: LiveChannelViewModel
+  @State private var presentsSections = false
+  @State private var presentsSort = false
 
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
       HStack(spacing: 10) {
-        Menu {
-          ForEach(LiveChannelTab.allCases) { tab in
-            // Content tabs need the YouTube listing endpoints; About is
-            // local channel data and always available.
-            if isYouTube || tab == .about {
-              Button {
-                Task { await viewModel.selectTab(tab) }
-              } label: {
-                menuLabel(
-                  tab.title,
-                  selected: viewModel.selectedTab == tab
-                )
-              }
-            }
-          }
+        // Popovers, not system menus: the iOS 26/27 glass menu popup
+        // crashes on item taps with `setEffect:` in this app.
+        Button {
+          presentsSections = true
         } label: {
           dropdownLabel(
             viewModel.selectedTab.title,
             systemImage: sectionSymbol
           )
+        }
+        .buttonStyle(.plain)
+        .popover(isPresented: $presentsSections) {
+          VStack(alignment: .leading, spacing: 2) {
+            ForEach(LiveChannelTab.allCases) { tab in
+              // Content tabs need the YouTube listing endpoints; About is
+              // local channel data and always available.
+              if isYouTube || tab == .about {
+                Button {
+                  presentsSections = false
+                  Task { await viewModel.selectTab(tab) }
+                } label: {
+                  menuLabel(
+                    tab.title,
+                    selected: viewModel.selectedTab == tab
+                  )
+                }
+                .buttonStyle(.plain)
+              }
+            }
+          }
+          .padding(12)
         }
         .accessibilityLabel("Channel section")
         .accessibilityValue(viewModel.selectedTab.title)
@@ -34,22 +47,28 @@ struct LiveChannelControlsView: View {
 
         if viewModel.selectedTab == .videos,
           viewModel.submittedQuery.isEmpty {
-          Menu {
-            ForEach(LiveChannelSort.allCases) { sort in
-              Button {
-                Task { await viewModel.selectSort(sort) }
-              } label: {
-                menuLabel(
-                  sort.title,
-                  selected: viewModel.sort == sort
-                )
-              }
-            }
+          Button {
+            presentsSort = true
           } label: {
             dropdownLabel(
               viewModel.sort.title,
               systemImage: "arrow.up.arrow.down"
             )
+          }
+          .buttonStyle(.plain)
+          .popover(isPresented: $presentsSort) {
+            VStack(alignment: .leading, spacing: 2) {
+              ForEach(LiveChannelSort.allCases) { sort in
+                Button {
+                  presentsSort = false
+                  Task { await viewModel.selectSort(sort) }
+                } label: {
+                  menuLabel(sort.title, selected: viewModel.sort == sort)
+                }
+                .buttonStyle(.plain)
+              }
+            }
+            .padding(12)
           }
           .accessibilityLabel("Video order")
           .accessibilityValue(viewModel.sort.title)
