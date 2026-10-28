@@ -9,10 +9,13 @@ struct LiveVideoLibraryActionsView: View {
   @State private var createsPlaylist = false
   @Environment(\.liveWatchExtrasEnabled) private var extrasEnabled
   @State private var presentsDownload = false
+  @State private var presentsSleepTimer = false
+  @ObservedObject private var playbackCoordinator: LivePlaybackCoordinator
 
   init(video: LiveVideoItem, dependencies: AppDependencies) {
     self.video = video
     self.dependencies = dependencies
+    playbackCoordinator = dependencies.playbackCoordinator
     _viewModel = StateObject(
       wrappedValue: LiveVideoLibraryActionsViewModel(
         video: video,
@@ -69,6 +72,15 @@ struct LiveVideoLibraryActionsView: View {
       }
       .accessibilityIdentifier("live.video.download")
 
+      iconButton(
+        systemImage: "timer",
+        label: "Sleep timer",
+        isActive: playbackCoordinator.sleepTimer.isActive
+      ) {
+        presentsSleepTimer = true
+      }
+      .accessibilityIdentifier("live.video.sleep-timer")
+
       Spacer(minLength: 0)
     }
     .frame(maxWidth: .infinity, alignment: .leading)
@@ -90,6 +102,16 @@ struct LiveVideoLibraryActionsView: View {
     }
     .sheet(isPresented: $presentsDownload) {
       LiveDownloadSheet(video: video, dependencies: dependencies)
+    }
+    .sheet(isPresented: $presentsSleepTimer) {
+      NavigationStack {
+        LivePlaybackSleepTimerView(coordinator: playbackCoordinator)
+        .toolbar {
+          ToolbarItem(placement: .cancellationAction) {
+            Button("Close") { presentsSleepTimer = false }
+          }
+        }
+      }
     }
     .alert("Library", isPresented: errorBinding) {
       Button("OK") { viewModel.dismissError() }

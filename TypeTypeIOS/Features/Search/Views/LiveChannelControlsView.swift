@@ -21,25 +21,17 @@ struct LiveChannelControlsView: View {
         }
         .buttonStyle(.plain)
         .popover(isPresented: $presentsSections) {
-          VStack(alignment: .leading, spacing: 2) {
-            ForEach(LiveChannelTab.allCases) { tab in
-              // Content tabs need the YouTube listing endpoints; About is
-              // local channel data and always available.
-              if isYouTube || tab == .about {
-                Button {
-                  presentsSections = false
-                  Task { await viewModel.selectTab(tab) }
-                } label: {
-                  menuLabel(
-                    tab.title,
-                    selected: viewModel.selectedTab == tab
-                  )
-                }
-                .buttonStyle(.plain)
-              }
+          optionList(
+            tabs.map {
+              (id: $0.id, label: $0.title, selected: viewModel.selectedTab == $0)
             }
+          ) { id in
+            guard let tab = tabs.first(where: { $0.id == id }) else {
+              return
+            }
+            presentsSections = false
+            Task { await viewModel.selectTab(tab) }
           }
-          .padding(12)
         }
         .accessibilityLabel("Channel section")
         .accessibilityValue(viewModel.selectedTab.title)
@@ -57,18 +49,19 @@ struct LiveChannelControlsView: View {
           }
           .buttonStyle(.plain)
           .popover(isPresented: $presentsSort) {
-            VStack(alignment: .leading, spacing: 2) {
-              ForEach(LiveChannelSort.allCases) { sort in
-                Button {
-                  presentsSort = false
-                  Task { await viewModel.selectSort(sort) }
-                } label: {
-                  menuLabel(sort.title, selected: viewModel.sort == sort)
-                }
-                .buttonStyle(.plain)
+            optionList(
+              LiveChannelSort.allCases.map {
+                (id: $0.id, label: $0.title, selected: viewModel.sort == $0)
               }
+            ) { id in
+              guard let sort = LiveChannelSort.allCases.first(where: {
+                $0.id == id
+              }) else {
+                return
+              }
+              presentsSort = false
+              Task { await viewModel.selectSort(sort) }
             }
-            .padding(12)
           }
           .accessibilityLabel("Video order")
           .accessibilityValue(viewModel.sort.title)
@@ -78,6 +71,12 @@ struct LiveChannelControlsView: View {
         Spacer(minLength: 0)
       }
     }
+  }
+
+  /// Content tabs need the YouTube listing endpoints; About is local
+  /// channel data and always available.
+  private var tabs: [LiveChannelTab] {
+    LiveChannelTab.allCases.filter { isYouTube || $0 == .about }
   }
 
   private var isYouTube: Bool {
@@ -91,6 +90,44 @@ struct LiveChannelControlsView: View {
     case .playlists: return "rectangle.stack"
     case .about: return "info.circle"
     }
+  }
+
+  /// Glass popover with checkmark rows and hairline dividers — the
+  /// LiveOptionMenu recipe. `presentationCompactAdaptation(.popover)` is
+  /// what keeps it a bubble on iPhone instead of a full-height sheet.
+  private func optionList(
+    _ options: [(id: String, label: String, selected: Bool)],
+    onSelect: @escaping (String) -> Void
+  ) -> some View {
+    VStack(alignment: .leading, spacing: 0) {
+      ForEach(Array(options.enumerated()), id: \.element.id) { index, option in
+        Button {
+          onSelect(option.id)
+        } label: {
+          HStack(spacing: 12) {
+            Text(option.label)
+              .foregroundStyle(.primary)
+            Spacer(minLength: 12)
+            if option.selected {
+              Image(systemName: "checkmark")
+                .foregroundStyle(DemoTheme.accent)
+            }
+          }
+          .padding(.horizontal, 16)
+          .frame(minHeight: 44)
+          .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        if index < options.count - 1 {
+          Rectangle()
+            .fill(DemoTheme.separator)
+            .frame(height: 1)
+            .padding(.horizontal, 16)
+        }
+      }
+    }
+    .frame(width: 280)
+    .presentationCompactAdaptation(.popover)
   }
 
   private func dropdownLabel(
@@ -116,18 +153,6 @@ struct LiveChannelControlsView: View {
     .overlay {
       RoundedRectangle(cornerRadius: 12, style: .continuous)
         .stroke(DemoTheme.separator.opacity(0.55), lineWidth: 0.5)
-    }
-  }
-
-  @ViewBuilder
-  private func menuLabel(
-    _ title: String,
-    selected: Bool
-  ) -> some View {
-    if selected {
-      Label(title, systemImage: "checkmark")
-    } else {
-      Text(title)
     }
   }
 }

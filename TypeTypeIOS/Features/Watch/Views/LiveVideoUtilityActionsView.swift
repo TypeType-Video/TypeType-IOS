@@ -6,7 +6,6 @@ struct LiveVideoUtilityActionsView: View {
   @ObservedObject var playerController: LivePlayerController
   @State private var presentsDownload = false
   @State private var presentsReport = false
-  @State private var presentsSleepTimer = false
 
   var body: some View {
     HStack(spacing: 10) {
@@ -28,15 +27,6 @@ struct LiveVideoUtilityActionsView: View {
         actionLabel("Download", symbol: "arrow.down.circle")
       }
       .buttonStyle(LiveChipButtonStyle())
-
-      // Sleep-timer shortcut in the actions row (dev spec, plan 2.3b).
-      Button {
-        presentsSleepTimer = true
-      } label: {
-        actionLabel("Sleep timer", symbol: "timer")
-      }
-      .buttonStyle(LiveChipButtonStyle())
-      .accessibilityIdentifier("live.video.sleep-timer")
 
       if canReport {
         Button {
@@ -61,18 +51,6 @@ struct LiveVideoUtilityActionsView: View {
         video: video,
         dependencies: dependencies
       )
-    }
-    .sheet(isPresented: $presentsSleepTimer) {
-      NavigationStack {
-        LivePlaybackSleepTimerView(
-          coordinator: dependencies.playbackCoordinator
-        )
-        .toolbar {
-          ToolbarItem(placement: .cancellationAction) {
-            Button("Close") { presentsSleepTimer = false }
-          }
-        }
-      }
     }
     .sheet(isPresented: $presentsReport) {
       NavigationStack {

@@ -35,21 +35,15 @@ struct LiveSearchFilterBar: View {
     }
     .buttonStyle(.plain)
     .popover(isPresented: $presentsService) {
-      VStack(alignment: .leading, spacing: 2) {
-        ForEach(viewModel.services) { service in
-          Button {
-            presentsService = false
-            Task { await viewModel.selectService(service.id) }
-          } label: {
-            menuLabel(
-              Text(verbatim: service.name),
-              selected: service.id == viewModel.selectedServiceID
-            )
-          }
-          .buttonStyle(.plain)
+      optionList(
+        viewModel.services.map {
+          (label: $0.name, selected: $0.id == viewModel.selectedServiceID)
         }
+      ) { index in
+        presentsService = false
+        let service = viewModel.services[index]
+        Task { await viewModel.selectService(service.id) }
       }
-      .padding(12)
     }
     .accessibilityIdentifier("live.search.service")
   }
@@ -62,34 +56,21 @@ struct LiveSearchFilterBar: View {
     }
     .buttonStyle(.plain)
     .popover(isPresented: $presentsContent) {
-      VStack(alignment: .leading, spacing: 2) {
-        Button {
-          presentsContent = false
-          Task { await viewModel.selectContentFilter(nil) }
-        } label: {
-          menuLabel(
-            Text("All content"),
-            selected: viewModel.selectedContentFilter == nil
-          )
-        }
-        .buttonStyle(.plain)
-        ForEach(viewModel.visibleContentFilters) { filter in
-          Button {
-            presentsContent = false
-            Task {
-              await viewModel.selectContentFilter(filter.value)
-            }
-          } label: {
-            menuLabel(
-              Text(verbatim: filter.displayName),
-              selected:
-                filter.value == viewModel.selectedContentFilter
+      optionList(
+        [(label: "All content", selected: viewModel.selectedContentFilter == nil)]
+          + viewModel.visibleContentFilters.map {
+            (
+              label: $0.displayName,
+              selected: $0.value == viewModel.selectedContentFilter
             )
           }
-          .buttonStyle(.plain)
-        }
+      ) { index in
+        presentsContent = false
+        let value = index == 0
+          ? nil
+          : viewModel.visibleContentFilters[index - 1].value
+        Task { await viewModel.selectContentFilter(value) }
       }
-      .padding(12)
     }
     .accessibilityIdentifier("live.search.content-filter")
   }
@@ -102,36 +83,61 @@ struct LiveSearchFilterBar: View {
     }
     .buttonStyle(.plain)
     .popover(isPresented: $presentsSort) {
-      VStack(alignment: .leading, spacing: 2) {
-        Button {
-          presentsSort = false
-          Task { await viewModel.selectSortFilter(nil) }
-        } label: {
-          menuLabel(
-            Text("Default order"),
-            selected: viewModel.selectedSortFilter == nil
-          )
-        }
-        .buttonStyle(.plain)
-        ForEach(viewModel.filters.sortFilters) { filter in
-          Button {
-            presentsSort = false
-            Task {
-              await viewModel.selectSortFilter(filter.value)
-            }
-          } label: {
-            menuLabel(
-              Text(verbatim: filter.displayName),
-              selected:
-                filter.value == viewModel.selectedSortFilter
+      optionList(
+        [(label: "Default order", selected: viewModel.selectedSortFilter == nil)]
+          + viewModel.filters.sortFilters.map {
+            (
+              label: $0.displayName,
+              selected: $0.value == viewModel.selectedSortFilter
             )
           }
-          .buttonStyle(.plain)
-        }
+      ) { index in
+        presentsSort = false
+        let value = index == 0
+          ? nil
+          : viewModel.filters.sortFilters[index - 1].value
+        Task { await viewModel.selectSortFilter(value) }
       }
-      .padding(12)
     }
     .accessibilityIdentifier("live.search.sort-filter")
+  }
+
+  /// Glass popover with checkmark rows and hairline dividers — the
+  /// LiveOptionMenu recipe. `presentationCompactAdaptation(.popover)` is
+  /// what keeps it a bubble on iPhone instead of a full-height sheet.
+  private func optionList(
+    _ options: [(label: String, selected: Bool)],
+    onSelect: @escaping (Int) -> Void
+  ) -> some View {
+    VStack(alignment: .leading, spacing: 0) {
+      ForEach(Array(options.enumerated()), id: \.offset) { index, option in
+        Button {
+          onSelect(index)
+        } label: {
+          HStack(spacing: 12) {
+            Text(verbatim: option.label)
+              .foregroundStyle(.primary)
+            Spacer(minLength: 12)
+            if option.selected {
+              Image(systemName: "checkmark")
+                .foregroundStyle(DemoTheme.accent)
+            }
+          }
+          .padding(.horizontal, 16)
+          .frame(minHeight: 44)
+          .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        if index < options.count - 1 {
+          Rectangle()
+            .fill(DemoTheme.separator)
+            .frame(height: 1)
+            .padding(.horizontal, 16)
+        }
+      }
+    }
+    .frame(width: 280)
+    .presentationCompactAdaptation(.popover)
   }
 
   private func filterLabel(
@@ -147,23 +153,6 @@ struct LiveSearchFilterBar: View {
       .padding(.horizontal, 11)
       .padding(.vertical, 8)
       .background(DemoTheme.surface, in: Capsule())
-  }
-
-  private func menuLabel(
-    _ title: Text,
-    selected: Bool
-  ) -> some View {
-    selected
-      ? Label {
-          title
-        } icon: {
-          Image(systemName: "checkmark")
-        }
-      : Label {
-          title
-        } icon: {
-          Image(systemName: "circle")
-        }
   }
 
   private var selectedService: VideoService {
