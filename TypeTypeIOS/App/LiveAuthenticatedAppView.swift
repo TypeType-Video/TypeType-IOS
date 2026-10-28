@@ -52,7 +52,10 @@ struct LiveAuthenticatedAppView: View {
       guard let controller = playbackCoordinator.controller,
         controller.nativePlayback != nil
       else { return }
-      if phase == .background,
+      // .inactive = the resign-active moment: the app's scene still exists
+      // here, so the PiP scene creation succeeds; at .background it is
+      // already too late and the video degrades to audio-only.
+      if phase == .inactive,
         !controller.pictureInPicture.isEngaged,
         playbackCoordinator.hasActivePlayback {
         playbackCoordinator.startSystemPictureInPicture()

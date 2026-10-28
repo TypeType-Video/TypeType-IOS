@@ -248,10 +248,46 @@ private struct LiveDockedVideoCard: View {
   let playback: LiveNativePlayback
   let controller: LivePlayerController
   let onUndock: () -> Void
+  // Persisted offset from the upper-right home slot, so the card comes
+  // back where the user left it.
+  @AppStorage("live.dock.offsetX") private var offsetX: Double = 0
+  @AppStorage("live.dock.offsetY") private var offsetY: Double = 0
   @GestureState private var dragOffset: CGSize = .zero
-  @State private var restingOffset: CGSize = .zero
 
   var body: some View {
+    GeometryReader { geo in
+      let base = CGPoint(x: geo.size.width - 126, y: 74)
+      let dragged = CGPoint(
+        x: base.x + offsetX + dragOffset.width,
+        y: base.y + offsetY + dragOffset.height
+      )
+      // Clamped to the window: the card can never leave the screen.
+      let clamped = CGPoint(
+        x: min(max(dragged.x, 118), geo.size.width - 118),
+        y: min(max(dragged.y, 74), geo.size.height - 104)
+      )
+      card
+        .position(x: clamped.x, y: clamped.y)
+        .gesture(
+          DragGesture(minimumDistance: 8)
+            .updating($dragOffset) { value, state, _ in
+              state = value.translation
+            }
+            .onEnded { value in
+              offsetX = Double(
+                min(max(base.x + offsetX + value.translation.width, 118),
+                  geo.size.width - 118) - base.x
+              )
+              offsetY = Double(
+                min(max(base.y + offsetY + value.translation.height, 74),
+                  geo.size.height - 104) - base.y
+              )
+            }
+        )
+    }
+  }
+
+  private var card: some View {
     LiveNativeVideoView(
       playback: playback,
       controller: controller,
@@ -282,23 +318,7 @@ private struct LiveDockedVideoCard: View {
         .strokeBorder(DemoTheme.separator, lineWidth: 1)
     )
     .shadow(color: .black.opacity(0.35), radius: 12, y: 6)
-    .offset(
-      x: restingOffset.width + dragOffset.width,
-      y: restingOffset.height + dragOffset.height
-    )
     .onTapGesture { onUndock() }
-    .gesture(
-      DragGesture(minimumDistance: 8)
-        .updating($dragOffset) { value, state, _ in
-          state = value.translation
-        }
-        .onEnded { value in
-          restingOffset = CGSize(
-            width: restingOffset.width + value.translation.width,
-            height: restingOffset.height + value.translation.height
-          )
-        }
-    )
     .accessibilityLabel("Return video to page")
     .accessibilityIdentifier("live.player.dock")
   }
