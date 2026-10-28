@@ -132,6 +132,7 @@ struct LiveSearchFilterBar: View {
             HStack(spacing: 12) {
               Text(verbatim: option.label)
                 .foregroundStyle(.primary)
+                .lineLimit(2)
               Spacer(minLength: 12)
               if option.selected {
                 Image(systemName: "checkmark")
@@ -139,6 +140,7 @@ struct LiveSearchFilterBar: View {
               }
             }
             .padding(.horizontal, 16)
+            .padding(.vertical, 8)
             .frame(minHeight: 44)
             .contentShape(Rectangle())
           }

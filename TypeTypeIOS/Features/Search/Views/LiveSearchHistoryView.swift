@@ -29,17 +29,14 @@ struct LiveSearchHistoryView: View {
     .refreshable {
       await viewModel.loadHistory()
     }
-    .confirmationDialog(
-      "Clear search history?",
-      isPresented: $confirmsClear,
-      titleVisibility: .visible
-    ) {
-      Button("Clear all", role: .destructive) {
+    .sheet(isPresented: $confirmsClear) {
+      LiveConfirmSheet(
+        title: "Clear search history?",
+        message: "This removes all saved searches from your account.",
+        confirmTitle: "Clear all"
+      ) {
         Task { await viewModel.clearHistory() }
       }
-      Button("Cancel", role: .cancel) {}
-    } message: {
-      Text("This removes all saved searches from your account.")
     }
     .accessibilityIdentifier("live.search.history")
   }

@@ -853,3 +853,41 @@ extension Color {
   static let systemTeal = Color(uiColor: .systemTeal)
   static let systemGray = Color(uiColor: .systemGray)
 }
+
+/// Compact confirmation card that always slides up from the bottom edge
+/// (user preference: confirms open to the bottom like the dropdowns).
+struct LiveConfirmSheet: View {
+  let title: String
+  var message: String? = nil
+  let confirmTitle: String
+  let onConfirm: () -> Void
+  @Environment(\.dismiss) private var dismiss
+
+  var body: some View {
+    VStack(spacing: 14) {
+      Text(title)
+        .font(.headline)
+        .multilineTextAlignment(.center)
+      if let message, !message.isEmpty {
+        Text(message)
+          .font(.footnote)
+          .foregroundStyle(.secondary)
+          .multilineTextAlignment(.center)
+      }
+      Button(role: .destructive) {
+        dismiss()
+        onConfirm()
+      } label: {
+        Text(confirmTitle)
+          .frame(maxWidth: .infinity, minHeight: 48)
+      }
+      .buttonStyle(.borderedProminent)
+      Button("Cancel") { dismiss() }
+        .frame(maxWidth: .infinity, minHeight: 48)
+        .buttonStyle(.bordered)
+    }
+    .padding(24)
+    .presentationDetents([.height(300)])
+    .presentationDragIndicator(.visible)
+  }
+}
