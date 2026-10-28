@@ -169,9 +169,9 @@ extension LivePlayerController {
   /// Presents beta's landscape-forced host: the presented controller's
   /// orientations override the user's rotation lock, which a plain window
   /// rotation request cannot. The host clears the flag on dismissal.
-  func enterNativeFullscreen() {
+  func enterNativeFullscreen(_ reason: String = "unspecified") {
     AppLogger.playback
-      .info("fullscreen: enter requested flag=\(self.isPresentingFullscreen, privacy: .public)")
+      .info("fullscreen: enter requested reason=\(reason, privacy: .public) flag=\(self.isPresentingFullscreen, privacy: .public)")
     guard !isPresentingFullscreen else { return }
     LiveLandscapeHostingController.present(for: self)
   }

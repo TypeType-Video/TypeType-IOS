@@ -30,6 +30,8 @@ struct LivePlayerView: View {
   @State var autoPictureInPictureArmed = true
   @State var autoPictureInPictureActive = false
   @StateObject var nativeControls = LiveNativeControlsState()
+  @State private var lastDeviceOrientation: UIDeviceOrientation = .unknown
+  @State private var rotationEnterArmedAt = Date()
 
 
   var body: some View {
@@ -69,7 +71,7 @@ struct LivePlayerView: View {
             if controller.isPresentingFullscreen {
               controller.exitNativeFullscreen("player-toggle")
             } else {
-              controller.enterNativeFullscreen()
+              controller.enterNativeFullscreen("player-toggle")
             }
           }
         }
@@ -138,7 +140,30 @@ struct LivePlayerView: View {
         .accessibilityIdentifier("live.player.autoplay-countdown")
       }
     }
+    .onReceive(NotificationCenter.default.publisher(for: UIDevice.orientationDidChangeNotification)) { _ in
+      let orientation = UIDevice.current.orientation
+      let previous = lastDeviceOrientation
+      lastDeviceOrientation = orientation
+      let isLandscape = orientation == .landscapeLeft || orientation == .landscapeRight
+      let wasLandscape = previous == .landscapeLeft || previous == .landscapeRight
+      // Rotation is a control: turning the phone to landscape while the
+      // watch page is up opens fullscreen. Edge-triggered so a button exit
+      // while still holding landscape does not bounce straight back in.
+      guard isLandscape, !wasLandscape,
+        !controller.isPresentingFullscreen,
+        controller.nativePlayback != nil,
+        coordinator.presentation == .expanded,
+        Date().timeIntervalSince(rotationEnterArmedAt) > 0.8
+      else { return }
+      AppLogger.playback.info("fullscreen: enter via rotation-landscape")
+      controller.enterNativeFullscreen("rotation-landscape")
+    }
+    .onAppear {
+      rotationEnterArmedAt = Date()
+      UIDevice.current.beginGeneratingDeviceOrientationNotifications()
+    }
     .onDisappear {
+      UIDevice.current.endGeneratingDeviceOrientationNotifications()
       restoreSystemBrightness()
     }
 

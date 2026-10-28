@@ -5,6 +5,9 @@ struct LiveNativeFullscreenView: View {
   let onClose: () -> Void
   @StateObject private var controls = LiveNativeControlsState()
   @State private var wasLandscape = false
+  // Rotation is a control: turning the phone to portrait leaves fullscreen.
+  // Debounced — mid-turn sensor samples pass through portrait.
+  @State private var portraitRotationExit: Task<Void, Never>?
 
   var body: some View {
     ZStack {
@@ -52,6 +55,23 @@ struct LiveNativeFullscreenView: View {
           onClose()
         }
     )
+    .onReceive(NotificationCenter.default.publisher(for: UIDevice.orientationDidChangeNotification)) { _ in
+      switch UIDevice.current.orientation {
+      case .portrait:
+        guard portraitRotationExit == nil else { return }
+        portraitRotationExit = Task { @MainActor in
+          try? await Task.sleep(for: .milliseconds(350))
+          guard !Task.isCancelled else { return }
+          AppLogger.playback.info("fullscreen: onClose via rotation-portrait")
+          onClose()
+        }
+      default:
+        portraitRotationExit?.cancel()
+        portraitRotationExit = nil
+      }
+    }
+    .onAppear { UIDevice.current.beginGeneratingDeviceOrientationNotifications() }
+    .onDisappear { UIDevice.current.endGeneratingDeviceOrientationNotifications() }
     .accessibilityIdentifier("live.player.fullscreen")
   }
 }
@@ -66,15 +86,31 @@ final class LiveLandscapeHostingController: UIHostingController<LiveNativeFullsc
       "fullscreen: dismissActive reason=\(reason, privacy: .public) host=\(host != nil, privacy: .public) isBeingDismissed=\(host?.isBeingDismissed ?? false, privacy: .public) isBeingPresented=\(host?.isBeingPresented ?? false, privacy: .public) hostInWindow=\(host?.viewIfLoaded?.window != nil, privacy: .public) presenting=\(host?.presentingViewController != nil, privacy: .public)"
     )
     if let host, !host.isBeingDismissed {
+      // Relax the landscape hold exactly for the return so the portrait
+      // rotation animates together with the dismissal instead of snapping
+      // in after the fade.
+      host.relaxesForExit = true
+      host.setNeedsUpdateOfSupportedInterfaceOrientations()
+      LiveScreenOrientation.set(.portrait)
       host.dismiss(animated: true)
     }
   }
+
+  var relaxesForExit = false
+
   override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
-    traitCollection.userInterfaceIdiom == .phone ? .landscape : .all
+    if traitCollection.userInterfaceIdiom != .phone { return .all }
+    return relaxesForExit ? .allButUpsideDown : .landscape
   }
 
   override var preferredInterfaceOrientationForPresentation: UIInterfaceOrientation {
-    .landscapeRight
+    // Match the side the user already holds so entry needs no flip.
+    // Device and interface landscape sides are mirrored in UIKit.
+    switch UIDevice.current.orientation {
+    case .landscapeLeft: return .landscapeRight
+    case .landscapeRight: return .landscapeLeft
+    default: return .landscapeRight
+    }
   }
 
   var onDisappear: (() -> Void)?
@@ -98,10 +134,10 @@ final class LiveLandscapeHostingController: UIHostingController<LiveNativeFullsc
     controller.isPresentingFullscreen = true
     Task { @MainActor in
       // Rotate the window first: presenting a modal into a portrait window
-      // shows no rotation transition, so the fullscreen lands on an
-      // already-landscape window.
+      // shows no rotation transition. The short wait lets the rotation
+      // animation start so the modal's fade rides its tail — one motion.
       LiveScreenOrientation.set(.landscape)
-      try? await Task.sleep(for: .milliseconds(220))
+      try? await Task.sleep(for: .milliseconds(80))
       guard let scene = UIApplication.shared.connectedScenes
         .compactMap({ $0 as? UIWindowScene })
         .first(where: { $0.activationState == .foregroundActive }),
