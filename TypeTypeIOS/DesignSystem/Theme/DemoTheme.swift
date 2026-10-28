@@ -890,13 +890,15 @@ struct LiveConfirmCard: View {
 
       Divider()
 
-      Button(role: destructive ? .destructive : nil) {
+      Button(role: destructive ? ButtonRole.destructive : nil) {
         dismiss()
         onConfirm()
       } label: {
         Text(confirmTitle)
           .fontWeight(.semibold)
-          .foregroundStyle(destructive ? Color.systemRed : .tint)
+          .foregroundStyle(
+            destructive ? AnyShapeStyle(Color.systemRed) : AnyShapeStyle(.tint)
+          )
           .frame(maxWidth: .infinity, minHeight: 50)
       }
       .buttonStyle(.plain)
