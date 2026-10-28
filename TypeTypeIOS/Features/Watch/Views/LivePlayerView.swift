@@ -101,8 +101,9 @@ struct LivePlayerView: View {
     // The landscape stage: the player's own surface builder with the full
     // gesture chain, covering the player frame while the window is rotated.
     .overlay {
-      if controller.isPresentingFullscreen,
-        let playback = controller.nativePlayback {
+      // The stage serves both engines: the surface builder switches between
+      // the in-house and the AVKit path internally.
+      if controller.isPresentingFullscreen {
         ZStack(alignment: .bottom) {
           Color.black.ignoresSafeArea()
           videoSurface(
