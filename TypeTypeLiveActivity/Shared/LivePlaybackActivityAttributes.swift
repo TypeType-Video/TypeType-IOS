@@ -9,6 +9,8 @@ struct LivePlaybackActivityAttributes: ActivityAttributes {
     var title: String
     var channel: String
     var isPlaying: Bool
+    /// Red LIVE badge for live streams.
+    var isLive: Bool
     /// 0...1 playback position for the progress line.
     var progress: Double
   }

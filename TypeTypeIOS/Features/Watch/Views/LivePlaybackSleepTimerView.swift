@@ -65,7 +65,7 @@ struct LivePlaybackSleepTimerView: View {
       && coordinator.sleepTimer.duration == TimeInterval(minutes * 60)
   }
 
-  private static let minuteOptions = [30, 60, 90]
+  private static let minuteOptions = [15, 30, 60, 90]
 }
 
 
@@ -77,7 +77,7 @@ struct LivePlaybackSleepTimerPopover: View {
 
   var body: some View {
     VStack(alignment: .leading, spacing: 0) {
-      ForEach([30, 60, 90], id: \.self) { minutes in
+      ForEach([15, 30, 60, 90], id: \.self) { minutes in
         row(
           title: "\(minutes) minutes",
           selected: isSelected(minutes: minutes)

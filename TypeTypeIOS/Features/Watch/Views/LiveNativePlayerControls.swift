@@ -84,7 +84,7 @@ struct LiveNativePlayerControls: View {
         sponsorSegmentBands
       }
       Text(LivePlaybackChapterNavigator.clockText(seconds: Int(controller.duration)))
-      if !controller.availableChapters.isEmpty {
+      if !controller.displayedChapters.isEmpty {
         Button {
           presentsChapters = true
         } label: {

@@ -5,7 +5,7 @@ struct LivePlayerChaptersView: View {
   var onSelect: (() -> Void)? = nil
 
   var body: some View {
-    List(controller.availableChapters) { chapter in
+    List(controller.displayedChapters) { chapter in
       chapterRow(chapter)
     }
     .liveThemedList()
@@ -16,11 +16,11 @@ struct LivePlayerChaptersView: View {
 
   private func currentChapter() -> LivePlaybackChapter? {
     let index = LivePlaybackChapterNavigator.currentIndex(
-      in: controller.availableChapters,
+      in: controller.displayedChapters,
       at: controller.position
     )
     guard let index else { return nil }
-    return controller.availableChapters[index]
+    return controller.displayedChapters[index]
   }
 
   @ViewBuilder

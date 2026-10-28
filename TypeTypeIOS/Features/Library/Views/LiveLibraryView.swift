@@ -195,7 +195,8 @@ struct LiveLibraryView: View {
     case .playlists:
       LivePlaylistsView(
         coordinator: coordinator,
-        requestedCollection: .constant(nil)
+        requestedCollection: .constant(nil),
+        createsPlaylist: $createsPlaylist
       )
     case .downloads:
       LiveDownloadsView(

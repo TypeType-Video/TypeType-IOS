@@ -14,10 +14,15 @@ struct LivePlaybackActivityWidget: Widget {
       DynamicIsland {
         DynamicIslandExpandedRegion(.leading) {
           VStack(alignment: .leading, spacing: 2) {
-            Text(context.state.title)
-              .font(.footnote.weight(.semibold))
-              .foregroundStyle(.white)
-              .lineLimit(1)
+            HStack(spacing: 6) {
+              if context.state.isLive {
+                LivePlaybackLiveBadge()
+              }
+              Text(context.state.title)
+                .font(.footnote.weight(.semibold))
+                .foregroundStyle(.white)
+                .lineLimit(1)
+            }
             Text(context.state.channel)
               .font(.caption2)
               .foregroundStyle(.white.opacity(0.7))
@@ -55,10 +60,15 @@ private struct LivePlaybackBannerView: View {
       LivePlaybackPlayGlyph(isPlaying: context.state.isPlaying)
         .foregroundStyle(.white)
       VStack(alignment: .leading, spacing: 2) {
-        Text(context.state.title)
-          .font(.footnote.weight(.semibold))
-          .foregroundStyle(.white)
-          .lineLimit(1)
+        HStack(spacing: 6) {
+          if context.state.isLive {
+            LivePlaybackLiveBadge()
+          }
+          Text(context.state.title)
+            .font(.footnote.weight(.semibold))
+            .foregroundStyle(.white)
+            .lineLimit(1)
+        }
         Text(context.state.channel)
           .font(.caption2)
           .foregroundStyle(.white.opacity(0.7))
@@ -77,6 +87,17 @@ private struct LivePlaybackPlayGlyph: View {
   var body: some View {
     Image(systemName: isPlaying ? "play.fill" : "pause.fill")
       .font(.system(size: 13, weight: .bold))
+  }
+}
+
+private struct LivePlaybackLiveBadge: View {
+  var body: some View {
+    Text("LIVE")
+      .font(.system(size: 9, weight: .heavy))
+      .foregroundStyle(.white)
+      .padding(.horizontal, 5)
+      .padding(.vertical, 2)
+      .background(.red, in: Capsule())
   }
 }
 

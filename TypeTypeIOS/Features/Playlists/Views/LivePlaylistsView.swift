@@ -9,14 +9,18 @@ struct LivePlaylistsView: View {
   @State var selectedCollection: LiveLibraryCollectionKind?
   @State var pendingPlaylistDeletion: LivePlaylist?
   @State var pendingSavedDeletion: LiveSavedPlaylist?
-  @State var createsPlaylist = false
+  /// Shared with the library's bar: its New playlist button drives the
+  /// sheet that lives here, on the list the creation refreshes.
+  @Binding var createsPlaylist: Bool
 
   init(
     coordinator: RootCoordinator,
-    requestedCollection: Binding<LiveLibraryCollectionKind?> = .constant(nil)
+    requestedCollection: Binding<LiveLibraryCollectionKind?> = .constant(nil),
+    createsPlaylist: Binding<Bool>
   ) {
     self.coordinator = coordinator
     _requestedCollection = requestedCollection
+    _createsPlaylist = createsPlaylist
     _viewModel = StateObject(
       wrappedValue: LivePlaylistsViewModel(
         playlistsService: coordinator.dependencies.playlistsService,
