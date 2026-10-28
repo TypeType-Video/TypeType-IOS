@@ -167,8 +167,6 @@ extension LivePlayerController {
     }
   }
 
-  private var orientationObserverToken: NSObjectProtocol?
-
   /// The window's interface orientation is the single source of truth for
   /// fullscreen: landscape = fullscreen, portrait = inline.
   func installOrientationObserver() {
