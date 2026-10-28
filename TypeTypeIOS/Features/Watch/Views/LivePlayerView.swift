@@ -30,7 +30,6 @@ struct LivePlayerView: View {
   @State var autoPictureInPictureArmed = true
   @State var autoPictureInPictureActive = false
   @StateObject var nativeControls = LiveNativeControlsState()
-  @StateObject private var fullscreenControls = LiveNativeControlsState()
 
 
   var body: some View {
@@ -61,8 +60,16 @@ struct LivePlayerView: View {
         statusOverlay
         if controller.nativePlayback != nil {
           LiveNativeSubtitleOverlay(controller: controller)
-          LiveNativePlayerControls(controller: controller, controls: nativeControls) {
-            controller.enterNativeFullscreen()
+          LiveNativePlayerControls(
+            controller: controller,
+            controls: nativeControls,
+            isFullscreen: controller.isPresentingFullscreen
+          ) {
+            if controller.isPresentingFullscreen {
+              controller.exitNativeFullscreen()
+            } else {
+              controller.enterNativeFullscreen()
+            }
           }
         }
         // Above the transport controls: the UIKit overlay below never received taps.
@@ -91,45 +98,34 @@ struct LivePlayerView: View {
         .accessibilityIdentifier("live.player.options")
       }
     }
-    .aspectRatio(16 / 9, contentMode: .fit)
+    // Fullscreen = the player frame IS the window (landscape rotation
+    // drives it); inline = the 16:9 card.
+    .aspectRatio(
+      controller.isPresentingFullscreen
+        ? UIScreen.main.bounds.width / UIScreen.main.bounds.height
+        : 16 / 9,
+      contentMode: .fit
+    )
+    .ignoresSafeArea(
+      controller.isPresentingFullscreen ? .container : SafeAreaRegions(),
+      edges: .all
+    )
     .clipShape(
       RoundedRectangle(
-        cornerRadius: cinemaMode ? 0 : 16,
+        cornerRadius: (cinemaMode || controller.isPresentingFullscreen) ? 0 : 16,
         style: .continuous
       )
     )
-    // The landscape stage: the player's own surface builder with the full
-    // gesture chain, covering the player frame while the window is rotated.
-    .overlay {
-      // The stage serves both engines: the surface builder switches between
-      // the in-house and the AVKit path internally.
-      if controller.isPresentingFullscreen {
-        ZStack(alignment: .bottom) {
-          Color.black.ignoresSafeArea()
-          videoSurface(
-            width: UIScreen.main.bounds.width,
-            surface: .fullscreen
-          )
-          LiveNativePlayerControls(
-            controller: controller,
-            controls: fullscreenControls,
-            isFullscreen: true
-          ) {
-            controller.exitNativeFullscreen()
-          }
+    .gesture(
+      DragGesture(minimumDistance: 30)
+        .onEnded { value in
+          guard controller.isPresentingFullscreen,
+            value.translation.height > 120,
+            abs(value.translation.width) < value.translation.height
+          else { return }
+          controller.exitNativeFullscreen()
         }
-        .transition(.asymmetric(insertion: .opacity, removal: .identity))
-        .gesture(
-          DragGesture(minimumDistance: 30)
-            .onEnded { value in
-              guard value.translation.height > 120,
-                abs(value.translation.width) < value.translation.height
-              else { return }
-              controller.exitNativeFullscreen()
-            }
-        )
-      }
-    }
+    )
     .overlay(alignment: .top) {
       if let remaining = coordinator.autoplayCountdownRemaining {
         HStack(spacing: 10) {

@@ -166,19 +166,15 @@ extension LivePlayerController {
     }
   }
 
-  /// Keeps the native PiP binding off the layer while the player cover
-  /// itself becomes the landscape stage, then rotates the window.
+  /// The button only rotates the window; the fullscreen state itself is
+  /// derived from the geometry (landscape = fullscreen), so a device
+  /// rotation does the same thing as the button.
   func enterNativeFullscreen() {
-    pictureInPicture.uninstallNativeContent()
-    isPresentingFullscreen = true
     LiveScreenOrientation.set(.landscape)
   }
 
-  /// Reverses the cover stage and re-arms the page surface for reinstall.
   func exitNativeFullscreen() {
-    pictureInPicture.uninstallNativeContent()
     LiveScreenOrientation.set(.portrait)
-    isPresentingFullscreen = false
   }
 
   func fallBackFromNative(reason: String) {
