@@ -13,6 +13,7 @@ struct LiveVideoMetadataContentView: View {
   @State var selectedRelatedVideo: LiveVideoItem?
   @State var selectedPublicPlaylist: LivePlaylistResult?
   @State var pendingExternalURL: URL?
+  @State private var coverAppearedAt = Date()
   @AppStorage("typetype.player.cinema-mode")
   private var cinemaMode = true
 
@@ -208,18 +209,28 @@ struct LiveVideoMetadataContentView: View {
       proxy.size
     } action: { size in
       let landscape = size.width > size.height
-      guard landscape, !playerController.isPresentingFullscreen else { return }
-      Task { @MainActor in
-        try? await Task.sleep(for: .milliseconds(600))
+      if landscape {
         guard !playerController.isPresentingFullscreen else { return }
-        // The dismissal rotates the window back to portrait; the geometry
-        // fires mid-rotation with landscape values. If the window settled
-        // portrait meanwhile, the trigger is stale — never re-present.
-        guard UIScreen.main.bounds.width > UIScreen.main.bounds.height
-        else { return }
-        playerController.enterNativeFullscreen()
+        // The cover's own presentation also fires this with landscape
+        // values while the phone is landscape-held; presenting during it
+        // crashes. After the cover settles, present immediately.
+        if Date().timeIntervalSince(coverAppearedAt) > 0.8 {
+          playerController.enterNativeFullscreen()
+        } else {
+          Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(700))
+            guard !playerController.isPresentingFullscreen,
+              UIScreen.main.bounds.width > UIScreen.main.bounds.height
+            else { return }
+            playerController.enterNativeFullscreen()
+          }
+        }
+      } else if playerController.isPresentingFullscreen {
+        // Rotating back out leaves fullscreen.
+        playerController.exitNativeFullscreen()
       }
     }
+    .onAppear { coverAppearedAt = Date() }
     .animation(.easeInOut(duration: 0.5), value: playerController.isPresentingFullscreen)
     .liveStartupProbe(playerController.lastStartupMilliseconds)
     .environment(\.liveWatchExtrasEnabled, playerController.extrasReleased)
