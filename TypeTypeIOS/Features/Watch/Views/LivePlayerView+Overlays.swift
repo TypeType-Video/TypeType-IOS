@@ -80,6 +80,17 @@ extension LivePlayerView {
           .padding(.vertical, 8)
           .background(.black.opacity(0.72), in: Capsule())
           .padding(.top, 12)
+        Text(
+          "\(LivePlaybackChapterNavigator.clockText(seconds: Int(controller.position)))"
+            + " / \(LivePlaybackChapterNavigator.clockText(seconds: Int(controller.duration)))"
+        )
+        .font(.caption.weight(.semibold))
+        .monospacedDigit()
+        .foregroundStyle(.white)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 4)
+        .background(.black.opacity(0.72), in: Capsule())
+        .padding(.top, 6)
         Spacer()
       }
       .frame(maxWidth: .infinity)
