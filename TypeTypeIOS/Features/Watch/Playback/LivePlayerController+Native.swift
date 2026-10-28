@@ -175,7 +175,13 @@ extension LivePlayerController {
   }
 
   func exitNativeFullscreen() {
-    LiveScreenOrientation.set(.portrait)
+    guard let host = LiveLandscapeHostingController.active,
+      !host.isBeingDismissed
+    else {
+      LiveScreenOrientation.set(.portrait)
+      return
+    }
+    host.dismiss(animated: true)
   }
 
   func fallBackFromNative(reason: String) {
