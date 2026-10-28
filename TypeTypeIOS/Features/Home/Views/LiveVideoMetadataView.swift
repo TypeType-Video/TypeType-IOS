@@ -28,7 +28,6 @@ struct LiveVideoMetadataView: View {
       .liveThemeRepaint()
       }
     }
-    .statusBarHidden(playbackCoordinator.controller?.isPresentingFullscreen == true)
     .task(id: video.url) {
       await Task.yield()
       guard !Task.isCancelled else { return }

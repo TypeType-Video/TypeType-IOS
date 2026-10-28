@@ -30,8 +30,7 @@ struct LivePlayerView: View {
   @State var autoPictureInPictureArmed = true
   @State var autoPictureInPictureActive = false
   @StateObject var nativeControls = LiveNativeControlsState()
-  @State private var lastDeviceOrientation: UIDeviceOrientation = .unknown
-  @State private var rotationEnterArmedAt = Date()
+  @Environment(\.verticalSizeClass) private var verticalSizeClass
   /// Drives the rounded lower corners: the "content slides under the
   /// pinned player" hint while the watch page is scrolled.
   var isScrolled = false
@@ -65,58 +64,48 @@ struct LivePlayerView: View {
         statusOverlay
         if controller.nativePlayback != nil {
           LiveNativeSubtitleOverlay(controller: controller)
-          // Fullscreen chrome floats in the transparent orientation
-          // controller above; the surface keeps only the picture.
-          if !controller.isPresentingFullscreen {
-            LiveNativePlayerControls(
-              controller: controller,
-              controls: nativeControls,
-              isFullscreen: false
-            ) {
-              AppLogger.playback.info("fullscreen: toggle pressed flag=\(controller.isPresentingFullscreen, privacy: .public)")
-              if controller.isPresentingFullscreen {
-                controller.exitNativeFullscreen("player-toggle")
-              } else {
-                controller.enterNativeFullscreen("player-toggle")
-              }
+          LiveNativePlayerControls(
+            controller: controller,
+            controls: nativeControls,
+            isFullscreen: showsFullscreenLayout
+          ) {
+            AppLogger.playback.info("fullscreen: toggle pressed flag=\(controller.isPresentingFullscreen, privacy: .public)")
+            if controller.isPresentingFullscreen {
+              controller.exitNativeFullscreen("player-toggle")
+            } else {
+              controller.enterNativeFullscreen("player-toggle")
             }
           }
         }
         // Above the transport controls: the UIKit overlay below never received taps.
-        // Hidden in fullscreen: the chrome controller above owns the taps.
-        if !controller.isPresentingFullscreen {
-          LiveSponsorBlockOverlay(
-            controller: controller,
-            fillsAvailableSpace: false
-          )
-          .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-          .padding(.top, 10)
-        }
+        LiveSponsorBlockOverlay(
+          controller: controller,
+          fillsAvailableSpace: false
+        )
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .padding(.top, 10)
         playbackStatusAccessibilityElement
         playbackPositionAccessibilityElement
 
-        // Hidden in fullscreen: the chrome controller above owns the taps.
-        if !controller.isPresentingFullscreen {
-          Button {
-            showsOptions = true
-          } label: {
-            overlayIcon("slider.horizontal.3")
-          }
-          .buttonStyle(.plain)
-          .frame(
-            maxWidth: .infinity,
-            maxHeight: .infinity,
-            alignment: .topTrailing
-          )
-          .padding(10)
-          .accessibilityLabel("Player options")
-          .accessibilityIdentifier("live.player.options")
+        Button {
+          showsOptions = true
+        } label: {
+          overlayIcon("slider.horizontal.3")
         }
+        .buttonStyle(.plain)
+        .frame(
+          maxWidth: .infinity,
+          maxHeight: .infinity,
+          alignment: .topTrailing
+        )
+        .padding(10)
+        .accessibilityLabel("Player options")
+        .accessibilityIdentifier("live.player.options")
       }
     }
     .modifier(
       LivePlayerSizing(
-        isFullscreen: controller.isPresentingFullscreen,
+        isFullscreen: showsFullscreenLayout,
         cinemaMode: cinemaMode,
         isScrolled: isScrolled
       )
@@ -132,7 +121,7 @@ struct LivePlayerView: View {
         }
     )
     .overlay(alignment: .top) {
-      if !controller.isPresentingFullscreen,
+      if !showsFullscreenLayout,
         let remaining = coordinator.autoplayCountdownRemaining {
         HStack(spacing: 10) {
           Text("Next video in \(remaining)s")
@@ -154,31 +143,15 @@ struct LivePlayerView: View {
         .accessibilityIdentifier("live.player.autoplay-countdown")
       }
     }
-    .onReceive(NotificationCenter.default.publisher(for: UIDevice.orientationDidChangeNotification)) { _ in
-      let orientation = UIDevice.current.orientation
-      let previous = lastDeviceOrientation
-      lastDeviceOrientation = orientation
-      let isLandscape = orientation == .landscapeLeft || orientation == .landscapeRight
-      let wasLandscape = previous == .landscapeLeft || previous == .landscapeRight
-      // Rotation is a control: turning the phone to landscape while the
-      // watch page is up opens fullscreen. Edge-triggered so a button exit
-      // while still holding landscape does not bounce straight back in.
-      guard isLandscape, !wasLandscape,
-        !controller.isPresentingFullscreen,
-        controller.nativePlayback != nil,
-        coordinator.presentation == .expanded,
-        Date().timeIntervalSince(rotationEnterArmedAt) > 0.8
-      else { return }
-      AppLogger.playback.info("fullscreen: enter via rotation-landscape")
-      controller.enterNativeFullscreen("rotation-landscape")
-    }
     .onAppear {
-      rotationEnterArmedAt = Date()
-      UIDevice.current.beginGeneratingDeviceOrientationNotifications()
+      controller.fullscreen.isPageActive = followsDeviceRotation
+    }
+    .onChange(of: followsDeviceRotation) { _, follows in
+      controller.fullscreen.isPageActive = follows
     }
     .onDisappear {
-      UIDevice.current.endGeneratingDeviceOrientationNotifications()
       restoreSystemBrightness()
+      controller.fullscreen.isPageActive = false
     }
 
     .sheet(isPresented: $showsOptions) {
@@ -189,6 +162,14 @@ struct LivePlayerView: View {
         cinemaMode: $cinemaMode
       )
     }
+  }
+
+  private var showsFullscreenLayout: Bool {
+    controller.showsFullscreenLayout(verticalSizeClass: verticalSizeClass)
+  }
+
+  private var followsDeviceRotation: Bool {
+    coordinator.presentation == .expanded && controller.nativePlayback != nil
   }
 }
 
@@ -235,4 +216,3 @@ struct LivePlayerSizing: ViewModifier {
     return cinemaMode ? 40 : 24
   }
 }
-

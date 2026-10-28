@@ -2,6 +2,8 @@ import SwiftUI
 
 @main
 struct TypeTypeApp: App {
+  @UIApplicationDelegateAdaptor(TypeTypeAppDelegate.self) private var appDelegate
+
   init() {
     // AsyncImage loads through URLSession.shared; the default cache is too
     // small to keep a feed's thumbnails, so scrolling refetched them.

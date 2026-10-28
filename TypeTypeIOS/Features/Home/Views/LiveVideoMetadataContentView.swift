@@ -9,6 +9,7 @@ struct LiveVideoMetadataContentView: View {
   @ObservedObject private var playbackCoordinator: LivePlaybackCoordinator
   @StateObject private var channelMetadataViewModel:
     LiveVideoChannelMetadataViewModel
+  @Environment(\.verticalSizeClass) private var verticalSizeClass
   @State var selectedChannelURL: String?
   @State var selectedRelatedVideo: LiveVideoItem?
   @State var selectedPublicPlaylist: LivePlaylistResult?
@@ -32,6 +33,10 @@ struct LiveVideoMetadataContentView: View {
         service: dependencies.channelService
       )
     )
+  }
+
+  private var showsFullscreenLayout: Bool {
+    playerController.showsFullscreenLayout(verticalSizeClass: verticalSizeClass)
   }
 
   var body: some View {
@@ -212,11 +217,9 @@ struct LiveVideoMetadataContentView: View {
       )
       .padding(.horizontal, cinemaMode ? -16 : 0)
     }
-    .toolbar(
-      playerController.isPresentingFullscreen ? .hidden : .automatic,
-      for: .navigationBar
-    )
-    .statusBarHidden(playerController.isPresentingFullscreen)
+    .toolbar(showsFullscreenLayout ? .hidden : .automatic, for: .navigationBar)
+    .statusBarHidden(showsFullscreenLayout)
+    .persistentSystemOverlays(showsFullscreenLayout ? .hidden : .automatic)
     .liveStartupProbe(playerController.lastStartupMilliseconds)
     .environment(\.liveWatchExtrasEnabled, playerController.extrasReleased)
     .task(id: "\(libraryActionsIdentity)|\(playerController.extrasReleased)") {
