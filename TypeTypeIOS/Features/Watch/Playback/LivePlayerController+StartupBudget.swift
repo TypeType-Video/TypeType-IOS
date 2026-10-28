@@ -24,7 +24,11 @@ extension LivePlayerController {
     startupRetryUsed = true
     AppLogger.playback.notice("startup retry: \(reason, privacy: .public)")
     loadTask?.cancel()
-    loadTask = Task { [weak self] in await self?.load() }
+    let videoURL = video.url
+    loadTask = Task { [weak self, service] in
+      await service?.discardPendingStreams(for: videoURL)
+      await self?.load()
+    }
     return true
   }
 

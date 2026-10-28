@@ -3,6 +3,7 @@ import Foundation
 protocol LivePlaybackServiceProtocol: AnyObject {
   func stream(for videoURL: String) async throws -> LivePlaybackStream
   func playbackStream(for videoURL: String) async throws -> LivePlaybackStream
+  func discardPendingStreams(for videoURL: String) async
   func prepare(
     stream: LivePlaybackStream,
     sourceURL: String,
@@ -114,6 +115,8 @@ final class LivePlaybackService: LivePlaybackServiceProtocol {
           path: "/streams/youtube/sabr",
           videoURL: videoURL
         )
+      } catch is CancellationError {
+        throw CancellationError()
       } catch {
         return try await youtubeSABRStream(
           path: path,

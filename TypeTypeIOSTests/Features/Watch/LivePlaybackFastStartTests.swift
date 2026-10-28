@@ -38,6 +38,19 @@ final class LivePlaybackFastStartTests: XCTestCase {
     XCTAssertEqual(Array(client.transientRetries.dropFirst()), Array(repeating: false, count: 4))
   }
 
+  func testDiscardedRequestIsAskedAgain() async throws {
+    let client = RecordingStreamClient(stream: Self.stream(), delay: .milliseconds(400))
+    let service = Self.service(client)
+
+    let stuck = Task { try await service.stream(for: youtubeURL) }
+    try await Task.sleep(for: .milliseconds(100))
+    await service.discardPendingStreams(for: youtubeURL)
+    _ = try await service.stream(for: youtubeURL)
+    _ = try? await stuck.value
+
+    XCTAssertEqual(client.paths, ["/streams/youtube/sabr", "/streams/youtube/sabr"])
+  }
+
   func testConcurrentRequestsForOneVideoShareOneFetch() async throws {
     let client = RecordingStreamClient(stream: Self.stream(), delay: .milliseconds(150))
     let service = Self.service(client)

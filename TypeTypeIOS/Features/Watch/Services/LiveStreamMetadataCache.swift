@@ -40,7 +40,13 @@ actor LiveStreamRequests {
     if let task = running[key] { return try await task.value }
     let task = Task { try await load() }
     running[key] = task
-    defer { running[key] = nil }
+    defer {
+      if running[key] == task { running[key] = nil }
+    }
     return try await task.value
+  }
+
+  func discard(_ key: String) {
+    running.removeValue(forKey: key)?.cancel()
   }
 }

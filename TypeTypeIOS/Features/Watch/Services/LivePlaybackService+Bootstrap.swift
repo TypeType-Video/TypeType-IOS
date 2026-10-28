@@ -5,6 +5,8 @@ extension LivePlaybackServiceProtocol {
   func playbackStream(for videoURL: String) async throws -> LivePlaybackStream {
     try await stream(for: videoURL)
   }
+
+  func discardPendingStreams(for videoURL: String) async {}
 }
 
 extension LivePlaybackService {
@@ -37,5 +39,11 @@ extension LivePlaybackService {
     } catch {
       return try await stream(for: videoURL)
     }
+  }
+
+  // A startup retry must ask again: joining the request that blew the startup budget only waits longer.
+  func discardPendingStreams(for videoURL: String) async {
+    await requests.discard("full|" + videoURL)
+    await requests.discard("bootstrap|" + videoURL)
   }
 }
