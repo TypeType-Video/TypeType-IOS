@@ -212,6 +212,11 @@ struct LiveVideoMetadataContentView: View {
       Task { @MainActor in
         try? await Task.sleep(for: .milliseconds(600))
         guard !playerController.isPresentingFullscreen else { return }
+        // The dismissal rotates the window back to portrait; the geometry
+        // fires mid-rotation with landscape values. If the window settled
+        // portrait meanwhile, the trigger is stale — never re-present.
+        guard UIScreen.main.bounds.width > UIScreen.main.bounds.height
+        else { return }
         playerController.enterNativeFullscreen()
       }
     }
