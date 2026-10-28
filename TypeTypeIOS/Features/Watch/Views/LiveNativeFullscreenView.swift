@@ -71,6 +71,9 @@ struct LiveNativeFullscreenView: View {
     }
     .onAppear { UIDevice.current.beginGeneratingDeviceOrientationNotifications() }
     .onDisappear { UIDevice.current.endGeneratingDeviceOrientationNotifications() }
+    // The chrome rides the flag: it fades in with the growth and out with
+    // the collapse through the same coordinator-synced transaction.
+    .opacity(controller.isPresentingFullscreen ? 1 : 0)
     .accessibilityIdentifier("live.player.fullscreen")
   }
 }
@@ -78,6 +81,8 @@ struct LiveNativeFullscreenView: View {
 // A presented controller that only allows landscape makes iOS rotate in and back out of it.
 final class LiveLandscapeHostingController: UIHostingController<LiveNativeFullscreenView> {
   static weak var active: LiveLandscapeHostingController?
+  static var presentPending = false
+  static let growthDuration: TimeInterval = 0.32
 
   static func dismissActive(reason: String = "unspecified") {
     let host = active
@@ -90,11 +95,20 @@ final class LiveLandscapeHostingController: UIHostingController<LiveNativeFullsc
       // in after the fade.
       host.relaxesForExit = true
       host.setNeedsUpdateOfSupportedInterfaceOrientations()
-      // The page surface shrinks with the return rotation (its layout
-      // change animates on the page); this controller only fades chrome.
-      host.controller?.isPresentingFullscreen = false
       LiveScreenOrientation.set(.portrait)
       host.dismiss(animated: true)
+      // One motion: the stage collapse rides the dismissal and the return
+      // rotation through the transition coordinator, not after them.
+      let controller = host.controller
+      if let coordinator = host.transitionCoordinator {
+        coordinator.animate(alongsideTransition: { _ in
+          withAnimation(.easeInOut(duration: coordinator.duration)) {
+            controller?.isPresentingFullscreen = false
+          }
+        })
+      } else {
+        controller?.isPresentingFullscreen = false
+      }
     }
   }
 
@@ -117,6 +131,15 @@ final class LiveLandscapeHostingController: UIHostingController<LiveNativeFullsc
   }
 
   var onDisappear: (() -> Void)?
+  var onRotate: ((LiveLandscapeHostingController, UIViewControllerTransitionCoordinator) -> Void)?
+
+  override func viewWillTransition(
+    to size: CGSize,
+    with coordinator: UIViewControllerTransitionCoordinator
+  ) {
+    super.viewWillTransition(to: size, with: coordinator)
+    onRotate?(self, coordinator)
+  }
 
   override func viewDidDisappear(_ animated: Bool) {
     super.viewDidDisappear(animated)
@@ -133,26 +156,24 @@ final class LiveLandscapeHostingController: UIHostingController<LiveNativeFullsc
   static func present(for controller: LivePlayerController) {
     AppLogger.playback
       .info("fullscreen: present requested flag=\(controller.isPresentingFullscreen, privacy: .public) host=\(active != nil, privacy: .public)")
+    guard !presentPending, active == nil else {
+      AppLogger.playback.info("fullscreen: present ignored (already pending or hosted)")
+      return
+    }
+    presentPending = true
     controller.pictureInPicture.uninstallNativeContent()
-    controller.isPresentingFullscreen = true
     Task { @MainActor in
-      // Rotate the window first: presenting a modal into a portrait window
-      // shows no rotation transition. The short wait lets the rotation
-      // animation start so the modal's fade rides its tail — one motion.
-      LiveScreenOrientation.set(.landscape)
-      try? await Task.sleep(for: .milliseconds(80))
       guard let scene = UIApplication.shared.connectedScenes
         .compactMap({ $0 as? UIWindowScene })
         .first(where: { $0.activationState == .foregroundActive }),
         var top = scene.keyWindow?.rootViewController
       else {
-        controller.isPresentingFullscreen = false
+        presentPending = false
         return
       }
       while let presented = top.presentedViewController {
         top = presented
       }
-      weak var host: LiveLandscapeHostingController?
       let created = LiveLandscapeHostingController(
         rootView: LiveNativeFullscreenView(controller: controller) {
           AppLogger.playback.info("fullscreen: onClose closure fired")
@@ -172,16 +193,53 @@ final class LiveLandscapeHostingController: UIHostingController<LiveNativeFullsc
       created.onDisappear = {
         AppLogger.playback
           .info("fullscreen: host disappeared flag=\(controller.isPresentingFullscreen, privacy: .public)")
-        controller.isPresentingFullscreen = false
+        if controller.isPresentingFullscreen {
+          withAnimation(.easeInOut(duration: growthDuration)) {
+            controller.isPresentingFullscreen = false
+          }
+        }
         // The window was rotated on entry; the dismissal owns the return.
         LiveScreenOrientation.set(.portrait)
       }
-      host = created
+      // One motion: the stage growth, the metadata collapse and the chrome
+      // fade ride the system rotation through its transition coordinator.
+      created.onRotate = { host, coordinator in
+        guard !host.isBeingDismissed, !controller.isPresentingFullscreen else { return }
+        AppLogger.playback.info(
+          "fullscreen: rotation hook fired duration=\(coordinator.duration, privacy: .public)"
+        )
+        coordinator.animate(alongsideTransition: { _ in
+          withAnimation(.easeInOut(duration: coordinator.duration)) {
+            controller.isPresentingFullscreen = true
+          }
+        })
+      }
       active = created
+      presentPending = false
       AppLogger.playback.info(
         "fullscreen: presenting host top=\(String(describing: type(of: top)), privacy: .public)"
       )
-      top.present(created, animated: true)
+      top.present(created, animated: false)
+      if scene.interfaceOrientation.isLandscape {
+        // Rotating by hand already brought the window into landscape: the
+        // growth has no rotation to ride, so run it directly.
+        withAnimation(.easeInOut(duration: growthDuration)) {
+          controller.isPresentingFullscreen = true
+        }
+      } else {
+        // The presented controller is the top one now and allows landscape:
+        // ask for the rotation; onRotate grows the stage alongside it.
+        LiveScreenOrientation.set(.landscape)
+        created.setNeedsUpdateOfSupportedInterfaceOrientations()
+        Task { @MainActor in
+          try? await Task.sleep(for: .milliseconds(450))
+          guard !controller.isPresentingFullscreen, active === created else { return }
+          AppLogger.playback.info("fullscreen: rotation hook missed, growing on fallback timer")
+          withAnimation(.easeInOut(duration: growthDuration)) {
+            controller.isPresentingFullscreen = true
+          }
+        }
+      }
       Task { @MainActor in
         try? await Task.sleep(for: .milliseconds(400))
         AppLogger.playback.info(
