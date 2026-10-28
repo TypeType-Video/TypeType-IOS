@@ -98,7 +98,10 @@ struct LivePlayerView: View {
           maxHeight: .infinity,
           alignment: .topTrailing
         )
-        .padding(10)
+        // Compensates the cinema bleed: the player's frame runs 16 pt past
+        // each screen edge, which pushed the trailing button off-screen.
+        .padding(.horizontal, cinemaMode ? 26 : 10)
+        .padding(.vertical, 10)
         .accessibilityLabel("Player options")
         .accessibilityIdentifier("live.player.options")
       }

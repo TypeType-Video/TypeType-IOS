@@ -1,15 +1,21 @@
 import SwiftUI
 import UIKit
 
-/// The system's list and header chrome configures its blur by sending
-/// `setEffect:` to the view it expects in `backgroundView`. The empty
-/// background view exists to keep that chrome invisible, so the selector
-/// is answered with a no-op — a plain UIView crashes with an unrecognized
-/// selector the first time glass chrome (menus, share sheet, interactive
-/// headers) is configured.
-final class EmptyChromeBackgroundView: UIView {
-  @objc(setEffect:) func setEffect(_ effect: Any?) {}
-  @objc(effect) func effect() -> Any? { nil }
+/// The system's list and header chrome configures its blur by sending effect
+/// selectors (`setEffect:`, `setMaterial:`, …) to the view it expects in
+/// `backgroundView`. The empty background view exists to keep that chrome
+/// invisible — so it is a visual-effect view that swallows the whole effect
+/// family without rendering any of it. A plain UIView crashes with an
+/// unrecognized selector the first time glass chrome (menus, sheets,
+/// interactive headers) is configured.
+final class EmptyChromeBackgroundView: UIVisualEffectView {
+  override var effect: UIVisualEffect? {
+    get { nil }
+    set {}
+  }
+
+  @objc(setMaterial:) func setMaterial(_ material: Any?) {}
+  @objc(setBackgroundEffect:) func setBackgroundEffect(_ effect: Any?) {}
 }
 
 enum DemoTheme {
@@ -116,9 +122,9 @@ enum DemoTheme {
     // transparent cell backgrounds, empty background views (kills the
     // Liquid Glass row fill), clear table backgrounds.
     UITableViewCell.appearance().backgroundColor = .clear
-    UITableViewCell.appearance().backgroundView = EmptyChromeBackgroundView()
+    UITableViewCell.appearance().backgroundView = EmptyChromeBackgroundView(effect: nil)
     UICollectionViewCell.appearance().backgroundColor = .clear
-    UICollectionViewCell.appearance().backgroundView = EmptyChromeBackgroundView()
+    UICollectionViewCell.appearance().backgroundView = EmptyChromeBackgroundView(effect: nil)
     UITableView.appearance().backgroundColor = .clear
     UICollectionView.appearance().backgroundColor = .clear
     // Transparent, not a surface color: painting this white put a square
@@ -126,7 +132,7 @@ enum DemoTheme {
     UITableViewHeaderFooterView.appearance().backgroundColor = .clear
     // iOS 27 paints header chrome through backgroundView (a blur material),
     // which backgroundColor alone does not replace.
-    UITableViewHeaderFooterView.appearance().backgroundView = EmptyChromeBackgroundView()
+    UITableViewHeaderFooterView.appearance().backgroundView = EmptyChromeBackgroundView(effect: nil)
     // iOS 26 paints the navigation bar through `_UIBarBackground`, which
     // SwiftUI's `toolbarBackground` does not reach (the white strip at the
     // top of every page). Bind the UIKit appearance to the same resolver.
