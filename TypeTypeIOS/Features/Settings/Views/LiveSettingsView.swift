@@ -30,8 +30,7 @@ struct LiveSettingsView: View {
   private var content: some View {
     switch viewModel.state {
     case .idle, .loading:
-      ProgressView("Loading settings")
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+      TypeTypeSkeletonList(layout: .rows, count: 9)
     case let .failed(message):
       ContentUnavailableView {
         Label("Settings unavailable", systemImage: "gear.badge.xmark")
