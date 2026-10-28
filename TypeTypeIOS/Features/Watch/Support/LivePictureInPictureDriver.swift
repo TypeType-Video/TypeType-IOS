@@ -69,6 +69,7 @@ final class LivePictureInPictureDriver: NSObject, ObservableObject {
     defer {
       let ms = Int(Double(DispatchTime.now().uptimeNanoseconds - posterStart.uptimeNanoseconds) / 1e6)
       AppLogger.playback.info("pip timing: poster took \(ms, privacy: .public)ms")
+      Self.lastTimingLog = "poster \(ms)ms | " + Self.lastTimingLog
     }
     // A slow poster download must not hold the PiP start hostage: race the
     // fetch against a short budget and start regardless (an empty layer
@@ -151,6 +152,8 @@ final class LivePictureInPictureDriver: NSObject, ObservableObject {
   }
 
   private var startRequestedAt: DispatchTime?
+  /// Debug-only: the last PiP timings, shown in the notice HUD.
+  nonisolated(unsafe) static var lastTimingLog = ""
 
   func start(
     onRestore: @escaping () -> Void,
@@ -206,6 +209,7 @@ final class LivePictureInPictureDriver: NSObject, ObservableObject {
     )
     AppLogger.playback
       .info("pip timing: startPictureInPicture blocked \(startMs, privacy: .public)ms")
+    Self.lastTimingLog = "start blocked \(startMs)ms | " + Self.lastTimingLog
     // If neither didStart nor failedToStart arrives, the window never came
     // up: release the engagement so the in-app card can show instead.
     startVerificationTask?.cancel()
@@ -259,6 +263,7 @@ extension LivePictureInPictureDriver: AVPictureInPictureControllerDelegate {
         let ms = Int(Double(DispatchTime.now().uptimeNanoseconds - requestedAt.uptimeNanoseconds) / 1e6)
         AppLogger.playback
           .info("pip timing: request to confirmed took \(ms, privacy: .public)ms")
+        Self.lastTimingLog = "confirm \(ms)ms | " + Self.lastTimingLog
       }
       onChange?()
     }
