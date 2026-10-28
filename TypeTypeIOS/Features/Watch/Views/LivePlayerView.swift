@@ -31,6 +31,9 @@ struct LivePlayerView: View {
   @State var autoPictureInPictureActive = false
   @StateObject var nativeControls = LiveNativeControlsState()
   @Environment(\.verticalSizeClass) private var verticalSizeClass
+  /// Drives the rounded lower corners: the "content slides under the
+  /// pinned player" hint while the watch page is scrolled.
+  var isScrolled = false
 
 
   var body: some View {
@@ -103,7 +106,8 @@ struct LivePlayerView: View {
     .modifier(
       LivePlayerSizing(
         isFullscreen: showsFullscreenLayout,
-        cinemaMode: cinemaMode
+        cinemaMode: cinemaMode,
+        isScrolled: isScrolled
       )
     )
     .gesture(
@@ -166,5 +170,49 @@ struct LivePlayerView: View {
 
   private var followsDeviceRotation: Bool {
     coordinator.presentation == .expanded && controller.nativePlayback != nil
+  }
+}
+
+/// Inline the player is a 16:9 card; full screen it fills the window and
+/// rides the system rotation animation instead of fading over it. The
+/// layout priority wins the page's VStack so the pinned metadata below
+/// collapses to nothing while fullscreen.
+struct LivePlayerSizing: ViewModifier {
+  let isFullscreen: Bool
+  let cinemaMode: Bool
+  var isScrolled = false
+
+  @ViewBuilder
+  func body(content: Content) -> some View {
+    if isFullscreen {
+      content
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .ignoresSafeArea()
+        // Outermost: a priority buried inside another modifier never
+        // reaches the parent VStack, and the metadata then splits the
+        // height with the player instead of collapsing.
+        .layoutPriority(1)
+    } else {
+      content
+        .aspectRatio(16 / 9, contentMode: .fit)
+        .clipShape(
+          UnevenRoundedRectangle(
+            topLeadingRadius: cinemaMode ? 0 : 16,
+            bottomLeadingRadius: lowerRadius,
+            bottomTrailingRadius: lowerRadius,
+            topTrailingRadius: cinemaMode ? 0 : 16,
+            style: .continuous
+          )
+        )
+    }
+  }
+
+  /// Lower corners round only while the page is scrolled — the "content
+  /// slides under the pinned player" hint. In cinema mode the player
+  /// bleeds 16 pt past each screen edge, so the radius covers that
+  /// distance to land the visible curve on the screen edge.
+  private var lowerRadius: CGFloat {
+    guard isScrolled else { return cinemaMode ? 0 : 16 }
+    return cinemaMode ? 32 : 16
   }
 }
