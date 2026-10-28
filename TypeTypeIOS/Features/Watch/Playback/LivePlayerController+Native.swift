@@ -169,48 +169,21 @@ extension LivePlayerController {
 
   /// The window's interface orientation is the single source of truth for
   /// fullscreen: landscape = fullscreen, portrait = inline.
-  func installOrientationObserver() {
-    orientationObserverToken = NotificationCenter.default.addObserver(
-      forName: UIDevice.orientationDidChangeNotification,
-      object: nil, queue: .main
-    ) { [weak self] _ in
-      self?.syncFullscreenWithWindowOrientation()
-    }
-  }
-
-  /// The button asks the window to rotate; the orientation sync below
-  /// flips the flag from the window's real orientation. requestGeometryUpdate
-  /// is honored even with the user's rotation lock on.
+  /// The button: flip the flag and ask the window to follow. No observers,
+  /// no derived state — the flag is the truth.
   func enterNativeFullscreen() {
+    isPresentingFullscreen = true
     LiveScreenOrientation.set(.landscape)
-    syncFullscreenAfterRotationRequest()
   }
 
   func exitNativeFullscreen() {
+    isPresentingFullscreen = false
     LiveScreenOrientation.set(.portrait)
-    syncFullscreenAfterRotationRequest()
   }
 
   /// The device notification fires for physical rotations; a programmatic
   /// request needs an explicit re-read. Both are idempotent reads of the
   /// window's real orientation — no loops possible.
-  func syncFullscreenAfterRotationRequest() {
-    Task { @MainActor in
-      for delay in [0.35, 0.8] {
-        try? await Task.sleep(for: .seconds(delay))
-        syncFullscreenWithWindowOrientation()
-      }
-    }
-  }
-
-  func syncFullscreenWithWindowOrientation() {
-    let scene = UIApplication.shared.connectedScenes
-      .compactMap({ $0 as? UIWindowScene })
-      .first(where: { $0.activationState == .foregroundActive })
-    let landscape = scene?.interfaceOrientation.isLandscape ?? false
-    guard isPresentingFullscreen != landscape else { return }
-    isPresentingFullscreen = landscape
-  }
 
   func fallBackFromNative(reason: String) {
     guard let playback = nativePlayback else { return }

@@ -157,14 +157,8 @@ final class LivePlayerController: ObservableObject {
     installOrientationObserver()
   }
 
-  // The fullscreen observer token; installed and removed in the core
-  // lifecycle, assigned from the Native extension.
-  var orientationObserverToken: NSObjectProtocol?
 
   deinit {
-    if let orientationObserverToken {
-      NotificationCenter.default.removeObserver(orientationObserverToken)
-    }
     playbackSessionProgressTask?.cancel()
     presentationResumeTask?.cancel()
     sabrStallRecoveryTask?.cancel()

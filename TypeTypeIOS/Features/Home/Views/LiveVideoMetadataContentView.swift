@@ -47,6 +47,7 @@ struct LiveVideoMetadataContentView: View {
       )
       .padding(.horizontal, cinemaMode ? -16 : 0)
 
+      if !playerController.isPresentingFullscreen {
       ScrollView {
       VStack(alignment: .leading, spacing: 18) {
         LiveVideoMetadataHeader(
@@ -168,6 +169,7 @@ struct LiveVideoMetadataContentView: View {
       .padding(16)
     }
     .background(DemoThemeBackground())
+    }
       .liveThemeRepaint()
     .navigationTitle("Video")
     .navigationBarTitleDisplayMode(.inline)
