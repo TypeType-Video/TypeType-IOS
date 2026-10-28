@@ -38,6 +38,13 @@ struct LiveNativeFullscreenView: View {
 
 // A presented controller that only allows landscape makes iOS rotate in and back out of it.
 final class LiveLandscapeHostingController: UIHostingController<LiveNativeFullscreenView> {
+  static weak var active: LiveLandscapeHostingController?
+
+  static func dismissActive() {
+    if let active, !active.isBeingDismissed {
+      active.dismiss(animated: true)
+    }
+  }
   override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
     traitCollection.userInterfaceIdiom == .phone ? .landscape : .all
   }
@@ -97,6 +104,7 @@ final class LiveLandscapeHostingController: UIHostingController<LiveNativeFullsc
         LiveScreenOrientation.set(.portrait)
       }
       host = created
+      active = created
       top.present(created, animated: true)
     }
   }
