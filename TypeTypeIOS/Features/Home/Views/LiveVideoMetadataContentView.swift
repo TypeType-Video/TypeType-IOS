@@ -15,6 +15,7 @@ struct LiveVideoMetadataContentView: View {
   @State var pendingExternalURL: URL?
   @AppStorage("typetype.player.cinema-mode")
   private var cinemaMode = true
+  @State private var isScrolled = false
 
   init(
     video: LiveVideoItem,
@@ -154,9 +155,21 @@ struct LiveVideoMetadataContentView: View {
         }
       }
       .padding(16)
+      .background(
+        GeometryReader { proxy in
+          Color.clear.preference(
+            key: LiveWatchScrollOffsetKey.self,
+            value: proxy.frame(in: .named("watchScroll")).minY
+          )
+        }
+      )
     }
+    .coordinateSpace(name: "watchScroll")
     .background(DemoThemeBackground())
       .liveThemeRepaint()
+      .liveScrolledState { scrolled in
+        isScrolled = scrolled
+      }
     .navigationTitle("Video")
     .navigationBarTitleDisplayMode(.inline)
     .navigationDestination(
@@ -194,7 +207,8 @@ struct LiveVideoMetadataContentView: View {
         coordinator: playbackCoordinator,
         dependencies: dependencies,
         posterURL: posterURL,
-        cinemaMode: $cinemaMode
+        cinemaMode: $cinemaMode,
+        isScrolled: isScrolled
       )
       .padding(.horizontal, cinemaMode ? -16 : 0)
     }
@@ -226,5 +240,33 @@ struct LiveVideoMetadataContentView: View {
       return count
     }
     return channelMetadataViewModel.subscriberCount
+  }
+}
+
+private struct LiveWatchScrollOffsetKey: PreferenceKey {
+  static var defaultValue: CGFloat = 0
+
+  static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+    value = nextValue()
+  }
+}
+
+private extension View {
+  /// Reports whether the scroll content is scrolled past its top. iOS 18+
+  /// reads the scroll geometry directly (the preference-based measurement
+  /// silently never fired on iOS 26); iOS 17 falls back to it.
+  @ViewBuilder
+  func liveScrolledState(_ onChange: @escaping (Bool) -> Void) -> some View {
+    if #available(iOS 18.0, *) {
+      self.onScrollGeometryChange(for: Bool.self) { geometry in
+        geometry.contentOffset.y > 8
+      } action: { _, scrolled in
+        onChange(scrolled)
+      }
+    } else {
+      self.onPreferenceChange(LiveWatchScrollOffsetKey.self) { offset in
+        onChange(offset < -8)
+      }
+    }
   }
 }
