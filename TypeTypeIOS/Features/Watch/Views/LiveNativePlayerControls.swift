@@ -60,25 +60,27 @@ struct LiveNativePlayerControls: View {
   private var timeline: some View {
     HStack(spacing: 10) {
       Text(LivePlaybackChapterNavigator.clockText(seconds: Int(scrubPosition ?? controller.position)))
-      ZStack {
-        Slider(
-          value: Binding(
-            get: { scrubPosition ?? controller.position },
-            set: { scrubPosition = $0 }
-          ),
-          in: 0...max(controller.duration, 1)
-        ) { editing in
-          if editing {
-            controls.keepVisible()
-          } else if let target = scrubPosition {
-            controller.seek(to: target)
-            scrubPosition = nil
-            controls.scheduleHide()
-          }
+      Slider(
+        value: Binding(
+          get: { scrubPosition ?? controller.position },
+          set: { scrubPosition = $0 }
+        ),
+        in: 0...max(controller.duration, 1)
+      ) { editing in
+        if editing {
+          controls.keepVisible()
+        } else if let target = scrubPosition {
+          controller.seek(to: target)
+          scrubPosition = nil
+          controls.scheduleHide()
         }
-        .tint(.white)
-        .accessibilityLabel("Playback position")
-        .accessibilityIdentifier("live.player.timeline")
+      }
+      .tint(.white)
+      .accessibilityLabel("Playback position")
+      .accessibilityIdentifier("live.player.timeline")
+      // Bands ride the slider as an overlay: a GeometryReader in the row
+      // layout would inflate the whole controls bar (and misplace it).
+      .overlay(alignment: .center) {
         sponsorSegmentBands
       }
       Text(LivePlaybackChapterNavigator.clockText(seconds: Int(controller.duration)))
