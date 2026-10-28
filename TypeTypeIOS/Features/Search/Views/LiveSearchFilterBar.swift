@@ -34,7 +34,11 @@ struct LiveSearchFilterBar: View {
       )
     }
     .buttonStyle(.plain)
-    .popover(isPresented: $presentsService) {
+    .popover(
+      isPresented: $presentsService,
+      attachmentAnchor: .point(.init(x: 0.5, y: 1.0)),
+      arrowEdge: .top
+    ) {
       optionList(
         viewModel.services.map {
           (label: $0.name, selected: $0.id == viewModel.selectedServiceID)
@@ -55,7 +59,11 @@ struct LiveSearchFilterBar: View {
       filterLabel(contentTitle, systemImage: "line.3.horizontal.decrease")
     }
     .buttonStyle(.plain)
-    .popover(isPresented: $presentsContent) {
+    .popover(
+      isPresented: $presentsContent,
+      attachmentAnchor: .point(.init(x: 0.5, y: 1.0)),
+      arrowEdge: .top
+    ) {
       optionList(
         [(label: "All content", selected: viewModel.selectedContentFilter == nil)]
           + viewModel.visibleContentFilters.map {
@@ -82,7 +90,11 @@ struct LiveSearchFilterBar: View {
       filterLabel(sortTitle, systemImage: "arrow.up.arrow.down")
     }
     .buttonStyle(.plain)
-    .popover(isPresented: $presentsSort) {
+    .popover(
+      isPresented: $presentsSort,
+      attachmentAnchor: .point(.init(x: 0.5, y: 1.0)),
+      arrowEdge: .top
+    ) {
       optionList(
         [(label: "Default order", selected: viewModel.selectedSortFilter == nil)]
           + viewModel.filters.sortFilters.map {
@@ -104,39 +116,44 @@ struct LiveSearchFilterBar: View {
 
   /// Glass popover with checkmark rows and hairline dividers — the
   /// LiveOptionMenu recipe. `presentationCompactAdaptation(.popover)` is
-  /// what keeps it a bubble on iPhone instead of a full-height sheet.
+  /// what keeps it a bubble on iPhone instead of a full-height sheet. The
+  /// rows scroll inside a height cap so the bubble always appears fully
+  /// (the subscriptions-page rule: never clipped).
   private func optionList(
     _ options: [(label: String, selected: Bool)],
     onSelect: @escaping (Int) -> Void
   ) -> some View {
-    VStack(alignment: .leading, spacing: 0) {
-      ForEach(Array(options.enumerated()), id: \.offset) { index, option in
-        Button {
-          onSelect(index)
-        } label: {
-          HStack(spacing: 12) {
-            Text(verbatim: option.label)
-              .foregroundStyle(.primary)
-            Spacer(minLength: 12)
-            if option.selected {
-              Image(systemName: "checkmark")
-                .foregroundStyle(DemoTheme.accent)
+    ScrollView {
+      VStack(alignment: .leading, spacing: 0) {
+        ForEach(Array(options.enumerated()), id: \.offset) { index, option in
+          Button {
+            onSelect(index)
+          } label: {
+            HStack(spacing: 12) {
+              Text(verbatim: option.label)
+                .foregroundStyle(.primary)
+              Spacer(minLength: 12)
+              if option.selected {
+                Image(systemName: "checkmark")
+                  .foregroundStyle(DemoTheme.accent)
+              }
             }
-          }
-          .padding(.horizontal, 16)
-          .frame(minHeight: 44)
-          .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        if index < options.count - 1 {
-          Rectangle()
-            .fill(DemoTheme.separator)
-            .frame(height: 1)
             .padding(.horizontal, 16)
+            .frame(minHeight: 44)
+            .contentShape(Rectangle())
+          }
+          .buttonStyle(.plain)
+          if index < options.count - 1 {
+            Rectangle()
+              .fill(DemoTheme.separator)
+              .frame(height: 1)
+              .padding(.horizontal, 16)
+          }
         }
       }
+      .frame(width: 280)
     }
-    .frame(width: 280)
+    .frame(maxHeight: 440)
     .presentationCompactAdaptation(.popover)
   }
 
