@@ -3,6 +3,8 @@ import SwiftUI
 struct LiveVideoQuickActionsModifier: ViewModifier {
   @StateObject var viewModel: LiveVideoQuickActionsViewModel
   @State var presentsDownload = false
+  @State var presentsShareChoice = false
+  @State var shareSheetURL: URL?
   @ObservedObject var deArrowStore: LiveDeArrowStore
   @ObservedObject var playbackCoordinator: LivePlaybackCoordinator
   let dependencies: AppDependencies
@@ -99,6 +101,40 @@ struct LiveVideoQuickActionsModifier: ViewModifier {
           dependencies: dependencies
         )
       }
+      .confirmationDialog(
+        "Share as",
+        isPresented: $presentsShareChoice,
+        titleVisibility: .visible
+      ) {
+        if let typeTypeURL = LiveShareURLBuilder.video(
+          serverURL: dependencies.serverStore.selectedServer()?.baseURL,
+          sourceURL: viewModel.video.url
+        ) {
+          Button("TypeType link") {
+            shareSheetURL = typeTypeURL
+          }
+        }
+        if let originalURL = LiveShareURLBuilder.original(
+          sourceURL: viewModel.video.url
+        ) {
+          Button("Original link") {
+            shareSheetURL = originalURL
+          }
+        }
+        Button("Cancel", role: .cancel) {}
+      }
+      .sheet(isPresented: shareSheetBinding) {
+        if let shareSheetURL {
+          LiveShareActivityView(url: shareSheetURL)
+        }
+      }
+  }
+
+  private var shareSheetBinding: Binding<Bool> {
+    Binding(
+      get: { shareSheetURL != nil },
+      set: { if !$0 { shareSheetURL = nil } }
+    )
   }
 }
 

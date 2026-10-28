@@ -47,7 +47,12 @@ struct LiveVideoLibraryActionsView: View {
       playlistMenu
 
       if let shareURL {
-        ShareLink(item: shareURL) {
+        LiveShareAsLinkButton(
+          typeTypeURL: shareURL,
+          originalURL: LiveShareURLBuilder.original(
+            sourceURL: video.url
+          )
+        ) {
           iconLabel("square.and.arrow.up", isActive: false)
         }
         .buttonStyle(.plain)
