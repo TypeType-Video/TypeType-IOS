@@ -183,6 +183,7 @@ extension LivePlayerView {
         try? await Task.sleep(nanoseconds: 350_000_000)
         guard !Task.isCancelled else { return }
         self.longPressBaseRate = self.controller.playbackRate
+        self.speedBoostRate = 2
         self.controller.setPlaybackRate(2)
       }
     } else if let baseRate = longPressBaseRate {
