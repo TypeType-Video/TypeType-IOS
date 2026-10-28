@@ -232,7 +232,7 @@ struct LivePlayerSizing: ViewModifier {
   /// distance to land the visible curve on the screen edge.
   private var lowerRadius: CGFloat {
     guard isScrolled else { return cinemaMode ? 0 : 16 }
-    return cinemaMode ? 32 : 16
+    return cinemaMode ? 40 : 24
   }
 }
 
