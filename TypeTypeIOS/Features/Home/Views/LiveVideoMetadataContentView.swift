@@ -169,7 +169,6 @@ struct LiveVideoMetadataContentView: View {
       .padding(16)
     }
     .background(DemoThemeBackground())
-    }
       .liveThemeRepaint()
     .navigationTitle("Video")
     .navigationBarTitleDisplayMode(.inline)
@@ -189,14 +188,15 @@ struct LiveVideoMetadataContentView: View {
         dependencies: dependencies
       )
     }
-    .navigationDestination(
-      item: $selectedPublicPlaylist
-    ) { playlist in
-      LivePublicPlaylistView(
-        playlist: playlist,
-        dependencies: dependencies
-      )
-    }
+      .navigationDestination(
+        item: $selectedPublicPlaylist
+      ) { playlist in
+        LivePublicPlaylistView(
+          playlist: playlist,
+          dependencies: dependencies
+        )
+      }
+      }
     }
     }
     .toolbar(
