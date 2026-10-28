@@ -24,6 +24,7 @@ struct LiveAuthenticatedAppView: View {
   @State var librarySection = LiveLibrarySection.history
   @State var didApplyDefaultLandingPage = false
   @State var presentsExpandedPlayback = false
+  @State private var lastScenePhase: ScenePhase = .active
   @State var tabBarTopY: CGFloat?
   @State var incomingMediaLink: LiveIncomingMediaLink?
   @State var presentsOfflineDownloads = false
@@ -57,13 +58,19 @@ struct LiveAuthenticatedAppView: View {
     .onChange(of: scenePhase) { phase in
       // Leaving the app with the in-house player active hands the video to
       // the system PiP; returning brings it back to the player page.
+      let previousPhase = lastScenePhase
+      lastScenePhase = phase
       guard let controller = playbackCoordinator.controller,
         controller.nativePlayback != nil
       else { return }
       // .inactive = the resign-active moment: the app's scene still exists
       // here, so the PiP scene creation succeeds; at .background it is
-      // already too late and the video degrades to audio-only.
+      // already too late and the video degrades to audio-only. But
+      // .inactive ALSO fires on the way back from background — only the
+      // .active → .inactive step is "leaving", the .background → .inactive
+      // step is resumption and must not start PiP.
       if phase == .inactive,
+        previousPhase == .active,
         !controller.pictureInPicture.isEngaged,
         playbackCoordinator.hasActivePlayback {
         playbackCoordinator.startSystemPictureInPicture()
