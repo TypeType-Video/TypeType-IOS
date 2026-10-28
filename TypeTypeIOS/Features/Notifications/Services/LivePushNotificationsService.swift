@@ -30,6 +30,9 @@ extension LivePushNotificationsServiceProtocol {
           enabled: update.enabled
         )
       )
+      // The instance rate-limits: space the per-channel PUTs so a bulk
+      // sweep cannot burst into "429 Too Many Requests".
+      try? await Task.sleep(for: .milliseconds(200))
     }
     return applied
   }
