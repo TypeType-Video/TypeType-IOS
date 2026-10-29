@@ -190,7 +190,7 @@ final class LiveImportViewModel: ObservableObject {
 
       let source = try FileHandle(forReadingFrom: sourceURL)
       defer { try? source.close() }
-      let destinationURL = try LiveTypeTypeRestoreOperationStore.standard
+      let destinationURL = LiveTypeTypeRestoreOperationStore.standard
         .makeStagedSourceURL(originalName: originalName)
       try LiveTypeTypeRestoreOperationStore.standard.ensureDirectory()
       guard FileManager.default.createFile(

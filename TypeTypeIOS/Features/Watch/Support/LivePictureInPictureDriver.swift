@@ -185,8 +185,9 @@ final class LivePictureInPictureDriver: NSObject, ObservableObject {
           }
         }
         // Never became possible: release and let the card show.
-        isPendingStart = false
-        onChange?()
+        guard let self else { return }
+        self.isPendingStart = false
+        self.onChange?()
       }
     }
   }

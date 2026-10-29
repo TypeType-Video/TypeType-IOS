@@ -120,7 +120,7 @@ extension LivePlaybackHTTPServer {
           return
         }
         if Self.isTransportFailure(error) {
-          lock.withLock { lastTransportFailureAt = Date() }
+          lock.withLock { self.lastTransportFailureAt = Date() }
         }
         let failure = error as NSError
         AppLogger.app.error(

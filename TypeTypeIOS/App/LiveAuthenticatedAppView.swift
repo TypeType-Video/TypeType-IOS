@@ -54,7 +54,7 @@ struct LiveAuthenticatedAppView: View {
       }
     }
     .animation(.snappy.delay(0.25), value: playbackCoordinator.showsMiniPlayer)
-    .onChange(of: scenePhase) { phase in
+    .onChange(of: scenePhase) { _, phase in
       // Leaving the app with the in-house player active hands the video to
       // the system PiP; returning brings it back to the player page.
       let previousPhase = lastScenePhase
