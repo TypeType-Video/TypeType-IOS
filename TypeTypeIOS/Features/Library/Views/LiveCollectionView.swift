@@ -11,12 +11,14 @@ struct LiveCollectionView: View {
   /// the same instance the page renders; standalone uses create their own.
   init(
     kind: LiveLibraryCollectionKind,
-    dependencies: AppDependencies
+    dependencies: AppDependencies,
+    seed: [LiveLibraryVideo] = []
   ) {
     self.dependencies = dependencies
     _viewModel = ObservedObject(
       wrappedValue: LiveCollectionViewModel(
         kind: kind,
+        seed: seed,
         service: dependencies.libraryService
       )
     )

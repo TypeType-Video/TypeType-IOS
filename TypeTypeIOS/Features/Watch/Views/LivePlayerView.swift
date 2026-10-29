@@ -45,8 +45,12 @@ struct LivePlayerView: View {
 
         if controller.audioOnly {
           ZStack {
+            // Never wrap LiveRemoteImage in .scaledToFill: it is
+            // GeometryReader-based (ideal 10x10), so the fill wrapper
+            // reports a giant square and inflates the stage — that pushed
+            // the controls row out of the visible frame. The image fills
+            // through its own contentMode (.fill by default).
             LiveRemoteImage(url: posterURL)
-              .scaledToFill()
               .blur(radius: 28)
               .opacity(0.48)
               .clipped()
@@ -54,10 +58,6 @@ struct LivePlayerView: View {
               .font(.system(size: 44, weight: .medium))
               .foregroundStyle(.white)
           }
-          // Take the stage's frame explicitly: the poster's intrinsic size
-          // would inflate the ZStack and push the waveform (and with it the
-          // controls bar) out of the visible video frame.
-          .frame(maxWidth: .infinity, maxHeight: .infinity)
           .clipped()
           .allowsHitTesting(false)
         }

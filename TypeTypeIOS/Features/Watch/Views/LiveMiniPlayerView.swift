@@ -26,17 +26,17 @@ struct LiveMiniPlayerView: View {
       ZStack {
         if controller.audioOnly {
           ZStack {
+            // No .scaledToFill on LiveRemoteImage (see the watch-page
+            // player): the fill wrapper inflates the card and clipped the
+            // close/expand row out of reach.
             LiveRemoteImage(url: video.thumbnail)
-              .scaledToFill()
               .blur(radius: 18)
               .opacity(0.5)
+              .clipped()
             Image(systemName: "waveform")
               .font(.system(size: 26, weight: .medium))
               .foregroundStyle(.white)
           }
-          // Same inflation guard as the watch-page player: an unconstrained
-          // poster pushes the waveform out of the card.
-          .frame(maxWidth: .infinity, maxHeight: .infinity)
           .clipped()
         } else if let playback = controller.nativePlayback {
           LiveNativeVideoView(playback: playback, controller: controller, surface: .mini)
@@ -44,7 +44,6 @@ struct LiveMiniPlayerView: View {
           LiveVideoPreviewLayer(player: controller.player)
         } else {
           LiveRemoteImage(url: video.thumbnail)
-            .scaledToFill()
         }
 
         Color.clear

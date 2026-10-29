@@ -37,9 +37,11 @@ final class LiveCollectionViewModel: ObservableObject {
 
   init(
     kind: LiveLibraryCollectionKind,
+    seed: [LiveLibraryVideo] = [],
     service: LiveLibraryServiceProtocol
   ) {
     self.kind = kind
+    _videos = Published(initialValue: seed)
     self.service = service
   }
 
@@ -61,11 +63,22 @@ final class LiveCollectionViewModel: ObservableObject {
 
   func prepare() async {
     guard state == .idle else { return }
+    // The lists carrying this collection already hold its videos: render
+    // at once and revalidate behind (the library requests are the slow
+    // ones — the page used to sit on skeletons until they landed).
+    if !videos.isEmpty {
+      state = .loaded
+    }
     await reload()
   }
 
   func reload() async {
-    state = .loading
+    let startedAt = DispatchTime.now().uptimeNanoseconds
+    // Keep already visible content on screen while revalidating.
+    let hadContent = !videos.isEmpty
+    if !hadContent {
+      state = .loading
+    }
     do {
       switch kind {
       case .favorites:
@@ -74,10 +87,21 @@ final class LiveCollectionViewModel: ObservableObject {
         videos = try await service.watchLater().map(\.libraryVideo)
       }
       state = .loaded
+      let ms = Int(
+        Double(DispatchTime.now().uptimeNanoseconds - startedAt) / 1e6
+      )
+      AppLogger.playback.info(
+        "collection: \(String(describing: kind), privacy: .public) loaded count=\(videos.count, privacy: .public) in \(ms, privacy: .public)ms"
+      )
     } catch is CancellationError {
       return
     } catch {
-      state = .failed(message(for: error))
+      AppLogger.playback.error(
+        "collection: \(String(describing: kind), privacy: .public) failed \(error.localizedDescription, privacy: .public)"
+      )
+      if !hadContent {
+        state = .failed(message(for: error))
+      }
     }
   }
 

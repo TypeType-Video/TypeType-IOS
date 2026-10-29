@@ -52,7 +52,8 @@ struct LivePlaylistsView: View {
       .navigationDestination(item: $selectedCollection) { kind in
         LiveCollectionView(
           kind: kind,
-          dependencies: coordinator.dependencies
+          dependencies: coordinator.dependencies,
+          seed: kind == .watchLater ? viewModel.watchLater : viewModel.favorites
         )
       }
     .task {
