@@ -27,12 +27,18 @@ final class LivePlaybackActivityController {
       state: Self.contentState(for: controller),
       staleDate: nil
     )
-    activity = Activity.request(
-      attributes: LivePlaybackActivityAttributes(
-        videoURL: controller.video.url
-      ),
-      content: content
-    )
+    do {
+      activity = try Activity.request(
+        attributes: LivePlaybackActivityAttributes(
+          videoURL: controller.video.url
+        ),
+        content: content
+      )
+    } catch {
+      AppLogger.playback.error(
+        "live activity: start failed \(error.localizedDescription, privacy: .public)"
+      )
+    }
     startUpdates()
   }
 
