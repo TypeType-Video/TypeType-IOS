@@ -21,6 +21,7 @@ struct LivePlaylistDetailView: View {
     _viewModel = StateObject(
       wrappedValue: LivePlaylistDetailViewModel(
         id: playlist.id,
+        seed: playlist,
         service: dependencies.playlistsService
       )
     )

@@ -35,8 +35,13 @@ final class LivePlaylistDetailViewModel: ObservableObject {
   private let id: String
   private let service: LivePlaylistsServiceProtocol
 
-  init(id: String, service: LivePlaylistsServiceProtocol) {
+  init(
+    id: String,
+    seed: LivePlaylist? = nil,
+    service: LivePlaylistsServiceProtocol
+  ) {
     self.id = id
+    _playlist = Published(initialValue: seed)
     self.service = service
   }
 
@@ -59,18 +64,31 @@ final class LivePlaylistDetailViewModel: ObservableObject {
 
   func prepare() async {
     guard state == .idle else { return }
+    // The list already carries the playlist (videos included): render it at
+    // once and revalidate in the background. The detail request is the slow
+    // one, and the page used to sit on skeletons until it landed.
+    if playlist != nil {
+      state = .loaded
+    }
     await reload()
   }
 
   func reload() async {
-    state = .loading
+    // Keep already visible content on screen while revalidating — only a
+    // page with nothing to show falls back to the skeleton.
+    let hadContent = playlist != nil
+    if !hadContent {
+      state = .loading
+    }
     do {
       playlist = try await service.playlist(id: id)
       state = .loaded
     } catch is CancellationError {
       return
     } catch {
-      state = .failed(message(for: error))
+      if !hadContent {
+        state = .failed(message(for: error))
+      }
     }
   }
 
