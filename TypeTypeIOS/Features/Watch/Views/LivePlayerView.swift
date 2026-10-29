@@ -35,7 +35,6 @@ struct LivePlayerView: View {
   /// pinned player" hint while the watch page is scrolled.
   var isScrolled = false
 
-
   var body: some View {
     GeometryReader { proxy in
       ZStack {
@@ -45,11 +44,8 @@ struct LivePlayerView: View {
 
         if controller.audioOnly {
           ZStack {
-            // Never wrap LiveRemoteImage in .scaledToFill: it is
-            // GeometryReader-based (ideal 10x10), so the fill wrapper
-            // reports a giant square and inflates the stage — that pushed
-            // the controls row out of the visible frame. The image fills
-            // through its own contentMode (.fill by default).
+            // No .scaledToFill here: LiveRemoteImage is GeometryReader-based and the wrapper inflates
+            // the stage. It fills through its own contentMode.
             LiveRemoteImage(url: posterURL)
               .blur(radius: 28)
               .opacity(0.48)
@@ -156,47 +152,5 @@ struct LivePlayerView: View {
   private var followsDeviceRotation: Bool {
     coordinator.presentation == .expanded
       && (controller.nativePlayback != nil || controller.isOfflineContent)
-  }
-}
-
-/// Inline the player is a 16:9 card; full screen it fills the window and
-/// rides the system rotation animation instead of fading over it. The
-/// layout priority wins the page's VStack so the pinned metadata below
-/// collapses to nothing while fullscreen.
-struct LivePlayerSizing: ViewModifier {
-  let isFullscreen: Bool
-  let cinemaMode: Bool
-  var isScrolled = false
-
-  @ViewBuilder
-  func body(content: Content) -> some View {
-    if isFullscreen {
-      content
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .ignoresSafeArea()
-        // Outermost: a priority buried inside another modifier never
-        // reaches the parent VStack, and the metadata then splits the
-        // height with the player instead of collapsing.
-        .layoutPriority(1)
-    } else {
-      content
-        .aspectRatio(16 / 9, contentMode: .fit)
-        .clipShape(
-          UnevenRoundedRectangle(
-            topLeadingRadius: cinemaMode ? 0 : 16,
-            bottomLeadingRadius: lowerRadius,
-            bottomTrailingRadius: lowerRadius,
-            topTrailingRadius: cinemaMode ? 0 : 16,
-            style: .continuous
-          )
-        )
-    }
-  }
-
-  /// Lower corners round only while the page is scrolled — the "content
-  /// slides under the pinned player" hint.
-  private var lowerRadius: CGFloat {
-    guard isScrolled else { return cinemaMode ? 0 : 16 }
-    return 24
   }
 }
