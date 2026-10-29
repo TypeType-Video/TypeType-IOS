@@ -4,14 +4,24 @@ struct LivePlayerChaptersView: View {
   @ObservedObject var controller: LivePlayerController
   var onSelect: (() -> Void)? = nil
 
+  @ViewBuilder
   var body: some View {
-    List(controller.displayedChapters) { chapter in
-      chapterRow(chapter)
+    if controller.displayedChapters.isEmpty {
+      ContentUnavailableView(
+        "No chapters",
+        systemImage: "list.bullet.rectangle",
+        description: Text("This video has no chapters.")
+      )
+      .liveThemedEmptyState()
+    } else {
+      List(controller.displayedChapters) { chapter in
+        chapterRow(chapter)
+      }
+      .liveThemedList()
+      .navigationTitle("Chapters")
+      .navigationBarTitleDisplayMode(.inline)
+      .accessibilityIdentifier("live.player.chapters")
     }
-    .liveThemedList()
-    .navigationTitle("Chapters")
-    .navigationBarTitleDisplayMode(.inline)
-    .accessibilityIdentifier("live.player.chapters")
   }
 
   private func currentChapter() -> LivePlaybackChapter? {

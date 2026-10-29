@@ -34,6 +34,10 @@ struct LiveMiniPlayerView: View {
               .font(.system(size: 26, weight: .medium))
               .foregroundStyle(.white)
           }
+          // Same inflation guard as the watch-page player: an unconstrained
+          // poster pushes the waveform out of the card.
+          .frame(maxWidth: .infinity, maxHeight: .infinity)
+          .clipped()
         } else if let playback = controller.nativePlayback {
           LiveNativeVideoView(playback: playback, controller: controller, surface: .mini)
         } else if controller.state == .playing || controller.state == .paused {

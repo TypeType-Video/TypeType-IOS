@@ -84,11 +84,12 @@ struct LiveNativePlayerControls: View {
         sponsorSegmentBands
       }
       Text(LivePlaybackChapterNavigator.clockText(seconds: Int(controller.duration)))
-      if !controller.displayedChapters.isEmpty {
-        Button {
-          presentsChapters = true
-        } label: {
-          Image(systemName: "list.bullet.rectangle")
+      // The chapter entry is always present (like the fullscreen toggle) —
+      // it used to hide behind a non-empty gate and simply went missing.
+      Button {
+        presentsChapters = true
+      } label: {
+        Image(systemName: "list.bullet.rectangle")
             .font(.system(size: 15, weight: .semibold))
             .frame(width: 32, height: 32)
             .padding(.horizontal, 4)
@@ -119,7 +120,6 @@ struct LiveNativePlayerControls: View {
         }
         .accessibilityLabel("Chapters")
         .accessibilityIdentifier("live.player.chapters.open")
-      }
       Button {
         onFullscreen()
       } label: {

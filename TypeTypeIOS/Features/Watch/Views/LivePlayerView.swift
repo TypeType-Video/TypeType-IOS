@@ -54,6 +54,11 @@ struct LivePlayerView: View {
               .font(.system(size: 44, weight: .medium))
               .foregroundStyle(.white)
           }
+          // Take the stage's frame explicitly: the poster's intrinsic size
+          // would inflate the ZStack and push the waveform (and with it the
+          // controls bar) out of the visible video frame.
+          .frame(maxWidth: .infinity, maxHeight: .infinity)
+          .clipped()
           .allowsHitTesting(false)
         }
 
