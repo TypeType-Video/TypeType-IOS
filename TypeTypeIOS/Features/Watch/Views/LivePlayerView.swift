@@ -70,7 +70,8 @@ struct LivePlayerView: View {
           LiveNativePlayerControls(
             controller: controller,
             controls: nativeControls,
-            isFullscreen: showsFullscreenLayout
+            isFullscreen: showsFullscreenLayout,
+            onOptions: { showsOptions = true }
           ) {
             AppLogger.playback.info("fullscreen: toggle pressed flag=\(controller.isPresentingFullscreen, privacy: .public)")
             if controller.isPresentingFullscreen {
@@ -94,23 +95,6 @@ struct LivePlayerView: View {
         playbackStatusAccessibilityElement
         playbackPositionAccessibilityElement
 
-        Button {
-          showsOptions = true
-        } label: {
-          overlayIcon("slider.horizontal.3")
-        }
-        .buttonStyle(.plain)
-        .frame(
-          maxWidth: .infinity,
-          maxHeight: .infinity,
-          alignment: .topTrailing
-        )
-        // Compensates the cinema bleed: the player's frame runs 16 pt past
-        // each screen edge, which pushed the trailing button off-screen.
-        .padding(.horizontal, cinemaMode ? 26 : 10)
-        .padding(.vertical, 10)
-        .accessibilityLabel("Player options")
-        .accessibilityIdentifier("live.player.options")
       }
     }
     .modifier(

@@ -1,3 +1,4 @@
+import AVKit
 import SwiftUI
 
 struct LiveNativePlayerControls: View {
@@ -5,6 +6,7 @@ struct LiveNativePlayerControls: View {
   @ObservedObject var controls: LiveNativeControlsState
   var isFullscreen = false
   var onFullscreen: () -> Void
+  var onOptions: () -> Void
   @State private var scrubPosition: TimeInterval?
   @State private var presentsChapters = false
 
@@ -20,6 +22,24 @@ struct LiveNativePlayerControls: View {
         playPauseButton
         timeline
           .frame(maxHeight: .infinity, alignment: .bottom)
+        if !isFullscreen {
+          Button {
+            onOptions()
+          } label: {
+            Image(systemName: "slider.horizontal.3")
+              .font(.system(size: 16, weight: .semibold))
+              .foregroundStyle(.white)
+              .frame(width: 36, height: 36)
+              .background(.ultraThinMaterial, in: Circle())
+              .environment(\.colorScheme, .dark)
+          }
+          .buttonStyle(.plain)
+          .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+          .padding(.horizontal, isFullscreen ? 26 : 10)
+          .padding(.vertical, 10)
+          .accessibilityLabel("Player options")
+          .accessibilityIdentifier("live.player.options")
+        }
       }
     }
     .animation(.easeOut(duration: 0.18), value: showsControls)
@@ -84,6 +104,7 @@ struct LiveNativePlayerControls: View {
         sponsorSegmentBands
       }
       Text(LivePlaybackChapterNavigator.clockText(seconds: Int(controller.duration)))
+      AirPlayRouteButton()
       if !controller.displayedChapters.isEmpty {
         Button {
           presentsChapters = true
@@ -166,7 +187,23 @@ struct LiveNativePlayerControls: View {
     .accessibilityHidden(true)
   }
 
-  private func sponsorBandColor(_ category: String) -> Color {
+  /// Native iOS route picker. Unlike a custom button, this opens the real
+/// AirPlay device sheet and routes AVPlayer audio/video through the system.
+private struct AirPlayRouteButton: UIViewRepresentable {
+  func makeUIView(context: Context) -> AVRoutePickerView {
+    let view = AVRoutePickerView()
+    view.tintColor = .white
+    view.activeTintColor = .white
+    view.prioritizesVideoDevices = true
+    view.accessibilityLabel = "AirPlay"
+    view.accessibilityIdentifier = "live.player.airplay"
+    return view
+  }
+
+  func updateUIView(_ view: AVRoutePickerView, context: Context) {}
+}
+
+private func sponsorBandColor(_ category: String) -> Color {
     switch category {
     case "sponsor": return .systemOrange
     case "selfpromo": return .systemBlue
