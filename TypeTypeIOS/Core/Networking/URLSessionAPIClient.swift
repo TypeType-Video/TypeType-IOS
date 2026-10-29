@@ -7,6 +7,7 @@ final class URLSessionAPIClient: APIClient {
   let accessTokenProvider: () -> String?
   let session: URLSession
   let mediaSession: URLSession
+  let downloadSession: URLSession
   let decoder: JSONDecoder
   let diagnosticsStore: LiveDiagnosticsStore?
   let diagnosticScopeProvider: () -> LiveDiagnosticScope?
@@ -29,6 +30,7 @@ final class URLSessionAPIClient: APIClient {
     self.accessTokenProvider = accessTokenProvider
     self.session = session
     self.mediaSession = mediaSession
+    self.downloadSession = Self.makeDownloadSession(like: session)
     self.decoder = decoder
     self.diagnosticsStore = diagnosticsStore
     self.diagnosticScopeProvider = diagnosticScopeProvider
