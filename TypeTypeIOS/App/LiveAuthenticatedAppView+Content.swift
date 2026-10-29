@@ -64,13 +64,12 @@ extension LiveAuthenticatedAppView {
       // PiP-style free-floating card; the view clamps itself above the tab
       // bar so it never collides with navigation or menus.
       GeometryReader { geo in
-        // The bar's band is deterministic: home indicator + the tab bar's
-        // height. The content probe was wrong in both directions — hidden
-        // tabs reported garbage (card pinned high) and the floating bar's
-        // content only sees the home indicator (card slid into the bar).
+        // The content's bottom safe-area inset already IS the tab bar's
+        // band (home indicator included) — the extra +49pt kept the card
+        // one bar height above the bar ("the gap").
         miniPlayer(
           containerSize: geo.size,
-          tabBarBand: geo.safeAreaInsets.bottom + 49
+          tabBarBand: geo.safeAreaInsets.bottom
         )
       }
     }
