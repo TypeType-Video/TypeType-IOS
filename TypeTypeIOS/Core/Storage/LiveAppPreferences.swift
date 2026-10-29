@@ -29,10 +29,7 @@ enum LiveAccentColor: String, Codable, CaseIterable, Identifiable {
     case .violet: return .indigo
     case .monochrome: return .primary
     case .system: return .accentColor
-    case .custom:
-      // Cached static (see DemoTheme): the preferences store is
-      // MainActor-isolated and this property is not.
-      return DemoTheme.customAccentHex.flatMap(Color.init(hex:)) ?? .accentColor
+    case .custom: return .accentColor
     }
   }
 }

@@ -4,13 +4,7 @@ import UIKit
 enum DemoTheme {
   static var accent = Color(red: 1, green: 0.30, blue: 0.32)
   static var appearanceMode = LiveAppearanceMode.system
-  static var customAccentHex: String? = nil
   static var appearanceAmoled = false
-  /// Bumped on every theme change; lists re-create their cells through
-  /// `.id(renderToken)` so UIKit-painted cards pick the new palette up.
-  static var renderToken = UUID()
-  private static var lastThemeSignature = ""
-  private static var lastPreferencesSignature = ""
   /// The environment colour scheme (system light/dark); used for the
   /// `.system` mode instead of UITraitCollection so system changes react.
   static var systemColorScheme: ColorScheme?
@@ -49,140 +43,6 @@ enum DemoTheme {
   /// Themed separator role — the same resolver the environment palette
   /// uses, so dividers and card borders can never disagree.
   static var separator: Color { separatorColor() }
-
-  static func updateAccent(_ preference: LiveAccentColor) {
-    accent = preference.color
-  }
-
-  static func update(
-    preferences: LiveAppPreferences,
-    colorScheme: ColorScheme? = nil
-  ) {
-    accent = preferences.accentColor.color
-    appearanceMode = preferences.appearanceMode
-    appearanceAmoled = preferences.appearanceAmoled
-    appearanceTheme = preferences.appearanceTheme
-    customAccentHex = preferences.customAccentHex
-    // Was never assigned before: `.system` mode fell back to the UIKit
-    // trait collection and missed environment scheme flips.
-    systemColorScheme = colorScheme
-    // Rebuild token only on real theme changes: bumping it every render
-    // thrashed the lists and still left stale colours behind. The resolved
-    // scheme is part of the signature, so a system light/dark flip rebuilds
-    // too — it changes every colour without touching any preference.
-    lastPreferencesSignature = [
-      preferences.accentColor.rawValue,
-      preferences.appearanceMode.rawValue,
-      preferences.appearanceAmoled.description,
-      preferences.appearanceTheme.rawValue,
-      preferences.appearanceFont.rawValue,
-    ].joined(separator: "|")
-    rebuildToken()
-  }
-
-  /// A system light/dark flip changes every colour without touching a
-  /// preference. The preference values are cached in the statics, so the
-  /// token rebuilds without reaching for a `LiveAppPreferences`.
-  static func update(colorScheme: ColorScheme?) {
-    systemColorScheme = colorScheme
-    rebuildToken()
-  }
-
-  private static func rebuildToken() {
-    let signature = lastPreferencesSignature + "|" + isDarkResolved.description
-    if signature != lastThemeSignature {
-      lastThemeSignature = signature
-      renderToken = UUID()
-    }
-  }
-
-  static func applyUIKitAppearance(
-    _ preferences: LiveAppPreferences
-  ) {
-    // The pages paint their own backgrounds through SwiftUI's dynamic
-    // theme colors. iOS 26/27 paints default fills on list rows AND on the
-    // table behind them (the white boxes that swallowed the page colour),
-    // and those sit in front of SwiftUI's `listRowBackground`. Neutralise
-    // every UIKit layer so the rows show the page colour behind them:
-    // transparent cell backgrounds, empty background views (kills the
-    // Liquid Glass row fill), clear table backgrounds.
-    // The list/cell appearance neutralization is retired with the Android
-    // look: painting cell and table backgrounds .clear removed the grouped
-    // section cards entirely (the modern iOS look needs them). Themed
-    // pages handle row fills per row via `liveRowFill()`.
-    // Transparent, not a surface color: painting this white put a square
-    // block behind every section header, clashing with the rounded cards.
-    UITableViewHeaderFooterView.appearance().backgroundColor = .clear
-    // The header's backgroundView is left alone as well: the grouped look
-    // wants the system chrome back.
-    // iOS 26 paints the navigation bar through `_UIBarBackground`, which
-    // SwiftUI's `toolbarBackground` does not reach (the white strip at the
-    // top of every page). Bind the UIKit appearance to the same resolver.
-    // Grouped list cards follow the theme: the cell background IS the card
-    // colour — the same row surface the glass cards use — and the table
-    // background shows in the gaps (the page colour).
-    UITableViewCell.appearance().backgroundColor = UIColor(DemoTheme.rowBackground)
-    UICollectionViewCell.appearance().backgroundColor = UIColor(DemoTheme.rowBackground)
-    UITableView.appearance().backgroundColor = UIColor(DemoTheme.background)
-    UICollectionView.appearance().backgroundColor = UIColor(DemoTheme.background)
-    let navAppearance = UINavigationBarAppearance()
-    navAppearance.configureWithOpaqueBackground()
-    navAppearance.backgroundColor = dynamicColor(role: .background)
-    UINavigationBar.appearance().standardAppearance = navAppearance
-    UINavigationBar.appearance().scrollEdgeAppearance = navAppearance
-    UINavigationBar.appearance().compactAppearance = navAppearance
-    // The floating tab bar's band (the area behind/below the glass pill)
-    // is painted by UITabBarAppearance — the legacy backgroundColor is
-    // ignored there. Bind it to the page colour like the navigation bar.
-    let tabAppearance = UITabBarAppearance()
-    tabAppearance.configureWithOpaqueBackground()
-    tabAppearance.backgroundColor = dynamicColor(role: .background)
-    UITabBar.appearance().standardAppearance = tabAppearance
-    UITabBar.appearance().scrollEdgeAppearance = tabAppearance
-  }
-
-  /// Pushes the freshly built appearances onto every bar already on
-  /// screen: appearance proxies only reach bars created afterwards, which
-  /// is why a system light/dark flip used to leave the top area stale. No
-  /// view teardown involved — navigation stacks and tabs keep their state.
-  static func refreshLiveBars() {
-    // The list/cell colours resolve immediately (no dynamic provider) —
-    // they must be re-applied on every theme change or the settings lists
-    // keep the previous theme's greys. Theme updates run on the main actor.
-    MainActor.assumeIsolated {
-      applyUIKitAppearance(LiveAppPreferencesStore.shared.preferences)
-    }
-    for scene in UIApplication.shared.connectedScenes
-      .compactMap({ $0 as? UIWindowScene }) {
-      for window in scene.windows {
-        walkBars(from: window.rootViewController)
-      }
-    }
-  }
-
-  private static func walkBars(from controller: UIViewController?) {
-    guard let controller else { return }
-    if let navigationBar = (
-      controller as? UINavigationController
-    )?.navigationBar {
-      let appearance = UINavigationBarAppearance()
-      appearance.configureWithOpaqueBackground()
-      appearance.backgroundColor = dynamicColor(role: .background)
-      navigationBar.standardAppearance = appearance
-      navigationBar.scrollEdgeAppearance = appearance
-      navigationBar.compactAppearance = appearance
-    }
-    if let tabBar = (
-      controller as? UITabBarController
-    )?.tabBar {
-      let appearance = UITabBarAppearance()
-      appearance.configureWithOpaqueBackground()
-      appearance.backgroundColor = dynamicColor(role: .background)
-      tabBar.standardAppearance = appearance
-      tabBar.scrollEdgeAppearance = appearance
-    }
-    controller.children.forEach(walkBars)
-  }
 
   /// Resolves immediately (no dynamic provider): UIKit caches dynamic
   /// colours per trait, which left pages on stale palettes after a theme
@@ -298,9 +158,6 @@ struct DemoThemePalette: Equatable {
   /// theme's surface — otherwise page and rows are both black and the
   /// theme disappears entirely.
   var rowBackground: Color
-  /// Bumped on every theme change; `liveThemeRepaint()` keys subtree
-  /// identity on it so statics re-render without an app refresh.
-  var renderToken: UUID
 }
 
 extension DemoTheme {
@@ -344,8 +201,7 @@ extension DemoTheme {
       textPrimary: textPrimaryColor(),
       textSecondary: textSecondaryColor(),
       accent: accent,
-      rowBackground: DemoTheme.rowBackground,
-      renderToken: renderToken
+      rowBackground: DemoTheme.rowBackground
     )
   }
 
@@ -555,31 +411,6 @@ private struct LiveThemedListModifier: ViewModifier {
       // different at the very top" symptom).
       .toolbarBackground(palette.background, for: .navigationBar)
       .toolbarBackground(.visible, for: .navigationBar)
-  }
-}
-
-/// Re-creates the wrapped subtree whenever the theme palette changes. The
-/// environment change re-runs the modifier body; the fresh render token
-/// gives the content a new identity, so SwiftUI re-invokes the content
-/// closures — which re-read the `DemoTheme.*` roles. Without it a theme
-/// switch only repainted pages whose own body happened to run (the "tap
-/// around first, then the new theme shows" symptom).
-extension View {
-  func liveThemeRepaint() -> some View {
-    modifier(LiveThemeRepaintModifier())
-  }
-}
-
-private struct LiveThemeRepaintModifier: ViewModifier {
-  @Environment(\.demoTheme) private var palette
-  @Environment(\.colorScheme) private var systemScheme
-
-  func body(content: Content) -> some View {
-    content
-      .id(palette.renderToken)
-      .onChange(of: systemScheme) { _, scheme in
-        DemoTheme.update(colorScheme: scheme)
-      }
   }
 }
 
