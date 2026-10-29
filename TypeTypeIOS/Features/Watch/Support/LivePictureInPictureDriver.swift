@@ -2,17 +2,15 @@ import AVFoundation
 import AVKit
 import UIKit
 
-/// Twitch-style in-app Picture in Picture: on minimize the app hides its
-/// video surface and floats the real system PiP window over the app. The
-/// PiP content layer must live in the visible player view hierarchy — a
-/// detached layer renders no frames and the system window stays empty.
+/// On minimize the app hides its video and floats the system PiP window over itself. The content layer
+/// must stay in the visible player hierarchy: a detached one renders nothing.
 @MainActor
 final class LivePictureInPictureDriver: NSObject, ObservableObject {
   @Published private(set) var isEngaged = false
   /// True while waiting for the system to allow a PiP start (during loading
   /// the window cannot open yet). Suppresses the fallback card.
   @Published private(set) var isPendingStart = false
-  /// The system's own truth about the window — a late-confirmed start can
+  /// The system's own truth about the window: a late-confirmed start can
   /// leave `isEngaged` behind reality.
   var isSystemActive: Bool {
     pipController?.isPictureInPictureActive ?? false
@@ -44,7 +42,7 @@ final class LivePictureInPictureDriver: NSObject, ObservableObject {
       layer.videoGravity = .resizeAspect
       // Hidden unless PiP runs: a live player layer inside the player view
       // corrupts the blur/backdrop AVKit's controls are drawn on ("invalid
-      // image bits/pixel") — the controls end up invisible but tappable.
+      // image bits/pixel"): the controls end up invisible but tappable.
       layer.isHidden = true
       contentLayer = layer
     }
@@ -64,10 +62,7 @@ final class LivePictureInPictureDriver: NSObject, ObservableObject {
     relayout()
   }
 
-  /// Renders the poster into the content layer as a placeholder; the
-  /// player's frames overwrite it once playback renders. Waits until the
-  /// placeholder is in place — the system refuses a PiP start on an empty
-  /// layer.
+  /// Poster placeholder until frames arrive: the system refuses a PiP start on an empty layer.
   func loadPoster(url: URL?) async {
     guard let url else { return }
     let posterStart = DispatchTime.now()
@@ -166,8 +161,6 @@ final class LivePictureInPictureDriver: NSObject, ObservableObject {
     }
     self.onRestore = onRestore
     self.onClose = onClose
-    // The system refuses a PiP start while the player is still loading; wait
-    // for the moment it becomes possible instead of failing silently.
     if pipController.isPictureInPicturePossible {
       performStart()
     } else {
@@ -175,19 +168,15 @@ final class LivePictureInPictureDriver: NSObject, ObservableObject {
       onChange?()
       pendingStartTask?.cancel()
       pendingStartTask = Task { @MainActor [weak self] in
-        for _ in 0..<75 {
-          try? await Task.sleep(for: .milliseconds(200))
-          guard let self, isPendingStart else { return }
-          if pipController.isPictureInPicturePossible {
-            isPendingStart = false
-            performStart()
-            return
-          }
+        let possible = await pipController.becomesPossible(within: .seconds(15))
+        guard let self, isPendingStart, !Task.isCancelled else { return }
+        isPendingStart = false
+        if possible {
+          performStart()
+        } else {
+          // Never became possible: release and let the in-app card show.
+          onChange?()
         }
-        // Never became possible: release and let the card show.
-        guard let self else { return }
-        self.isPendingStart = false
-        self.onChange?()
       }
     }
   }
@@ -231,10 +220,7 @@ final class LivePictureInPictureDriver: NSObject, ObservableObject {
     pipController?.stopPictureInPicture()
   }
 
-  /// Returns the video to the app surface: stops PiP but keeps playback
-  /// running (the stop handler is told this is a restore, not a close).
-  /// The engagement flag drops immediately so the notice overlay is gone
-  /// before the system animates the window back into the player surface.
+  /// Stops PiP and keeps playing. Engagement drops first so the notice is gone before the window returns.
   func bringInline() {
     AppLogger.playback.info("pip driver: bring inline requested")
     // The system is the truth: a late-confirmed window can be up while the
@@ -260,7 +246,7 @@ extension LivePictureInPictureDriver: AVPictureInPictureControllerDelegate {
       guard let self else { return }
       didStartConfirmed = true
       // Late confirms arrive after the start verification gave up and
-      // dropped the flag — but the system window IS up then, and the return
+      // dropped the flag: but the system window IS up then, and the return
       // path needs the flag to hand the video back.
       isEngaged = true
       if let requestedAt = startRequestedAt {
