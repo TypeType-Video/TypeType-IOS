@@ -67,12 +67,17 @@ extension LiveAuthenticatedAppView {
       // PiP-style free-floating card; the view clamps itself above the tab
       // bar so it never collides with navigation or menus.
       GeometryReader { geo in
+        let fallback = geo.safeAreaInsets.bottom + 49
         let measuredBand = tabBarTopY.map {
           geo.frame(in: .global).maxY - $0
-        } ?? (geo.safeAreaInsets.bottom + 49)
+        } ?? fallback
+        // The tab probe can go stale (it lives on the Home tab only): a
+        // garbage value pins the card far above the bar. The band never
+        // legitimately exceeds a fifth of the screen.
+        let band = min(max(measuredBand, 0), geo.size.height * 0.22)
         miniPlayer(
           containerSize: geo.size,
-          tabBarBand: max(measuredBand, 0)
+          tabBarBand: band
         )
       }
     }
@@ -233,9 +238,13 @@ private extension LiveAuthenticatedAppView {
   /// safe area knows the bar's height even when it floats.
   var tabBarTopProbe: some View {
     GeometryReader { probe in
+      // Hidden tabs report degenerate frames; never publish those.
+      let frame = probe.frame(in: .global)
       Color.clear.preference(
         key: LiveTabBarTopKey.self,
-        value: probe.frame(in: .global).maxY - probe.safeAreaInsets.bottom
+        value: probe.size.height > 1 && frame.maxY > 100
+          ? frame.maxY - probe.safeAreaInsets.bottom
+          : nil
       )
     }
   }
