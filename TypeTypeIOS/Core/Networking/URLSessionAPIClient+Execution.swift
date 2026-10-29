@@ -155,6 +155,29 @@ extension URLSessionAPIClient {
     configuration.timeoutIntervalForRequest = 600
     configuration.timeoutIntervalForResource = 7_200
     configuration.waitsForConnectivity = true
-    return URLSession(configuration: configuration)
+    return URLSession(
+      configuration: configuration,
+      delegate: DownloadRedirectCleaner(),
+      delegateQueue: nil
+    )
+  }
+}
+
+/// Artifact endpoints redirect to presigned object-storage URLs on the SAME
+/// host, so URLSession keeps the API's Authorization header and cookies on
+/// the redirect — signed URLs reject extra credentials and the transfer
+/// stalls or fails. Strip them at the redirect.
+final class DownloadRedirectCleaner: NSObject, URLSessionTaskDelegate {
+  func urlSession(
+    _ session: URLSession,
+    task: URLSessionTask,
+    willPerformHTTPRedirection response: HTTPURLResponse,
+    newRequest request: URLRequest,
+    completionHandler: @escaping (URLRequest?) -> Void
+  ) {
+    var clean = request
+    clean.setValue(nil, forHTTPHeaderField: "Authorization")
+    clean.setValue(nil, forHTTPHeaderField: "Cookie")
+    completionHandler(clean)
   }
 }
