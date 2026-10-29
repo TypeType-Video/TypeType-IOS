@@ -38,10 +38,9 @@ struct LivePortabilityView: View {
     }
     .sheet(isPresented: $showsShareSheet) {
       if let url = viewModel.shareURL {
-        ShareLink(item: url) {
-          Label("Share export", systemImage: "square.and.arrow.up")
-        }
-        .padding()
+        // The system share sheet directly — the old sheet wrapped a
+        // ShareLink button, which showed as a big empty screen.
+        LiveShareActivityView(url: url)
       }
     }
     .alert("Data and backups", isPresented: errorBinding) {
