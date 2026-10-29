@@ -234,10 +234,6 @@ final class LivePortabilityViewModel: ObservableObject {
     }
   }
 
-  private func jobIsTerminal() -> Bool {
-    job?.isTerminal == true
-  }
-
   private func message(for error: Error) -> String {
     (error as? LocalizedError)?.errorDescription
       ?? error.localizedDescription

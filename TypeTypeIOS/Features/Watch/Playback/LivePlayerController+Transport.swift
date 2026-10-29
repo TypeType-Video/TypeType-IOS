@@ -206,15 +206,6 @@ extension LivePlayerController {
     }
   }
 
-  func selectVideoItag(_ itag: Int?) {
-    guard selectedVideoItag != itag else { return }
-    selectedVideoItag = itag
-    selectedVideoSourceID = availableVideoSources.first {
-      $0.itag == itag
-    }?.selectionID
-    restartAtCurrentPosition()
-  }
-
   func selectVideoSource(_ sourceID: String?) {
     guard selectedVideoSourceID != sourceID else { return }
     selectedVideoSourceID = sourceID
@@ -254,15 +245,6 @@ extension LivePlayerController {
       return
     }
     selectVideoSource(best.selectionID)
-  }
-
-  func selectAudioTrack(_ trackID: String?) {
-    guard selectedAudioTrackID != trackID else { return }
-    selectedAudioTrackID = trackID
-    selectedAudioSourceID = availableAudioSources.first {
-      $0.audioTrackID == trackID
-    }?.id
-    restartAtCurrentPosition()
   }
 
   func selectAudioSource(_ sourceID: String?) {

@@ -1,24 +1,6 @@
 import SwiftUI
 
 extension DemoSearchPlaylistDetailView {
-  func videoRow(_ video: DemoVideo) -> some View {
-    HStack(spacing: 12) {
-      DemoArtworkView(video: video)
-        .frame(width: 126, height: 72)
-        .clipShape(RoundedRectangle(cornerRadius: 10))
-      VStack(alignment: .leading, spacing: 4) {
-        Text(video.title)
-          .font(.subheadline.weight(.semibold))
-          .foregroundStyle(.primary)
-          .lineLimit(2)
-        Text(video.channel)
-          .font(.caption)
-          .foregroundStyle(.secondary)
-      }
-    }
-    .padding(.vertical, 4)
-  }
-
   var playlistMenu: some View {
     Menu {
       if isEditablePlaylist {

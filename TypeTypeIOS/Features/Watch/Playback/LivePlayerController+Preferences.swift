@@ -110,15 +110,6 @@ extension LivePlayerController {
     reloadNativeSubtitles()
   }
 
-  func setSponsorBlockEnabled(_ enabled: Bool) {
-    sponsorBlockEnabled = enabled
-    setSponsorBlockMode(
-      enabled
-        ? LiveSponsorBlockMode.autoSkip.rawValue
-        : LiveSponsorBlockMode.disabled.rawValue
-    )
-  }
-
   func setSponsorBlockMode(_ mode: String) {
     guard LiveSponsorBlockMode(rawValue: mode) != nil else { return }
     sponsorBlockMode = mode
