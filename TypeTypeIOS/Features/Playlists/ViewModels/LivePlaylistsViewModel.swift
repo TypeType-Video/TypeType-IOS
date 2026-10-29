@@ -19,7 +19,6 @@ final class LivePlaylistsViewModel: ObservableObject {
   private let playlistsService: LivePlaylistsServiceProtocol
   private let libraryService: LiveLibraryServiceProtocol
   private var reloadGeneration = 0
-  private var pendingRequests = 0
   private var lastFailure: String?
 
   init(
@@ -38,76 +37,47 @@ final class LivePlaylistsViewModel: ObservableObject {
   func reload() async {
     reloadGeneration += 1
     let generation = reloadGeneration
-    pendingRequests = 4
     lastFailure = nil
     state = .loading
-    // Each section appears the moment its request lands — the page no
-    // longer waits for the slowest of the four before it draws anything.
-    Task { [weak self] in
-      guard let self else { return }
-      do {
-        playlists = try await playlistsService.playlists()
-        revealWhileLoading()
-      } catch {
-        noteFailure(error)
-      }
-      reloadRequestFinished(generation)
+    // Each section shows up as soon as its own request lands, not after the slowest one.
+    async let playlistsLoad: Void = load(generation, { try await self.playlistsService.playlists() }) {
+      self.playlists = $0
     }
-    Task { [weak self] in
-      guard let self else { return }
-      do {
-        saved = try await playlistsService.savedPlaylists()
-        revealWhileLoading()
-      } catch {
-        noteFailure(error)
-      }
-      reloadRequestFinished(generation)
+    async let savedLoad: Void = load(generation, { try await self.playlistsService.savedPlaylists() }) {
+      self.saved = $0
     }
-    Task { [weak self] in
-      guard let self else { return }
-      do {
-        favorites = try await libraryService.favorites().map(\.libraryVideo)
-        revealWhileLoading()
-      } catch {
-        noteFailure(error)
-      }
-      reloadRequestFinished(generation)
+    async let favoritesLoad: Void = load(generation, { try await self.libraryService.favorites() }) {
+      self.favorites = $0.map(\.libraryVideo)
     }
-    Task { [weak self] in
-      guard let self else { return }
-      do {
-        watchLater = try await libraryService.watchLater().map(\.libraryVideo)
-        revealWhileLoading()
-      } catch {
-        noteFailure(error)
-      }
-      reloadRequestFinished(generation)
+    async let watchLaterLoad: Void = load(generation, { try await self.libraryService.watchLater() }) {
+      self.watchLater = $0.map(\.libraryVideo)
     }
-  }
-
-  /// First data on screen beats the loading skeleton.
-  private func revealWhileLoading() {
-    if state == .loading {
-      state = .loaded
-    }
-  }
-
-  private func noteFailure(_ error: Error) {
-    if error is CancellationError { return }
-    if lastFailure == nil {
-      lastFailure = message(for: error)
-    }
-  }
-
-  private func reloadRequestFinished(_ generation: Int) {
+    _ = await (playlistsLoad, savedLoad, favoritesLoad, watchLaterLoad)
     guard generation == reloadGeneration else { return }
-    pendingRequests -= 1
-    guard pendingRequests == 0 else { return }
-    if let lastFailure,
-      playlists.isEmpty, saved.isEmpty, favorites.isEmpty, watchLater.isEmpty {
+    if let lastFailure, playlists.isEmpty, saved.isEmpty, favorites.isEmpty, watchLater.isEmpty {
       state = .failed(lastFailure)
     } else {
       state = .loaded
+    }
+  }
+
+  private func load<Value>(
+    _ generation: Int,
+    _ request: () async throws -> Value,
+    apply: @MainActor (Value) -> Void
+  ) async {
+    do {
+      let value = try await request()
+      guard generation == reloadGeneration else { return }
+      apply(value)
+      if state == .loading {
+        state = .loaded
+      }
+    } catch is CancellationError {
+      return
+    } catch {
+      guard generation == reloadGeneration else { return }
+      lastFailure = lastFailure ?? message(for: error)
     }
   }
 
