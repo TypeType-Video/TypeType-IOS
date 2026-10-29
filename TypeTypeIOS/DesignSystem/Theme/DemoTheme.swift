@@ -118,18 +118,13 @@ enum DemoTheme {
     // iOS 26 paints the navigation bar through `_UIBarBackground`, which
     // SwiftUI's `toolbarBackground` does not reach (the white strip at the
     // top of every page). Bind the UIKit appearance to the same resolver.
-    // The grouped CARD is the cell's backgroundView: paint it with the
-    // theme surface and keep the cell itself clear, so rows and card read
-    // as one surface (the striped interiors came from painting the cell
-    // while the card container stayed system-white).
-    UITableViewCell.appearance().backgroundColor = .clear
-    UICollectionViewCell.appearance().backgroundColor = .clear
-    let cardChrome = ThemeCardChromeView.appearance()
-    cardChrome.backgroundColor = UIColor(DemoTheme.rowBackground)
-    UITableViewCell.appearance().backgroundView = ThemeCardChromeView()
-    UICollectionViewCell.appearance().backgroundView = ThemeCardChromeView()
-    UITableView.appearance().backgroundColor = .clear
-    UICollectionView.appearance().backgroundColor = .clear
+    // Grouped list cards follow the theme: the cell background IS the card
+    // colour — the same row surface the glass cards use — and the table
+    // background shows in the gaps (the page colour).
+    UITableViewCell.appearance().backgroundColor = UIColor(DemoTheme.rowBackground)
+    UICollectionViewCell.appearance().backgroundColor = UIColor(DemoTheme.rowBackground)
+    UITableView.appearance().backgroundColor = UIColor(DemoTheme.background)
+    UICollectionView.appearance().backgroundColor = UIColor(DemoTheme.background)
     let navAppearance = UINavigationBarAppearance()
     navAppearance.configureWithOpaqueBackground()
     navAppearance.backgroundColor = dynamicColor(role: .background)
@@ -455,7 +450,7 @@ extension DemoTheme {
 
 /// Environment-driven page background: repaints live on theme changes.
 struct DemoThemeBackground: View {
-  @Environment(\.demoTheme) private var palette
+  @Environment(\.themePalette) private var palette
 
   var body: some View {
     palette.background
@@ -470,6 +465,7 @@ struct DemoThemeBackground: View {
 struct LiveChipButtonStyle: ButtonStyle {
   var isFilled = false
   var isActive = false
+  @Environment(\.themePalette) private var palette
 
   func makeBody(configuration: Configuration) -> some View {
     configuration.label
@@ -497,7 +493,7 @@ struct LiveChipButtonStyle: ButtonStyle {
             isFilled
               ? Color.clear
               : (isActive
-                ? DemoTheme.accent.opacity(0.35)
+                ? palette.accent.opacity(0.35)
                 : Color.primary.opacity(0.14)),
             lineWidth: 1
           )
@@ -508,16 +504,16 @@ struct LiveChipButtonStyle: ButtonStyle {
 
   private var foreground: Color {
     if isFilled {
-      return DemoTheme.background
+      return palette.background
     }
-    return isActive ? DemoTheme.accent : .primary
+    return isActive ? palette.accent : .primary
   }
 
   private var background: Color {
     if isFilled {
-      return isActive ? DemoTheme.accent : Color.primary.opacity(0.92)
+      return isActive ? palette.accent : Color.primary.opacity(0.92)
     }
-    return isActive ? DemoTheme.accent.opacity(0.16) : DemoTheme.elevatedSurface
+    return isActive ? palette.accent.opacity(0.16) : palette.elevatedSurface
   }
 }
 
@@ -531,7 +527,7 @@ extension View {
 }
 
 private struct LiveThemedListModifier: ViewModifier {
-  @Environment(\.demoTheme) private var palette
+  @Environment(\.themePalette) private var palette
 
   func body(content: Content) -> some View {
     content
@@ -594,21 +590,15 @@ extension View {
   func liveThemedEmptyState() -> some View {
     self
       .frame(maxWidth: .infinity, maxHeight: .infinity)
-      .background(DemoTheme.background)
+      .background(DemoThemeBackground())
   }
 
-  /// Fills the whole list row with the row colour. iOS 26 paints system
-  /// fills (white in light, black in dark) on rows whose content is a
-  /// control (Button/Toggle/Stepper) — `listRowBackground` does not cover
-  /// them. The fill bleeds past the row content insets to reach the row
-  /// edges; outside lists it is invisible because it matches the page.
+  /// iOS 26 paints its own fill under rows whose content is a control (Toggle, Button), on top
+  /// of `listRowBackground`. The row colour bleeds past the content insets to cover it.
   func liveRowFill() -> some View {
-    self
-      .frame(maxWidth: .infinity, minHeight: 44)
-      .background(
-        DemoTheme.rowBackground
-          .padding(.horizontal, -20)
-      )
+    frame(maxWidth: .infinity, minHeight: 44)
+      .background(ThemeRowFill().padding(.horizontal, -20))
+      .liveRowBackground()
   }
 }
 
@@ -621,7 +611,7 @@ struct LiveOptionMenu<Option: Hashable>: View {
   @Binding var selection: Option
   let options: [(value: Option, label: String)]
   @State private var isPresented = false
-  @Environment(\.demoTheme) private var palette
+  @Environment(\.themePalette) private var palette
 
   init(
     _ title: String,
@@ -663,7 +653,7 @@ struct LiveOptionMenu<Option: Hashable>: View {
                     Spacer(minLength: 12)
                     if options[index].value == selection {
                       Image(systemName: "checkmark")
-                        .foregroundStyle(DemoTheme.accent)
+                        .foregroundStyle(palette.accent)
                     }
                   }
                   .padding(.horizontal, 16)
@@ -793,90 +783,52 @@ extension View {
 }
 
 extension View {
-  /// The modern iOS 26 grouped look: rounded section cards on the system
-  /// grouped background. The Android-era "flat rows only" rule is retired.
-  /// The scroll background must stay VISIBLE: on iOS 26 the group cards
-  /// render as part of that background layer — hiding it flattened the
-  /// whole list.
+  /// Rounded section cards on the page colour. Sections paint their own rows with
+  /// `liveRowBackground()`, so the system's grouped background can go.
   func liveGroupedList() -> some View {
-    self
+    modifier(LiveGroupedListModifier())
+  }
+
+}
+
+private struct LiveGroupedListModifier: ViewModifier {
+  @Environment(\.themePalette) private var palette
+
+  func body(content: Content) -> some View {
+    content
       .listStyle(.insetGrouped)
-      // The list's own background is system grey — the theme's page colour
-      // must show behind the cards instead.
       .scrollContentBackground(.hidden)
-      .background(DemoTheme.background)
-      .environment(\.liveInGroupedList, true)
+      .background(palette.background)
   }
 }
 
 extension View {
-  /// Themed Liquid Glass card: glass tinted with the theme's surface on
-  /// iOS 26, the plain theme surface below. Every glass card and pill must
-  /// follow the active theme (TypeType, AMOLED, ...).
-  @ViewBuilder
+  /// Themed Liquid Glass card: glass tinted with the theme's row colour on iOS 26, the plain
+  /// row colour below.
   func liveGlassCard(cornerRadius: CGFloat = 14) -> some View {
-    if #available(iOS 26.0, *) {
-      self.background {
-        RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-          .fill(DemoTheme.rowBackground.opacity(0.55))
-          .glassEffect(
-            .regular.tint(DemoTheme.rowBackground),
-            in: .rect(cornerRadius: cornerRadius)
-          )
-      }
-    } else {
-      self.background {
-        RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-          .fill(DemoTheme.rowBackground)
-      }
-    }
+    background(LiveGlassFill(shape: RoundedRectangle(cornerRadius: cornerRadius, style: .continuous), opacity: 0.55))
   }
 
   /// Themed Liquid Glass pill for compact chips (stats, actions).
-  @ViewBuilder
   func liveGlassChip() -> some View {
+    padding(.horizontal, 10)
+      .padding(.vertical, 5)
+      .background(LiveGlassFill(shape: Capsule(style: .continuous), opacity: 0.5))
+  }
+}
+
+private struct LiveGlassFill<S: Shape>: View {
+  let shape: S
+  let opacity: Double
+  @Environment(\.themePalette) private var palette
+
+  var body: some View {
     if #available(iOS 26.0, *) {
-      self
-        .padding(.horizontal, 10)
-        .padding(.vertical, 5)
-        .background {
-          Capsule(style: .continuous)
-            .fill(DemoTheme.rowBackground.opacity(0.5))
-            .glassEffect(
-              .regular.tint(DemoTheme.rowBackground),
-              in: .capsule
-            )
-        }
+      shape
+        .fill(palette.rowBackground.opacity(opacity))
+        .glassEffect(.regular.tint(palette.rowBackground), in: shape)
     } else {
-      self
-        .padding(.horizontal, 10)
-        .padding(.vertical, 5)
-        .background(Capsule(style: .continuous).fill(DemoTheme.rowBackground))
+      shape.fill(palette.rowBackground)
     }
   }
-}
-
-struct LiveInGroupedListKey: EnvironmentKey {
-  static let defaultValue = false
-}
-
-extension EnvironmentValues {
-  /// True inside a `liveGroupedList()`: grouped lists have no system header
-  /// chrome to cover, so the slot bleed must not paint its band there.
-  var liveInGroupedList: Bool {
-    get { self[LiveInGroupedListKey.self] }
-    set { self[LiveInGroupedListKey.self] = newValue }
-  }
-}
-
-/// The grouped-list card behind the rows. The appearance proxy shares one
-/// instance; `applyUIKitAppearance` re-tints it on theme switches.
-final class ThemeCardChromeView: UIView {
-  /// iOS 27's list chrome sends CELL-style selectors to background views:
-  /// `setEffect:`/`effect` (Liquid Glass) and `contentView`. Plain UIView
-  /// subclasses die on each unknown one (NSInvalidArgumentException) —
-  /// answer the whole set harmlessly. The card is intentionally flat.
-  @objc(setEffect:) func setEffect(_ effect: Any?) {}
-  @objc(effect) func effect() -> Any? { nil }
-  @objc var contentView: UIView { self }
 }
