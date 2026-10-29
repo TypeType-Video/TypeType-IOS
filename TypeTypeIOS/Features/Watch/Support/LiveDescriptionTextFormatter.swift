@@ -42,15 +42,15 @@ enum LiveDescriptionTextFormatter {
     return value.trimmingCharacters(in: .whitespacesAndNewlines)
   }
 
+  private static let anchorPattern = try? NSRegularExpression(
+    pattern: #"<a\b[^>]*href\s*=\s*["']([^"']+)["'][^>]*>(.*?)</a>"#,
+    options: [.caseInsensitive, .dotMatchesLineSeparators]
+  )
+
   private static func preservingAnchorDestinations(
     in value: String
   ) -> String {
-    guard let expression = try? NSRegularExpression(
-      pattern: #"<a\b[^>]*href\s*=\s*["']([^"']+)["'][^>]*>(.*?)</a>"#,
-      options: [.caseInsensitive, .dotMatchesLineSeparators]
-    ) else {
-      return value
-    }
+    guard let expression = anchorPattern else { return value }
 
     let range = NSRange(value.startIndex..., in: value)
     let matches = expression.matches(in: value, range: range)

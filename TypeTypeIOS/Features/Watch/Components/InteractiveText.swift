@@ -33,7 +33,31 @@ enum RichTextParser {
     let url: URL
   }
 
+  private final class Parsed {
+    let value: AttributedString
+    init(_ value: AttributedString) { self.value = value }
+  }
+
+  // Bodies run on every player tick: the link detector is slow to build and a description is
+  // parsed once.
+  private static let parsed = NSCache<NSString, Parsed>()
+  private static let linkDetector = try? NSDataDetector(
+    types: NSTextCheckingResult.CheckingType.link.rawValue
+  )
+  private static let timestampPattern = try? NSRegularExpression(
+    pattern: #"(?<![0-9])(?:(\d{1,2}):)?([0-5]?[0-9]):([0-5][0-9])(?![0-9])"#
+  )
+
   static func attributed(_ text: String) -> AttributedString {
+    if let cached = parsed.object(forKey: text as NSString) {
+      return cached.value
+    }
+    let value = parse(text)
+    parsed.setObject(Parsed(value), forKey: text as NSString)
+    return value
+  }
+
+  private static func parse(_ text: String) -> AttributedString {
     let source = text as NSString
     let tokens = detectedTokens(in: text)
     var result = AttributedString()
@@ -80,11 +104,7 @@ enum RichTextParser {
   private static func detectedTokens(in text: String) -> [Token] {
     let fullRange = NSRange(location: 0, length: (text as NSString).length)
     var tokens = detectedLinks(in: text, range: fullRange)
-    guard let regex = try? NSRegularExpression(
-      pattern: #"(?<![0-9])(?:(\d{1,2}):)?([0-5]?[0-9]):([0-5][0-9])(?![0-9])"#
-    ) else {
-      return tokens
-    }
+    guard let regex = timestampPattern else { return tokens }
 
     for match in regex.matches(in: text, range: fullRange) {
       guard !tokens.contains(where: { NSIntersectionRange($0.range, match.range).length > 0 }),
@@ -99,11 +119,7 @@ enum RichTextParser {
   }
 
   private static func detectedLinks(in text: String, range: NSRange) -> [Token] {
-    guard let detector = try? NSDataDetector(
-      types: NSTextCheckingResult.CheckingType.link.rawValue
-    ) else {
-      return []
-    }
+    guard let detector = linkDetector else { return [] }
     return detector.matches(in: text, range: range).compactMap { match in
       guard let url = match.url else { return nil }
       return Token(range: match.range, url: url)
