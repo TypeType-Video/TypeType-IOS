@@ -38,22 +38,7 @@ extension LivePlayerView {
             }
           }
       )
-      .onLongPressGesture(
-        minimumDuration: 0.35,
-        perform: {},
-        onPressingChanged: { pressing in
-          setLongPressBoost(active: pressing)
-        }
-      )
-      .simultaneousGesture(
-        DragGesture(minimumDistance: 10)
-          .onChanged { value in
-            // The ramp rides the same touch as the long-press boost; the
-            // UIKit pans are cancelled while the hold owns the touch.
-            guard longPressBaseRate != nil else { return }
-            applySpeedRamp(translationHeight: value.translation.height)
-          }
-      )
+      .simultaneousGesture(speedRampGesture)
       // Swipe down leaves full screen — from the centre third only, so it
       // never fights the brightness/volume swipes on the outer thirds.
       .simultaneousGesture(
@@ -67,6 +52,28 @@ extension LivePlayerView {
             controller.exitNativeFullscreen("surface-drag")
           }
       )
+  }
+
+  /// One gesture owns the entire speed-ramp interaction: hold for 350ms,
+  /// then drag vertically. Splitting long-press and drag into independent
+  /// gestures let the drag win the touch before the hold became active.
+  private var speedRampGesture: some Gesture {
+    LongPressGesture(minimumDuration: 0.35)
+      .sequenced(before: DragGesture(minimumDistance: 0))
+      .onChanged { value in
+        switch value {
+        case .first(true):
+          beginSpeedRamp()
+        case let .second(true, drag):
+          beginSpeedRamp()
+          applySpeedRamp(translationHeight: drag.translation.height)
+        default:
+          break
+        }
+      }
+      .onEnded { _ in
+        endSpeedRamp()
+      }
   }
 
   @ViewBuilder

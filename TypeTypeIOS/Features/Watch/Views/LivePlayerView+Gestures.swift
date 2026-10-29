@@ -169,6 +169,24 @@ extension LivePlayerView {
     }
   }
 
+  func beginSpeedRamp() {
+    guard preferences.preferences.playerLongPressSpeedEnabled,
+      longPressBaseRate == nil
+    else { return }
+    LivePlayerView.logGesture("speedRamp ON")
+    longPressBaseRate = controller.playbackRate
+    speedBoostRate = 2
+    controller.setPlaybackRate(2)
+  }
+
+  func endSpeedRamp() {
+    guard let baseRate = longPressBaseRate else { return }
+    LivePlayerView.logGesture("speedRamp OFF")
+    controller.setPlaybackRate(baseRate)
+    longPressBaseRate = nil
+    speedBoostRate = nil
+  }
+
   func setLongPressBoost(active: Bool) {
     LivePlayerView.logGesture(active ? "longPress ON" : "longPress OFF")
     guard preferences.preferences.playerLongPressSpeedEnabled else { return }
