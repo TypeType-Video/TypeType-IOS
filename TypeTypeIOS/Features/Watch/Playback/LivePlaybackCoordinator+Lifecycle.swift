@@ -27,6 +27,10 @@ extension LivePlaybackCoordinator {
   /// layer was installed into the live player view by LivePlayerLayerView.
   func startSystemPictureInPicture() {
     guard let controller else { return }
+    // Audio-only has no video layer: the system PiP window comes up empty
+    // and without its close affordance. Audio keeps playing on its own; the
+    // in-app card (which is closeable) covers the control-surface case.
+    guard !controller.audioOnly else { return }
     let posterURL = currentVideo?.thumbnail
     controller.pictureInPicture.onChange = { [weak self] in
       self?.objectWillChange.send()

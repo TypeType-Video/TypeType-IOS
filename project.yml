@@ -26,18 +26,14 @@ targets:
       - TypeTypeIOS/Features
       - TypeTypeIOS/MockData
       - TypeTypeIOS/Resources
-      - TypeTypeLiveActivity/Shared
     dependencies:
       - target: TypeTypePlayerKit
-      - target: TypeTypeLiveActivity
-        embed: true
     info:
       path: TypeTypeIOS/Info.plist
       properties:
         CFBundleDisplayName: TypeType
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
-        NSSupportsLiveActivities: true
         NSLocalNetworkUsageDescription: TypeType connects to self-hosted instances on your local network.
         NSAppTransportSecurity:
           NSAllowsLocalNetworking: true
@@ -81,25 +77,6 @@ targets:
     settings:
       base:
         PRODUCT_NAME: TypeTypePlayerKit
-
-  TypeTypeLiveActivity:
-    type: app-extension
-    platform: iOS
-    deploymentTarget: "17.0"
-    sources:
-      - TypeTypeLiveActivity
-    info:
-      path: TypeTypeLiveActivity/Info.plist
-      properties:
-        CFBundleDisplayName: TypeType Live Activity
-        NSExtension:
-          NSExtensionPointIdentifier: com.apple.widgetkit-extension
-    settings:
-      base:
-        CURRENT_PROJECT_VERSION: 1
-        MARKETING_VERSION: 0.2.0
-        PRODUCT_BUNDLE_IDENTIFIER: dev.typetype.ios.liveactivity
-        PRODUCT_NAME: TypeTypeLiveActivity
 
   TypeTypePlayerKitTests:
     type: bundle.unit-test

@@ -60,16 +60,6 @@ struct LiveAuthenticatedAppView: View {
       // the system PiP; returning brings it back to the player page.
       let previousPhase = lastScenePhase
       lastScenePhase = phase
-      // The island carries playback while the app is away; returning to
-      // the app retires it.
-      if phase == .background, playbackCoordinator.hasActivePlayback,
-        let activeController = playbackCoordinator.controller {
-        LivePlaybackActivityController.shared.attach(activeController)
-        LivePlaybackActivityController.shared.startIfPossible()
-      }
-      if phase == .active {
-        LivePlaybackActivityController.shared.end()
-      }
       guard let controller = playbackCoordinator.controller,
         controller.nativePlayback != nil
       else { return }
