@@ -10,10 +10,17 @@ struct LiveSettingsIconTile: View {
       .font(.system(size: 14, weight: .semibold))
       .foregroundStyle(.white)
       .frame(width: 29, height: 29)
-      .background(
-        color,
-        in: RoundedRectangle(cornerRadius: 7, style: .continuous)
-      )
+      .background {
+        if #available(iOS 26.0, *) {
+          // Tinted Liquid Glass chip: the modern Settings look.
+          RoundedRectangle(cornerRadius: 7, style: .continuous)
+            .fill(color.opacity(0.45))
+            .glassEffect(.regular.tint(color), in: .rect(cornerRadius: 7))
+        } else {
+          RoundedRectangle(cornerRadius: 7, style: .continuous)
+            .fill(color)
+        }
+      }
   }
 }
 
@@ -48,7 +55,15 @@ struct LiveSettingsLinkRow<Destination: View>: View {
             .foregroundStyle(.white)
             .padding(.horizontal, 7)
             .padding(.vertical, 3)
-            .background(DemoTheme.accent, in: Capsule())
+            .background {
+              if #available(iOS 26.0, *) {
+                Capsule()
+                  .fill(DemoTheme.accent.opacity(0.5))
+                  .glassEffect(.regular.tint(DemoTheme.accent), in: .capsule)
+              } else {
+                Capsule().fill(DemoTheme.accent)
+              }
+            }
         }
       }
     }
