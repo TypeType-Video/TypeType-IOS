@@ -19,7 +19,7 @@ struct LiveCollectionView: View {
     seed: [LiveLibraryVideo] = []
   ) {
     self.dependencies = dependencies
-    _viewModel = ObservedObject(
+    _viewModel = StateObject(
       wrappedValue: LiveCollectionViewModel(
         kind: kind,
         seed: seed,
