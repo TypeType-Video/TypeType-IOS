@@ -164,7 +164,7 @@ struct LiveNativePlayerControls: View {
     .padding(.bottom, isFullscreen ? 24 : 6)
   }
 
-  /// SponsorBlock segments over the track — shown for the mark/skip
+  /// SponsorBlock segments over the track: shown for the mark/skip
   /// categories (the policy filters disabled ones out), one colour per
   /// category, display-only (plan task 2.1).
   private var sponsorSegmentBands: some View {
@@ -189,27 +189,7 @@ struct LiveNativePlayerControls: View {
     .accessibilityHidden(true)
   }
 
-  /// Native iOS route picker. Unlike a custom button, this opens the real
-/// AirPlay device sheet and routes AVPlayer audio/video through the system.
-private struct AirPlayRouteButton: UIViewRepresentable {
-  func makeUIView(context: Context) -> AVRoutePickerView {
-    let view = AVRoutePickerView()
-    view.tintColor = .white
-    view.activeTintColor = .white
-    view.prioritizesVideoDevices = true
-    view.setContentHuggingPriority(.required, for: .horizontal)
-    view.setContentHuggingPriority(.required, for: .vertical)
-    view.setContentCompressionResistancePriority(.required, for: .horizontal)
-    view.setContentCompressionResistancePriority(.required, for: .vertical)
-    view.accessibilityLabel = "AirPlay"
-    view.accessibilityIdentifier = "live.player.airplay"
-    return view
-  }
-
-  func updateUIView(_ view: AVRoutePickerView, context: Context) {}
-}
-
-private func sponsorBandColor(_ category: String) -> Color {
+  private func sponsorBandColor(_ category: String) -> Color {
     switch category {
     case "sponsor": return .systemOrange
     case "selfpromo": return .systemBlue
