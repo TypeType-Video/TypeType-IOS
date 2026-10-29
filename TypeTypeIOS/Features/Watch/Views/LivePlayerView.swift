@@ -154,7 +154,8 @@ struct LivePlayerView: View {
   }
 
   private var followsDeviceRotation: Bool {
-    coordinator.presentation == .expanded && controller.nativePlayback != nil
+    coordinator.presentation == .expanded
+      && (controller.nativePlayback != nil || controller.isOfflineContent)
   }
 }
 

@@ -103,7 +103,10 @@ final class LiveNativeFullscreenPresenter {
   }
 
   private func present(facing orientation: UIDeviceOrientation) {
-    guard let controller, !controller.isPresentingFullscreen, controller.nativePlayback != nil else { return }
+    guard let controller,
+      !controller.isPresentingFullscreen,
+      controller.nativePlayback != nil || controller.isOfflineContent
+    else { return }
     closesOnPortrait = orientation.isLandscape
     controller.isPresentingFullscreen = true
     // What is this piece of crap: phone turned left means interface landscape RIGHT. Thanks Apple.

@@ -5,6 +5,7 @@ extension LivePlayerController {
   // so the player grows inside the rotation animation itself instead of jumping before or after it.
   func showsFullscreenLayout(verticalSizeClass: UserInterfaceSizeClass?) -> Bool {
     guard UIDevice.current.userInterfaceIdiom == .phone else { return isPresentingFullscreen }
-    return verticalSizeClass == .compact && nativePlayback != nil
+    return verticalSizeClass == .compact
+      && (nativePlayback != nil || isOfflineContent)
   }
 }

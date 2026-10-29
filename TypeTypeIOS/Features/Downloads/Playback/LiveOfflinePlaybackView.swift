@@ -54,7 +54,7 @@ struct LiveOfflinePlaybackView: View {
       }
     }
     .task {
-      controller.installOffline(
+      await controller.installOffline(
         stream: item.watchStream,
         fileURL: item.fileURL
       )

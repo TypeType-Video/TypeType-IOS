@@ -85,10 +85,16 @@ struct LiveOfflinePlaybackItem: Identifiable {
 extension LivePlayerController {
   /// Offline playback: a local file through the full player stage — no
   /// server loading path, no full-metadata fetch.
-  func installOffline(stream: LivePlaybackStream, fileURL: URL) {
-    self.stream = stream
+  func installOffline(stream: LivePlaybackStream, fileURL: URL) async {
     isOfflineContent = true
     state = .loading
-    installPlayerItem(at: fileURL, autoplay: true)
+    do {
+      try await DemoAudioSessionConfigurator.configure(backgroundAudio: true)
+      guard !Task.isCancelled else { return }
+      self.stream = stream
+      installPlayerItem(at: fileURL, autoplay: true)
+    } catch {
+      state = .failed("The audio session could not be configured.")
+    }
   }
 }
