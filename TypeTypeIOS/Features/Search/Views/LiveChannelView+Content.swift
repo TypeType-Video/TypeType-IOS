@@ -155,19 +155,4 @@ extension LiveChannelView {
     selectedPodcast = podcast
   }
 
-  private var emptyTitle: String {
-    viewModel.selectedTab == .playlists
-      ? "No playlists"
-      : "No videos"
-  }
-
-  private var emptySystemImage: String {
-    viewModel.selectedTab == .playlists
-      ? "rectangle.stack"
-      : "play.rectangle"
-  }
-
-  private var emptyDescription: String {
-    "This channel has no content in the selected section."
-  }
 }
