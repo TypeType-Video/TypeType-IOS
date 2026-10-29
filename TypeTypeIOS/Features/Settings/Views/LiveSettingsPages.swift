@@ -268,36 +268,58 @@ struct LiveAppearanceAccentDots: View {
   var body: some View {
     HStack(spacing: 0) {
       ForEach(LiveAccentColor.allCases) { accent in
-        Button {
-          selection = accent
-        } label: {
-          Circle()
-            .fill(accent.color)
-            .frame(width: 28, height: 28)
-            .overlay {
-              if accent == selection {
-                Image(systemName: "checkmark")
-                  .font(.system(size: 12, weight: .bold))
-                  .foregroundStyle(.white)
-              }
-            }
-            .overlay {
-              Circle().strokeBorder(
-                DemoTheme.separator.opacity(0.55),
-                lineWidth: 0.5
-              )
-            }
+        if accent == .custom {
+          // The rightmost swatch opens the system colour picker and
+          // applies the picked colour as the custom accent.
+          ColorPicker("", selection: customColorBinding, supportsOpacity: false)
+            .labelsHidden()
             .frame(maxWidth: .infinity)
-            .contentShape(Rectangle())
+            .accessibilityLabel("Custom accent")
+            .accessibilityIdentifier("live.settings.appearance.accent.custom")
+        } else {
+          Button {
+            selection = accent
+          } label: {
+            Circle()
+              .fill(accent.color)
+              .frame(width: 28, height: 28)
+              .overlay {
+                if accent == selection {
+                  Image(systemName: "checkmark")
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundStyle(.white)
+                }
+              }
+              .overlay {
+                Circle().strokeBorder(
+                  DemoTheme.separator.opacity(0.55),
+                  lineWidth: 0.5
+                )
+              }
+              .frame(maxWidth: .infinity)
+              .contentShape(Rectangle())
+          }
+          .buttonStyle(.plain)
+          .accessibilityLabel(accent.title)
+          .accessibilityAddTraits(accent == selection ? .isSelected : [])
+          .accessibilityIdentifier("live.settings.appearance.accent.\(accent.id)")
         }
-        .buttonStyle(.plain)
-        .accessibilityLabel(accent.title)
-        .accessibilityAddTraits(accent == selection ? .isSelected : [])
-        .accessibilityIdentifier("live.settings.appearance.accent.\(accent.id)")
       }
     }
     .padding(.vertical, 8)
     .accessibilityIdentifier("live.settings.appearance.accent")
+  }
+
+  /// Picking a custom colour stores it (hex) and selects the custom accent.
+  private var customColorBinding: Binding<Color> {
+    let hex = LiveAppPreferencesStore.shared.binding(\.customAccentHex)
+    return Binding(
+      get: { hex.wrappedValue.flatMap(Color.init(hex:)) ?? .accentColor },
+      set: { newValue in
+        hex.wrappedValue = newValue.hexString
+        selection = .custom
+      }
+    )
   }
 }
 

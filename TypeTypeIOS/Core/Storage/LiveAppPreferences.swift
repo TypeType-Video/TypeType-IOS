@@ -1,7 +1,7 @@
 import SwiftUI
 
 enum LiveAccentColor: String, Codable, CaseIterable, Identifiable {
-  case red, blue, yellow, green, purple, violet, monochrome, system
+  case red, blue, yellow, green, purple, violet, monochrome, system, custom
 
   var id: String { rawValue }
 
@@ -15,6 +15,7 @@ enum LiveAccentColor: String, Codable, CaseIterable, Identifiable {
     case .violet: return "Violet"
     case .monochrome: return "Monochrome"
     case .system: return "System"
+    case .custom: return "Custom"
     }
   }
 
@@ -28,6 +29,9 @@ enum LiveAccentColor: String, Codable, CaseIterable, Identifiable {
     case .violet: return .indigo
     case .monochrome: return .primary
     case .system: return .accentColor
+    case .custom:
+      let hex = LiveAppPreferencesStore.shared.preferences.customAccentHex
+      return hex.flatMap(Color.init(hex:)) ?? .accentColor
     }
   }
 }
@@ -88,6 +92,8 @@ enum LiveAppearanceMotion: String, Codable, CaseIterable, Identifiable {
 
 struct LiveAppPreferences: Codable, Equatable {
   var accentColor = LiveAccentColor.red
+  /// The custom accent picked with the rightmost swatch (hex RGB).
+  var customAccentHex: String? = nil
   var appearanceMode = LiveAppearanceMode.system
   var appearanceAmoled = false
   var appearanceTheme = LiveAppearanceTheme.typetype
@@ -110,7 +116,7 @@ struct LiveAppPreferences: Codable, Equatable {
   var danmakuSize = 1.0
 
   enum CodingKeys: String, CodingKey {
-    case accentColor, appearanceMode, appearanceAmoled
+    case accentColor, customAccentHex, appearanceMode, appearanceAmoled
     case appearanceTheme, appearanceFont, appearanceMotion
     case playerDoubleTapSeekEnabled = "playerDoubleTapSeek"
     case playerDoubleTapSeekSeconds = "playerDoubleTapSeekSeconds"
@@ -126,6 +132,9 @@ struct LiveAppPreferences: Codable, Equatable {
 
   init(from decoder: Decoder) throws {
     let values = try decoder.container(keyedBy: CodingKeys.self)
+    customAccentHex = try values.decodeIfPresent(
+      String.self, forKey: .customAccentHex
+    )
     accentColor = try values.decodeIfPresent(
       LiveAccentColor.self, forKey: .accentColor
     ) ?? .red
@@ -238,6 +247,35 @@ final class LiveAppPreferencesStore: ObservableObject {
     Binding(
       get: { self.preferences[keyPath: keyPath] },
       set: { value in self.update { $0[keyPath: keyPath] = value } }
+    )
+  }
+}
+
+extension Color {
+  /// Parses #RRGGBB (with or without the leading hash).
+  init?(hex: String) {
+    var value = hex.trimmingCharacters(in: .whitespaces)
+    if value.hasPrefix("#") { value.removeFirst() }
+    guard value.count == 6, let number = UInt64(value, radix: 16) else {
+      return nil
+    }
+    self.init(
+      red: Double((number >> 16) & 0xFF) / 255,
+      green: Double((number >> 8) & 0xFF) / 255,
+      blue: Double(number & 0xFF) / 255
+    )
+  }
+
+  /// #RRGGBB for persistence.
+  var hexString: String {
+    let ui = UIColor(self)
+    var red: CGFloat = 0
+    var green: CGFloat = 0
+    var blue: CGFloat = 0
+    ui.getRed(&red, green: &green, blue: &blue, alpha: nil)
+    return String(
+      format: "#%02X%02X%02X",
+      Int(red * 255), Int(green * 255), Int(blue * 255)
     )
   }
 }
