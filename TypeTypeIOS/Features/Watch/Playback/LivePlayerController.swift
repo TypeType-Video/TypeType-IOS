@@ -240,6 +240,13 @@ final class LivePlayerController: ObservableObject {
   }
 
   static func message(for error: Error) -> String {
+    // The instance words refusals itself ("only available in Japan").
+    if case let NetworkError.statusCode(code, message)? = error as? NetworkError,
+      (400..<500).contains(code), code != 401,
+      let message = message?.trimmingCharacters(in: .whitespacesAndNewlines),
+      !message.isEmpty {
+      return message
+    }
     if let description = (error as? LocalizedError)?.errorDescription,
       !description.isEmpty {
       return description
