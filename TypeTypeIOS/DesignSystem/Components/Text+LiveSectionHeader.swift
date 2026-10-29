@@ -34,15 +34,24 @@ private struct SlotChromeCover: ViewModifier {
   @Environment(\.liveInGroupedList) private var grouped
 
   func body(content: Content) -> some View {
-    if grouped {
+    // The system header chrome exists on GROUPED lists too — the cover is
+    // needed everywhere, painted in the list's own background colour (the
+    // gap colour between cards in grouped lists).
+    ZStack(alignment: .leading) {
+      slotColor
+        .padding(.horizontal, -24)
+        .padding(.vertical, -12)
       content.frame(maxWidth: .infinity, alignment: .leading)
-    } else {
-      ZStack(alignment: .leading) {
-        SlotChromeBackground()
-        content.frame(maxWidth: .infinity, alignment: .leading)
-      }
-      .background(SlotChromeBackground())
     }
+    .background(
+      slotColor
+        .padding(.horizontal, -24)
+        .padding(.vertical, -12)
+    )
+  }
+
+  private var slotColor: Color {
+    grouped ? DemoTheme.groupedBackground : DemoTheme.rowBackground
   }
 }
 
