@@ -71,15 +71,16 @@ struct LivePlayerView: View {
             controller: controller,
             controls: nativeControls,
             isFullscreen: showsFullscreenLayout,
+            onFullscreen: {
+              AppLogger.playback.info("fullscreen: toggle pressed flag=\(controller.isPresentingFullscreen, privacy: .public)")
+              if controller.isPresentingFullscreen {
+                controller.exitNativeFullscreen("player-toggle")
+              } else {
+                controller.enterNativeFullscreen("player-toggle")
+              }
+            },
             onOptions: { showsOptions = true }
-          ) {
-            AppLogger.playback.info("fullscreen: toggle pressed flag=\(controller.isPresentingFullscreen, privacy: .public)")
-            if controller.isPresentingFullscreen {
-              controller.exitNativeFullscreen("player-toggle")
-            } else {
-              controller.enterNativeFullscreen("player-toggle")
-            }
-          }
+          )
         }
         // The seek preview draws above the controls: the pause button used
         // to cover the mm:ss target and the seek icon.
