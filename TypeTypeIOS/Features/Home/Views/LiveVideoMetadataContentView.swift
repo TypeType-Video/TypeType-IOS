@@ -42,6 +42,8 @@ struct LiveVideoMetadataContentView: View {
   var body: some View {
     ScrollViewReader { proxy in
     VStack(spacing: 0) {
+      // The page paints its own background: the strip at the very bottom
+      // of the scroll was never covered by the hosts.
       // Placeholder slot for the player, which floats as a page-level
       // overlay (see below): in fullscreen the stage grows OVER the still
       // surroundings instead of pushing them away — one visible motion.
@@ -242,6 +244,7 @@ struct LiveVideoMetadataContentView: View {
         pip.bringInline()
       }
     }
+    .background(DemoThemeBackground().ignoresSafeArea())
     .onDisappear { playerController.flushHistory() }
   }
 

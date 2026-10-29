@@ -31,6 +31,20 @@ struct LiveOfflinePlaybackView: View {
         playerController: controller
       )
       .background(DemoThemeBackground().ignoresSafeArea())
+      // Pull down on the video area closes the page, like the online
+      // player minimises: from the top region only, so the page scroll is
+      // never fought. This is a cover — dismiss returns to Downloads and
+      // the audio keeps playing.
+      .simultaneousGesture(
+        DragGesture(minimumDistance: 30)
+          .onEnded { value in
+            guard value.translation.height > 120,
+              abs(value.translation.height) > abs(value.translation.width),
+              value.startLocation.y < 320
+            else { return }
+            dismiss()
+          }
+      )
       .toolbar {
         ToolbarItem(placement: .topBarLeading) {
           Button("Close", systemImage: "xmark") {

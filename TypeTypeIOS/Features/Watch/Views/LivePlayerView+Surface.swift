@@ -33,7 +33,9 @@ extension LivePlayerView {
       .simultaneousGesture(
         TapGesture()
           .onEnded {
-            if controller.nativePlayback != nil { nativeControls.tap() }
+            if controller.nativePlayback != nil || controller.isOfflineContent {
+              nativeControls.tap()
+            }
           }
       )
       .onLongPressGesture(

@@ -24,6 +24,7 @@ extension LiveDownloadCenter {
       options: options
     )
     let now = Date()
+    let avatarName = await saveAvatar(video: video)
     let record = LiveManagedDownload(
       id: UUID().uuidString,
       scope: scope,
@@ -39,7 +40,8 @@ extension LiveDownloadCenter {
       metadata: LiveOfflineVideoMetadata(
         video: video,
         likeCount: likeCount,
-        dislikeCount: dislikeCount
+        dislikeCount: dislikeCount,
+        localAvatarFileName: avatarName
       )
     )
     records.append(record)
@@ -48,6 +50,20 @@ extension LiveDownloadCenter {
       track(record.id)
     }
     return self.record(id: record.id) ?? record
+  }
+
+  /// The channel avatar is tiny — fetch it with the download so the
+  /// offline watch page renders without a server.
+  private func saveAvatar(video: LiveVideoItem) async -> String? {
+    let source = video.uploaderAvatarURL.trimmingCharacters(in: .whitespaces)
+    guard !source.isEmpty, let url = URL(string: source),
+      let (data, _) = try? await URLSession.shared.data(from: url),
+      !data.isEmpty
+    else { return nil }
+    let name = "avatar-\(video.id.hashValue).img"
+    let destination = artifactsURL.appendingPathComponent(name)
+    try? data.write(to: destination, options: .atomic)
+    return name
   }
 
   func existingRecord(

@@ -16,6 +16,11 @@ struct LiveOfflinePlaybackItem: Identifiable {
   /// URL are all a managed download keeps).
   var watchVideo: LiveVideoItem {
     let meta = record.metadata
+    // The avatar lives next to the artifact; the page renders it offline.
+    let avatar: String = meta?.localAvatarFileName.map {
+      fileURL.deletingLastPathComponent().appendingPathComponent($0)
+        .absoluteString
+    } ?? meta?.uploaderAvatarURL ?? ""
     return LiveVideoItem(
       id: record.id,
       title: record.title,
@@ -23,7 +28,7 @@ struct LiveOfflinePlaybackItem: Identifiable {
       thumbnailURL: meta?.thumbnailURL ?? "",
       uploaderName: meta?.uploaderName ?? "",
       uploaderURL: meta?.uploaderURL ?? "",
-      uploaderAvatarURL: meta?.uploaderAvatarURL ?? "",
+      uploaderAvatarURL: avatar,
       duration: meta?.duration ?? 0,
       viewCount: meta?.viewCount ?? 0,
       uploadDate: meta?.uploadDate ?? "",

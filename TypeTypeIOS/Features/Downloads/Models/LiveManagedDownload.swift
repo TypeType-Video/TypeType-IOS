@@ -110,8 +110,15 @@ struct LiveOfflineVideoMetadata: Codable, Equatable {
   /// Engagement at download time (-1 when unknown).
   let likeCount: Int64
   let dislikeCount: Int64
+  /// The channel avatar saved next to the artifact (offline rendering).
+  let localAvatarFileName: String?
 
-  init(video: LiveVideoItem, likeCount: Int64 = -1, dislikeCount: Int64 = -1) {
+  init(
+    video: LiveVideoItem,
+    likeCount: Int64 = -1,
+    dislikeCount: Int64 = -1,
+    localAvatarFileName: String? = nil
+  ) {
     thumbnailURL = video.thumbnailURL
     uploaderName = video.uploaderName
     uploaderURL = video.uploaderURL
@@ -131,5 +138,6 @@ struct LiveOfflineVideoMetadata: Codable, Equatable {
     self.requiresMembership = video.requiresMembership
     self.likeCount = likeCount
     self.dislikeCount = dislikeCount
+    self.localAvatarFileName = localAvatarFileName
   }
 }

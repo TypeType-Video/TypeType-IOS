@@ -135,13 +135,18 @@ enum DemoTheme {
     // iOS 26 paints the navigation bar through `_UIBarBackground`, which
     // SwiftUI's `toolbarBackground` does not reach (the white strip at the
     // top of every page). Bind the UIKit appearance to the same resolver.
-    // Grouped list cards follow the theme: the cell background IS the card
-    // colour — the same row surface the glass cards use — and the table
-    // background shows in the gaps (the page colour).
-    UITableViewCell.appearance().backgroundColor = UIColor(DemoTheme.rowBackground)
-    UICollectionViewCell.appearance().backgroundColor = UIColor(DemoTheme.rowBackground)
-    UITableView.appearance().backgroundColor = UIColor(DemoTheme.background)
-    UICollectionView.appearance().backgroundColor = UIColor(DemoTheme.background)
+    // The grouped CARD is the cell's backgroundView: paint it with the
+    // theme surface and keep the cell itself clear, so rows and card read
+    // as one surface (the striped interiors came from painting the cell
+    // while the card container stayed system-white).
+    UITableViewCell.appearance().backgroundColor = .clear
+    UICollectionViewCell.appearance().backgroundColor = .clear
+    let cardChrome = ThemeCardChromeView.appearance()
+    cardChrome.backgroundColor = UIColor(DemoTheme.rowBackground)
+    UITableViewCell.appearance().backgroundView = ThemeCardChromeView()
+    UICollectionViewCell.appearance().backgroundView = ThemeCardChromeView()
+    UITableView.appearance().backgroundColor = .clear
+    UICollectionView.appearance().backgroundColor = .clear
     let navAppearance = UINavigationBarAppearance()
     navAppearance.configureWithOpaqueBackground()
     navAppearance.backgroundColor = dynamicColor(role: .background)
@@ -971,6 +976,10 @@ extension View {
   func liveGroupedList() -> some View {
     self
       .listStyle(.insetGrouped)
+      // The list's own background is system grey — the theme's page colour
+      // must show behind the cards instead.
+      .scrollContentBackground(.hidden)
+      .background(DemoTheme.background)
       .environment(\.liveInGroupedList, true)
   }
 }
@@ -1034,3 +1043,7 @@ extension EnvironmentValues {
     set { self[LiveInGroupedListKey.self] = newValue }
   }
 }
+
+/// The grouped-list card behind the rows. The appearance proxy shares one
+/// instance; `applyUIKitAppearance` re-tints it on theme switches.
+final class ThemeCardChromeView: UIView {}

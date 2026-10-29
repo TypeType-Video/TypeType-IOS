@@ -181,8 +181,10 @@ struct LiveVideoLibraryActionsView: View {
           Circle()
             .fill(
               (isActive ? DemoTheme.accent : DemoTheme.rowBackground)
-                .opacity(isActive ? 0.22 : 0.5)
+                .opacity(isActive ? 0.32 : 0.55)
             )
+            // The washes read too dark in themes — lift the glass.
+            .brightness(0.12)
             .glassEffect(
               .regular.tint(
                 isActive ? DemoTheme.accent : DemoTheme.rowBackground
