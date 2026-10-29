@@ -177,6 +177,7 @@ extension LiveAuthenticatedAppView {
           }
         }
       }
+      .background(DemoThemeBackground().ignoresSafeArea())
       .presentationDragIndicator(.visible)
     }
   }

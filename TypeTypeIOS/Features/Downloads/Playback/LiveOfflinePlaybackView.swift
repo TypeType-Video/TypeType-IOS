@@ -30,6 +30,7 @@ struct LiveOfflinePlaybackView: View {
         dependencies: dependencies,
         playerController: controller
       )
+      .background(DemoThemeBackground().ignoresSafeArea())
       .toolbar {
         ToolbarItem(placement: .topBarLeading) {
           Button("Close", systemImage: "xmark") {

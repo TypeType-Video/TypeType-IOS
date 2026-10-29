@@ -42,10 +42,10 @@ extension View {
 /// static) so it repaints the moment the theme switches — a static left the
 /// caption bands in the old theme until the page was recreated.
 private struct SlotChromeBackground: View {
-  @Environment(\.demoTheme) private var palette
-
   var body: some View {
-    palette.background
+    // The STATIC themed colour: the environment palette resolved to its
+    // default (white) here and left white header bands above the cards.
+    DemoTheme.background
       .padding(.horizontal, -24)
       .padding(.vertical, -12)
   }

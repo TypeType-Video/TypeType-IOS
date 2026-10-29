@@ -134,12 +134,12 @@ enum DemoTheme {
     // SwiftUI's `toolbarBackground` does not reach (the white strip at the
     // top of every page). Bind the UIKit appearance to the same resolver.
     // Grouped list cards follow the theme: the cell background IS the card
-    // colour, the table background shows in the gaps between cards. Without
-    // these the cards stay system-white on themed pages.
-    UITableViewCell.appearance().backgroundColor = dynamicColor(role: .groupedSurface)
-    UICollectionViewCell.appearance().backgroundColor = dynamicColor(role: .groupedSurface)
-    UITableView.appearance().backgroundColor = dynamicColor(role: .groupedBackground)
-    UICollectionView.appearance().backgroundColor = dynamicColor(role: .groupedBackground)
+    // colour — the same row surface the glass cards use — and the table
+    // background shows in the gaps (the page colour).
+    UITableViewCell.appearance().backgroundColor = UIColor(DemoTheme.rowBackground)
+    UICollectionViewCell.appearance().backgroundColor = UIColor(DemoTheme.rowBackground)
+    UITableView.appearance().backgroundColor = UIColor(DemoTheme.background)
+    UICollectionView.appearance().backgroundColor = UIColor(DemoTheme.background)
     let navAppearance = UINavigationBarAppearance()
     navAppearance.configureWithOpaqueBackground()
     navAppearance.backgroundColor = dynamicColor(role: .background)
@@ -488,7 +488,7 @@ struct LiveChipButtonStyle: ButtonStyle {
         if #available(iOS 26.0, *) {
           // Liquid Glass pill, tinted with the theme colour.
           Capsule(style: .continuous)
-            .fill(background.opacity(0.55))
+            .fill(background.opacity(0.28))
             .glassEffect(.regular.tint(background), in: .capsule)
         } else {
           Capsule(style: .continuous)

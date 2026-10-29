@@ -47,7 +47,7 @@ struct LiveVideoDescriptionTile: View {
           onSeekTimestamp: onSeekTimestamp,
           onOpenURL: onOpenURL
         )
-        .foregroundStyle(.secondary)
+        .foregroundStyle(.primary)
         .textSelection(.enabled)
 
         if !fullPublication.isEmpty {
