@@ -88,13 +88,14 @@ struct LiveProfileView: View {
   }
 
   private func importPhoto(_ item: PhotosPickerItem) async {
+    defer { selectedPhoto = nil }
     guard let data = try? await item.loadTransferable(type: Data.self) else {
+      viewModel.photoCouldNotBeRead()
       return
     }
     let type = item.supportedContentTypes.first?.preferredMIMEType
       ?? "application/octet-stream"
     await viewModel.uploadAvatar(data: data, mediaType: type)
-    selectedPhoto = nil
   }
 
   private var errorBinding: Binding<Bool> {
