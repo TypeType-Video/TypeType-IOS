@@ -46,7 +46,10 @@ struct LiveDownloadSheet: View {
       }
     }
     .presentationDetents([.medium, .large])
-    .interactiveDismissDisabled(viewModel.isWorking)
+    .presentationDragIndicator(.visible)
+    // Only a live, cancellable transfer traps the sheet: "Saving on this
+    // device" (finishing) and later states must let the user swipe away.
+    .interactiveDismissDisabled(viewModel.isWorking && !viewModel.isFinishing)
     .accessibilityIdentifier("live.download.sheet")
     .task { await deArrowStore.prepare(viewModel.video) }
   }

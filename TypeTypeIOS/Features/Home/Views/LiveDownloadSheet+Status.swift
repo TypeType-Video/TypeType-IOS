@@ -25,7 +25,7 @@ extension LiveDownloadSheet {
   private var trackingStatus: some View {
     Section {
       VStack(alignment: .leading, spacing: 10) {
-        if isFinishing {
+        if viewModel.isFinishing {
           // The transfer is complete and the file is being saved on the
           // device: an honest "finishing" line, no fake 100% bar, no Cancel.
           HStack(spacing: 12) {
@@ -67,12 +67,7 @@ extension LiveDownloadSheet {
     } header: { Text("Progress").liveSectionHeader() }
   }
 
-  /// The server finished the transfer; the app is saving the artifact.
-  private var isFinishing: Bool {
-    guard let job = viewModel.job else { return false }
-    let status = job.status.lowercased()
-    return status == "done" || status == "completed" || job.progressPercent == 100
-  }
+
 
   private var readyStatus: some View {
     Section {

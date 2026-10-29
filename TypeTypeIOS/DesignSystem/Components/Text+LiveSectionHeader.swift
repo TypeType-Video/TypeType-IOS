@@ -47,12 +47,14 @@ private struct SlotChromeCover: ViewModifier {
 /// static) so it repaints the moment the theme switches — a static left the
 /// caption bands in the old theme until the page was recreated.
 private struct SlotChromeBackground: View {
-  @Environment(\.demoTheme) private var palette
-
   var body: some View {
-    // The LIVE palette's page colour (pageBackground): background is the
-    // card colour and the statics resolve stale after theme switches.
-    palette.pageBackground
+    // The STATIC theme colour, not the environment palette: UIKit header
+    // slots never receive the SwiftUI environment, so env lookups resolve
+    // to the default palette (white in light, grey in dark) — which is
+    // exactly the band that showed above every card. The static resolves
+    // from the live theme state. It must equal the colour behind the list
+    // (the table background paints DemoTheme.background).
+    DemoTheme.background
       .padding(.horizontal, -24)
       .padding(.vertical, -12)
   }
