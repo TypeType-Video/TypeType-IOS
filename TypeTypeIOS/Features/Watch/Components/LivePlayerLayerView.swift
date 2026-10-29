@@ -22,6 +22,9 @@ struct LivePlayerLayerView: UIViewControllerRepresentable {
   var onHorizontalSeek: ((PlayerHorizontalSeekEvent) -> Void)? = nil
   var onPictureInPictureUIRestore:
     (((@escaping (Bool) -> Void)) -> Void)? = nil
+  /// The app draws its own chrome in some contexts (offline playback) —
+  /// AVKit's controls then stay hidden.
+  var showsSystemControls = true
 
   func makeCoordinator() -> LivePlayerLayerCoordinator {
     LivePlayerLayerCoordinator(controller: controller)
@@ -32,7 +35,7 @@ struct LivePlayerLayerView: UIViewControllerRepresentable {
   ) -> AVPlayerViewController {
     let playerController = LiveAVPlayerViewController()
     playerController.player = player
-    playerController.showsPlaybackControls = true
+    playerController.showsPlaybackControls = showsSystemControls
     playerController.allowsPictureInPicturePlayback = true
     // Auto-PiP for the idle player must never fire while the native player
     // presents the landscape full screen — that is what swapped white
@@ -85,7 +88,7 @@ struct LivePlayerLayerView: UIViewControllerRepresentable {
       // toggle must cross a runloop tick to take effect.
       playerController.showsPlaybackControls = false
       DispatchQueue.main.async {
-        playerController.showsPlaybackControls = true
+        playerController.showsPlaybackControls = showsSystemControls
       }
     }
     context.coordinator.swipeGestureHandler = onSwipeAdjustment

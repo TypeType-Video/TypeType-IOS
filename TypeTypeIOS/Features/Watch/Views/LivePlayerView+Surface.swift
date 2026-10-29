@@ -83,6 +83,7 @@ extension LivePlayerView {
       LivePlayerLayerView(
         player: controller.player,
         controller: controller,
+        showsSystemControls: !controller.isOfflineContent,
         onSwipeAdjustment: { handleSwipeAdjustment($0) },
         onHorizontalSeek: { handleHorizontalSeek($0) },
         onPictureInPictureUIRestore: { completion in

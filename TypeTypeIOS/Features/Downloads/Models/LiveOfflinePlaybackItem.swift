@@ -53,8 +53,8 @@ struct LiveOfflinePlaybackItem: Identifiable {
       description: meta?.shortDescription ?? "",
       duration: meta?.duration ?? 0,
       viewCount: meta?.viewCount ?? 0,
-      likeCount: -1,
-      dislikeCount: -1,
+      likeCount: meta?.likeCount ?? -1,
+      dislikeCount: meta?.dislikeCount ?? -1,
       uploadDate: "",
       uploaded: meta?.uploaded ?? 0,
       uploaderSubscriberCount: 0,
@@ -82,6 +82,7 @@ extension LivePlayerController {
   /// server loading path, no full-metadata fetch.
   func installOffline(stream: LivePlaybackStream, fileURL: URL) {
     self.stream = stream
+    isOfflineContent = true
     state = .loading
     installPlayerItem(at: fileURL, autoplay: true)
   }

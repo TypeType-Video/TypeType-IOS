@@ -92,7 +92,7 @@ struct LiveVideoEngagementView: View {
                 .accessibilityLabel("Verified")
             }
           }
-          if let subscriberCount {
+          if let subscriberCount, subscriberCount > 0 {
             Text(LiveVideoMetadataFormatter.subscribers(subscriberCount))
               .font(.subheadline)
               .foregroundStyle(.secondary)

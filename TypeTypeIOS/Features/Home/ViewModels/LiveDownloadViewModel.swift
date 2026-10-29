@@ -29,14 +29,21 @@ final class LiveDownloadViewModel: ObservableObject {
 
   let video: LiveVideoItem
   private let center: LiveDownloadCenter
+  /// Engagement captured at download time for the offline watch page.
+  private let likeCount: Int64
+  private let dislikeCount: Int64
   private var recordID: String?
   private var recordsObservation: AnyCancellable?
 
   init(
     video: LiveVideoItem,
-    center: LiveDownloadCenter
+    center: LiveDownloadCenter,
+    likeCount: Int64 = -1,
+    dislikeCount: Int64 = -1
   ) {
     self.video = video
+    self.likeCount = likeCount
+    self.dislikeCount = dislikeCount
     self.center = center
     adoptExistingRecord()
     recordsObservation = center.$records.sink { [weak self] _ in
@@ -81,7 +88,9 @@ final class LiveDownloadViewModel: ObservableObject {
       } else {
         let record = try await center.start(
           video: video,
-          options: options
+          options: options,
+          likeCount: likeCount,
+          dislikeCount: dislikeCount
         )
         recordID = record.id
       }

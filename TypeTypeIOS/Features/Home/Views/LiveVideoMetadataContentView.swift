@@ -90,7 +90,8 @@ struct LiveVideoMetadataContentView: View {
         let relatedReady = !(
           playerController.stream?.relatedStreams.isEmpty ?? true
         )
-        if !(playerController.settings.hideRelatedVideos) {
+        if !playerController.isOfflineContent,
+          !(playerController.settings.hideRelatedVideos) {
           if relatedReady, let related = playerController.stream?.relatedStreams {
             LiveRelatedVideosSection(
               playerController: playerController,
@@ -122,7 +123,8 @@ struct LiveVideoMetadataContentView: View {
           }
         }
 
-        if !playerController.supportsBulletComments {
+        if !playerController.isOfflineContent,
+          !playerController.supportsBulletComments {
           if playerController.settings.hideRelatedVideos || relatedReady {
             LiveCommentsSectionView(
               videoURL: resolvedVideo.url,

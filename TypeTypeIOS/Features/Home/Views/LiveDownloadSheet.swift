@@ -9,10 +9,13 @@ struct LiveDownloadSheet: View {
   init(video: LiveVideoItem, dependencies: AppDependencies) {
     self.dependencies = dependencies
     deArrowStore = dependencies.deArrowStore
+    let stream = dependencies.playbackCoordinator.controller?.stream
     _viewModel = StateObject(
       wrappedValue: LiveDownloadViewModel(
         video: video,
-        center: dependencies.downloadCenter
+        center: dependencies.downloadCenter,
+        likeCount: stream?.likeCount ?? -1,
+        dislikeCount: stream?.dislikeCount ?? -1
       )
     )
   }

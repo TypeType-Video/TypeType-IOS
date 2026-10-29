@@ -4,7 +4,9 @@ extension LiveDownloadCenter {
   @discardableResult
   func start(
     video: LiveVideoItem,
-    options: LiveDownloadOptions
+    options: LiveDownloadOptions,
+    likeCount: Int64 = -1,
+    dislikeCount: Int64 = -1
   ) async throws -> LiveManagedDownload {
     guard let scope = scopeProvider() else {
       throw LiveDownloadCenterError.missingScope
@@ -34,7 +36,11 @@ extension LiveDownloadCenter {
       state: state(for: job),
       localFileName: nil,
       failureMessage: job.error,
-      metadata: LiveOfflineVideoMetadata(video: video)
+      metadata: LiveOfflineVideoMetadata(
+        video: video,
+        likeCount: likeCount,
+        dislikeCount: dislikeCount
+      )
     )
     records.append(record)
     persist()

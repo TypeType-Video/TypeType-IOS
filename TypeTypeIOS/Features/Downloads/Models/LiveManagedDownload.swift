@@ -107,8 +107,11 @@ struct LiveOfflineVideoMetadata: Codable, Equatable {
   let isPostLive: Bool
   let isLiveContent: Bool
   let requiresMembership: Bool
+  /// Engagement at download time (-1 when unknown).
+  let likeCount: Int64
+  let dislikeCount: Int64
 
-  init(video: LiveVideoItem) {
+  init(video: LiveVideoItem, likeCount: Int64 = -1, dislikeCount: Int64 = -1) {
     thumbnailURL = video.thumbnailURL
     uploaderName = video.uploaderName
     uploaderURL = video.uploaderURL
@@ -124,7 +127,9 @@ struct LiveOfflineVideoMetadata: Codable, Equatable {
     isShortFormContent = video.isShortFormContent
     isLive = video.isLive
     isPostLive = video.isPostLive
-    isLiveContent = video.isLiveContent
-    requiresMembership = video.requiresMembership
+    self.isLiveContent = video.isLiveContent
+    self.requiresMembership = video.requiresMembership
+    self.likeCount = likeCount
+    self.dislikeCount = dislikeCount
   }
 }

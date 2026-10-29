@@ -32,6 +32,9 @@ final class LivePlayerController: ObservableObject {
   /// True while the in-house video sits in the docked corner card (the
   /// scroll-away state) instead of the inline player position.
   @Published var isVideoDocked = false
+  /// Playing a downloaded file: no server exists to fill comments,
+  /// related videos or subscriptions — the page must not wait on them.
+  @Published var isOfflineContent = false
   @Published var preparation: LivePlaybackPreparation?
   /// Milliseconds from loading to the first playing frame of the last start.
   @Published var lastStartupMilliseconds: Int?
