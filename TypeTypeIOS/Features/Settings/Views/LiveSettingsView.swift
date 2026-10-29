@@ -155,15 +155,9 @@ struct LiveSettingsView: View {
           iconColor: .systemGreen
         ) {
           LivePortabilityView(
-            service: coordinator.dependencies.portabilityService
+            service: coordinator.dependencies.portabilityService,
+            importService: coordinator.dependencies.importService
           )
-        }
-        LiveSettingsLinkRow(
-          title: "Import data",
-          icon: "square.and.arrow.down.fill",
-          iconColor: .systemGreen
-        ) {
-          LiveImportView(service: coordinator.dependencies.importService)
         }
         LiveSettingsLinkRow(
           title: "Privacy",

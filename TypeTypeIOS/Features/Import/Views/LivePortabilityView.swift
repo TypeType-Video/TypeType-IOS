@@ -2,18 +2,35 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 struct LivePortabilityView: View {
+  let importService: LiveImportServiceProtocol
   @StateObject private var viewModel: LivePortabilityViewModel
   @State private var showsFilePicker = false
   @State private var showsShareSheet = false
 
-  init(service: LivePortabilityServiceProtocol) {
+  init(
+    service: LivePortabilityServiceProtocol,
+    importService: LiveImportServiceProtocol
+  ) {
     _viewModel = StateObject(
       wrappedValue: LivePortabilityViewModel(service: service)
     )
+    self.importService = importService
   }
 
   var body: some View {
     Form {
+      Section {
+        NavigationLink {
+          LiveImportView(service: importService)
+        } label: {
+          VStack(alignment: .leading, spacing: 2) {
+            Text("Import & restore")
+            Text("PipePipe, YouTube Takeout, TypeType backups")
+              .font(.caption)
+              .foregroundStyle(.secondary)
+          }
+        }
+      } header: { Text("Tools").liveSectionHeader() }
       headerSection
       modeSection
       if jobActive {
