@@ -369,10 +369,7 @@ final class RootCoordinatorTests: XCTestCase {
         apiClient: apiClient
       ),
       bugReportsService: LiveBugReportsService(apiClient: apiClient),
-      importService: LiveImportService(apiClient: apiClient),
-      youtubeSessionService: LiveYouTubeSessionService(
-        apiClient: apiClient
-      )
+      importService: LiveImportService(apiClient: apiClient)
     )
   }
 
