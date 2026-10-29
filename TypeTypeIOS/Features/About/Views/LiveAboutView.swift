@@ -167,9 +167,3 @@ struct LiveAboutView: View {
     versions = try? await versionService.fetchVersions()
   }
 }
-
-private extension String {
-  func removingSuffix(_ suffix: String) -> String {
-    hasSuffix(suffix) ? String(dropLast(suffix.count)) : self
-  }
-}
