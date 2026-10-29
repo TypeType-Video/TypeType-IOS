@@ -86,7 +86,6 @@ extension URLSessionAPIClient {
     } catch is CancellationError {
       throw CancellationError()
     } catch let error as URLError where error.code == .cancelled {
-      // A cancelled task is not a network failure: no retry, no fallback, no diagnostic entry.
       throw CancellationError()
     } catch {
       await recordDiagnostic(
@@ -137,7 +136,6 @@ extension URLSessionAPIClient {
     } catch is CancellationError {
       throw CancellationError()
     } catch let error as URLError where error.code == .cancelled {
-      // A cancelled task is not a network failure: no retry, no fallback, no diagnostic entry.
       throw CancellationError()
     } catch {
       await recordDiagnostic(
