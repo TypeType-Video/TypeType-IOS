@@ -31,27 +31,15 @@ extension View {
 }
 
 private struct SlotChromeCover: ViewModifier {
-  @Environment(\.liveInGroupedList) private var grouped
-
   func body(content: Content) -> some View {
-    // The system header chrome exists on GROUPED lists too — the cover is
-    // needed everywhere, painted in the list's own background colour (the
-    // gap colour between cards in grouped lists).
+    // The system header chrome exists on grouped lists too. The cover is
+    // the STATIC page colour: UIKit header slots do not receive the SwiftUI
+    // environment, so palette/env lookups resolved to defaults (white).
     ZStack(alignment: .leading) {
-      slotColor
-        .padding(.horizontal, -24)
-        .padding(.vertical, -12)
+      SlotChromeBackground()
       content.frame(maxWidth: .infinity, alignment: .leading)
     }
-    .background(
-      slotColor
-        .padding(.horizontal, -24)
-        .padding(.vertical, -12)
-    )
-  }
-
-  private var slotColor: Color {
-    grouped ? DemoTheme.groupedBackground : DemoTheme.rowBackground
+    .background(SlotChromeBackground())
   }
 }
 
@@ -60,9 +48,8 @@ private struct SlotChromeCover: ViewModifier {
 /// caption bands in the old theme until the page was recreated.
 private struct SlotChromeBackground: View {
   var body: some View {
-    // The PAGE colour (pageBackground), not the background role: background
-    // is the card white here, which painted white bands above every card.
-    DemoTheme.pageBackground
+    // The page colour — the same one the page background paints.
+    DemoTheme.background
       .padding(.horizontal, -24)
       .padding(.vertical, -12)
   }
