@@ -54,19 +54,21 @@ struct LiveVideoEngagementView: View {
   /// Views, likes and dislikes live in their own row — they used to have
   /// no place on the page at all.
   private var statsRow: some View {
-    HStack(spacing: 10) {
+    HStack(spacing: 8) {
       if video.viewCount >= 0 {
         metric(count: video.viewCount, symbol: "eye.fill")
+          .liveGlassChip()
       }
       if likeCount >= 0 {
         metric(count: likeCount, symbol: "hand.thumbsup.fill")
+          .liveGlassChip()
       }
       if dislikeCount >= 0 {
         metric(count: dislikeCount, symbol: "hand.thumbsdown.fill")
+          .liveGlassChip()
       }
       Spacer(minLength: 0)
     }
-    .padding(.horizontal, 2)
     .accessibilityIdentifier("live.video.stats")
   }
 
@@ -102,18 +104,8 @@ struct LiveVideoEngagementView: View {
       }
       .contentShape(Rectangle())
       .padding(12)
-      .background {
-        if #available(iOS 26.0, *) {
-          // Liquid Glass card — the modern look, same family as the
-          // settings icon chips.
-          RoundedRectangle(cornerRadius: 14, style: .continuous)
-            .fill(DemoTheme.rowBackground.opacity(0.65))
-            .glassEffect(.regular, in: .rect(cornerRadius: 14))
-        } else {
-          RoundedRectangle(cornerRadius: 14, style: .continuous)
-            .strokeBorder(DemoTheme.separator, lineWidth: 1)
-        }
-      }
+      // Same themed glass as the rest of the page — follows the theme.
+      .liveGlassCard(cornerRadius: 14)
     }
     .buttonStyle(.plain)
     .accessibilityIdentifier("live.video.channel.banner")

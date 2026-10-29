@@ -477,10 +477,17 @@ struct LiveChipButtonStyle: ButtonStyle {
       .padding(.horizontal, 14)
       .padding(.vertical, 6)
       .frame(minHeight: 38)
-      .background(
-        Capsule(style: .continuous)
-          .fill(background)
-      )
+      .background {
+        if #available(iOS 26.0, *) {
+          // Liquid Glass pill, tinted with the theme colour.
+          Capsule(style: .continuous)
+            .fill(background.opacity(0.55))
+            .glassEffect(.regular.tint(background), in: .capsule)
+        } else {
+          Capsule(style: .continuous)
+            .fill(background)
+        }
+      }
       .overlay(
         Capsule(style: .continuous)
           .strokeBorder(
@@ -948,5 +955,52 @@ extension View {
   /// whole list.
   func liveGroupedList() -> some View {
     self.listStyle(.insetGrouped)
+  }
+}
+
+extension View {
+  /// Themed Liquid Glass card: glass tinted with the theme's surface on
+  /// iOS 26, the plain theme surface below. Every glass card and pill must
+  /// follow the active theme (TypeType, AMOLED, ...).
+  @ViewBuilder
+  func liveGlassCard(cornerRadius: CGFloat = 14) -> some View {
+    if #available(iOS 26.0, *) {
+      self.background {
+        RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+          .fill(DemoTheme.rowBackground.opacity(0.55))
+          .glassEffect(
+            .regular.tint(DemoTheme.rowBackground),
+            in: .rect(cornerRadius: cornerRadius)
+          )
+      }
+    } else {
+      self.background {
+        RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+          .fill(DemoTheme.rowBackground)
+      }
+    }
+  }
+
+  /// Themed Liquid Glass pill for compact chips (stats, actions).
+  @ViewBuilder
+  func liveGlassChip() -> some View {
+    if #available(iOS 26.0, *) {
+      self
+        .padding(.horizontal, 10)
+        .padding(.vertical, 5)
+        .background {
+          Capsule(style: .continuous)
+            .fill(DemoTheme.rowBackground.opacity(0.5))
+            .glassEffect(
+              .regular.tint(DemoTheme.rowBackground),
+              in: .capsule
+            )
+        }
+    } else {
+      self
+        .padding(.horizontal, 10)
+        .padding(.vertical, 5)
+        .background(Capsule(style: .continuous).fill(DemoTheme.rowBackground))
+    }
   }
 }

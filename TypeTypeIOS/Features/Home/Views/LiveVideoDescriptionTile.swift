@@ -59,10 +59,7 @@ struct LiveVideoDescriptionTile: View {
     }
     .padding(14)
     .frame(maxWidth: .infinity, alignment: .leading)
-    .background(DemoTheme.groupedSurface)
-    .clipShape(
-      RoundedRectangle(cornerRadius: 16, style: .continuous)
-    )
+    .liveGlassCard(cornerRadius: 16)
   }
 
   private var summary: String {
