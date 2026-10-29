@@ -1,10 +1,6 @@
 import SwiftUI
 
-/// The segment strip above the library content. It reads the palette from
-/// the environment: as a safe-area inset it sits outside the themed list
-/// and would otherwise keep the previous theme's resolved colours.
-/// The action tile's shell: system Liquid Glass where available, the
-/// grouped surface colour otherwise.
+/// The action tile's shell: Liquid Glass where available, the grouped surface colour otherwise.
 struct LiveLibraryActionGlass: ViewModifier {
   @Environment(\.themePalette) private var palette
   func body(content: Content) -> some View {

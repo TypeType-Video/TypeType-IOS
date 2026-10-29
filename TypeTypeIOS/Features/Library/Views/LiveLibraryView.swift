@@ -1,8 +1,6 @@
 import SwiftUI
 
-/// The library tab: one page with a segment strip like beta — history,
-/// personal collections, playlists, and downloads. The old History and
-/// Playlists tabs fold into these sections.
+/// The library tab's sections, switched by the segment strip.
 enum LiveLibrarySection: String, CaseIterable, Identifiable {
   case history, favorites, watchLater, playlists, downloads
 
@@ -20,16 +18,16 @@ enum LiveLibrarySection: String, CaseIterable, Identifiable {
 }
 
 struct LiveLibraryView: View {
-  @Environment(\.themePalette) private var palette
+  @Environment(\.themePalette) var palette
   @ObservedObject var coordinator: RootCoordinator
   @Binding var section: LiveLibrarySection
   // One model per section owned here: the strip actions act on the same
   // instance the pages render, and the sort survives browsing.
-  @StateObject private var historyModel: LiveHistoryViewModel
-  @StateObject private var favoritesModel: LiveCollectionViewModel
-  @StateObject private var watchLaterModel: LiveCollectionViewModel
-  @State private var historyConfirmsClear = false
-  @State private var createsPlaylist = false
+  @StateObject var historyModel: LiveHistoryViewModel
+  @StateObject var favoritesModel: LiveCollectionViewModel
+  @StateObject var watchLaterModel: LiveCollectionViewModel
+  @State var historyConfirmsClear = false
+  @State var createsPlaylist = false
 
   init(coordinator: RootCoordinator, section: Binding<LiveLibrarySection>) {
     self.coordinator = coordinator
@@ -88,10 +86,7 @@ struct LiveLibraryView: View {
       \.librarySectionContext,
       LiveLibrarySectionContext(value: section, binding: $section)
     )
-    // The strip sits above the stack as an inset, so no page chrome (the
-    // History search field) can slide over it. The section's action rides
-    // in the same row — plain SwiftUI, no bar machinery that the pager
-    // could hide.
+    // An inset above the stack, so no page chrome (the History search field) slides over it.
     .safeAreaInset(edge: .top, spacing: 0) {
       HStack(spacing: 6) {
         LiveLibrarySectionStrip(selection: $section)
@@ -105,76 +100,6 @@ struct LiveLibraryView: View {
       .background(palette.background)
     }
     .accessibilityIdentifier("live.library.screen")
-  }
-
-  /// The section's action, always visible at the strip's trailing edge.
-  @ViewBuilder
-  private var sectionAction: some View {
-    switch section {
-    case .history:
-      Button {
-        historyConfirmsClear = true
-      } label: {
-        Image(systemName: "trash")
-      }
-      .foregroundStyle(.red)
-      .disabled(historyModel.items.isEmpty)
-      .accessibilityLabel("Clear history")
-      .popover(
-        isPresented: $historyConfirmsClear,
-        attachmentAnchor: .point(.init(x: 0.5, y: 1.0)),
-        arrowEdge: .top
-      ) {
-        LiveConfirmCard(
-          title: "Clear watch history?",
-          message: "This removes every video from your watch history.",
-          confirmTitle: "Clear all"
-        ) {
-          Task { await historyModel.clear() }
-        }
-      }
-    case .favorites:
-      sortMenu(for: favoritesModel)
-    case .watchLater:
-      sortMenu(for: watchLaterModel)
-    case .playlists:
-      Button {
-        createsPlaylist = true
-      } label: {
-        Image(systemName: "plus")
-      }
-      .accessibilityLabel("New playlist")
-      .accessibilityIdentifier("live.playlists.add")
-    case .downloads:
-      Button {
-        Task { await coordinator.dependencies.downloadCenter.refresh() }
-      } label: {
-        Image(systemName: "arrow.clockwise")
-      }
-      .accessibilityLabel("Refresh downloads")
-    }
-  }
-
-  private func sortMenu(
-    for model: LiveCollectionViewModel
-  ) -> some View {
-    Menu {
-      Picker(
-        "Sort",
-        selection: Binding(
-          get: { model.sort },
-          set: { model.sort = $0 }
-        )
-      ) {
-        ForEach(LiveCollectionViewModel.Sort.allCases) { order in
-          Text(order.title).tag(order)
-        }
-      }
-    } label: {
-      Image(systemName: "arrow.up.arrow.down")
-    }
-    .disabled(model.videos.isEmpty)
-    .accessibilityLabel("Sort")
   }
 
   @ViewBuilder
