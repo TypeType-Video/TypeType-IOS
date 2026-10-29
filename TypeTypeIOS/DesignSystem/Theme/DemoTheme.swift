@@ -121,14 +121,10 @@ enum DemoTheme {
     // every UIKit layer so the rows show the page colour behind them:
     // transparent cell backgrounds, empty background views (kills the
     // Liquid Glass row fill), clear table backgrounds.
-    // Cell backgrounds stay clear so themed pages show through — but the
-    // cell's backgroundView is NOT blanked: in grouped lists that view IS
-    // the rounded section card (blanking it flattened the modern look).
-    // Control-row fills are handled per row by `liveRowFill()`.
-    UITableViewCell.appearance().backgroundColor = .clear
-    UICollectionViewCell.appearance().backgroundColor = .clear
-    UITableView.appearance().backgroundColor = .clear
-    UICollectionView.appearance().backgroundColor = .clear
+    // The list/cell appearance neutralization is retired with the Android
+    // look: painting cell and table backgrounds .clear removed the grouped
+    // section cards entirely (the modern iOS look needs them). Themed
+    // pages handle row fills per row via `liveRowFill()`.
     // Transparent, not a surface color: painting this white put a square
     // block behind every section header, clashing with the rounded cards.
     UITableViewHeaderFooterView.appearance().backgroundColor = .clear
