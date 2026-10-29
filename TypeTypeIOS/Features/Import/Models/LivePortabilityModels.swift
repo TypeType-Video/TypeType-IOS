@@ -5,6 +5,12 @@ enum LivePortabilityDirection: String, Codable, CaseIterable, Identifiable {
   case `import`
 
   var id: String { rawValue }
+
+  /// Tolerant: an unknown wire value must not fail the whole job payload.
+  init(from decoder: Decoder) throws {
+    let raw = (try? decoder.singleValueContainer().decode(String.self)) ?? ""
+    self = LivePortabilityDirection(rawValue: raw) ?? .export
+  }
 }
 
 enum LivePortabilityFidelity: String, Codable {
@@ -30,6 +36,13 @@ enum LivePortabilityJobState: String, Codable {
   case completed
   case failed
   case cancelled
+
+  /// Tolerant: unknown states keep the poll running (non-terminal) instead
+  /// of failing the decode.
+  init(from decoder: Decoder) throws {
+    let raw = (try? decoder.singleValueContainer().decode(String.self)) ?? ""
+    self = LivePortabilityJobState(rawValue: raw) ?? .queued
+  }
 }
 
 struct LivePortabilityCapability: Codable, Equatable, Hashable {
@@ -81,6 +94,21 @@ struct LivePortabilityPreview: Codable, Equatable {
   let counts: [String: Int]
   let duplicates: Int
   let issues: [LivePortabilityIssue]
+
+  /// Tolerant: the server marks these nullable with Kotlin defaults.
+  init(from decoder: Decoder) throws {
+    let values = try decoder.container(keyedBy: CodingKeys.self)
+    detection = try values.decodeIfPresent(
+      LivePortabilityDetection.self,
+      forKey: .detection
+    )
+    counts = try values.decodeIfPresent([String: Int].self, forKey: .counts) ?? [:]
+    duplicates = try values.decodeIfPresent(Int.self, forKey: .duplicates) ?? 0
+    issues = try values.decodeIfPresent(
+      [LivePortabilityIssue].self,
+      forKey: .issues
+    ) ?? []
+  }
 }
 
 struct LivePortabilityProgress: Codable, Equatable {
@@ -88,6 +116,15 @@ struct LivePortabilityProgress: Codable, Equatable {
   let unit: String?
   let processed: Int
   let total: Int?
+
+  /// Tolerant: `processed` is defaulted on the server side.
+  init(from decoder: Decoder) throws {
+    let values = try decoder.container(keyedBy: CodingKeys.self)
+    phase = try values.decodeIfPresent(String.self, forKey: .phase)
+    unit = try values.decodeIfPresent(String.self, forKey: .unit)
+    processed = try values.decodeIfPresent(Int.self, forKey: .processed) ?? 0
+    total = try values.decodeIfPresent(Int.self, forKey: .total)
+  }
 }
 
 struct LivePortabilityJob: Codable, Equatable, Identifiable {
@@ -102,6 +139,36 @@ struct LivePortabilityJob: Codable, Equatable, Identifiable {
   let progress: LivePortabilityProgress?
   let errorCode: String?
   let errorMessage: String?
+
+  /// Tolerant: `result` is nullable in `PortabilityJobDto` and the enums
+  /// may carry wire values this build doesn't know — required decoding
+  /// failed every export response ("communication with the server").
+  init(from decoder: Decoder) throws {
+    let values = try decoder.container(keyedBy: CodingKeys.self)
+    id = try values.decode(String.self, forKey: .id)
+    kind = try values.decodeIfPresent(
+      LivePortabilityDirection.self,
+      forKey: .kind
+    ) ?? .export
+    state = try values.decodeIfPresent(
+      LivePortabilityJobState.self,
+      forKey: .state
+    ) ?? .queued
+    createdAt = try values.decodeIfPresent(Int64.self, forKey: .createdAt) ?? 0
+    updatedAt = try values.decodeIfPresent(Int64.self, forKey: .updatedAt) ?? 0
+    requestId = try values.decodeIfPresent(String.self, forKey: .requestId)
+    preview = try values.decodeIfPresent(
+      LivePortabilityPreview.self,
+      forKey: .preview
+    )
+    result = try values.decodeIfPresent([String: Int].self, forKey: .result) ?? [:]
+    progress = try values.decodeIfPresent(
+      LivePortabilityProgress.self,
+      forKey: .progress
+    )
+    errorCode = try values.decodeIfPresent(String.self, forKey: .errorCode)
+    errorMessage = try values.decodeIfPresent(String.self, forKey: .errorMessage)
+  }
 
   var isTerminal: Bool {
     state == .completed || state == .failed || state == .cancelled
