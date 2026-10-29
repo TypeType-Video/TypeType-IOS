@@ -24,7 +24,7 @@ struct LiveSettingsPlaybackSection: View {
         "Default speed",
         selection: $settings.defaultPlaybackSpeed,
         options: [0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 2.0]
-          .map { ($0, "\($0)x") }
+          .map { (Optional($0), "\($0)x") }
       )
       Toggle(
         "High-quality playback",

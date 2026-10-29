@@ -133,6 +133,13 @@ enum DemoTheme {
     // iOS 26 paints the navigation bar through `_UIBarBackground`, which
     // SwiftUI's `toolbarBackground` does not reach (the white strip at the
     // top of every page). Bind the UIKit appearance to the same resolver.
+    // Grouped list cards follow the theme: the cell background IS the card
+    // colour, the table background shows in the gaps between cards. Without
+    // these the cards stay system-white on themed pages.
+    UITableViewCell.appearance().backgroundColor = dynamicColor(role: .groupedSurface)
+    UICollectionViewCell.appearance().backgroundColor = dynamicColor(role: .groupedSurface)
+    UITableView.appearance().backgroundColor = dynamicColor(role: .groupedBackground)
+    UICollectionView.appearance().backgroundColor = dynamicColor(role: .groupedBackground)
     let navAppearance = UINavigationBarAppearance()
     navAppearance.configureWithOpaqueBackground()
     navAppearance.backgroundColor = dynamicColor(role: .background)

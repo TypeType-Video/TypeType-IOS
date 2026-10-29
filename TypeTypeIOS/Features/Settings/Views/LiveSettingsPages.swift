@@ -415,7 +415,7 @@ struct LiveSettingsPlayerView: View {
   private var localPlaybackSection: some View {
     Section {
       Toggle(
-        "Autoplay next video",
+        "Autoplay on this device",
         isOn: preferences.binding(\.playerAutoplayEnabled)
       )
       if preferences.preferences.playerAutoplayEnabled {
