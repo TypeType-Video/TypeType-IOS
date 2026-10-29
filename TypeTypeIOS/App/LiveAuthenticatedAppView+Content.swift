@@ -136,7 +136,8 @@ extension LiveAuthenticatedAppView {
 
   @ViewBuilder private func miniPlayer(
     containerSize: CGSize,
-    tabBarBand: CGFloat
+    tabBarBand: CGFloat,
+    topBand: CGFloat
   ) -> some View {
     // The in-app card is the FALLBACK for a failed or unavailable PiP —
     // while the system PiP window is engaged it would only duplicate it.
@@ -149,7 +150,8 @@ extension LiveAuthenticatedAppView {
           presentsExpandedPlayback = true
         },
         containerSize: containerSize,
-        tabBarBand: tabBarBand
+        tabBarBand: tabBarBand,
+        topBand: topBand
       )
       .transition(.move(edge: .bottom).combined(with: .opacity))
       .zIndex(2)
