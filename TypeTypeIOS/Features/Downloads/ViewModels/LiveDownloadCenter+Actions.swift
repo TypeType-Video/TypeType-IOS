@@ -33,7 +33,8 @@ extension LiveDownloadCenter {
       job: job,
       state: state(for: job),
       localFileName: nil,
-      failureMessage: job.error
+      failureMessage: job.error,
+      metadata: LiveOfflineVideoMetadata(video: video)
     )
     records.append(record)
     persist()

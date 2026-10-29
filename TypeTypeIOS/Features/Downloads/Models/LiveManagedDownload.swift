@@ -77,9 +77,54 @@ struct LiveManagedDownload: Codable, Equatable, Identifiable {
   var localFileName: String?
   var artifactChecksum: String?
   var failureMessage: String?
+  /// Watch-page metadata captured at download time. Optional: records
+  /// persisted before this field existed decode as nil.
+  var metadata: LiveOfflineVideoMetadata?
 
   var progress: Double? {
     guard let value = job.progressPercent else { return nil }
     return Double(min(max(value, 0), 100)) / 100
+  }
+}
+
+/// Everything the offline watch page needs beyond title and URL, frozen at
+/// download time so the page renders without a server.
+struct LiveOfflineVideoMetadata: Codable, Equatable {
+  let thumbnailURL: String
+  let uploaderName: String
+  let uploaderURL: String
+  let uploaderAvatarURL: String
+  let duration: Int64
+  let viewCount: Int64
+  let uploadDate: String
+  let uploaded: Int64
+  let uploaderVerified: Bool
+  let shortDescription: String?
+  let publishedAt: Int64?
+  let streamType: String
+  let isShortFormContent: Bool
+  let isLive: Bool
+  let isPostLive: Bool
+  let isLiveContent: Bool
+  let requiresMembership: Bool
+
+  init(video: LiveVideoItem) {
+    thumbnailURL = video.thumbnailURL
+    uploaderName = video.uploaderName
+    uploaderURL = video.uploaderURL
+    uploaderAvatarURL = video.uploaderAvatarURL
+    duration = video.duration
+    viewCount = video.viewCount
+    uploadDate = video.uploadDate
+    uploaded = video.uploaded
+    uploaderVerified = video.uploaderVerified
+    shortDescription = video.shortDescription
+    publishedAt = video.publishedAt
+    streamType = video.streamType
+    isShortFormContent = video.isShortFormContent
+    isLive = video.isLive
+    isPostLive = video.isPostLive
+    isLiveContent = video.isLiveContent
+    requiresMembership = video.requiresMembership
   }
 }

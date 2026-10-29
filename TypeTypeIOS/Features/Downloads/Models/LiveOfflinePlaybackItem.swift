@@ -15,49 +15,51 @@ struct LiveOfflinePlaybackItem: Identifiable {
   /// The watch page's video, built from the thin download record (title and
   /// URL are all a managed download keeps).
   var watchVideo: LiveVideoItem {
-    LiveVideoItem(
+    let meta = record.metadata
+    return LiveVideoItem(
       id: record.id,
       title: record.title,
       url: record.videoURL,
-      thumbnailURL: "",
-      uploaderName: "",
-      uploaderURL: "",
-      uploaderAvatarURL: "",
-      duration: 0,
-      viewCount: 0,
-      uploadDate: "",
-      uploaded: 0,
-      streamType: "video",
-      isShortFormContent: false,
-      uploaderVerified: false,
-      shortDescription: nil,
-      publishedAt: nil,
-      isLive: false,
-      isPostLive: false,
-      isLiveContent: false,
-      requiresMembership: false
+      thumbnailURL: meta?.thumbnailURL ?? "",
+      uploaderName: meta?.uploaderName ?? "",
+      uploaderURL: meta?.uploaderURL ?? "",
+      uploaderAvatarURL: meta?.uploaderAvatarURL ?? "",
+      duration: meta?.duration ?? 0,
+      viewCount: meta?.viewCount ?? 0,
+      uploadDate: meta?.uploadDate ?? "",
+      uploaded: meta?.uploaded ?? 0,
+      streamType: meta?.streamType ?? "video",
+      isShortFormContent: meta?.isShortFormContent ?? false,
+      uploaderVerified: meta?.uploaderVerified ?? false,
+      shortDescription: meta?.shortDescription,
+      publishedAt: meta?.publishedAt,
+      isLive: meta?.isLive ?? false,
+      isPostLive: meta?.isPostLive ?? false,
+      isLiveContent: meta?.isLiveContent ?? false,
+      requiresMembership: meta?.requiresMembership ?? false
     )
   }
 
   /// Synthetic stream metadata so the watch page renders without a server.
   var watchStream: LivePlaybackStream {
-    LivePlaybackStream(
+    let meta = record.metadata
+    return LivePlaybackStream(
       id: record.id,
       title: record.title,
-      uploaderName: "",
-      uploaderURL: "",
-      uploaderAvatarURL: "",
-      thumbnailURL: "",
-      description: "",
-      duration: 0,
-      viewCount: 0,
+      uploaderName: meta?.uploaderName ?? "",
+      uploaderURL: meta?.uploaderURL ?? "",
+      uploaderAvatarURL: meta?.uploaderAvatarURL ?? "",
+      thumbnailURL: meta?.thumbnailURL ?? "",
+      description: meta?.shortDescription ?? "",
+      duration: meta?.duration ?? 0,
+      viewCount: meta?.viewCount ?? 0,
       likeCount: -1,
       dislikeCount: -1,
       uploadDate: "",
-      uploaded: 0,
+      uploaded: meta?.uploaded ?? 0,
       uploaderSubscriberCount: 0,
-      uploaderVerified: false,
-      publishedAt: nil,
+      uploaderVerified: meta?.uploaderVerified ?? false,
+      publishedAt: meta?.publishedAt,
       startPosition: 0,
       hlsURL: "",
       videoStreams: [],
