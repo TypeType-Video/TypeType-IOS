@@ -32,7 +32,7 @@ struct LiveDownloadSheet: View {
 
         status
       }
-        .liveThemedList()
+      .liveGroupedList()
       .liveThemeRepaint()
       .navigationTitle("Download")
       .navigationBarTitleDisplayMode(.inline)
