@@ -39,7 +39,7 @@ struct LivePortabilityView: View {
         setupSection
       }
     }
-      .liveThemedList()
+      .liveGroupedList()
       .liveThemeRepaint()
     .navigationTitle("Data and backups")
     .navigationBarTitleDisplayMode(.inline)

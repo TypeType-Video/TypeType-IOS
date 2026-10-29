@@ -16,7 +16,7 @@ struct LiveSettingsEditingPage<Content: View>: View {
         }
       }
     }
-      .liveThemedList()
+      .liveGroupedList()
     .toolbar {
       ToolbarItemGroup(placement: .topBarTrailing) {
         if viewModel.hasChanges {
@@ -103,7 +103,7 @@ struct LiveSettingsAccountsView: View {
       }
       }
     }
-      .liveThemedList()
+      .liveGroupedList()
       .liveThemeRepaint()
     .navigationTitle("Instances and accounts")
     .navigationBarTitleDisplayMode(.inline)

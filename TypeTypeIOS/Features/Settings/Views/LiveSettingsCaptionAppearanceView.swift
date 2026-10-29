@@ -94,7 +94,7 @@ struct LiveSettingsCaptionAppearanceView: View {
           .liveSectionSlotChrome()
       }
     }
-      .liveThemedList()
+      .liveGroupedList()
       .liveThemeRepaint()
     .navigationTitle("Caption appearance")
     .navigationBarTitleDisplayMode(.inline)

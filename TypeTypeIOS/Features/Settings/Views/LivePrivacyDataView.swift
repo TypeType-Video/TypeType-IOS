@@ -68,7 +68,7 @@ struct LivePrivacyDataView: View {
         }
       }
     }
-      .liveThemedList()
+      .liveGroupedList()
       .liveThemeRepaint()
     .refreshable { await viewModel.reload() }
   }

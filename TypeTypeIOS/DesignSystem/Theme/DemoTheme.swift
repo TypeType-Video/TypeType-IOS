@@ -121,18 +121,19 @@ enum DemoTheme {
     // every UIKit layer so the rows show the page colour behind them:
     // transparent cell backgrounds, empty background views (kills the
     // Liquid Glass row fill), clear table backgrounds.
+    // Cell backgrounds stay clear so themed pages show through — but the
+    // cell's backgroundView is NOT blanked: in grouped lists that view IS
+    // the rounded section card (blanking it flattened the modern look).
+    // Control-row fills are handled per row by `liveRowFill()`.
     UITableViewCell.appearance().backgroundColor = .clear
-    UITableViewCell.appearance().backgroundView = EmptyChromeBackgroundView(effect: nil)
     UICollectionViewCell.appearance().backgroundColor = .clear
-    UICollectionViewCell.appearance().backgroundView = EmptyChromeBackgroundView(effect: nil)
     UITableView.appearance().backgroundColor = .clear
     UICollectionView.appearance().backgroundColor = .clear
     // Transparent, not a surface color: painting this white put a square
     // block behind every section header, clashing with the rounded cards.
     UITableViewHeaderFooterView.appearance().backgroundColor = .clear
-    // iOS 27 paints header chrome through backgroundView (a blur material),
-    // which backgroundColor alone does not replace.
-    UITableViewHeaderFooterView.appearance().backgroundView = EmptyChromeBackgroundView(effect: nil)
+    // The header's backgroundView is left alone as well: the grouped look
+    // wants the system chrome back.
     // iOS 26 paints the navigation bar through `_UIBarBackground`, which
     // SwiftUI's `toolbarBackground` does not reach (the white strip at the
     // top of every page). Bind the UIKit appearance to the same resolver.

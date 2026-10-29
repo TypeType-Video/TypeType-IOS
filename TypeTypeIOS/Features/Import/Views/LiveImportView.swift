@@ -21,7 +21,7 @@ struct LiveImportView: View {
       youTubeSection
       typeTypeBackupSection
     }
-      .liveThemedList()
+      .liveGroupedList()
       .liveThemeRepaint()
     .navigationTitle("Import")
     .navigationBarTitleDisplayMode(.inline)
