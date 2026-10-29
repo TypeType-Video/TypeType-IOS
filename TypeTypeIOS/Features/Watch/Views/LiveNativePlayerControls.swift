@@ -105,6 +105,8 @@ struct LiveNativePlayerControls: View {
       }
       Text(LivePlaybackChapterNavigator.clockText(seconds: Int(controller.duration)))
       AirPlayRouteButton()
+        .frame(width: 32, height: 32)
+        .contentShape(Rectangle())
       if !controller.displayedChapters.isEmpty {
         Button {
           presentsChapters = true
@@ -195,6 +197,10 @@ private struct AirPlayRouteButton: UIViewRepresentable {
     view.tintColor = .white
     view.activeTintColor = .white
     view.prioritizesVideoDevices = true
+    view.setContentHuggingPriority(.required, for: .horizontal)
+    view.setContentHuggingPriority(.required, for: .vertical)
+    view.setContentCompressionResistancePriority(.required, for: .horizontal)
+    view.setContentCompressionResistancePriority(.required, for: .vertical)
     view.accessibilityLabel = "AirPlay"
     view.accessibilityIdentifier = "live.player.airplay"
     return view
