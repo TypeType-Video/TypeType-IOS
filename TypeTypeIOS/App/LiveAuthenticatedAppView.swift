@@ -75,8 +75,13 @@ struct LiveAuthenticatedAppView: View {
         playbackCoordinator.hasActivePlayback {
         playbackCoordinator.startSystemPictureInPicture()
       }
-      if phase == .active, controller.pictureInPicture.isEngaged {
+      if phase == .active,
+        controller.pictureInPicture.isEngaged
+          || controller.pictureInPicture.isSystemActive {
         controller.pictureInPicture.bringInline()
+        // A programmatic stop does not reliably fire the system's restore
+        // callback: bring the presentation back ourselves.
+        playbackCoordinator.expand()
       }
     }
     .task {

@@ -12,6 +12,11 @@ final class LivePictureInPictureDriver: NSObject, ObservableObject {
   /// True while waiting for the system to allow a PiP start (during loading
   /// the window cannot open yet). Suppresses the fallback card.
   @Published private(set) var isPendingStart = false
+  /// The system's own truth about the window — a late-confirmed start can
+  /// leave `isEngaged` behind reality.
+  var isSystemActive: Bool {
+    pipController?.isPictureInPictureActive ?? false
+  }
   /// Fired whenever engagement changes (started, failed, stopped).
   var onChange: (() -> Void)?
 
@@ -243,7 +248,10 @@ final class LivePictureInPictureDriver: NSObject, ObservableObject {
   /// before the system animates the window back into the player surface.
   func bringInline() {
     AppLogger.playback.info("pip driver: bring inline requested")
-    guard isEngaged else {
+    // The system is the truth: a late-confirmed window can be up while the
+    // bookkeeping flag says otherwise.
+    let systemActive = pipController?.isPictureInPictureActive ?? false
+    guard isEngaged || systemActive else {
       AppLogger.playback.info("pip driver: bring inline skipped, not engaged")
       return
     }
@@ -262,6 +270,10 @@ extension LivePictureInPictureDriver: AVPictureInPictureControllerDelegate {
     Task { @MainActor [weak self] in
       guard let self else { return }
       didStartConfirmed = true
+      // Late confirms arrive after the start verification gave up and
+      // dropped the flag — but the system window IS up then, and the return
+      // path needs the flag to hand the video back.
+      isEngaged = true
       if let requestedAt = startRequestedAt {
         let ms = Int(Double(DispatchTime.now().uptimeNanoseconds - requestedAt.uptimeNanoseconds) / 1e6)
         AppLogger.playback
