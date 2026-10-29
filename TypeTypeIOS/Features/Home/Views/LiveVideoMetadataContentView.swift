@@ -227,6 +227,19 @@ struct LiveVideoMetadataContentView: View {
           playerController.stream?.uploaderSubscriberCount
       )
     }
+    .onAppear {
+      // Returning from a push (e.g. a channel page): while the page was
+      // covered the video layer lost its host and the system promoted it
+      // to PiP — hand everything back to the stage.
+      if playbackCoordinator.presentation == .mini {
+        playbackCoordinator.expand()
+      }
+      let pip = playerController.pictureInPicture
+      if pip.isEngaged || pip.isSystemActive {
+        AppLogger.playback.info("pip driver: restoring inline after navigation")
+        pip.bringInline()
+      }
+    }
     .onDisappear { playerController.flushHistory() }
   }
 
