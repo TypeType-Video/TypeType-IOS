@@ -83,11 +83,11 @@ struct LiveAuthenticatedAppView: View {
         playbackCoordinator.expand()
       }
     }
+    .environment(\.livePrewarm) { video in
+      coordinator.dependencies.playbackPrewarmer?.prewarm(video)
+    }
     .task {
       coordinator.dependencies.playbackService?.preconnectMedia()
-      LiveVideoCard.onPrewarm = { video in
-        coordinator.dependencies.playbackPrewarmer?.prewarm(video)
-      }
       // Thumbnails draw watch-progress bars from the shared store; seed it
       // at launch so every surface shows them without opening History first.
       if let page = try? await coordinator.dependencies.historyService.history(

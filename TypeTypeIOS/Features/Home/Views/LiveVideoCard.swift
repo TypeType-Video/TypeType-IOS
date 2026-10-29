@@ -1,10 +1,9 @@
 import SwiftUI
 
 struct LiveVideoCard: View {
-  /// Press prewarm hook (configured once by the shell): opens the video's
-  /// session while the finger is still on the card, so the start hides
-  /// behind the press.
-  static var onPrewarm: ((LiveVideoItem) -> Void)?
+  /// Opens the video's session while the finger is still on the card, so
+  /// the start hides behind the press.
+  @Environment(\.livePrewarm) private var prewarm
   @State private var didPrewarm = false
   @Environment(\.liveQuickActionsMenu) private var quickActionsMenu
 
@@ -52,7 +51,7 @@ struct LiveVideoCard: View {
   private func triggerPrewarm() {
     guard !didPrewarm else { return }
     didPrewarm = true
-    Self.onPrewarm?(video)
+    prewarm?(video)
   }
 
   private struct LivePrewarmButtonStyle: ButtonStyle {
