@@ -21,6 +21,7 @@ final class EmptyChromeBackgroundView: UIVisualEffectView {
 enum DemoTheme {
   static var accent = Color(red: 1, green: 0.30, blue: 0.32)
   static var appearanceMode = LiveAppearanceMode.system
+  static var customAccentHex: String? = nil
   static var appearanceAmoled = false
   /// Bumped on every theme change; lists re-create their cells through
   /// `.id(renderToken)` so UIKit-painted cards pick the new palette up.
@@ -78,6 +79,7 @@ enum DemoTheme {
     appearanceMode = preferences.appearanceMode
     appearanceAmoled = preferences.appearanceAmoled
     appearanceTheme = preferences.appearanceTheme
+    customAccentHex = preferences.customAccentHex
     // Was never assigned before: `.system` mode fell back to the UIKit
     // trait collection and missed environment scheme flips.
     systemColorScheme = colorScheme

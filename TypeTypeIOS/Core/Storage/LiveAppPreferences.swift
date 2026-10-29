@@ -30,8 +30,9 @@ enum LiveAccentColor: String, Codable, CaseIterable, Identifiable {
     case .monochrome: return .primary
     case .system: return .accentColor
     case .custom:
-      let hex = LiveAppPreferencesStore.shared.preferences.customAccentHex
-      return hex.flatMap(Color.init(hex:)) ?? .accentColor
+      // Cached static (see DemoTheme): the preferences store is
+      // MainActor-isolated and this property is not.
+      return DemoTheme.customAccentHex.flatMap(Color.init(hex:)) ?? .accentColor
     }
   }
 }

@@ -279,6 +279,9 @@ struct LiveAppearanceAccentDots: View {
         } else {
           Button {
             selection = accent
+            // Live preview: the accent updates while choosing, Save only
+            // persists the choice.
+            DemoTheme.updateAccent(accent)
           } label: {
             Circle()
               .fill(accent.color)
@@ -317,7 +320,10 @@ struct LiveAppearanceAccentDots: View {
       get: { hex.wrappedValue.flatMap(Color.init(hex:)) ?? .accentColor },
       set: { newValue in
         hex.wrappedValue = newValue.hexString
+        // Live preview: refresh the cache and repaint before Save.
+        DemoTheme.customAccentHex = newValue.hexString
         selection = .custom
+        DemoTheme.updateAccent(.custom)
       }
     )
   }
