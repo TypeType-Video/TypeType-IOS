@@ -11,6 +11,9 @@ struct LiveMiniPlayerView: View {
   /// Distance from the container's bottom edge up to the tab bar top; the
   /// card may never enter this band.
   let tabBarBand: CGFloat
+  /// Distance from the container's top edge down past the status bar /
+  /// Dynamic Island; the card may never enter this band either.
+  let topBand: CGFloat
 
   @State private var dragOffset: CGSize = .zero
   @State private var dragStart: CGSize = .zero
@@ -157,9 +160,9 @@ struct LiveMiniPlayerView: View {
   }
 
   private var clampedOffset: CGSize {
-    // Total offset from the flush corner; the card stays inside the margins
-    // and above the tab bar band at all times.
-    let minOffsetY = -(containerSize.height - Self.cardHeight - 2 * Self.margin)
+    // Total offset from the flush corner; the card stays inside the margins,
+    // below the top band and above the tab bar band at all times.
+    let minOffsetY = -(containerSize.height - Self.cardHeight - topBand - Self.margin)
     let maxOffsetY = -(tabBarBand + Self.margin)
     return CGSize(
       width: min(max(restingOffset.width + dragOffset.width, minOffsetX), 0),

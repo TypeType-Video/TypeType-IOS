@@ -64,12 +64,13 @@ extension LiveAuthenticatedAppView {
       // PiP-style free-floating card; the view clamps itself above the tab
       // bar so it never collides with navigation or menus.
       GeometryReader { geo in
-        // Safe zone over the tab bar: the bar's inset plus one margin of
-        // clearance. The card clamp treats this band as untouchable — it
-        // can neither overlap the tabs nor float noticeably above them.
+        // Safe zones at both edges: the tab bar's inset and the status
+        // bar / island's inset, each plus one margin of clearance. The card
+        // clamp treats both bands as untouchable.
         miniPlayer(
           containerSize: geo.size,
-          tabBarBand: geo.safeAreaInsets.bottom + 12
+          tabBarBand: geo.safeAreaInsets.bottom + 12,
+          topBand: geo.safeAreaInsets.top + 12
         )
       }
     }
