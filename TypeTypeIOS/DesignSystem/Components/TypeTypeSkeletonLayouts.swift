@@ -8,6 +8,8 @@ struct TypeTypeSkeletonList: View {
     case cards
     /// Compact rows: small thumbnail and lines beside it.
     case rows
+    /// Settings rows: label lines only, no media chrome.
+    case settings
   }
 
   var layout = Layout.cards
@@ -39,6 +41,7 @@ struct TypeTypeSkeletonList: View {
           switch layout {
           case .cards: card
           case .rows: row
+          case .settings: setting
           }
         }
       }
@@ -61,6 +64,18 @@ struct TypeTypeSkeletonList: View {
         .frame(width: 160, height: 90)
       lines
     }
+  }
+
+  /// A settings row: label line + caption line, nothing that reads as a
+  /// video thumbnail.
+  private var setting: some View {
+    VStack(alignment: .leading, spacing: 8) {
+      TypeTypeSkeleton(cornerRadius: 6)
+        .frame(width: 150, height: 12)
+      TypeTypeSkeleton(cornerRadius: 6)
+        .frame(width: 230, height: 10)
+    }
+    .padding(.vertical, 10)
   }
 
   private var lines: some View {
