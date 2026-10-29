@@ -112,7 +112,6 @@ struct LiveAdminAllowListView: View {
       } header: { Text("Global playlists").liveSectionHeader() }
     }
       .liveThemedList()
-      .liveThemeRepaint()
     .refreshable { await viewModel.reload() }
   }
 
@@ -170,13 +169,14 @@ struct LiveAdminAllowListView: View {
 }
 
 private struct LiveAdminAccessUserRow: View {
+  @Environment(\.themePalette) private var palette
   let user: LiveAdminAllowListUser
 
   var body: some View {
     HStack(spacing: 12) {
       Image(systemName: "person.crop.circle")
         .font(.title2)
-        .foregroundStyle(DemoTheme.accent)
+        .foregroundStyle(palette.accent)
       VStack(alignment: .leading, spacing: 2) {
         Text(user.name)
           .font(.body.weight(.semibold))

@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct LiveAuthenticatedAppView: View {
+  @Environment(\.themePalette) var palette
   @ObservedObject var coordinator: RootCoordinator
   @ObservedObject var serviceSelection: LiveServiceSelection
   @ObservedObject var notificationCenter: LiveNotificationCenter

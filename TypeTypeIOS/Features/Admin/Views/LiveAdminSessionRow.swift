@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct LiveAdminSessionRow: View {
+  @Environment(\.themePalette) private var palette
   let session: LiveAdminSession
 
   var body: some View {
@@ -35,7 +36,7 @@ struct LiveAdminSessionRow: View {
           systemImage: playing.paused ? "pause.fill" : "play.fill"
         )
         .font(.caption)
-        .foregroundStyle(DemoTheme.accent)
+        .foregroundStyle(palette.accent)
         .lineLimit(2)
       }
     }

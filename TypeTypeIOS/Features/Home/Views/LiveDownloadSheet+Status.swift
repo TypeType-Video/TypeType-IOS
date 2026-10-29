@@ -49,7 +49,7 @@ extension LiveDownloadSheet {
           }
           if let progress = viewModel.progress {
             ProgressView(value: progress)
-              .tint(DemoTheme.accent)
+              .tint(palette.accent)
           } else {
             ProgressView()
           }

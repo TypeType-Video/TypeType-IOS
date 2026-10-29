@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct DemoMiniPlayerView: View {
+  @Environment(\.themePalette) private var palette
   @EnvironmentObject private var session: DemoSessionStore
   let video: DemoVideo
   @ObservedObject var controller: DemoPlayerController
@@ -54,7 +55,7 @@ struct DemoMiniPlayerView: View {
     )
     .overlay(alignment: .top) {
       Rectangle()
-        .fill(DemoTheme.separator)
+        .fill(palette.separator)
         .frame(height: 0.5)
         .padding(.horizontal, 18)
     }

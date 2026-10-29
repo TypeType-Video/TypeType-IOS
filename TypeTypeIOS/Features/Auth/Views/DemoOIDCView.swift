@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct DemoOIDCView: View {
+  @Environment(\.themePalette) private var palette
   let preferredColorScheme: ColorScheme
   let onAuthorized: () -> Void
   @Environment(\.dismiss) private var dismiss
@@ -76,7 +77,7 @@ struct DemoOIDCView: View {
         }
       }
     }
-    .tint(DemoTheme.accent)
+    .tint(palette.accent)
     .preferredColorScheme(preferredColorScheme)
     .accessibilityIdentifier("demo.oidc.screen")
   }

@@ -90,7 +90,6 @@ struct LiveAdminBugReportView: View {
             }
           } header: { Text("GitHub").liveSectionHeader() }
         }
-          .liveThemeRepaint()
           .liveThemedList()
       }
     }

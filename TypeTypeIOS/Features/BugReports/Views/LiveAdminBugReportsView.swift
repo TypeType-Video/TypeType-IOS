@@ -93,7 +93,6 @@ struct LiveAdminBugReportsView: View {
         } header: { Text("\(viewModel.total) reports").liveSectionHeader() }
       }
         .liveThemedList()
-      .liveThemeRepaint()
       .listStyle(.plain)
       .refreshable { await viewModel.reload() }
     }

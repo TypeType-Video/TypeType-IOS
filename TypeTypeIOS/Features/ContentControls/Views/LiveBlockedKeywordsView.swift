@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct LiveBlockedKeywordsView: View {
+  @Environment(\.themePalette) private var palette
   let service: LiveContentControlsServiceProtocol
   @StateObject private var viewModel: LiveBlockedKeywordsViewModel
 
@@ -61,7 +62,7 @@ struct LiveBlockedKeywordsView: View {
           .disabled(!viewModel.canAdd)
         }
       } footer: {
-        Text("Videos whose title contains a blocked keyword are hidden.").liveSectionSlotChrome()
+        Text("Videos whose title contains a blocked keyword are hidden.")
       }
 
       if viewModel.keywords.isEmpty {
@@ -78,7 +79,7 @@ struct LiveBlockedKeywordsView: View {
                 if item.global == true {
                   Text("Global")
                     .font(.caption2.weight(.semibold))
-                    .foregroundStyle(DemoTheme.accent)
+                    .foregroundStyle(palette.accent)
                 }
               }
               Spacer()
@@ -92,7 +93,6 @@ struct LiveBlockedKeywordsView: View {
       }
     }
       .liveThemedList()
-      .liveThemeRepaint()
     .listStyle(.plain)
   }
 

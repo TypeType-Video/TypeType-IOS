@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct LiveDownloadSheet: View {
+  @Environment(\.themePalette) var palette
   let dependencies: AppDependencies
   @ObservedObject var deArrowStore: LiveDeArrowStore
   @Environment(\.dismiss) var dismiss
@@ -23,7 +24,7 @@ struct LiveDownloadSheet: View {
   var body: some View {
     NavigationStack {
       Form {
-        Section {
+        LiveSection {
           Text(branding.title)
             .font(.subheadline.weight(.semibold))
             .lineLimit(2)
@@ -36,7 +37,6 @@ struct LiveDownloadSheet: View {
         status
       }
       .liveGroupedList()
-      .liveThemeRepaint()
       .navigationTitle("Download")
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {

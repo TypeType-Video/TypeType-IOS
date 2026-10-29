@@ -24,11 +24,10 @@ struct LiveContentControlEditor: View {
             Toggle("Apply globally", isOn: $global).liveRowFill()
           }
         } footer: {
-          Text("The server validates and normalizes supported URLs.").liveSectionSlotChrome()
+          Text("The server validates and normalizes supported URLs.")
         }
       }
         .liveThemedList()
-      .liveThemeRepaint()
       .navigationTitle("Add \(kind.title.lowercased())")
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {

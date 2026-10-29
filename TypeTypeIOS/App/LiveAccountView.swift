@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct LiveAccountView: View {
+  @Environment(\.themePalette) var palette
   @ObservedObject var coordinator: RootCoordinator
   @ObservedObject var notificationCenter: LiveNotificationCenter
   @ObservedObject var downloadCenter: LiveDownloadCenter
@@ -23,7 +24,6 @@ struct LiveAccountView: View {
         signOutSection
       }
       .liveThemedList()
-      .liveThemeRepaint()
       .navigationTitle("More")
       .navigationBarTitleDisplayMode(.inline)
     }

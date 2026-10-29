@@ -26,7 +26,6 @@ struct LiveAboutView: View {
       }
     }
       .liveThemedList()
-      .liveThemeRepaint()
     .navigationTitle("About")
     .navigationBarTitleDisplayMode(.inline)
     .externalLinkAlert(pendingURL: $pendingURL)
@@ -105,7 +104,6 @@ struct LiveAboutView: View {
       Button("Refresh versions") {
         Task { await refreshVersions() }
       }
-      .liveSectionSlotChrome()
     }
   }
 

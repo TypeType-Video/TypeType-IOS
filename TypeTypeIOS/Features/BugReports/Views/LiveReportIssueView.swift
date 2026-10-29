@@ -70,7 +70,6 @@ struct LiveReportIssueView: View {
       }
     }
       .liveThemedList()
-      .liveThemeRepaint()
     .navigationTitle("Report a problem")
     .navigationBarTitleDisplayMode(.inline)
     .alert("Bug report", isPresented: errorBinding) {

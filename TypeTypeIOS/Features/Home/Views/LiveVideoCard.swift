@@ -6,6 +6,7 @@ struct LiveVideoCard: View {
   @Environment(\.livePrewarm) private var prewarm
   @State private var didPrewarm = false
   @Environment(\.liveQuickActionsMenu) private var quickActionsMenu
+  @Environment(\.themePalette) private var palette
 
   let video: LiveVideoItem
   @ObservedObject private var deArrowStore: LiveDeArrowStore
@@ -107,7 +108,7 @@ struct LiveVideoCard: View {
       .frame(width: 36, height: 36)
       .clipShape(Circle())
       .overlay {
-        Circle().stroke(DemoTheme.separator.opacity(0.35))
+        Circle().stroke(palette.separator.opacity(0.35))
       }
   }
 
@@ -189,7 +190,7 @@ struct LiveVideoCard: View {
         badge("STREAMED", color: .black.opacity(0.72))
       }
       if video.requiresMembership {
-        badge("MEMBERS", color: DemoTheme.accent)
+        badge("MEMBERS", color: palette.accent)
       }
     }
     .padding(7)

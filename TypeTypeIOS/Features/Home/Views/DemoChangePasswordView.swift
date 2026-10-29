@@ -38,7 +38,7 @@ struct DemoChangePasswordView: View {
           .disabled(!canSubmit || isSaving)
           .accessibilityIdentifier("demo.profile.password.save")
         } footer: {
-          Text("The password is validated locally and never stored.").liveSectionSlotChrome()
+          Text("The password is validated locally and never stored.")
         }
       }
       .navigationTitle("Change password")

@@ -8,7 +8,6 @@ extension View {
     if let fraction, fraction > 0 {
       overlay(alignment: .bottom) {
         ProgressView(value: min(fraction, 1))
-          .tint(DemoTheme.accent)
           .background(.black.opacity(0.4))
       }
     } else {

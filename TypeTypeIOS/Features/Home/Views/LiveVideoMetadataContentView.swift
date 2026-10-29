@@ -167,7 +167,6 @@ struct LiveVideoMetadataContentView: View {
     }
     .coordinateSpace(name: "watchScroll")
     .background(DemoThemeBackground())
-      .liveThemeRepaint()
       .liveScrolledState { scrolled in
         isScrolled = scrolled
       }

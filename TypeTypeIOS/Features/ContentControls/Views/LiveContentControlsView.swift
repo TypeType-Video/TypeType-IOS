@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct LiveContentControlsView: View {
+  @Environment(\.themePalette) private var palette
   let canCreateGlobal: Bool
   @StateObject private var viewModel: LiveContentControlsViewModel
   @State private var addsItem = false
@@ -82,7 +83,7 @@ struct LiveContentControlsView: View {
             if item.global == true {
               Text("Global")
                 .font(.caption2.weight(.semibold))
-                .foregroundStyle(DemoTheme.accent)
+                .foregroundStyle(palette.accent)
             }
           }
           .swipeActions {

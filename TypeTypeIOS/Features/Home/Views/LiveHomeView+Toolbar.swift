@@ -124,6 +124,7 @@ extension LiveHomeView {
 /// glyph, photo avatars as the resolved image, everything else falls back
 /// to the person symbol.
 struct LiveToolbarAvatar: View {
+  @Environment(\.themePalette) private var palette
   let user: AuthUser?
   let size: CGFloat
 
@@ -145,7 +146,7 @@ struct LiveToolbarAvatar: View {
       }
     }
     .frame(width: size, height: size)
-    .background(DemoTheme.groupedSurface, in: Circle())
+    .background(palette.groupedSurface, in: Circle())
     .clipShape(Circle())
   }
 }
