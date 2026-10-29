@@ -60,7 +60,10 @@ struct LiveOfflinePlaybackView: View {
       )
     }
     .onDisappear {
-      controller.stopNative()
+      // Offline playback uses the regular AVPlayer path, not nativePlayback;
+      // stop the controller itself so closing the cover cannot leave a local
+      // player running behind Downloads.
+      controller.stop()
     }
     .accessibilityIdentifier("live.offline-player")
   }
