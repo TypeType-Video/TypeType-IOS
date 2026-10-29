@@ -47,9 +47,12 @@ private struct SlotChromeCover: ViewModifier {
 /// static) so it repaints the moment the theme switches — a static left the
 /// caption bands in the old theme until the page was recreated.
 private struct SlotChromeBackground: View {
+  @Environment(\.demoTheme) private var palette
+
   var body: some View {
-    // The page colour — the same one the page background paints.
-    DemoTheme.background
+    // The LIVE palette's page colour (pageBackground): background is the
+    // card colour and the statics resolve stale after theme switches.
+    palette.pageBackground
       .padding(.horizontal, -24)
       .padding(.vertical, -12)
   }

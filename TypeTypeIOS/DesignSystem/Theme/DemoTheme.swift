@@ -163,6 +163,12 @@ enum DemoTheme {
   /// is why a system light/dark flip used to leave the top area stale. No
   /// view teardown involved — navigation stacks and tabs keep their state.
   static func refreshLiveBars() {
+    // The list/cell colours resolve immediately (no dynamic provider) —
+    // they must be re-applied on every theme change or the settings lists
+    // keep the previous theme's greys. Theme updates run on the main actor.
+    MainActor.assumeIsolated {
+      applyUIKitAppearance(LiveAppPreferencesStore.shared.preferences)
+    }
     for scene in UIApplication.shared.connectedScenes
       .compactMap({ $0 as? UIWindowScene }) {
       for window in scene.windows {
