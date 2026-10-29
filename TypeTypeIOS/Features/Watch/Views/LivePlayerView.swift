@@ -208,11 +208,9 @@ struct LivePlayerSizing: ViewModifier {
   }
 
   /// Lower corners round only while the page is scrolled — the "content
-  /// slides under the pinned player" hint. In cinema mode the player
-  /// bleeds 16 pt past each screen edge, so the radius covers that
-  /// distance to land the visible curve on the screen edge.
+  /// slides under the pinned player" hint.
   private var lowerRadius: CGFloat {
     guard isScrolled else { return cinemaMode ? 0 : 16 }
-    return cinemaMode ? 40 : 24
+    return 24
   }
 }

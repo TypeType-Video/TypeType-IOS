@@ -118,7 +118,7 @@ final class LiveNotificationReadTests: XCTestCase {
     )
     await viewModel.prepare()
 
-    viewModel.markReadAndOpen(try XCTUnwrap(viewModel.items.first))
+    _ = viewModel.markReadAndOpen(try XCTUnwrap(viewModel.items.first))
     try await Task.sleep(for: .milliseconds(20))
 
     XCTAssertEqual(service.markReadIDs, ["one"])
@@ -153,7 +153,7 @@ final class LiveNotificationReadTests: XCTestCase {
     unreadCount: Int,
     items: [Data]
   ) throws -> LiveNotificationsPage {
-    let itemJSON = try items.map { String(decoding: $0, as: UTF8.self) }
+    let itemJSON = items.map { String(decoding: $0, as: UTF8.self) }
     return try JSONDecoder().decode(
       LiveNotificationsPage.self,
       from: Data(

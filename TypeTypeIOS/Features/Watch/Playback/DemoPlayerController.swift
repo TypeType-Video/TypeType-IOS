@@ -58,11 +58,6 @@ final class DemoPlayerController: ObservableObject {
     player.seek(to: time, toleranceBefore: .zero, toleranceAfter: .zero)
   }
 
-  func seekRelative(by seconds: Double) {
-    let current = player.currentTime().seconds
-    seek(to: (current.isFinite ? current : 0) + seconds)
-  }
-
   func setPlaybackRate(_ rate: Float) {
     player.defaultRate = rate
     if player.timeControlStatus == .playing {

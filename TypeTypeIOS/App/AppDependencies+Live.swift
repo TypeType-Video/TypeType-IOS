@@ -52,11 +52,33 @@ extension AppDependencies {
         )
       }
     )
-    let authService = AuthService(apiClient: client)
+    let authService = AuthService(
+      apiClient: client,
+      refreshTokenProvider: {
+        serverStore.selectedServerID().flatMap { sessionStore.refreshToken(forServerID: $0) }
+      }
+    )
     let accountProfileService = LiveAccountProfileService(apiClient: client)
+    client.setRefreshCookieObserver { token in
+      guard let serverID = serverStore.selectedServerID() else { return }
+      sessionStore.setRefreshToken(token, forServerID: serverID)
+    }
     client.setTokenRefreshHandler { _ in
-      let token = try await authService.refresh()
-      guard let serverID = serverStore.selectedServerID(),
+      let serverID = serverStore.selectedServerID()
+      let token: String
+      do {
+        token = try await authService.refresh()
+      } catch let NetworkError.statusCode(code, message) where code == 401 {
+        if let serverID {
+          NotificationCenter.default.post(
+            name: .liveSessionExpired,
+            object: nil,
+            userInfo: [LiveSessionExpiry.serverIDKey: serverID]
+          )
+        }
+        throw NetworkError.statusCode(code, message)
+      }
+      guard let serverID,
         sessionStore.updateAccessToken(token, forServerID: serverID)
       else {
         return nil
@@ -143,7 +165,6 @@ extension AppDependencies {
       importService: LiveImportService(apiClient: client),
       portabilityService: LivePortabilityService(apiClient: client),
       versionService: LiveVersionService(apiClient: client),
-      youtubeSessionService: LiveYouTubeSessionService(apiClient: client),
       playbackService: LivePlaybackService(
         apiClient: client,
         serverURLProvider: {

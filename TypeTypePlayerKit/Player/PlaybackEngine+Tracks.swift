@@ -155,10 +155,12 @@ extension PlaybackEngine {
       try checkCurrent(current)
       guard let end = tracks[kind]?.bufferedEnd, end.isValid else { return }
       let reference = clockStarted ? renderer.currentTime : startTime
-      let goal = CMTime(seconds: configuration.forwardBuffer, preferredTimescale: 600)
+      let goalSeconds = BufferPolicy.goal(configuration.forwardBuffer, rate: rate)
+      let goal = CMTime(seconds: goalSeconds, preferredTimescale: 600)
       guard end - reference >= goal else { return }
       if clockStarted {
-        await renderer.waitUntil(end - goal)
+        let refill = CMTime(seconds: BufferPolicy.refillThreshold(goal: goalSeconds), preferredTimescale: 600)
+        await renderer.waitUntil(end - refill)
       } else {
         await withCheckedContinuation { startWaiters.append($0) }
       }

@@ -12,7 +12,7 @@ final class LiveProviderSegmentSource: MediaSegmentSource, @unchecked Sendable {
   let trackKinds: [MP4TrackKind]
   private let tracks: [MP4TrackKind: Track]
   private let loader: LiveProviderRangeLoader
-  private let indexes: [MP4TrackKind: Task<[MP4IndexEntry], Error>]
+  private let indexes: LiveProviderSegmentIndexes
 
   init?(preparation: LivePlaybackPreparation, service: LivePlaybackServiceProtocol) {
     guard case let .separateProgressive(videoURL, audioURL)? = preparation.providerPlayback,
@@ -26,16 +26,11 @@ final class LiveProviderSegmentSource: MediaSegmentSource, @unchecked Sendable {
     self.tracks = tracks
     self.loader = loader
     trackKinds = preparation.audioOnly ? [.audio] : [.video, .audio]
-    indexes = tracks.mapValues { track in
-      Task {
-        let data = try await loader.load(track.url, range: track.indexRange)
-        return try MP4SegmentIndex.entries(in: data, fileOffset: Int64(track.indexRange.lowerBound))
-      }
+    indexes = LiveProviderSegmentIndexes(kinds: Array(tracks.keys)) { kind in
+      guard let track = tracks[kind] else { throw LivePlaybackFailure.invalidPlaylist }
+      let data = try await loader.load(track.url, range: track.indexRange)
+      return try MP4SegmentIndex.entries(in: data, fileOffset: Int64(track.indexRange.lowerBound))
     }
-  }
-
-  deinit {
-    indexes.values.forEach { $0.cancel() }
   }
 
   func initSegment(for kind: MP4TrackKind) async throws -> Data {
@@ -64,8 +59,7 @@ final class LiveProviderSegmentSource: MediaSegmentSource, @unchecked Sendable {
   }
 
   private func entries(_ kind: MP4TrackKind) async throws -> [MP4IndexEntry] {
-    guard let task = indexes[kind] else { throw LivePlaybackFailure.invalidPlaylist }
-    return try await task.value
+    try await indexes.entries(kind)
   }
 
   private static func track(

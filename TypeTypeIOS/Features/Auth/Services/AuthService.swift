@@ -23,9 +23,11 @@ protocol AuthServiceProtocol {
 
 final class AuthService: AuthServiceProtocol {
   private let apiClient: APIClient
+  private let refreshTokenProvider: () -> String?
 
-  init(apiClient: APIClient) {
+  init(apiClient: APIClient, refreshTokenProvider: @escaping () -> String? = { nil }) {
     self.apiClient = apiClient
+    self.refreshTokenProvider = refreshTokenProvider
   }
 
   func registrationStatus() async throws -> RegisterStatus {
@@ -81,10 +83,20 @@ final class AuthService: AuthServiceProtocol {
   }
 
   func refresh() async throws -> String {
-    try await requestAccessToken(
+    guard let refreshToken = refreshTokenProvider() else {
+      return try await requestAccessToken(
+        path: "/auth/refresh",
+        payload: EmptyJSONPayload()
+      )
+    }
+    // Without cookies the server reads the token from the body; with them a stale stored cookie would win.
+    let endpoint = APIEndpoint(
       path: "/auth/refresh",
-      payload: EmptyJSONPayload()
+      method: .post,
+      body: try APIEndpoint.jsonBody(RefreshTokenPayload(token: refreshToken)),
+      handlesCookies: false
     )
+    return try await apiClient.request(endpoint, as: AuthAccessTokenResponse.self).accessToken
   }
 
   func restoreSession(
@@ -157,4 +169,8 @@ final class AuthService: AuthServiceProtocol {
     )
     return response.accessToken
   }
+}
+
+private struct RefreshTokenPayload: Encodable {
+  let token: String
 }

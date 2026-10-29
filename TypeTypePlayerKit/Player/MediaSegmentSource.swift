@@ -22,7 +22,7 @@ public struct TypeTypePlayerConfiguration: Sendable {
   public var resumeBuffer: TimeInterval
   public var retryWindow: Duration
 
-  public init(forwardBuffer: TimeInterval = 30, resumeBuffer: TimeInterval = 1, retryWindow: Duration = .seconds(120)) {
+  public init(forwardBuffer: TimeInterval = 10, resumeBuffer: TimeInterval = 1, retryWindow: Duration = .seconds(120)) {
     self.forwardBuffer = forwardBuffer
     self.resumeBuffer = resumeBuffer
     self.retryWindow = retryWindow

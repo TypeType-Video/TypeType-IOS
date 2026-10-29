@@ -1,4 +1,3 @@
-import AVFoundation
 import XCTest
 @testable import TypeTypeIOS
 
@@ -141,48 +140,6 @@ final class DemoSessionStoreTests: XCTestCase {
 
   func testAudioBoostCreatesNativeProcessingTap() {
     XCTAssertNotNil(DemoAudioGainProcessor.makeTap(gain: 2))
-  }
-
-  func testBundledDemoMovieIsPlayableByAVPlayer() async throws {
-    let url = DemoBigBuckBunnySource.videoURL
-    XCTAssertTrue(url.isFileURL)
-
-    let item = AVPlayerItem(url: url)
-    let player = AVPlayer(playerItem: item)
-    player.play()
-    for _ in 0..<80
-    where item.status != .failed && player.timeControlStatus != .playing {
-      try await Task.sleep(for: .milliseconds(100))
-    }
-
-    XCTAssertEqual(
-      item.status,
-      .readyToPlay,
-      item.error?.localizedDescription ?? "No AVPlayerItem error"
-    )
-    XCTAssertEqual(
-      player.timeControlStatus,
-      .playing,
-      player.reasonForWaitingToPlay?.rawValue ?? "No waiting reason"
-    )
-    player.pause()
-  }
-
-  func testPhysicalDeviceDemoMovieIncludesAudio() async throws {
-    let url = try XCTUnwrap(
-      Bundle.main.url(
-        forResource: "BigBuckBunnyDemo",
-        withExtension: "mp4"
-      )
-    )
-    let asset = AVURLAsset(url: url)
-
-    let audioTracks = try await asset.loadTracks(withMediaType: .audio)
-
-    XCTAssertFalse(
-      audioTracks.isEmpty,
-      "The physical-device demo movie must include an audio track."
-    )
   }
 
   func testPublicPlaylistRestoreRestoresSavedMembership() throws {

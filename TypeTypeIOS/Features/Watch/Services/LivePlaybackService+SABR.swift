@@ -10,6 +10,7 @@ extension LivePlaybackService {
       APIEndpoint(
         path: "/sabr/playback/\(videoID)",
         method: .post,
+        headers: Self.playbackTraceHeader(videoID: videoID, request: request),
         body: try APIEndpoint.jsonBody(request),
         requiresAuth: true,
         timeoutInterval: 150
@@ -29,6 +30,7 @@ extension LivePlaybackService {
       path: "/sabr/playback/\(videoID)",
       method: .post,
       queryItems: [URLQueryItem(name: "prewarm", value: "true")],
+      headers: Self.playbackTraceHeader(videoID: videoID, request: request),
       body: body,
       requiresAuth: true,
       timeoutInterval: 30,
@@ -153,5 +155,12 @@ extension LivePlaybackService {
       throw LivePlaybackFailure.invalidServerResource
     }
     return authenticatedAssetURL(for: url)
+  }
+
+  // The server only writes its playback traces (prewarm handoff, pump) for requests that carry one.
+  // Prewarm and create share it, so the server log shows whether the prewarmed session was taken over.
+  static func playbackTraceHeader(videoID: String, request: LiveSABRPlaybackRequest) -> [String: String] {
+    let safeID = videoID.filter { ($0.isASCII && ($0.isLetter || $0.isNumber)) || "._-".contains($0) }
+    return ["X-Playback-Trace-ID": "ios.\(safeID).\(request.startTimeMS)"]
   }
 }

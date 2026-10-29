@@ -102,13 +102,6 @@ struct LiveSettingsCaptionAppearanceView: View {
   }
 
   @ViewBuilder
-  private func optionLabels(_ values: [String]) -> some View {
-    ForEach(values, id: \.self) { value in
-      Text(value.isEmpty ? "System" : value).tag(value)
-    }
-  }
-
-  @ViewBuilder
   private var colorLabels: some View {
     ForEach(colors, id: \.1) { option in
       Label {

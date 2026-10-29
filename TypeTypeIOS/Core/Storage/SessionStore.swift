@@ -52,6 +52,18 @@ final class SessionStore {
     )
   }
 
+  func refreshToken(forServerID serverID: String) -> String? {
+    keychain.get(refreshAccount(forServerID: serverID))
+  }
+
+  func setRefreshToken(_ token: String?, forServerID serverID: String) {
+    if let token {
+      _ = keychain.set(token, for: refreshAccount(forServerID: serverID))
+    } else {
+      _ = keychain.remove(refreshAccount(forServerID: serverID))
+    }
+  }
+
   func hasActiveSession(serverID: String) -> Bool {
     accessToken(forServerID: serverID) != nil
   }
@@ -70,6 +82,7 @@ final class SessionStore {
     _ = tokenLock.withLock {
       memoryTokens.removeValue(forKey: serverID)
     }
+    setRefreshToken(nil, forServerID: serverID)
     guard let snapshot = session(forServerID: serverID) else {
       var snapshots = registry()
       snapshots.removeValue(forKey: serverID)
@@ -87,8 +100,9 @@ final class SessionStore {
     tokenLock.withLock {
       memoryTokens.removeAll()
     }
-    for (_, snapshot) in registry() {
+    for (serverID, snapshot) in registry() {
       _ = keychain.remove(tokenAccount(for: snapshot))
+      setRefreshToken(nil, forServerID: serverID)
     }
     defaults.removeObject(forKey: AppConfig.sessionRegistryKey)
   }
@@ -105,6 +119,10 @@ final class SessionStore {
 
   private func accessToken(for snapshot: SessionSnapshot) -> String? {
     keychain.get(tokenAccount(for: snapshot))
+  }
+
+  private func refreshAccount(forServerID serverID: String) -> String {
+    "\(AppConfig.keychainTokenPrefix).refresh.\(serverID)"
   }
 
   private func tokenAccount(for snapshot: SessionSnapshot) -> String {

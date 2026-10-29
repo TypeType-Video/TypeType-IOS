@@ -115,7 +115,6 @@ extension LivePlayerController {
       toleranceAfter: .zero
     ) { [weak self] _ in
       Task { @MainActor [weak self] in
-        try? await Task.sleep(for: .milliseconds(100))
         guard let self else { return }
         if position != 0 {
           position = 0
@@ -194,9 +193,9 @@ extension LivePlayerController {
       to: CMTime(seconds: bounded, preferredTimescale: 600),
       toleranceBefore: .zero,
       toleranceAfter: .zero
-    ) { [weak self] _ in
+    ) { [weak self] finished in
+      guard finished else { return }
       Task { @MainActor [weak self] in
-        try? await Task.sleep(for: .milliseconds(100))
         guard let self else { return }
         let currentPosition = max(player.currentTime().seconds, 0)
         if abs(position - currentPosition) >= 0.05 {
@@ -205,15 +204,6 @@ extension LivePlayerController {
         reportPlaybackSessionProgress()
       }
     }
-  }
-
-  func selectVideoItag(_ itag: Int?) {
-    guard selectedVideoItag != itag else { return }
-    selectedVideoItag = itag
-    selectedVideoSourceID = availableVideoSources.first {
-      $0.itag == itag
-    }?.selectionID
-    restartAtCurrentPosition()
   }
 
   func selectVideoSource(_ sourceID: String?) {
@@ -255,15 +245,6 @@ extension LivePlayerController {
       return
     }
     selectVideoSource(best.selectionID)
-  }
-
-  func selectAudioTrack(_ trackID: String?) {
-    guard selectedAudioTrackID != trackID else { return }
-    selectedAudioTrackID = trackID
-    selectedAudioSourceID = availableAudioSources.first {
-      $0.audioTrackID == trackID
-    }?.id
-    restartAtCurrentPosition()
   }
 
   func selectAudioSource(_ sourceID: String?) {

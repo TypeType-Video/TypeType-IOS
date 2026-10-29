@@ -7,11 +7,13 @@ final class URLSessionAPIClient: APIClient {
   let accessTokenProvider: () -> String?
   let session: URLSession
   let mediaSession: URLSession
+  let downloadSession: URLSession
   let decoder: JSONDecoder
   let diagnosticsStore: LiveDiagnosticsStore?
   let diagnosticScopeProvider: () -> LiveDiagnosticScope?
   let tokenRefreshGate = TokenRefreshGate()
   var tokenRefreshHandler: TokenRefreshHandler?
+  var refreshCookieObserver: ((String?) -> Void)?
 
   init(
     serverURLProvider: @escaping () -> URL?,
@@ -28,6 +30,7 @@ final class URLSessionAPIClient: APIClient {
     self.accessTokenProvider = accessTokenProvider
     self.session = session
     self.mediaSession = mediaSession
+    self.downloadSession = Self.makeDownloadSession(like: session)
     self.decoder = decoder
     self.diagnosticsStore = diagnosticsStore
     self.diagnosticScopeProvider = diagnosticScopeProvider
@@ -35,6 +38,10 @@ final class URLSessionAPIClient: APIClient {
 
   func setTokenRefreshHandler(_ handler: @escaping TokenRefreshHandler) {
     tokenRefreshHandler = handler
+  }
+
+  func setRefreshCookieObserver(_ observer: @escaping (String?) -> Void) {
+    refreshCookieObserver = observer
   }
 
   func request<T: Decodable>(

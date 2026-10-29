@@ -81,7 +81,11 @@ extension LivePlayerController {
     mutation(&settings)
     let value = settings
     Task { [settingsService] in
-      _ = try? await settingsService.update(value)
+      do {
+        _ = try await settingsService.update(value)
+      } catch {
+        AppLogger.network.failure("Saving SponsorBlock settings", error)
+      }
     }
   }
 }

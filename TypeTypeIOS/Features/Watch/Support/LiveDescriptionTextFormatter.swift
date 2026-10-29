@@ -77,21 +77,46 @@ enum LiveDescriptionTextFormatter {
     return result
   }
 
+  private static let namedEntities: [String: String] = [
+    "amp": "&", "lt": "<", "gt": ">", "quot": "\"", "apos": "'", "nbsp": "\u{00A0}",
+    "hellip": "…", "mdash": "—", "ndash": "–", "lsquo": "‘", "rsquo": "’",
+    "ldquo": "“", "rdquo": "”", "laquo": "«", "raquo": "»", "middot": "·",
+    "bull": "•", "copy": "©", "reg": "®", "trade": "™", "times": "×", "yen": "¥",
+  ]
+
+  /// Decodes named and numeric entities in plain Swift. NSAttributedString's
+  /// HTML importer must not be used here: it runs WebKit in a nested run loop,
+  /// which re-enters SwiftUI while a view body is computed and crashes.
   static func decodingHTMLEntities(in value: String) -> String {
-    let document = value.replacingOccurrences(of: "\n", with: "<br>")
-    guard let data = document.data(using: .utf8),
-      let attributed = try? NSAttributedString(
-        data: data,
-        options: [
-          .documentType: NSAttributedString.DocumentType.html,
-          .characterEncoding: String.Encoding.utf8.rawValue,
-        ],
-        documentAttributes: nil
-      )
-    else {
-      return value
+    guard value.contains("&") else { return value }
+    var result = ""
+    result.reserveCapacity(value.count)
+    var index = value.startIndex
+    while index < value.endIndex {
+      let character = value[index]
+      guard character == "&",
+        let end = value[index...].prefix(12).firstIndex(of: ";"),
+        let decoded = decodedEntity(String(value[value.index(after: index)..<end]))
+      else {
+        result.append(character)
+        index = value.index(after: index)
+        continue
+      }
+      result.append(decoded)
+      index = value.index(after: end)
     }
-    return attributed.string
+    return result
+  }
+
+  private static func decodedEntity(_ name: String) -> String? {
+    if name.hasPrefix("#") {
+      let digits = name.dropFirst()
+      let scalarValue = digits.first == "x" || digits.first == "X"
+        ? UInt32(digits.dropFirst(), radix: 16)
+        : UInt32(digits)
+      return scalarValue.flatMap(Unicode.Scalar.init).map { String(Character($0)) }
+    }
+    return namedEntities[name]
   }
 
   private static func isNicoNico(_ rawURL: String) -> Bool {

@@ -46,8 +46,7 @@ vocabulary. `MultipartFormDataBuilder` covers upload endpoints
   offset by the raw count, never by the deduplicated count, or older entries
   freeze out.
 - **Decode legacy rows tolerantly** — read each field with `try?` and skip
-  only entries without a usable key (`Int64OrString` exists for the
-  number-or-string fields). One strict field fails a whole page.
+  only entries without a usable key. One strict field fails a whole page.
 - Comments/descriptions carry inline HTML and entities — strip or render.
 - All API routes live under `/api`; a bare root path serves the SPA HTML and
   surfaces as parse errors in clients.

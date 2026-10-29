@@ -2,22 +2,6 @@ import Foundation
 
 enum DemoBigBuckBunnySource {
   static let videoURL: URL = {
-    #if targetEnvironment(simulator)
-    if let silentSimulatorCopy = Bundle.main.url(
-      forResource: "BigBuckBunnyDemo-Silent",
-      withExtension: "mp4"
-    ) {
-      return silentSimulatorCopy
-    }
-    #endif
-
-    if let bundled = Bundle.main.url(
-      forResource: "BigBuckBunnyDemo",
-      withExtension: "mp4"
-    ) {
-      return bundled
-    }
-
     var components = URLComponents()
     components.scheme = "https"
     components.host = "eyewiki-images.s3.us-east-va.perf.cloud.ovh.us"

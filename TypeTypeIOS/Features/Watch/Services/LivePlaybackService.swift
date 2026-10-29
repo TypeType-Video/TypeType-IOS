@@ -3,6 +3,7 @@ import Foundation
 protocol LivePlaybackServiceProtocol: AnyObject {
   func stream(for videoURL: String) async throws -> LivePlaybackStream
   func playbackStream(for videoURL: String) async throws -> LivePlaybackStream
+  func discardPendingStreams(for videoURL: String) async
   func prepare(
     stream: LivePlaybackStream,
     sourceURL: String,
@@ -114,6 +115,8 @@ final class LivePlaybackService: LivePlaybackServiceProtocol {
           path: "/streams/youtube/sabr",
           videoURL: videoURL
         )
+      } catch is CancellationError {
+        throw CancellationError()
       } catch {
         return try await youtubeSABRStream(
           path: path,
@@ -159,10 +162,12 @@ final class LivePlaybackService: LivePlaybackServiceProtocol {
     attempt: Int
   ) async throws -> LivePlaybackStream {
     do {
+      // This loop owns the retries: client retries inside it multiplied 4 attempts into 12 requests.
       return try await requestStream(
         path: path,
         videoURL: videoURL,
-        retryToken: attempt == 0 ? nil : UUID().uuidString
+        retryToken: attempt == 0 ? nil : UUID().uuidString,
+        retriesTransientFailures: false
       )
     } catch {
       guard attempt < 3, isRetryableSABRBootstrap(error) else {

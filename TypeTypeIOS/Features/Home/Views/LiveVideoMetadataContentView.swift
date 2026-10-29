@@ -35,6 +35,11 @@ struct LiveVideoMetadataContentView: View {
     )
   }
 
+  // Nothing around the player has a margin to cancel: a negative inset pushed it 16 pt off both screen edges.
+  private var playerInset: CGFloat {
+    showsFullscreenLayout || cinemaMode ? 0 : 16
+  }
+
   private var showsFullscreenLayout: Bool {
     playerController.showsFullscreenLayout(verticalSizeClass: verticalSizeClass)
   }
@@ -49,12 +54,16 @@ struct LiveVideoMetadataContentView: View {
       // surroundings instead of pushing them away — one visible motion.
       Color.clear
         .aspectRatio(16 / 9, contentMode: .fit)
-        .padding(.horizontal, cinemaMode ? -16 : 0)
+        .padding(.horizontal, playerInset)
 
       ScrollView {
       VStack(alignment: .leading, spacing: 18) {
         LiveVideoMetadataHeader(
-          title: playerController.stream?.title ?? branding.title
+          video: resolvedVideo,
+          title: playerController.stream?.title ?? branding.title,
+          description: playbackDescription,
+          onSeekTimestamp: playerController.seek,
+          onOpenURL: routeLink
         )
 
         LiveVideoEngagementView(
@@ -68,16 +77,6 @@ struct LiveVideoMetadataContentView: View {
           }
         )
         .id(engagementIdentity)
-
-        if let playbackDescription, !playbackDescription.isEmpty {
-          LiveVideoDescriptionTile(
-            video: resolvedVideo,
-            text: playbackDescription,
-            likeCount: playerController.stream?.likeCount ?? -1,
-            onSeekTimestamp: playerController.seek,
-            onOpenURL: routeLink
-          )
-        }
 
         LiveVideoLibraryActionsView(
           video: resolvedVideo,
@@ -212,7 +211,7 @@ struct LiveVideoMetadataContentView: View {
         cinemaMode: $cinemaMode,
         isScrolled: isScrolled
       )
-      .padding(.horizontal, cinemaMode ? -16 : 0)
+      .padding(.horizontal, playerInset)
     }
     .toolbar(showsFullscreenLayout ? .hidden : .automatic, for: .navigationBar)
     .statusBarHidden(showsFullscreenLayout)

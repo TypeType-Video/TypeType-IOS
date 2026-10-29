@@ -23,6 +23,7 @@ extension URLSessionAPIClient {
         requestID: http.value(forHTTPHeaderField: "X-Request-Id"),
         startedAt: startedAt
       )
+      captureRefreshCookie(from: http)
       guard (200...299).contains(http.statusCode) else {
         throw NetworkError.statusCode(
           http.statusCode,
@@ -33,6 +34,9 @@ extension URLSessionAPIClient {
     } catch let error as NetworkError {
       throw error
     } catch is CancellationError {
+      throw CancellationError()
+    } catch let error as URLError where error.code == .cancelled {
+      // A cancelled task is not a network failure: no retry, no fallback, no diagnostic entry.
       throw CancellationError()
     } catch {
       await recordDiagnostic(
@@ -81,6 +85,8 @@ extension URLSessionAPIClient {
       throw error
     } catch is CancellationError {
       throw CancellationError()
+    } catch let error as URLError where error.code == .cancelled {
+      throw CancellationError()
     } catch {
       await recordDiagnostic(
         request,
@@ -97,9 +103,7 @@ extension URLSessionAPIClient {
   ) async throws -> URL {
     let startedAt = DispatchTime.now().uptimeNanoseconds
     do {
-      // The shared session's 120s resource timeout killed every large
-      // artifact transfer mid-flight; downloads run on their own session.
-      let (fileURL, response) = try await Self.downloadSession.download(
+      let (fileURL, response) = try await downloadSession.download(
         for: request
       )
       guard let http = response as? HTTPURLResponse else {
@@ -129,6 +133,8 @@ extension URLSessionAPIClient {
       throw error
     } catch is CancellationError {
       throw CancellationError()
+    } catch let error as URLError where error.code == .cancelled {
+      throw CancellationError()
     } catch {
       await recordDiagnostic(
         request,
@@ -142,13 +148,13 @@ extension URLSessionAPIClient {
 }
 
 extension URLSessionAPIClient {
-  /// Downloads only: large artifacts over slow storage need a long window
-  /// (the shared session caps the whole transfer at 120s).
-  static let downloadSession: URLSession = {
-    let configuration = URLSessionConfiguration.default
+  // Same configuration as the API session, minus its 120 s resource timeout that cut large
+  // artifacts mid-transfer. `configuration` hands back a copy, so the API session is untouched.
+  static func makeDownloadSession(like session: URLSession) -> URLSession {
+    let configuration = session.configuration
     configuration.timeoutIntervalForRequest = 600
     configuration.timeoutIntervalForResource = 7_200
     configuration.waitsForConnectivity = true
     return URLSession(configuration: configuration)
-  }()
+  }
 }

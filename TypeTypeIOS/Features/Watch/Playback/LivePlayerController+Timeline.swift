@@ -127,16 +127,20 @@ extension LivePlayerController {
     let recordsEvent = !didRecordHistoryEvent
     didRecordHistoryEvent = true
     Task { [historyService, historyVideo] in
-      if recordsEvent {
-        _ = try? await historyService.add(
-          video: historyVideo,
-          progress: progress
+      do {
+        if recordsEvent {
+          _ = try await historyService.add(
+            video: historyVideo,
+            progress: progress
+          )
+        }
+        try await historyService.updateProgress(
+          videoURL: historyVideo.url,
+          positionMS: progressMS
         )
+      } catch {
+        AppLogger.network.failure("Saving watch history", error)
       }
-      try? await historyService.updateProgress(
-        videoURL: historyVideo.url,
-        positionMS: progressMS
-      )
     }
   }
 }

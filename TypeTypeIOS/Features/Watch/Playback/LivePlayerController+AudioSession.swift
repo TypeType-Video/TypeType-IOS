@@ -19,6 +19,6 @@ extension LivePlayerController {
           "Playback audio session setup failed: \(error.localizedDescription, privacy: .public)"
         )
       }
-    }
+    }.value
   }
 }

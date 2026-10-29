@@ -126,18 +126,6 @@ final class LivePictureInPictureDriver: NSObject, ObservableObject {
     }
   }
 
-  /// Drops the native PiP binding before the video layer crosses windows —
-  /// a layer that leaves its window while bound to one gets auto-promoted
-  /// to Picture in Picture by the system, which is what started PiP over
-  /// the landscape full screen.
-  func uninstallNativeContent() {
-    AppLogger.playback
-      .info("pip engine: native content released")
-    nativeLayer = nil
-    pipController = nil
-    contentLayer?.isHidden = false
-  }
-
   func relayout() {
     guard let hostView, let contentLayer else { return }
     CATransaction.begin()
@@ -197,8 +185,9 @@ final class LivePictureInPictureDriver: NSObject, ObservableObject {
           }
         }
         // Never became possible: release and let the card show.
-        isPendingStart = false
-        onChange?()
+        guard let self else { return }
+        self.isPendingStart = false
+        self.onChange?()
       }
     }
   }

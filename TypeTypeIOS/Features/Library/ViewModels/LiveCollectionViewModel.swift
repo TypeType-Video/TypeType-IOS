@@ -34,6 +34,7 @@ final class LiveCollectionViewModel: ObservableObject {
   @Published private(set) var errorMessage: String?
 
   private let service: LiveLibraryServiceProtocol
+  private var loadGeneration = 0
 
   init(
     kind: LiveLibraryCollectionKind,
@@ -73,6 +74,8 @@ final class LiveCollectionViewModel: ObservableObject {
   }
 
   func reload() async {
+    loadGeneration += 1
+    let generation = loadGeneration
     let startedAt = DispatchTime.now().uptimeNanoseconds
     // Keep already visible content on screen while revalidating.
     let hadContent = !videos.isEmpty
@@ -80,12 +83,15 @@ final class LiveCollectionViewModel: ObservableObject {
       state = .loading
     }
     do {
+      let loaded: [LiveLibraryVideo]
       switch kind {
       case .favorites:
-        videos = try await service.favorites().map(\.libraryVideo)
+        loaded = try await service.favorites().map(\.libraryVideo)
       case .watchLater:
-        videos = try await service.watchLater().map(\.libraryVideo)
+        loaded = try await service.watchLater().map(\.libraryVideo)
       }
+      guard generation == loadGeneration else { return }
+      videos = loaded
       state = .loaded
       let kindLabel = String(describing: kind)
       let loadedCount = videos.count
@@ -98,6 +104,7 @@ final class LiveCollectionViewModel: ObservableObject {
     } catch is CancellationError {
       return
     } catch {
+      guard generation == loadGeneration else { return }
       let kindLabel = String(describing: kind)
       AppLogger.playback.error(
         "collection: \(kindLabel, privacy: .public) failed \(error.localizedDescription, privacy: .public)"

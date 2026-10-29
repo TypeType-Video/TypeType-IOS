@@ -185,6 +185,23 @@ final class URLSessionAPIClientTests: XCTestCase {
     }
   }
 
+  func testCancelledRequestIsNeitherRetriedNorATransportFailure() async {
+    let state = RequestCounter()
+    URLProtocolStub.register { _ in
+      _ = state.increment()
+      throw URLError(.cancelled)
+    }
+    let client = makeClient(token: { nil })
+
+    do {
+      try await client.request(APIEndpoint(path: "/streams/youtube/sabr", method: .get))
+      XCTFail("A cancelled request should not succeed.")
+    } catch {
+      XCTAssertTrue(error is CancellationError, "\(error)")
+      XCTAssertEqual(state.value, 1)
+    }
+  }
+
   func testStreamsFileUploadAndRetriesWithRefreshedToken() async throws {
     let directory = FileManager.default.temporaryDirectory
       .appendingPathComponent(UUID().uuidString)
