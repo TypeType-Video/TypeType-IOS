@@ -60,24 +60,17 @@ extension LiveAuthenticatedAppView {
     // Layout-aware: the mini player sits above whatever height the tab
     // bar actually has on this device. The old hardcoded 49pt clearance
     // overlapped the bar on modern devices and on the iPhone SE.
-    .onPreferenceChange(LiveTabBarTopKey.self) { value in
-      tabBarTopY = value
-    }
     .overlay {
       // PiP-style free-floating card; the view clamps itself above the tab
       // bar so it never collides with navigation or menus.
       GeometryReader { geo in
-        let fallback = geo.safeAreaInsets.bottom + 49
-        let measuredBand = tabBarTopY.map {
-          geo.frame(in: .global).maxY - $0
-        } ?? fallback
-        // The tab probe can go stale (it lives on the Home tab only): a
-        // garbage value pins the card far above the bar. The band never
-        // legitimately exceeds a fifth of the screen.
-        let band = min(max(measuredBand, 0), geo.size.height * 0.22)
+        // The bar's band is deterministic: home indicator + the tab bar's
+        // height. The content probe was wrong in both directions — hidden
+        // tabs reported garbage (card pinned high) and the floating bar's
+        // content only sees the home indicator (card slid into the bar).
         miniPlayer(
           containerSize: geo.size,
-          tabBarBand: band
+          tabBarBand: geo.safeAreaInsets.bottom + 49
         )
       }
     }
@@ -124,7 +117,6 @@ extension LiveAuthenticatedAppView {
 
   private var homeTab: some View {
     LiveHomeView(coordinator: coordinator)
-      .background(tabBarTopProbe)
   }
 
   private var subscriptionsTab: some View {
@@ -204,14 +196,6 @@ extension LiveAuthenticatedAppView {
   }
 }
 
-private struct LiveTabBarTopKey: PreferenceKey {
-  static var defaultValue: CGFloat?
-
-  static func reduce(value: inout CGFloat?, nextValue: () -> CGFloat?) {
-    value = nextValue() ?? value
-  }
-}
-
 private extension LiveAuthenticatedAppView {
   /// Pull down on the player to minimize into Picture in Picture.
   var minimizePullDown: some Gesture {
@@ -233,19 +217,4 @@ private extension LiveAuthenticatedAppView {
   }
 }
 
-private extension LiveAuthenticatedAppView {
-  /// Measures the real tab bar top from inside a tab's content: the content
-  /// safe area knows the bar's height even when it floats.
-  var tabBarTopProbe: some View {
-    GeometryReader { probe in
-      // Hidden tabs report degenerate frames; never publish those.
-      let frame = probe.frame(in: .global)
-      Color.clear.preference(
-        key: LiveTabBarTopKey.self,
-        value: probe.size.height > 1 && frame.maxY > 100
-          ? frame.maxY - probe.safeAreaInsets.bottom
-          : nil
-      )
-    }
-  }
-}
+

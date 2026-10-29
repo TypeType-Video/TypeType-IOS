@@ -25,7 +25,6 @@ struct LiveAuthenticatedAppView: View {
   @State var didApplyDefaultLandingPage = false
   @State var presentsExpandedPlayback = false
   @State private var lastScenePhase: ScenePhase = .active
-  @State var tabBarTopY: CGFloat?
   @State var incomingMediaLink: LiveIncomingMediaLink?
   @State var presentsOfflineDownloads = false
   @State var observedConnectivityOutage = false
