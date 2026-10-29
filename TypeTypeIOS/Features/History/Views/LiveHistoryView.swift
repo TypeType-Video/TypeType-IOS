@@ -16,11 +16,16 @@ struct LiveHistoryView: View {
   // No own NavigationStack: as a library section the pager hosts this view
   // inside the library's stack, whose bar collects the title, search field
   // and the Clear button. A nested stack drew its own covered bar.
+  /// The library pager shares one navigation bar: `.searchable` attaches to
+  /// it, so the field must only attach while the history tab is on screen.
+  var isActive = true
+
   var body: some View {
     content
       .navigationTitle("History")
       .navigationBarTitleDisplayMode(.inline)
-      .searchable(
+      .searchableWhenActive(
+        isActive,
         text: $viewModel.query,
         prompt: "Search history"
       )
@@ -55,5 +60,23 @@ struct LiveHistoryView: View {
       Text(viewModel.errorMessage ?? "")
     }
     .accessibilityIdentifier("live.history.screen")
+  }
+}
+
+private extension View {
+  /// `.searchable` attaches to the enclosing navigation bar — inside the
+  /// library pager that bar is shared, so the field is attached only while
+  /// the owning section is the active one.
+  @ViewBuilder
+  func searchableWhenActive(
+    _ active: Bool,
+    text: Binding<String>,
+    prompt: String
+  ) -> some View {
+    if active {
+      searchable(text: text, prompt: prompt)
+    } else {
+      self
+    }
   }
 }

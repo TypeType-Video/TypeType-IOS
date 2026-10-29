@@ -184,7 +184,8 @@ struct LiveLibraryView: View {
     case .history:
       LiveHistoryView(
         coordinator: coordinator,
-        viewModel: historyModel
+        viewModel: historyModel,
+        isActive: self.section == .history
       )
     case .favorites:
       LiveCollectionView(
