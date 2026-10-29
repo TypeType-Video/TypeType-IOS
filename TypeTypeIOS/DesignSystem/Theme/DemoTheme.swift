@@ -10,11 +10,7 @@ struct DemoThemeBackground: View {
   }
 }
 
-/// Pill button in the Apple-TV-style action language: fully rounded
-/// capsules. The primary action is the white pill with dark label; all
-/// other actions are translucent dark pills with white labels. Toggled-on
-/// states tint surface and label with the accent. Height is uniform so
-/// every cell in the action grid matches.
+/// Capsule action button: filled for the primary action, translucent otherwise, accent when active.
 struct LiveChipButtonStyle: ButtonStyle {
   var isFilled = false
   var isActive = false
@@ -70,10 +66,7 @@ struct LiveChipButtonStyle: ButtonStyle {
   }
 }
 
-/// Shared row-surface rule for feed-style lists that intentionally remain flat.
-/// Settings/admin/profile surfaces use `liveGroupedList()` instead; this
-/// modifier is retained for media/feed lists where a continuous list is the
-/// correct presentation.
+/// Flat feeds and queues: rows on the theme's row colour. Preference pages use `liveGroupedList()`.
 extension View {
   func liveThemedList() -> some View {
     modifier(LiveThemedListModifier())
@@ -85,36 +78,22 @@ private struct LiveThemedListModifier: ViewModifier {
 
   func body(content: Content) -> some View {
     content
-      // `.plain`, NOT `.insetGrouped`: the grouped style draws white
-      // rounded section cards behind the rows on iOS 26/27 (the "rounded
-      // pills"), and row backgrounds cannot cover them — only the list
-      // style removes them. Android's settings screens have no cards
-      // either: flat rows and hairline dividers on the page colour.
+      // Flat rows on the page colour; grouped lists use `liveGroupedList()`.
       .listStyle(.plain)
       .scrollContentBackground(.hidden)
-      // The list background IS the row colour: it shows through
-      // transparent rows (NavigationLinks etc.) and in the gaps between
-      // filled rows, so every page renders rows the same way. Under AMOLED
-      // this is the theme surface on the black page.
+      // Shows through transparent rows and the gaps between filled ones, so every row looks the same.
       .background(palette.rowBackground)
       .environment(\.defaultMinListRowHeight, 44)
       .listRowInsets(EdgeInsets(top: 0, leading: 20, bottom: 0, trailing: 20))
-      // This is intentionally a flat/feed-style list. Settings and other
-      // preference surfaces use liveGroupedList() for the modern grouped
-      // appearance; media queues and content feeds stay continuous.
       .listRowBackground(palette.rowBackground)
       .listRowSeparatorTint(palette.separator)
-      // The navigation bar takes the SAME variable as the page — otherwise
-      // it stays system-white above a coloured page (the "colour is
-      // different at the very top" symptom).
+      // Otherwise the bar stays system white above a coloured page.
       .toolbarBackground(palette.background, for: .navigationBar)
       .toolbarBackground(.visible, for: .navigationBar)
   }
 }
 
-/// `ContentUnavailableView` and other empty states paint their own system
-/// background (the black/grey boxes in themed pages). This fills the whole
-/// screen with the page colour instead.
+/// Empty states such as `ContentUnavailableView` paint a system background; this fills the page colour.
 extension View {
   func liveThemedEmptyState() -> some View {
     self
@@ -142,89 +121,6 @@ extension Color {
   static let systemGreen = Color(uiColor: .systemGreen)
   static let systemTeal = Color(uiColor: .systemTeal)
   static let systemGray = Color(uiColor: .systemGray)
-}
-
-/// Compact confirmation card presented as a dropping-down popover — the
-/// user wants confirms to open like the dropdowns (downward), never as a
-/// sheet sliding up from the bottom.
-struct LiveConfirmCard: View {
-  let title: String
-  var message: String? = nil
-  let confirmTitle: String
-  var destructive = true
-  let onConfirm: () -> Void
-  @Environment(\.dismiss) private var dismiss
-
-  var body: some View {
-    VStack(spacing: 0) {
-      VStack(spacing: 8) {
-        Text(title)
-          .font(.headline)
-          .multilineTextAlignment(.center)
-        if let message, !message.isEmpty {
-          Text(message)
-            .font(.footnote)
-            .foregroundStyle(.secondary)
-            .multilineTextAlignment(.center)
-        }
-      }
-      .padding(.horizontal, 20)
-      .padding(.top, 20)
-      .padding(.bottom, 16)
-
-      Divider()
-
-      Button(role: destructive ? ButtonRole.destructive : nil) {
-        dismiss()
-        onConfirm()
-      } label: {
-        Text(confirmTitle)
-          .fontWeight(.semibold)
-          .foregroundStyle(
-            destructive ? AnyShapeStyle(Color.systemRed) : AnyShapeStyle(.tint)
-          )
-          .frame(maxWidth: .infinity, minHeight: 50)
-      }
-      .buttonStyle(.plain)
-
-      Divider()
-
-      Button("Cancel") { dismiss() }
-        .fontWeight(.semibold)
-        .foregroundStyle(.tint)
-        .frame(maxWidth: .infinity, minHeight: 50)
-        .buttonStyle(.plain)
-    }
-    .frame(width: 280)
-    .presentationCompactAdaptation(.popover)
-  }
-}
-
-extension View {
-  /// The app's standard confirm: a glass card dropping from the attached
-  /// element (see LiveConfirmCard). Replaces every confirmationDialog.
-  func liveConfirmPopover(
-    isPresented: Binding<Bool>,
-    title: String,
-    message: String? = nil,
-    confirmTitle: String,
-    destructive: Bool = true,
-    onConfirm: @escaping () -> Void
-  ) -> some View {
-    popover(
-      isPresented: isPresented,
-      attachmentAnchor: .point(.init(x: 0.5, y: 1.0)),
-      arrowEdge: .top
-    ) {
-      LiveConfirmCard(
-        title: title,
-        message: message,
-        confirmTitle: confirmTitle,
-        destructive: destructive,
-        onConfirm: onConfirm
-      )
-    }
-  }
 }
 
 extension View {
