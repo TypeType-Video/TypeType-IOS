@@ -87,17 +87,20 @@ final class LiveCollectionViewModel: ObservableObject {
         videos = try await service.watchLater().map(\.libraryVideo)
       }
       state = .loaded
+      let kindLabel = String(describing: kind)
+      let loadedCount = videos.count
       let ms = Int(
         Double(DispatchTime.now().uptimeNanoseconds - startedAt) / 1e6
       )
       AppLogger.playback.info(
-        "collection: \(String(describing: kind), privacy: .public) loaded count=\(videos.count, privacy: .public) in \(ms, privacy: .public)ms"
+        "collection: \(kindLabel, privacy: .public) loaded count=\(loadedCount, privacy: .public) in \(ms, privacy: .public)ms"
       )
     } catch is CancellationError {
       return
     } catch {
+      let kindLabel = String(describing: kind)
       AppLogger.playback.error(
-        "collection: \(String(describing: kind), privacy: .public) failed \(error.localizedDescription, privacy: .public)"
+        "collection: \(kindLabel, privacy: .public) failed \(error.localizedDescription, privacy: .public)"
       )
       if !hadContent {
         state = .failed(message(for: error))
