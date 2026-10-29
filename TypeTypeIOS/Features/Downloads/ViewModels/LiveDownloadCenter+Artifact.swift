@@ -34,10 +34,8 @@ extension LiveDownloadCenter {
         ],
         ofItemAtPath: destination.path
       )
-      // Ready the moment the file is in place: the media validation and the
-      // full-file checksum take ages on large files and used to hold the
-      // "Saving on this device" state hostage. They finish afterwards and
-      // demote the record only if they actually fail.
+      // Ready once the file is in place: validation and the checksum take long on large files,
+      // finish afterwards, and demote the record only if they fail.
       record.localFileName = fileName
       record.state = .ready
       record.failureMessage = nil
@@ -48,12 +46,10 @@ extension LiveDownloadCenter {
           fileURL: destination,
           mode: record.options.mode
         )
-        record.artifactChecksum = try LiveDownloadChecksum.sha256(
-          at: destination,
-          fileManager: fileManager
-        )
+        record.artifactChecksum = try await Self.checksum(of: destination)
         record.updatedAt = Date()
         replace(record)
+        await refreshStorageUsage()
       } catch {
         try? fileManager.removeItem(at: savedURL ?? destination)
         record.state = .failed

@@ -298,6 +298,7 @@ final class LiveDownloadCenterTests: XCTestCase {
       rootURL: context.rootURL,
       mediaValidator: AcceptingMediaValidator()
     )
+    await restored.verifyArtifacts()
 
     let restoredRecord = try XCTUnwrap(
       restored.record(id: record.id)
@@ -323,11 +324,19 @@ final class LiveDownloadCenterTests: XCTestCase {
       rootURL: context.rootURL,
       mediaValidator: AcceptingMediaValidator()
     )
+    await restored.verifyArtifacts()
     let restoredRecord = try XCTUnwrap(
       restored.record(id: record.id)
     )
     XCTAssertEqual(restoredRecord.state, .ready)
     XCTAssertNotNil(restoredRecord.artifactChecksum)
+  }
+
+  func testStorageUsageCountsSavedArtifacts() async throws {
+    let context = try await makeCompletedDownloadContext()
+    await context.center.refreshStorageUsage()
+
+    XCTAssertEqual(context.center.storageUsage, Int64(Data("offline-media".utf8).count))
   }
 
   func testRestoreRemovesOrphanedArtifacts() async throws {

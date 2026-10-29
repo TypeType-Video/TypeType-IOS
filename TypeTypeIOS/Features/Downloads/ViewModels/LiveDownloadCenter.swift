@@ -6,6 +6,7 @@ final class LiveDownloadCenter: ObservableObject {
 
   @Published var records: [LiveManagedDownload] = []
   @Published var message: String?
+  @Published var storageUsage: Int64 = 0
 
   let service: LiveDownloaderServiceProtocol
   let scopeProvider: ScopeProvider
@@ -18,6 +19,7 @@ final class LiveDownloadCenter: ObservableObject {
   var activeScope: LiveDownloadScope?
   var trackingTasks: [String: Task<Void, Never>] = [:]
   var refreshingRecordIDs: Set<String> = []
+  private var integrityTask: Task<Void, Never>?
 
   init(
     service: LiveDownloaderServiceProtocol,
@@ -44,10 +46,14 @@ final class LiveDownloadCenter: ObservableObject {
     )
     prepareStorage()
     load()
+    integrityTask = Task { [weak self] in
+      await self?.verifyArtifacts()
+    }
   }
 
   deinit {
     trackingTasks.values.forEach { $0.cancel() }
+    integrityTask?.cancel()
   }
 
   var visibleRecords: [LiveManagedDownload] {
