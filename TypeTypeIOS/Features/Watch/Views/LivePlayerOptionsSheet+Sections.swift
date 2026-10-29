@@ -18,7 +18,7 @@ extension LivePlayerOptionsSheet {
       )
       Toggle(
         "Brightness and volume swipe",
-        isOn: LiveAppPreferencesStore.shared.binding(
+        isOn: controller.appPreferences.binding(
           \.playerSwipeBrightnessVolumeEnabled
         )
       )

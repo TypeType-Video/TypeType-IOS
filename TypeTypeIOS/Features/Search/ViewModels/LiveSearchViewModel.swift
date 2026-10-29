@@ -31,6 +31,7 @@ final class LiveSearchViewModel: ObservableObject {
 
   let services: [VideoService]
   let searchService: LiveSearchServiceProtocol
+  private let imagePipeline: TypeTypeImagePipeline
   let historyService: LiveSearchHistoryServiceProtocol
   private let serviceSelection: LiveServiceSelection
   private var cancellables = Set<AnyCancellable>()
@@ -44,8 +45,10 @@ final class LiveSearchViewModel: ObservableObject {
   init(
     searchService: LiveSearchServiceProtocol,
     historyService: LiveSearchHistoryServiceProtocol,
-    serviceSelection: LiveServiceSelection
+    serviceSelection: LiveServiceSelection,
+    imagePipeline: TypeTypeImagePipeline = TypeTypeImagePipeline()
   ) {
+    self.imagePipeline = imagePipeline
     self.searchService = searchService
     self.historyService = historyService
     self.serviceSelection = serviceSelection
@@ -182,8 +185,8 @@ final class LiveSearchViewModel: ObservableObject {
       guard case let .video(item) = result,
         let url = LiveImageURLResolver.resolve(item.thumbnail)
       else { continue }
-      Task.detached(priority: .utility) {
-        _ = await TypeTypeImagePipeline.shared.image(for: url, maxPixelSize: 640)
+      Task.detached(priority: .utility) { [imagePipeline] in
+        _ = await imagePipeline.image(for: url, maxPixelSize: 640)
       }
     }
   }

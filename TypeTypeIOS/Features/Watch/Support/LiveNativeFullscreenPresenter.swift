@@ -4,6 +4,7 @@ import UIKit
 @MainActor
 final class LiveNativeFullscreenPresenter {
   private weak var controller: LivePlayerController?
+  private let orientationLock: LiveOrientationLock
   private var orientationObservation: NSObjectProtocol?
   private var portraitExit: Task<Void, Never>?
   // A phone picked up off the table says "portrait" again, that's not someone leaving full screen.
@@ -25,6 +26,7 @@ final class LiveNativeFullscreenPresenter {
 
   init(controller: LivePlayerController) {
     self.controller = controller
+    orientationLock = controller.orientationLock
   }
 
   func present() {
@@ -39,9 +41,9 @@ final class LiveNativeFullscreenPresenter {
     // even when the flag is out of step with it.
     controller.isPresentingFullscreen = false
     if isPageActive {
-      LiveOrientationLock.shared.refresh()
+      orientationLock.refresh()
     } else {
-      LiveOrientationLock.shared.release(by: self)
+      orientationLock.release(by: self)
     }
   }
 
@@ -57,7 +59,7 @@ final class LiveNativeFullscreenPresenter {
         self?.deviceDidRotate()
       }
     }
-    LiveOrientationLock.shared.claim(by: self)
+    orientationLock.claim(by: self)
     if UIDevice.current.orientation.isLandscape {
       present(facing: UIDevice.current.orientation)
     }
@@ -72,7 +74,7 @@ final class LiveNativeFullscreenPresenter {
     if isPresenting {
       dismiss()
     } else {
-      LiveOrientationLock.shared.release(by: self)
+      orientationLock.release(by: self)
     }
   }
 
@@ -110,6 +112,6 @@ final class LiveNativeFullscreenPresenter {
     closesOnPortrait = orientation.isLandscape
     controller.isPresentingFullscreen = true
     // What is this piece of crap: phone turned left means interface landscape RIGHT. Thanks Apple.
-    LiveOrientationLock.shared.claim(by: self, turningTo: orientation == .landscapeRight ? .landscapeLeft : .landscapeRight)
+    orientationLock.claim(by: self, turningTo: orientation == .landscapeRight ? .landscapeLeft : .landscapeRight)
   }
 }

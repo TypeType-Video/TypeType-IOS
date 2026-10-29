@@ -11,7 +11,6 @@ struct TypeTypeApp: App {
       memoryCapacity: 64 * 1_024 * 1_024,
       diskCapacity: 512 * 1_024 * 1_024
     )
-    LiveBackgroundRefreshCoordinator.shared.registerIfNeeded()
   }
 
   var body: some Scene {
@@ -22,7 +21,10 @@ struct TypeTypeApp: App {
           launchDestination: MockAppConfiguration.launchDestination
         )
       } else {
-        TypeTypeLiveAppView()
+        TypeTypeLiveAppView(
+          orientationLock: appDelegate.orientationLock,
+          backgroundRefresh: appDelegate.backgroundRefresh
+        )
       }
     }
   }

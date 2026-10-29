@@ -6,7 +6,7 @@ extension URLSessionAPIClient {
     do {
       try DebugNetworkOutage.check()
       let (data, response) = media
-        ? try await mediaSession.data(for: request, delegate: MediaTaskPriority.shared)
+        ? try await mediaSession.data(for: request, delegate: mediaTaskPriority)
         : try await session.data(for: request)
       guard let http = response as? HTTPURLResponse else {
         await recordDiagnostic(
@@ -163,10 +163,8 @@ extension URLSessionAPIClient {
   }
 }
 
-/// Artifact endpoints redirect to presigned object-storage URLs on the SAME
-/// host, so URLSession keeps the API's Authorization header and cookies on
-/// the redirect — signed URLs reject extra credentials and the transfer
-/// stalls or fails. Strip them at the redirect.
+/// Artifacts redirect to presigned URLs on the same host, so URLSession would keep the API credentials,
+/// which signed URLs reject.
 final class DownloadRedirectCleaner: NSObject, URLSessionTaskDelegate {
   func urlSession(
     _ session: URLSession,

@@ -59,7 +59,7 @@ extension LivePlayerController {
         for: loadedStream,
         settings: settings,
         audioOnly: audioOnly,
-        preferredCodec: LiveAppPreferencesStore.shared.preferences.playerPreferredCodec
+        preferredCodec: appPreferences.preferences.playerPreferredCodec
       )
       if selectedAudioTrackID != initial.audioTrackID {
         selectedAudioTrackID = initial.audioTrackID
@@ -139,7 +139,7 @@ extension LivePlayerController {
   var preferences: LivePlaybackPreferences {
     LivePlaybackPreferences(
       quality: settings.defaultQuality,
-      preferredCodec: LiveAppPreferencesStore.shared.preferences
+      preferredCodec: appPreferences.preferences
         .playerPreferredCodec,
       videoItag: selectedVideoItag,
       videoSourceID: selectedVideoSourceID,

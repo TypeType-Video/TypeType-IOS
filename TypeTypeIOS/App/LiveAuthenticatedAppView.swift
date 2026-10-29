@@ -13,7 +13,7 @@ struct LiveAuthenticatedAppView: View {
       get: { coordinator.selectedTab },
       set: { newValue in
         // TabView writes the binding even when the active tab is tapped
-        // again — that re-tap is the "back to this tab's input" gesture.
+        // again: that re-tap is the "back to this tab's input" gesture.
         if newValue == coordinator.selectedTab {
           coordinator.handleTabReselection(newValue)
         } else {
@@ -63,12 +63,8 @@ struct LiveAuthenticatedAppView: View {
       guard let controller = playbackCoordinator.controller,
         controller.nativePlayback != nil
       else { return }
-      // .inactive = the resign-active moment: the app's scene still exists
-      // here, so the PiP scene creation succeeds; at .background it is
-      // already too late and the video degrades to audio-only. But
-      // .inactive ALSO fires on the way back from background — only the
-      // .active → .inactive step is "leaving", the .background → .inactive
-      // step is resumption and must not start PiP.
+      // PiP must start while leaving (.active to .inactive): at .background it is too late. The
+      // .background to .inactive step is a return and must not start it.
       if phase == .inactive,
         previousPhase == .active,
         !controller.pictureInPicture.isEngaged,
@@ -94,10 +90,10 @@ struct LiveAuthenticatedAppView: View {
       if let page = try? await coordinator.dependencies.historyService.history(
         query: nil, from: nil, to: nil, limit: 50, offset: 0
       ) {
-        LiveWatchProgressStore.shared.seed(fromHistory: page)
+        coordinator.dependencies.watchProgress.seed(fromHistory: page)
       }
       notificationCenter.startPolling()
-      LiveBackgroundRefreshCoordinator.shared.scheduleRefresh()
+      coordinator.dependencies.backgroundRefresh.scheduleRefresh()
       await applyDefaultLandingPage()
     }
     .onDisappear {
@@ -142,7 +138,7 @@ struct LiveAuthenticatedAppView: View {
           await coordinator.reconnectIfNeeded()
         }
       } else if scenePhase == .background {
-        LiveBackgroundRefreshCoordinator.shared.scheduleRefresh()
+        coordinator.dependencies.backgroundRefresh.scheduleRefresh()
       }
     }
     .onChange(of: connectivityMonitor.status) {

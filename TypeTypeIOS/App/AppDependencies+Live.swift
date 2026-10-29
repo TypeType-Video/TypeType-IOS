@@ -2,7 +2,10 @@ import Foundation
 
 extension AppDependencies {
   @MainActor
-  static func live() -> AppDependencies {
+  static func live(
+    orientationLock: LiveOrientationLock,
+    backgroundRefresh: LiveBackgroundRefreshCoordinator
+  ) -> AppDependencies {
     let serverStore = ServerStore()
     // Relative server image references (avatars) resolve against the active
     // instance, mirroring the Android client.
@@ -170,7 +173,9 @@ extension AppDependencies {
         serverURLProvider: {
           serverStore.selectedServer()?.baseURL
         }
-      )
+      ),
+      orientationLock: orientationLock,
+      backgroundRefresh: backgroundRefresh
     )
   }
 }

@@ -24,7 +24,8 @@ struct LiveSettingsAppearanceView: View {
           isDark: isEffectivelyDark
         )
         LiveAppearanceAccentDots(
-          selection: preferences.binding(\.accentColor)
+          selection: preferences.binding(\.accentColor),
+          customHex: preferences.binding(\.customAccentHex)
         )
       } header: {
         Text("Appearance").liveSectionHeader()
@@ -37,7 +38,7 @@ struct LiveSettingsAppearanceView: View {
           options: LiveAppearanceMode.allCases.map { ($0, $0.title) }
         )
         // The AMOLED row is visible only when the app is effectively dark
-        // (Dark, or System with a dark system) — in light it does nothing.
+        // (Dark, or System with a dark system): in light it does nothing.
         if isEffectivelyDark {
           Toggle("AMOLED black", isOn: preferences.binding(\.appearanceAmoled))
         }

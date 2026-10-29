@@ -78,7 +78,7 @@ extension LivePlaybackCoordinator {
       controller?.settings.skipPlaylistAutoplayScreen == true
     let seconds = skipDelay
       ? 0
-      : LiveAppPreferencesStore.shared.preferences
+      : appPreferences.preferences
         .playerAutoplayCountdownSeconds
     guard seconds > 0 else {
       commitAutoplayAdvance(to: nextIndex)

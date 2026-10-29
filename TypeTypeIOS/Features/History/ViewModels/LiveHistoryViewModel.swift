@@ -24,8 +24,11 @@ final class LiveHistoryViewModel: ObservableObject {
   /// so pagination must never advance by the visible count.
   private var fetchedCount = 0
 
-  init(service: LiveHistoryServiceProtocol) {
+  private let watchProgress: LiveWatchProgressStore
+
+  init(service: LiveHistoryServiceProtocol, watchProgress: LiveWatchProgressStore) {
     self.service = service
+    self.watchProgress = watchProgress
   }
 
   deinit {
@@ -60,7 +63,7 @@ final class LiveHistoryViewModel: ObservableObject {
     do {
       let page = try await request(offset: 0)
       try Task.checkCancellation()
-      LiveWatchProgressStore.shared.seed(fromHistory: page)
+      watchProgress.seed(fromHistory: page)
       fetchedCount = page.count
       // One row per video, stamped with the LAST watch (like the web). The
       // raw offset above keeps pagination correct regardless of collapsing.
@@ -80,7 +83,7 @@ final class LiveHistoryViewModel: ObservableObject {
     defer { isLoadingMore = false }
     do {
       let page = try await request(offset: fetchedCount)
-      LiveWatchProgressStore.shared.seed(fromHistory: page)
+      watchProgress.seed(fromHistory: page)
       fetchedCount += page.count
       items = collapsedToLatest(items + page)
       canLoadMore = page.count >= pageSize

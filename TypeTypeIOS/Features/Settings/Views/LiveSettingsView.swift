@@ -3,11 +3,12 @@ import SwiftUI
 struct LiveSettingsView: View {
   @StateObject private var viewModel: LiveSettingsViewModel
   @ObservedObject private var coordinator: RootCoordinator
-  @ObservedObject private var preferences = LiveAppPreferencesStore.shared
+  @ObservedObject private var preferences: LiveAppPreferencesStore
   @ObservedObject private var playbackCoordinator: LivePlaybackCoordinator
 
   init(coordinator: RootCoordinator) {
     self.coordinator = coordinator
+    _preferences = ObservedObject(wrappedValue: coordinator.dependencies.appPreferences)
     playbackCoordinator = coordinator.dependencies.playbackCoordinator
     _viewModel = StateObject(
       wrappedValue: LiveSettingsViewModel(
@@ -93,7 +94,7 @@ struct LiveSettingsView: View {
           LiveSettingsAppearanceView(
             dependencies: coordinator.dependencies,
             viewModel: viewModel,
-            preferences: LiveAppPreferencesStore.shared
+            preferences: preferences
           )
         }
         LiveSettingsLinkRow(
@@ -104,7 +105,7 @@ struct LiveSettingsView: View {
           LiveSettingsPlayerView(
             dependencies: coordinator.dependencies,
             viewModel: viewModel,
-            preferences: LiveAppPreferencesStore.shared
+            preferences: preferences
           )
         }
       } header: {

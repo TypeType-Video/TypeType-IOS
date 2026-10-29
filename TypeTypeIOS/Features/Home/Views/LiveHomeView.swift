@@ -15,7 +15,8 @@ struct LiveHomeView: View {
         service: coordinator.dependencies.homeFeedService,
         historyService: coordinator.dependencies.historyService,
         settingsService: coordinator.dependencies.settingsService,
-        serviceSelection: coordinator.dependencies.serviceSelection
+        serviceSelection: coordinator.dependencies.serviceSelection,
+        imagePipeline: coordinator.dependencies.imagePipeline
       )
     )
   }

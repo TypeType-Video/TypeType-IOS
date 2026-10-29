@@ -4,7 +4,7 @@ struct LivePlayerView: View {
   @ObservedObject var controller: LivePlayerController
   @ObservedObject var coordinator: LivePlaybackCoordinator
   let dependencies: AppDependencies
-  @ObservedObject var preferences = LiveAppPreferencesStore.shared
+  @EnvironmentObject var preferences: LiveAppPreferencesStore
   let posterURL: URL?
   @Binding var cinemaMode: Bool
   @State var showsOptions = false

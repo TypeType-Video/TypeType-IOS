@@ -4,7 +4,7 @@ struct LivePlaylistVideoRow: View {
   let video: LivePlaylistVideo
   let dependencies: AppDependencies
   @ObservedObject private var deArrowStore: LiveDeArrowStore
-  @ObservedObject private var watchProgress = LiveWatchProgressStore.shared
+  @EnvironmentObject private var watchProgress: LiveWatchProgressStore
   let onOpen: () -> Void
   let onChannel: () -> Void
   let onRemove: () -> Void

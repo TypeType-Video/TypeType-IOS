@@ -33,7 +33,7 @@ final class LivePlayerController: ObservableObject {
   /// scroll-away state) instead of the inline player position.
   @Published var isVideoDocked = false
   /// Playing a downloaded file: no server exists to fill comments,
-  /// related videos or subscriptions — the page must not wait on them.
+  /// related videos or subscriptions: the page must not wait on them.
   @Published var isOfflineContent = false
   @Published var preparation: LivePlaybackPreparation?
   /// Milliseconds from loading to the first playing frame of the last start.
@@ -87,12 +87,15 @@ final class LivePlayerController: ObservableObject {
   /// scrolled). Gates the pull-down-to-mini gesture.
   var isPlayerSurfaceFullyVisible = true
   /// Set on stop/close: pending async work (item-ready observers, delayed
-  /// resumes, provider recovery) must never start playback afterwards —
+  /// resumes, provider recovery) must never start playback afterwards:
   /// that produced audio with no player UI at all.
   var isTornDown = false
   let service: LivePlaybackServiceProtocol?
   let settingsService: LiveSettingsServiceProtocol
   let historyService: LiveHistoryServiceProtocol
+  let watchProgress: LiveWatchProgressStore
+  let appPreferences: LiveAppPreferencesStore
+  let orientationLock: LiveOrientationLock
   let playbackSessionReporter: LivePlaybackSessionReporter
   let bulletCommentStore = LiveBulletCommentStore()
   @Published var settings = LiveSettings()
@@ -134,14 +137,17 @@ final class LivePlayerController: ObservableObject {
     service = dependencies.playbackService
     settingsService = dependencies.settingsService
     historyService = dependencies.historyService
+    watchProgress = dependencies.watchProgress
+    appPreferences = dependencies.appPreferences
+    orientationLock = dependencies.orientationLock
     playbackSessionReporter = LivePlaybackSessionReporter(
       service: dependencies.sessionActivityService
     )
     let defaults = UserDefaults.standard
-    let appPreferences = LiveAppPreferencesStore.shared.preferences
-    audioOnly = appPreferences.playerAudioOnlyPlayback
-    autoplayEnabled = appPreferences.playerAutoplayEnabled
-    let defaultDanmakuEnabled = appPreferences.danmakuEnabled
+    let initialPreferences = appPreferences.preferences
+    audioOnly = initialPreferences.playerAudioOnlyPlayback
+    autoplayEnabled = initialPreferences.playerAutoplayEnabled
+    let defaultDanmakuEnabled = initialPreferences.danmakuEnabled
     bulletCommentsEnabled = defaults.object(
       forKey: Self.bulletCommentsEnabledKey
     ) == nil

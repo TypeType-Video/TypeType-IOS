@@ -34,7 +34,8 @@ struct LiveLibraryView: View {
     _section = section
     _historyModel = StateObject(
       wrappedValue: LiveHistoryViewModel(
-        service: coordinator.dependencies.historyService
+        service: coordinator.dependencies.historyService,
+        watchProgress: coordinator.dependencies.watchProgress
       )
     )
     _favoritesModel = StateObject(

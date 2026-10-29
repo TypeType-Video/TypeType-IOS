@@ -84,6 +84,7 @@ struct LiveAppearanceMiniScreen: View {
 struct LiveAppearanceAccentDots: View {
   @Environment(\.themePalette) private var palette
   @Binding var selection: LiveAccentColor
+  @Binding var customHex: String?
 
   var body: some View {
     HStack(spacing: 0) {
@@ -132,11 +133,10 @@ struct LiveAppearanceAccentDots: View {
 
   /// Picking a custom colour stores it (hex) and selects the custom accent.
   private var customColorBinding: Binding<Color> {
-    let hex = LiveAppPreferencesStore.shared.binding(\.customAccentHex)
-    return Binding(
-      get: { hex.wrappedValue.flatMap(Color.init(hex:)) ?? .accentColor },
+    Binding(
+      get: { customHex.flatMap(Color.init(hex:)) ?? .accentColor },
       set: { newValue in
-        hex.wrappedValue = newValue.hexString
+        customHex = newValue.hexString
         selection = .custom
       }
     )

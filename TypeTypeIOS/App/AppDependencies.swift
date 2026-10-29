@@ -40,6 +40,10 @@ final class AppDependencies {
   let portabilityService: LivePortabilityServiceProtocol
   let versionService: LiveVersionServiceProtocol
   let playbackService: LivePlaybackServiceProtocol?
+  let watchProgress: LiveWatchProgressStore
+  let imagePipeline: TypeTypeImagePipeline
+  let orientationLock: LiveOrientationLock
+  let backgroundRefresh: LiveBackgroundRefreshCoordinator
   lazy var connectivityMonitor = LiveConnectivityMonitor()
   @MainActor
   lazy var downloadCenter: LiveDownloadCenter = {
@@ -60,17 +64,21 @@ final class AppDependencies {
     )
   }()
   @MainActor
+  lazy var appPreferences = LiveAppPreferencesStore()
+  @MainActor
   lazy var playbackPrewarmer: LivePlaybackPrewarmer? = playbackService.map {
     LivePlaybackPrewarmer(
       service: $0,
       settingsService: settingsService,
-      historyService: historyService
+      historyService: historyService,
+      appPreferences: appPreferences
     )
   }
   @MainActor
   lazy var playbackCoordinator: LivePlaybackCoordinator = {
     let coordinator = LivePlaybackCoordinator(
       settingsService: settingsService,
+      appPreferences: appPreferences,
       scopeProvider: { [weak self] in
         guard let self,
           let serverID = serverStore.selectedServerID(),
@@ -95,6 +103,7 @@ final class AppDependencies {
     return coordinator
   }()
 
+  @MainActor
   init(
     serverStore: ServerStore,
     sessionStore: SessionStore,
@@ -130,7 +139,11 @@ final class AppDependencies {
     importService: LiveImportServiceProtocol,
     portabilityService: LivePortabilityServiceProtocol = LivePortabilityNoopService(),
     versionService: LiveVersionServiceProtocol = LiveVersionUnavailableService(),
-    playbackService: LivePlaybackServiceProtocol? = nil
+    playbackService: LivePlaybackServiceProtocol? = nil,
+    watchProgress: LiveWatchProgressStore = LiveWatchProgressStore(),
+    imagePipeline: TypeTypeImagePipeline = TypeTypeImagePipeline(),
+    orientationLock: LiveOrientationLock,
+    backgroundRefresh: LiveBackgroundRefreshCoordinator
   ) {
     self.serverStore = serverStore
     self.sessionStore = sessionStore
@@ -167,6 +180,10 @@ final class AppDependencies {
     self.portabilityService = portabilityService
     self.versionService = versionService
     self.playbackService = playbackService
+    self.watchProgress = watchProgress
+    self.imagePipeline = imagePipeline
+    self.orientationLock = orientationLock
+    self.backgroundRefresh = backgroundRefresh
   }
 
   func diagnosticScope() -> LiveDiagnosticScope? {

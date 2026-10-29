@@ -21,6 +21,7 @@ final class LivePlaybackCoordinator: ObservableObject {
   @Published var autoplayCountdownRemaining: Int?
 
   let settingsService: LiveSettingsServiceProtocol
+  let appPreferences: LiveAppPreferencesStore
   let queueStore: LivePlaybackQueueStore
   let scopeProvider: () -> LivePlaybackScope?
   let playerFactory: PlayerFactory
@@ -35,11 +36,13 @@ final class LivePlaybackCoordinator: ObservableObject {
 
   init(
     settingsService: LiveSettingsServiceProtocol,
+    appPreferences: LiveAppPreferencesStore,
     queueStore: LivePlaybackQueueStore = LivePlaybackQueueStore(),
     scopeProvider: @escaping () -> LivePlaybackScope?,
     playerFactory: @escaping PlayerFactory
   ) {
     self.settingsService = settingsService
+    self.appPreferences = appPreferences
     self.queueStore = queueStore
     self.scopeProvider = scopeProvider
     self.playerFactory = playerFactory

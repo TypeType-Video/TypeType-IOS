@@ -52,10 +52,7 @@ final class LivePlayerLayerCoordinator:
     danmakuView.isUserInteractionEnabled = false
     danmakuView.translatesAutoresizingMaskIntoConstraints = false
     overlay.addSubview(danmakuView)
-    // Priority 999 on purpose: required pins inside AVKit's overlay subtree
-    // fight AVKit's control-container layout; full-size autoresizing in turn
-    // covered the controls with the (clear) hosting view. Soft pins keep the
-    // danmaku matched to the video without either failure mode.
+    // 999, not required: required pins fight AVKit's control layout, autoresizing covers the controls.
     let danmakuPins = [
       danmakuView.leadingAnchor.constraint(equalTo: overlay.leadingAnchor),
       danmakuView.trailingAnchor.constraint(equalTo: overlay.trailingAnchor),
@@ -200,15 +197,12 @@ extension LivePlayerLayerCoordinator: UIGestureRecognizerDelegate {
     let startLocation = recognizer.location(in: view)
     let translation = recognizer.translation(in: view)
     // Each recognizer owns ONE direction: the seek pan only horizontal, the
-    // adjustment pan only vertical — so a brightness swipe never pops the
+    // adjustment pan only vertical: so a brightness swipe never pops the
     // mm:ss preview and a scrub never starts an adjustment.
     if recognizer === horizontalSeekGestureRecognizer {
-      // Direction only here too: the pan decides to begin after ~10 pt, so
-      // a distance gate fails every scrub before it starts. The long-press
-      // owns the touch while held (the UIKit pans get cancelled), so the
-      // speed ramp never fights this seek.
+      // Direction only: the pan begins after about 10 pt, so a distance gate would fail every scrub.
       guard abs(translation.x) > abs(translation.y) * 1.25,
-        LiveAppPreferencesStore.shared.preferences.playerSwipeSeekEnabled,
+        controller.appPreferences.preferences.playerSwipeSeekEnabled,
         controller.duration > 0
       else { return false }
       horizontalSeekBasePosition = controller.position

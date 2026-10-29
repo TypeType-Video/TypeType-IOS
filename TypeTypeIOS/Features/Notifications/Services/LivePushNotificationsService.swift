@@ -36,6 +36,7 @@ extension LivePushNotificationsServiceProtocol {
 
 final class LivePushNotificationsService: LivePushNotificationsServiceProtocol {
   private let apiClient: APIClient
+  private let requestGate = LiveNotificationRequestGate()
 
   init(apiClient: APIClient) {
     self.apiClient = apiClient
@@ -44,7 +45,7 @@ final class LivePushNotificationsService: LivePushNotificationsServiceProtocol {
   func channelPreferences() async throws -> [
     LiveChannelNotificationPreference
   ] {
-    await LiveNotificationRequestGate.shared.acquire()
+    await requestGate.acquire()
     return try await apiClient.request(
       APIEndpoint(
         path: "/notifications/channel-preferences",
@@ -59,7 +60,7 @@ final class LivePushNotificationsService: LivePushNotificationsServiceProtocol {
     channelURL: String,
     enabled: Bool
   ) async throws -> LiveChannelNotificationPreference {
-    await LiveNotificationRequestGate.shared.acquire()
+    await requestGate.acquire()
     return try await apiClient.request(
       APIEndpoint(
         path: "/notifications/channel-preferences",
@@ -80,7 +81,7 @@ final class LivePushNotificationsService: LivePushNotificationsServiceProtocol {
     enabled: Bool,
     channelURLs: [String]
   ) async throws -> [LiveChannelNotificationPreference] {
-    await LiveNotificationRequestGate.shared.acquire()
+    await requestGate.acquire()
     return try await apiClient.request(
       APIEndpoint(
         path: "/notifications/channel-preferences/bulk",
@@ -109,10 +110,9 @@ private struct LiveChannelNotificationPreferencesBulkPayload: Encodable {
   }
 }
 
-/// Ceiling on outgoing notifications requests per second — the backend
+/// Ceiling on outgoing notifications requests per second: the backend
 /// allows 120/s, this holds the client at ~60/s.
 private actor LiveNotificationRequestGate {
-  static let shared = LiveNotificationRequestGate()
   private var nextSlot: ContinuousClock.Instant = .now
   private let spacing: Duration = .milliseconds(17)
 

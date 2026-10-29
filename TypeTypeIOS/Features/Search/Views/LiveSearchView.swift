@@ -23,7 +23,8 @@ struct LiveSearchView: View {
         searchService: coordinator.dependencies.searchService,
         historyService:
           coordinator.dependencies.searchHistoryService,
-        serviceSelection: coordinator.dependencies.serviceSelection
+        serviceSelection: coordinator.dependencies.serviceSelection,
+        imagePipeline: coordinator.dependencies.imagePipeline
       )
     )
   }

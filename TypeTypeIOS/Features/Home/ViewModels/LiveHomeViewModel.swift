@@ -15,6 +15,7 @@ final class LiveHomeViewModel: ObservableObject {
   let services: [VideoService]
 
   private let service: HomeFeedServiceProtocol
+  private let imagePipeline: TypeTypeImagePipeline
   private let historyService: LiveHistoryServiceProtocol
   private let settingsService: LiveSettingsServiceProtocol
   private let serviceSelection: LiveServiceSelection
@@ -29,8 +30,10 @@ final class LiveHomeViewModel: ObservableObject {
     service: HomeFeedServiceProtocol,
     historyService: LiveHistoryServiceProtocol,
     settingsService: LiveSettingsServiceProtocol,
-    serviceSelection: LiveServiceSelection
+    serviceSelection: LiveServiceSelection,
+    imagePipeline: TypeTypeImagePipeline = TypeTypeImagePipeline()
   ) {
+    self.imagePipeline = imagePipeline
     self.service = service
     self.historyService = historyService
     self.settingsService = settingsService
@@ -79,9 +82,7 @@ final class LiveHomeViewModel: ObservableObject {
     nextCursor = nil
     loadTask?.cancel()
     paginationTask?.cancel()
-    // Every fetch here is time-boxed: one stalled request (settings,
-    // recommendations or history) used to leave the page spinning forever
-    // because reload() never reached its state transition.
+    // Time-boxed: one stalled request would keep reload() from ever leaving the loading state.
     let settingsService = self.settingsService
     let settings = (try? await Self.withTimeout(seconds: 4) {
       try await settingsService.settings()
@@ -132,9 +133,7 @@ final class LiveHomeViewModel: ObservableObject {
       return
     }
     if Task.isCancelled {
-      // A restarted view task cancels reload() mid-flight; without this the
-      // page is stranded in .loading and loadIfNeeded() (which only starts
-      // from .idle) never retries — one fetch, spinner forever.
+      // A restarted view task cancels reload() mid-flight, and loadIfNeeded() only starts from .idle.
       if state == .loading {
         state = .idle
       }
@@ -227,8 +226,8 @@ final class LiveHomeViewModel: ObservableObject {
   private func prefetchThumbnails(for items: [LiveVideoItem]) {
     for item in items.prefix(8) {
       guard let url = LiveImageURLResolver.resolve(item.thumbnail) else { continue }
-      Task.detached(priority: .utility) {
-        _ = await TypeTypeImagePipeline.shared.image(for: url, maxPixelSize: 640)
+      Task.detached(priority: .utility) { [imagePipeline] in
+        _ = await imagePipeline.image(for: url, maxPixelSize: 640)
       }
     }
   }

@@ -108,7 +108,6 @@ extension URLSessionAPIClient {
 
 /// Raises each media task to the highest priority the session offers.
 final class MediaTaskPriority: NSObject, URLSessionTaskDelegate, Sendable {
-  static let shared = MediaTaskPriority()
 
   func urlSession(_ session: URLSession, didCreateTask task: URLSessionTask) {
     task.priority = URLSessionTask.highPriority

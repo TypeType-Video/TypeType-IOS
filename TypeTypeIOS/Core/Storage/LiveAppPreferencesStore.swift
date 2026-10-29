@@ -2,7 +2,6 @@ import SwiftUI
 
 @MainActor
 final class LiveAppPreferencesStore: ObservableObject {
-  static let shared = LiveAppPreferencesStore()
   static let storageKey = "typetype.app-preferences.v1"
 
   @Published private(set) var preferences: LiveAppPreferences

@@ -37,7 +37,7 @@ struct LivePlaybackQueueRow: View {
     )
   }
 
-  @ObservedObject private var watchProgress = LiveWatchProgressStore.shared
+  @EnvironmentObject private var watchProgress: LiveWatchProgressStore
 
   private var thumbnail: some View {
     LiveRemoteImage(url: video.thumbnail)

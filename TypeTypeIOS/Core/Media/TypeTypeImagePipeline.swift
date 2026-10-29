@@ -1,12 +1,10 @@
+import SwiftUI
 import ImageIO
 import UIKit
 
-/// Shared image loader for thumbnails and avatars. Unlike AsyncImage, a load
-/// keeps running when its cell scrolls away, so the image is cached by the time
-/// the cell returns; identical requests share one download; images are
-/// downsampled to their display size; failures are retried.
+/// Thumbnails and avatars. Unlike AsyncImage a load outlives its cell, identical requests share one
+/// download, images are downsampled to their display size and failures are retried.
 actor TypeTypeImagePipeline {
-  static let shared = TypeTypeImagePipeline()
 
   private nonisolated let memory = ImageMemoryCache()
   private var inFlight: [String: Task<UIImage?, Never>] = [:]
@@ -99,5 +97,17 @@ private final class ImageMemoryCache: @unchecked Sendable {
 
   func store(_ image: UIImage, for key: String, cost: Int) {
     storage.setObject(image, forKey: key as NSString, cost: cost)
+  }
+}
+
+private struct TypeTypeImagePipelineKey: EnvironmentKey {
+  // Only reached outside the app root (previews); the app injects the shared one.
+  static let defaultValue = TypeTypeImagePipeline()
+}
+
+extension EnvironmentValues {
+  var imagePipeline: TypeTypeImagePipeline {
+    get { self[TypeTypeImagePipelineKey.self] }
+    set { self[TypeTypeImagePipelineKey.self] = newValue }
   }
 }
