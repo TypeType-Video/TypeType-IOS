@@ -149,7 +149,7 @@ struct LiveSettingsAppearanceView: View {
         // The AMOLED row is visible only when the app is effectively dark
         // (Dark, or System with a dark system) — in light it does nothing.
         if isEffectivelyDark {
-          Toggle("AMOLED black", isOn: preferences.binding(\.appearanceAmoled)).liveRowFill()
+          Toggle("AMOLED black", isOn: preferences.binding(\.appearanceAmoled))
         }
         LiveOptionMenu(
           "Font",
@@ -315,7 +315,7 @@ struct LiveSettingsContentView: View {
         services: dependencies.serviceSelection.services
       )
       Section {
-        Toggle("Hide Shorts", isOn: $viewModel.draft.hideShorts).liveRowFill()
+        Toggle("Hide Shorts", isOn: $viewModel.draft.hideShorts)
       } header: {
         Text("Visible surfaces").liveSectionHeader()
       }
@@ -341,11 +341,11 @@ struct LiveSettingsPlayerView: View {
         Toggle(
           "Accessible player controls",
           isOn: preferences.binding(\.playerAccessibleControlsEnabled)
-        ).liveRowFill()
+        )
         Toggle(
           "Double-tap to seek",
           isOn: preferences.binding(\.playerDoubleTapSeekEnabled)
-        ).liveRowFill()
+        )
         if preferences.preferences.playerDoubleTapSeekEnabled {
           LiveOptionMenu(
             "Double-tap seek time",
@@ -356,17 +356,17 @@ struct LiveSettingsPlayerView: View {
         Toggle(
           "Swipe to seek",
           isOn: preferences.binding(\.playerSwipeSeekEnabled)
-        ).liveRowFill()
+        )
         Toggle(
           "Brightness and volume swipe",
           isOn: preferences.binding(
             \.playerSwipeBrightnessVolumeEnabled
           )
-        ).liveRowFill()
+        )
         Toggle(
           "Long-press to speed up",
           isOn: preferences.binding(\.playerLongPressSpeedEnabled)
-        ).liveRowFill()
+        )
       } header: {
         Text("Gestures").liveSectionHeader()
       }
@@ -388,7 +388,7 @@ struct LiveSettingsPlayerView: View {
         Toggle(
           "Show bullet comments",
           isOn: preferences.binding(\.danmakuEnabled)
-        ).liveRowFill()
+        )
         if preferences.preferences.danmakuEnabled {
           LiveOptionMenu(
             "Danmaku speed",
@@ -417,7 +417,7 @@ struct LiveSettingsPlayerView: View {
       Toggle(
         "Autoplay next video",
         isOn: preferences.binding(\.playerAutoplayEnabled)
-      ).liveRowFill()
+      )
       if preferences.preferences.playerAutoplayEnabled {
         LiveOptionMenu(
           "Autoplay countdown",
@@ -429,11 +429,11 @@ struct LiveSettingsPlayerView: View {
       Toggle(
         "Audio-only playback",
         isOn: preferences.binding(\.playerAudioOnlyPlayback)
-      ).liveRowFill()
+      )
       Toggle(
         "Pause in background",
         isOn: preferences.binding(\.playerPauseInBackground)
-      ).liveRowFill()
+      )
     } header: {
         Text("Device playback").liveSectionHeader()
       }

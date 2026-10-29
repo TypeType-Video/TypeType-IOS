@@ -33,7 +33,7 @@ struct LivePlayerOptionsSheet: View {
         streamInformationSection
         reportSection
       }
-        .liveThemedList()
+        .liveGroupedList()
       .liveThemeRepaint()
       .accessibilityIdentifier("live.player.options-sheet")
       .navigationTitle("Player options")

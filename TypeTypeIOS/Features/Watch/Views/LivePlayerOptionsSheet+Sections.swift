@@ -7,21 +7,21 @@ extension LivePlayerOptionsSheet {
         "Audio only",
         systemImage: "headphones",
         isOn: binding(\.audioOnly, setter: controller.setAudioOnly)
-      ).liveRowFill()
+      )
       Toggle(
         "Loop video",
         isOn: binding(\.loopsPlayback, setter: controller.setLooping)
-      ).liveRowFill()
+      )
       Toggle(
         "Muted",
         isOn: binding(\.muted, setter: controller.setMuted)
-      ).liveRowFill()
+      )
       Toggle(
         "Brightness and volume swipe",
         isOn: LiveAppPreferencesStore.shared.binding(
           \.playerSwipeBrightnessVolumeEnabled
         )
-      ).liveRowFill()
+      )
       Picker(
         "Speed",
         selection: binding(
@@ -82,7 +82,7 @@ extension LivePlayerOptionsSheet {
           \.subtitlesEnabled,
           setter: controller.setSubtitlesEnabled
         )
-      ).liveRowFill()
+      )
       if controller.subtitlesEnabled,
         !controller.availableSubtitles.isEmpty {
         subtitlePicker
