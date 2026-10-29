@@ -8,9 +8,14 @@ struct LiveHistoryView: View {
   @State var pendingRemoval: LiveHistoryItem?
   @State var choosesDate = false
 
-  init(coordinator: RootCoordinator, viewModel: LiveHistoryViewModel) {
+  init(
+    coordinator: RootCoordinator,
+    viewModel: LiveHistoryViewModel,
+    isActive: Bool = true
+  ) {
     self.coordinator = coordinator
     self.viewModel = viewModel
+    self.isActive = isActive
   }
 
   // No own NavigationStack: as a library section the pager hosts this view
