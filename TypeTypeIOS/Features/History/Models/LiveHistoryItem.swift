@@ -90,10 +90,7 @@ struct LiveHistoryItem: Decodable, Equatable, Identifiable {
   }
 
   init(from decoder: Decoder) throws {
-    // Tolerant on purpose: legacy rows (imported history, pre-app entries)
-    // omit or null fields the modern payloads always carry. A single strict
-    // field killed the whole page decode, which is why older history never
-    // appeared.
+    // Imported and older rows omit fields newer ones carry; one strict field would fail the page.
     let values = try decoder.container(keyedBy: CodingKeys.self)
     // Every field is read through `try?`: legacy rows carry wrong types and
     // omitted keys alike (decodeIfPresent still throws on type mismatch).

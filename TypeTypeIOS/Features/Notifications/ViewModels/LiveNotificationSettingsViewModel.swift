@@ -9,11 +9,8 @@ final class LiveNotificationSettingsViewModel: ObservableObject {
     let systemImage: String
   }
 
-  /// Polling budget the instance allows per user. Every channel with
-  /// notifications enabled is polled server-side for new uploads, so each
-  /// enabled feed spends `pollingQueriesPerEnabledFeed` queries per poll
-  /// cycle. The guard keeps the total at or below the cap so enabling one
-  /// channel too many never turns into a server 429.
+  /// The instance's per-user polling budget: each enabled channel costs `pollingQueriesPerEnabledFeed`
+  /// queries a cycle, and going over it answers 429.
   static let pollingQueryBudget = 120
   static let pollingQueriesPerEnabledFeed = 1
 
@@ -54,7 +51,7 @@ final class LiveNotificationSettingsViewModel: ObservableObject {
 
   // MARK: Polling budget
 
-  /// Number of enabled channel feeds — the server's polling workload.
+  /// Number of enabled channel feeds: the server's polling workload.
   var enabledFeedCount: Int {
     preferences.filter { $0.enabled }.count
   }
@@ -136,7 +133,7 @@ final class LiveNotificationSettingsViewModel: ObservableObject {
       return
     }
     // Budget guard: never let the enabled feeds exceed the polling cap.
-    // The enable is blocked here with a toast, before the request — one
+    // The enable is blocked here with a toast, before the request: one
     // more feed would only earn a server 429.
     if enabled, !isCurrentlyEnabled(preference), !canEnableMore {
       toast = Self.budgetBlockedToast
@@ -258,7 +255,7 @@ final class LiveNotificationSettingsViewModel: ObservableObject {
     return preferences[index].enabled
   }
 
-  /// Replaces the local rows with the server's without touching `state` —
+  /// Replaces the local rows with the server's without touching `state`:
   /// a resync after a failed bulk batch must not flash the skeleton.
   private func resync() async {
     if let fresh = try? await service.channelPreferences() {

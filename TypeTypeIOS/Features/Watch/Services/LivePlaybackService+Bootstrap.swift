@@ -10,11 +10,8 @@ extension LivePlaybackServiceProtocol {
 }
 
 extension LivePlaybackService {
-  /// The stream needed to start playing, as fast as the server can give it.
-  /// For YouTube that is the SABR bootstrap (about 0.1–0.2 s against 1.3–1.8 s
-  /// for full extraction, like Android's PlayerStreamLoader); full metadata
-  /// (related videos, chapters) is fetched separately with `stream(for:)`.
-  /// Lives have no bootstrap contract and fall back to the full route at once.
+  /// YouTube starts from the SABR bootstrap (0.1 to 0.2 s, against 1.3 to 1.8 s for full extraction);
+  /// metadata comes later from `stream(for:)`. Lives have no bootstrap and take the full route.
   func playbackStream(for videoURL: String) async throws -> LivePlaybackStream {
     if let full = streamCache.stream(for: videoURL, ttl: Self.streamCacheTTL) {
       return full

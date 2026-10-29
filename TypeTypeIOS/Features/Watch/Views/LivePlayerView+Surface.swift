@@ -39,7 +39,7 @@ extension LivePlayerView {
           }
       )
       .simultaneousGesture(speedRampGesture)
-      // Swipe down leaves full screen — from the centre third only, so it
+      // Swipe down leaves full screen: from the centre third only, so it
       // never fights the brightness/volume swipes on the outer thirds.
       .simultaneousGesture(
         DragGesture(minimumDistance: 30)

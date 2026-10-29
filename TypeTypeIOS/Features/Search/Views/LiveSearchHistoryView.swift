@@ -1,7 +1,6 @@
 import SwiftUI
 
-/// Discovery state of the search screen: recent searches only. Search is
-/// search — the trending shelf was removed (dev feedback, plan task 4.1).
+/// The search screen before a query: recent searches only.
 struct LiveSearchHistoryView: View {
   @ObservedObject var viewModel: LiveSearchViewModel
   @State private var confirmsClear = false

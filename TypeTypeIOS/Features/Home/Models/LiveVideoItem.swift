@@ -88,9 +88,8 @@ struct LiveVideoItem: Codable, Hashable, Identifiable {
     self.requiresMembership = requiresMembership
   }
 
-  // A single null or missing field in a row must not fail the page decode:
-  // playlist and channel responses carry deleted or members-only entries
-  // with holes, and one bad row used to take the whole list down.
+  // Playlist and channel responses carry deleted or members-only rows with missing fields; one of
+  // them must not fail the whole page.
 
   init(from decoder: Decoder) throws {
     let container = try decoder.container(keyedBy: CodingKeys.self)

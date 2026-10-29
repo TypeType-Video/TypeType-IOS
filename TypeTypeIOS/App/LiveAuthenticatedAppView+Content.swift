@@ -4,10 +4,8 @@ extension LiveAuthenticatedAppView {
   var shell: some View {
     tabs
     .onChange(of: playbackCoordinator.presentation) { _, newValue in
-      // System PiP restore: bring the expanded player back. The cover must
-      // appear WITHOUT its slide — the system animates the PiP window back
-      // onto the player surface, and a sliding cover leaves that target
-      // frame at the top of the screen first (the "jump, then settle" one).
+      // No slide on a PiP restore: the system animates its window onto the player, and a sliding
+      // cover would move that target while it does.
       if newValue == .expanded {
         if playbackCoordinator.controller?.pictureInPicture.isEngaged == true {
           var transaction = Transaction()
@@ -53,7 +51,7 @@ extension LiveAuthenticatedAppView {
       }
     }
     // The tab bar floats in a glass pill; without a full-bleed page
-    // background the area below it shows the window's black — only the
+    // background the area below it shows the window's black: only the
     // More tab covered it because its List fills the safe area.
     .background(DemoThemeBackground().ignoresSafeArea())
     .toolbarBackground(palette.background, for: .tabBar)
@@ -139,7 +137,7 @@ extension LiveAuthenticatedAppView {
     tabBarBand: CGFloat,
     topBand: CGFloat
   ) -> some View {
-    // The in-app card is the FALLBACK for a failed or unavailable PiP —
+    // The in-app card is the FALLBACK for a failed or unavailable PiP:
     // while the system PiP window is engaged it would only duplicate it.
     if playbackCoordinator.showsMiniPlayer,
       playbackCoordinator.controller?.pictureInPicture.isEngaged != true {

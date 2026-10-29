@@ -47,9 +47,7 @@ extension LiveHomeView {
     }
   }
 
-  /// The Apple-settings entry row: notifications with an unread badge, the
-  /// settings gear, and the account avatar — the old More tab lives in
-  /// these buttons now.
+  /// Notifications with an unread badge, the settings gear and the account avatar.
   @ToolbarContentBuilder
   var accountsToolbar: some ToolbarContent {
     ToolbarItemGroup(placement: .topBarTrailing) {

@@ -83,8 +83,7 @@ struct LiveOfflinePlaybackItem: Identifiable {
 }
 
 extension LivePlayerController {
-  /// Offline playback: a local file through the full player stage — no
-  /// server loading path, no full-metadata fetch.
+  /// A local file through the full player stage, without server loading or a metadata fetch.
   func installOffline(stream: LivePlaybackStream, fileURL: URL) async {
     isOfflineContent = true
     state = .loading

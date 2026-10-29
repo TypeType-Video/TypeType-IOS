@@ -12,8 +12,7 @@ enum LiveScreenOrientation {
         .compactMap({ $0 as? UIWindowScene })
         .first
       else { return }
-      // A request to the orientation the window already holds re-kicks the
-      // rotation animation (the "doesn't stop, keeps moving" feel) — skip.
+      // Asking for the orientation the window already holds restarts the rotation animation.
       if orientation == .portrait, scene.interfaceOrientation.isPortrait { return }
       if orientation == .landscape, scene.interfaceOrientation.isLandscape { return }
       scene.requestGeometryUpdate(.iOS(interfaceOrientations: orientation))

@@ -82,8 +82,7 @@ struct LiveManagedDownload: Codable, Equatable, Identifiable {
   var metadata: LiveOfflineVideoMetadata?
 
   var progress: Double? {
-    // The artifact fetch has no percentage — a frozen 100% bar read as
-    // "stalled". Indeterminate while saving is the honest signal.
+    // The artifact fetch reports no percentage, and a full bar would read as stalled.
     guard state != .saving else { return nil }
     guard let value = job.progressPercent else { return nil }
     return Double(min(max(value, 0), 100)) / 100

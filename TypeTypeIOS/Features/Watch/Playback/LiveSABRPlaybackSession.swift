@@ -105,9 +105,7 @@ actor LiveSABRPlaybackSession {
     do {
       snapshot = try await loadIndexedSnapshot()
     } catch {
-      // A seek's fresh window can publish slower than one index budget;
-      // one warm retry replaces the second manual tap that used to make
-      // the skip finally work.
+      // After a seek the server can publish the new window slower than one index budget.
       try await Task.sleep(for: .milliseconds(Self.minimumRetryMS))
       snapshot = try await loadIndexedSnapshot()
     }

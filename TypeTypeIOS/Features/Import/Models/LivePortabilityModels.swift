@@ -141,7 +141,7 @@ struct LivePortabilityJob: Codable, Equatable, Identifiable {
   let errorMessage: String?
 
   /// Tolerant: `result` is nullable in `PortabilityJobDto` and the enums
-  /// may carry wire values this build doesn't know — required decoding
+  /// may carry wire values this build doesn't know: required decoding
   /// failed every export response ("communication with the server").
   init(from decoder: Decoder) throws {
     let values = try decoder.container(keyedBy: CodingKeys.self)

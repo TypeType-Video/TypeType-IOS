@@ -1,10 +1,7 @@
 import AVKit
 import SwiftUI
 
-/// Downloaded videos play on the SAME watch page as online ones: the full
-/// player stage (HUD, gestures, fullscreen) over the metadata page. The
-/// download record keeps only title and URL, so the page renders with thin
-/// metadata (no channel box data, no counts) but the whole player works.
+/// Downloads play on the online watch page. The record keeps only title and URL, so metadata is thin.
 struct LiveOfflinePlaybackView: View {
   let item: LiveOfflinePlaybackItem
   let dependencies: AppDependencies
@@ -31,10 +28,7 @@ struct LiveOfflinePlaybackView: View {
         playerController: controller
       )
       .background(DemoThemeBackground().ignoresSafeArea())
-      // Pull down on the video area closes the page, like the online
-      // player minimises: from the top region only, so the page scroll is
-      // never fought. This is a cover — dismiss returns to Downloads and
-      // the audio keeps playing.
+      // Pull down from the video area only, so the page scroll is never fought; audio keeps playing.
       .simultaneousGesture(
         DragGesture(minimumDistance: 30)
           .onEnded { value in

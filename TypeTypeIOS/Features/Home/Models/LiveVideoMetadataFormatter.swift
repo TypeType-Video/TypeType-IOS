@@ -36,10 +36,7 @@ enum LiveVideoMetadataFormatter {
     count.formatted(.number.notation(.compactName))
   }
 
-  /// Publication display derived from the epoch timestamp only. The
-  /// extractor's textual date arrives in whatever locale upstream chose to
-  /// answer with (isiZulu, in the field), so it is never shown: without a
-  /// timestamp the date line is simply omitted.
+  /// From the timestamp only: the extractor's text comes in any upstream locale (isiZulu was seen).
   static func publication(_ video: LiveVideoItem) -> String {
     guard let date = video.publicationDate else {
       return ""

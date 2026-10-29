@@ -51,8 +51,6 @@ struct LiveVideoEngagementView: View {
     .accessibilityIdentifier("live.video.engagement")
   }
 
-  /// Views, likes and dislikes live in their own row — they used to have
-  /// no place on the page at all.
   private var statsRow: some View {
     HStack(spacing: 8) {
       if video.viewCount >= 0 {
@@ -104,7 +102,6 @@ struct LiveVideoEngagementView: View {
       }
       .contentShape(Rectangle())
       .padding(12)
-      // Same themed glass as the rest of the page — follows the theme.
       .liveGlassCard(cornerRadius: 14)
     }
     .buttonStyle(.plain)

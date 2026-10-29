@@ -4,11 +4,8 @@ extension LivePlaybackHTTPServer {
   /// Number of media segments per track loaded before the player asks.
   static let warmupSegmentCount = 2
 
-  /// Starts loading what the player requests first (each track's playlist,
-  /// init segment and first media segments) as soon as the SABR session is
-  /// ready, instead of one round trip at a time once AVPlayer asks. The
-  /// loads go through `load(_:)`, so the player's own requests join them
-  /// or hit the cache.
+  /// Fetches what AVPlayer asks for first (playlists, init and first segments) as soon as the session
+  /// is ready. Through `load(_:)`, so the player's own requests join these or hit the cache.
   func warmSABRStart() {
     warmTracks([sabrAudioRouteID, sabrVideoRouteID].compactMap { $0 })
   }
@@ -49,10 +46,8 @@ extension LivePlaybackHTTPServer {
     }
   }
 
-  /// Local paths of a media playlist's init segment, key and the first
-  /// segments the player will play: from `#EXT-X-START` when the playlist
-  /// resumes mid-video, so a resume never warms (and asks the server for)
-  /// the beginning of the video.
+  /// Init segment, key and first segments to play, from `#EXT-X-START` on a resume so the beginning
+  /// is never fetched for nothing.
   static func startResourcePaths(in playlist: String, segmentCount: Int) -> [String] {
     var paths: [String] = []
     var startOffset: Double = 0

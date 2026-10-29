@@ -1,10 +1,7 @@
 import Foundation
 
-/// Client side of the server's prewarm handoff: the server keeps a prewarmed
-/// session for 60 s and hands it to a create with the same user, video,
-/// formats, and start. A create waits for a prewarm of the same request still
-/// in flight, and a prewarm arriving after the create is dropped, so one start
-/// never opens two sessions at the provider.
+/// The server keeps a prewarmed session 60 s for a create with the same user, video, formats and start.
+/// A create waits for a prewarm still in flight and a late prewarm is dropped: one start, one session.
 actor LiveSABRPrewarms {
   struct Key: Hashable {
     let videoID: String

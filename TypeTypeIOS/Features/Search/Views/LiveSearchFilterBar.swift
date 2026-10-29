@@ -115,11 +115,7 @@ struct LiveSearchFilterBar: View {
     .accessibilityIdentifier("live.search.sort-filter")
   }
 
-  /// Glass popover with checkmark rows and hairline dividers — the
-  /// LiveOptionMenu recipe. `presentationCompactAdaptation(.popover)` is
-  /// what keeps it a bubble on iPhone instead of a full-height sheet. The
-  /// rows scroll inside a height cap so the bubble always appears fully
-  /// (the subscriptions-page rule: never clipped).
+  /// `.presentationCompactAdaptation(.popover)` keeps it a bubble on iPhone; the height cap keeps it unclipped.
   private func optionList(
     _ options: [(label: String, selected: Bool)],
     onSelect: @escaping (Int) -> Void

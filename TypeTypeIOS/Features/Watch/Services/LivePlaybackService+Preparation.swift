@@ -12,10 +12,8 @@ extension LivePlaybackService {
       $0.isSABR && $0.isAppleAAC && $0.itag > 0
     }
     if preferences.audioOnly {
-      // In audio-only the video track is never decoded - its itag only
-      // echoes through the SABR session contract - so any SABR video will
-      // do when no H.264 one exists. Audio falls back to any SABR codec
-      // only as a last resort: AAC is what the platform decodes reliably.
+      // Audio-only never decodes video (its itag only fills the SABR contract), so any video will do.
+      // Audio prefers AAC, which the platform decodes reliably.
       if videos.isEmpty {
         videos = stream.allVideoSources.filter { $0.isSABR && $0.itag > 0 }
       }

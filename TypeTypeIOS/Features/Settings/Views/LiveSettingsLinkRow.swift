@@ -27,7 +27,7 @@ struct LiveSettingsIconTile: View {
 
 /// An iOS-Settings row: icon tile, plain title, the pushed page. The list
 /// draws the chevron and hairline automatically; subtitles are left out on
-/// purpose — section grouping keeps the list clear instead.
+/// purpose: section grouping keeps the list clear instead.
 struct LiveSettingsLinkRow<Destination: View>: View {
   @Environment(\.themePalette) private var palette
   let title: String

@@ -2,10 +2,8 @@ import SwiftUI
 
 struct LiveCollectionView: View {
   let dependencies: AppDependencies
-  // StateObject, not ObservedObject: the kind-based init creates the model
-  // inline, and an ObservedObject is recreated on every parent re-render —
-  // the .task had already run on the thrown-away instance, so the visible
-  // model never loaded (skeletons forever despite a successful request).
+  // StateObject: the init creates the model inline, and an ObservedObject would be replaced on
+  // every parent render after its .task already ran.
   @StateObject var viewModel: LiveCollectionViewModel
   @State private var selectedVideo: LiveVideoItem?
   @State private var selectedChannelURL: String?

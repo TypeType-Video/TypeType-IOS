@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// Icon-only action row under the video: Favorite, Watch later, Playlist,
-/// Share, Download — no labels, translucent circles, accent when active.
+/// Share, Download: no labels, translucent circles, accent when active.
 struct LiveVideoLibraryActionsView: View {
   @Environment(\.themePalette) private var palette
   @StateObject private var viewModel: LiveVideoLibraryActionsViewModel
@@ -183,15 +183,13 @@ struct LiveVideoLibraryActionsView: View {
       .frame(width: 44, height: 44)
       .background {
         if #available(iOS 26.0, *) {
-          // Liquid Glass circle: accent-tinted when active. Inactive uses
-          // the light row surface — elevatedSurface is the dark role and
-          // made the buttons muddy in themes.
+          // Inactive takes the row colour: elevatedSurface is too dark under the glass.
           Circle()
             .fill(
               (isActive ? palette.accent : palette.rowBackground)
                 .opacity(isActive ? 0.32 : 0.55)
             )
-            // The washes read too dark in themes — lift the glass.
+            // The washes read too dark in themes: lift the glass.
             .brightness(0.12)
             .glassEffect(
               .regular.tint(

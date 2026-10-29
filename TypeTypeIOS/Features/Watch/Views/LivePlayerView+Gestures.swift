@@ -5,10 +5,7 @@ extension LivePlayerView {
   /// it into Picture in Picture automatically. Edge-triggered: one start per
   /// scroll-away, re-armed when the player is visible again.
   func evaluateAutoPictureInPicture(_ frame: CGRect) {
-    // Pull-down is only allowed while the page is at the top: the player
-    // must sit below the status bar and well above the bottom edge.
     // Rotating into full screen moves this surface; that is not the reader scrolling away.
-    // The landscape stage owns the layer; everything else may float away.
     guard !controller.isPresentingFullscreen else { return }
     let screenH = UIScreen.main.bounds.height
     controller.isPlayerSurfaceFullyVisible =
@@ -17,9 +14,7 @@ extension LivePlayerView {
     // moment any part of it re-enters the viewport.
     let isAway = frame.maxY <= 0
     if controller.nativePlayback != nil {
-      // The in-house player docks into an in-app corner card instead of the
-      // system PiP: no scene hand-off (that was the app-wide stall), no
-      // window flying, and the video stays in this window.
+      // The in-house player docks into an in-app corner card: a system PiP hand-off stalls the app.
       controller.isVideoDocked = isAway
       autoPictureInPictureArmed = !isAway
       return

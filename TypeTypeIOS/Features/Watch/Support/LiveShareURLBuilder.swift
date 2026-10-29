@@ -111,7 +111,7 @@ struct LiveShareAsLinkButton<Label: View>: View {
   }
 }
 
-/// "Share as" choice card — the same dropping glass card as the confirms.
+/// "Share as" choice card: the same dropping glass card as the confirms.
 struct LiveShareChoiceCard: View {
   var hasOriginal = true
   let onTypeType: () -> Void

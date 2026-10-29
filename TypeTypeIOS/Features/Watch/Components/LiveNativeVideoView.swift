@@ -94,10 +94,8 @@ final class LiveNativeLayerOwner {
   private func place() {
     let visible = hosts.compactMap(\.view).filter { $0.window != nil }
     guard let host = visible.max(by: { $0.surface.rawValue <= $1.surface.rawValue }) else { return }
-    // No flush here: discarding the video renderer's queue starves the
-    // picture until the next segment arrives, while audio keeps playing.
-    // Both hosts use the same 16:9 container, so the one carried frame is
-    // aspect-correct and replaced within a frame tick.
+    // No flush: it would starve the picture until the next segment while audio plays on. Both hosts
+    // share the 16:9 container, so the carried frame is right.
     host.adopt(layer)
   }
 }

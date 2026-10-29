@@ -22,7 +22,7 @@ struct LivePlayerLayerView: UIViewControllerRepresentable {
   var onHorizontalSeek: ((PlayerHorizontalSeekEvent) -> Void)? = nil
   var onPictureInPictureUIRestore:
     (((@escaping (Bool) -> Void)) -> Void)? = nil
-  /// The app draws its own chrome in some contexts (offline playback) —
+  /// The app draws its own chrome in some contexts (offline playback):
   /// AVKit's controls then stay hidden.
   var showsSystemControls = true
 
@@ -37,9 +37,7 @@ struct LivePlayerLayerView: UIViewControllerRepresentable {
     playerController.player = player
     playerController.showsPlaybackControls = showsSystemControls
     playerController.allowsPictureInPicturePlayback = true
-    // Auto-PiP for the idle player must never fire while the native player
-    // presents the landscape full screen — that is what swapped white
-    // surfaces in on dismissal.
+    // Auto-PiP must not fire while the native player presents the landscape full screen.
     playerController.canStartPictureInPictureAutomaticallyFromInline = false
     playerController.entersFullScreenWhenPlaybackBegins = false
     playerController.exitsFullScreenWhenPlaybackEnds = false

@@ -47,11 +47,7 @@ struct LiveVideoMetadataContentView: View {
   var body: some View {
     ScrollViewReader { proxy in
     VStack(spacing: 0) {
-      // The page paints its own background: the strip at the very bottom
-      // of the scroll was never covered by the hosts.
-      // Placeholder slot for the player, which floats as a page-level
-      // overlay (see below): in fullscreen the stage grows OVER the still
-      // surroundings instead of pushing them away — one visible motion.
+      // The player floats above as a page overlay, so full screen grows over the page in one motion.
       Color.clear
         .aspectRatio(16 / 9, contentMode: .fit)
         .padding(.horizontal, playerInset)
@@ -87,7 +83,7 @@ struct LiveVideoMetadataContentView: View {
         LivePlaybackQueueView(coordinator: playbackCoordinator)
 
         // The stream arrives with an EMPTY relatedStreams array before the
-        // real list loads — an empty list means "still loading" here.
+        // real list loads: an empty list means "still loading" here.
         let relatedReady = !(
           playerController.stream?.relatedStreams.isEmpty ?? true
         )
@@ -201,7 +197,7 @@ struct LiveVideoMetadataContentView: View {
     .overlay(alignment: .top) {
       // The player floats over the page: pinned in its slot inline, filling
       // (and covering) everything in fullscreen. The surroundings never
-      // move — the growing stage covers them, one figure.
+      // move: the growing stage covers them, one figure.
       LivePlayerView(
         controller: playerController,
         coordinator: playbackCoordinator,
@@ -232,7 +228,7 @@ struct LiveVideoMetadataContentView: View {
     .onAppear {
       // Returning from a push (e.g. a channel page): while the page was
       // covered the video layer lost its host and the system promoted it
-      // to PiP — hand everything back to the stage.
+      // to PiP: hand everything back to the stage.
       if playbackCoordinator.presentation == .mini {
         playbackCoordinator.expand()
       }

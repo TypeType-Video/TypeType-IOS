@@ -64,9 +64,7 @@ final class LiveCollectionViewModel: ObservableObject {
 
   func prepare() async {
     guard state == .idle else { return }
-    // The lists carrying this collection already hold its videos: render
-    // at once and revalidate behind (the library requests are the slow
-    // ones — the page used to sit on skeletons until they landed).
+    // The list that opened this collection already holds its videos: show them, revalidate behind.
     if !videos.isEmpty {
       state = .loaded
     }

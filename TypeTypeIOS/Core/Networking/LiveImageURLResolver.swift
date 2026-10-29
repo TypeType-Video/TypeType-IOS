@@ -1,11 +1,7 @@
 import Foundation
 
-/// Resolves the server's image references the way the Android client does
-/// (`ProfileAvatar.kt`, `ShareUrls.buildImageUrl`): absolute URLs pass
-/// through, root-relative paths join the instance base, everything else
-/// resolves against it. Plain `URL(string:)` keeps such values relative and
-/// `AsyncImage` never loads them — that is why the profile avatar showed
-/// only the placeholder.
+/// Same rules as Android (`ShareUrls.buildImageUrl`): absolute URLs pass through, the rest resolves
+/// against the instance. A relative URL never loads.
 enum LiveImageURLResolver {
   /// Set once at startup with the active instance base URL.
   static var baseURLProvider: () -> URL? = { nil }
