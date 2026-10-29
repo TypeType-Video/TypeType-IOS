@@ -201,7 +201,7 @@ struct LiveSettingsView: View {
       }
     }
     .padding(.bottom, playbackCoordinator.showsMiniPlayer ? 82 : 0)
-    .liveThemedList()
+    .liveGroupedList()
     .liveThemeRepaint()
     .tint(preferences.preferences.accentColor.color)
   }
