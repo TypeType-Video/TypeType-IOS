@@ -3,6 +3,7 @@ import SwiftUI
 /// Icon-only action row under the video: Favorite, Watch later, Playlist,
 /// Share, Download — no labels, translucent circles, accent when active.
 struct LiveVideoLibraryActionsView: View {
+  @Environment(\.themePalette) private var palette
   @StateObject private var viewModel: LiveVideoLibraryActionsViewModel
   let video: LiveVideoItem
   let dependencies: AppDependencies
@@ -187,27 +188,27 @@ struct LiveVideoLibraryActionsView: View {
           // made the buttons muddy in themes.
           Circle()
             .fill(
-              (isActive ? DemoTheme.accent : DemoTheme.rowBackground)
+              (isActive ? palette.accent : palette.rowBackground)
                 .opacity(isActive ? 0.32 : 0.55)
             )
             // The washes read too dark in themes — lift the glass.
             .brightness(0.12)
             .glassEffect(
               .regular.tint(
-                isActive ? DemoTheme.accent : DemoTheme.rowBackground
+                isActive ? palette.accent : palette.rowBackground
               ),
               in: .circle
             )
         } else {
           Circle().fill(
             isActive
-              ? DemoTheme.accent.opacity(0.16)
-              : DemoTheme.elevatedSurface
+              ? palette.accent.opacity(0.16)
+              : palette.elevatedSurface
           )
           .overlay(
             Circle().strokeBorder(
               isActive
-                ? DemoTheme.accent.opacity(0.35)
+                ? palette.accent.opacity(0.35)
                 : Color.primary.opacity(0.14),
               lineWidth: 1
             )

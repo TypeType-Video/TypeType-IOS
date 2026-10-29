@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct LiveSearchSuggestionView: View {
+  @Environment(\.themePalette) private var palette
   let query: String
   let suggestion: String
   let isCorrected: Bool
@@ -30,7 +31,7 @@ struct LiveSearchSuggestionView: View {
       }
       .padding(13)
       .background(
-        DemoTheme.accent.opacity(0.12),
+        palette.accent.opacity(0.12),
         in: RoundedRectangle(cornerRadius: 14)
       )
     }

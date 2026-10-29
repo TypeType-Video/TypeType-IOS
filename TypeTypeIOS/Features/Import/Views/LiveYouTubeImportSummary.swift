@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct LiveYouTubeImportArchiveRow: View {
+  @Environment(\.themePalette) private var palette
   let archive: LiveYouTubeImportArchive
   let isActive: Bool
 
@@ -33,7 +34,7 @@ struct LiveYouTubeImportArchiveRow: View {
           value: Double(archive.progress),
           total: 100
         )
-        .tint(DemoTheme.accent)
+        .tint(palette.accent)
       }
 
       if let preview = archive.preview {
@@ -105,7 +106,7 @@ struct LiveYouTubeImportArchiveRow: View {
     switch archive.state {
     case .completed: return .green
     case .failed: return .red
-    default: return DemoTheme.accent
+    default: return palette.accent
     }
   }
 

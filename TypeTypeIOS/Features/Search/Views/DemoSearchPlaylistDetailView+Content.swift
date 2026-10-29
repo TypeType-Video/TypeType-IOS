@@ -31,7 +31,7 @@ extension DemoSearchPlaylistDetailView {
       .padding(.top, 14)
       .padding(.bottom, 36)
     }
-    .background(DemoTheme.background)
+    .background(palette.background)
   }
 
   private var playlistSortBar: some View {

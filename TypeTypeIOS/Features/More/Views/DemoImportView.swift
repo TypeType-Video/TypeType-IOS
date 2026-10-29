@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct DemoImportView: View {
+  @Environment(\.themePalette) private var palette
   @State private var selectedSource: DemoImportSource?
 
   var body: some View {
@@ -29,7 +30,7 @@ struct DemoImportView: View {
       }
       .padding(16)
     }
-    .background(DemoTheme.groupedBackground)
+    .background(palette.groupedBackground)
     .navigationTitle("Import")
     .navigationBarTitleDisplayMode(.inline)
     .sheet(item: $selectedSource) { source in

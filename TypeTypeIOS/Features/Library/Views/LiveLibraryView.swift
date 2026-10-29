@@ -20,6 +20,7 @@ enum LiveLibrarySection: String, CaseIterable, Identifiable {
 }
 
 struct LiveLibraryView: View {
+  @Environment(\.themePalette) private var palette
   @ObservedObject var coordinator: RootCoordinator
   @Binding var section: LiveLibrarySection
   // One model per section owned here: the strip actions act on the same
@@ -101,7 +102,7 @@ struct LiveLibraryView: View {
           .modifier(LiveLibraryActionGlass())
       }
       .padding(.horizontal, 16)
-      .background(DemoTheme.background)
+      .background(palette.background)
     }
     .accessibilityIdentifier("live.library.screen")
   }
@@ -220,12 +221,13 @@ struct LiveLibraryView: View {
 /// The action tile's shell: system Liquid Glass where available, the
 /// grouped surface colour otherwise.
 struct LiveLibraryActionGlass: ViewModifier {
+  @Environment(\.themePalette) private var palette
   func body(content: Content) -> some View {
     if #available(iOS 26.0, *) {
       content.glassEffect()
     } else {
       content.background(
-        DemoTheme.groupedSurface,
+        palette.groupedSurface,
         in: RoundedRectangle(cornerRadius: 14, style: .continuous)
       )
     }
@@ -234,7 +236,7 @@ struct LiveLibraryActionGlass: ViewModifier {
 
 private struct LiveLibrarySectionStrip: View {
   @Binding var selection: LiveLibrarySection
-  @Environment(\.demoTheme) private var palette
+  @Environment(\.themePalette) private var palette
   @State private var stripPosition: LiveLibrarySection?
 
   var body: some View {

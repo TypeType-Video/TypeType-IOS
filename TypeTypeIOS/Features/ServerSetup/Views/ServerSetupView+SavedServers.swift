@@ -16,7 +16,7 @@ extension ServerSetupView {
             HStack(spacing: 12) {
               Image(systemName: "server.rack")
                 .font(.title3)
-                .foregroundStyle(DemoTheme.accent)
+                .foregroundStyle(palette.accent)
                 .frame(width: 32)
               VStack(alignment: .leading, spacing: 3) {
                 Text(server.name)

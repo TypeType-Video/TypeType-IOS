@@ -184,7 +184,6 @@ struct LiveSubscriptionsView: View {
       }
     }
     .background(DemoThemeBackground().ignoresSafeArea())
-      .liveThemeRepaint()
     .accessibilityIdentifier("live.subscriptions.videos")
   }
 

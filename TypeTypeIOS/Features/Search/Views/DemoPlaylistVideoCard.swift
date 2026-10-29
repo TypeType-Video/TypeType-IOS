@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct DemoPlaylistVideoCard: View {
+  @Environment(\.themePalette) private var palette
   @EnvironmentObject private var session: DemoSessionStore
   let video: DemoVideo
   let onSelect: () -> Void
@@ -81,7 +82,7 @@ struct DemoPlaylistVideoCard: View {
       }
     }
     .padding(10)
-    .background(DemoTheme.surface)
+    .background(palette.surface)
     .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
   }
 

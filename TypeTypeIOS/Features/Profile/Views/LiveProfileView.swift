@@ -85,7 +85,6 @@ struct LiveProfileView: View {
       }
     }
       .liveThemedList()
-      .liveThemeRepaint()
   }
 
   private func importPhoto(_ item: PhotosPickerItem) async {

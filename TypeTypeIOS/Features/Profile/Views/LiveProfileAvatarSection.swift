@@ -2,6 +2,7 @@ import PhotosUI
 import SwiftUI
 
 struct LiveProfileAvatarSection: View {
+  @Environment(\.themePalette) private var palette
   let user: AuthUser?
   @Binding var selectedPhoto: PhotosPickerItem?
   let isBusy: Bool
@@ -13,7 +14,7 @@ struct LiveProfileAvatarSection: View {
       Text(glyph)
         .font(.system(size: 34))
         .frame(width: 72, height: 72)
-        .background(DemoTheme.groupedSurface, in: Circle())
+        .background(palette.groupedSurface, in: Circle())
         .overlay {
           Circle().stroke(.separator, lineWidth: 1)
         }

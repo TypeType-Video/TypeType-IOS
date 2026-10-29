@@ -34,7 +34,6 @@ extension LivePlaylistsView {
     }
     .refreshable { await viewModel.reload() }
     .background(DemoThemeBackground().ignoresSafeArea())
-      .liveThemeRepaint()
   }
 
   private var savedSection: some View {

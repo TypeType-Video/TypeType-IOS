@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct DemoWatchActionsView: View {
+  @Environment(\.themePalette) var palette
   @EnvironmentObject var session: DemoSessionStore
   let video: DemoVideo
   @Binding var audioOnly: Bool

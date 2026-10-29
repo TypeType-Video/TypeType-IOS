@@ -10,7 +10,7 @@ struct LiveSettingsEditingPage<Content: View>: View {
       content()
 
       if let message = viewModel.message {
-        Section {
+        LiveSection {
           Label(message, systemImage: "checkmark.circle.fill")
             .foregroundStyle(.green)
         }
@@ -37,7 +37,6 @@ struct LiveSettingsEditingPage<Content: View>: View {
     } message: {
       Text(viewModel.errorMessage ?? "")
     }
-      .liveThemeRepaint()
   }
 
   private var errorBinding: Binding<Bool> {
@@ -53,7 +52,7 @@ struct LiveSettingsAccountsView: View {
 
   var body: some View {
     List {
-      Section {
+      LiveSection {
         ForEach(coordinator.servers) { server in
           Button {
             Task { await coordinator.selectServer(server) }
@@ -83,7 +82,7 @@ struct LiveSettingsAccountsView: View {
       }
 
       if let user = coordinator.currentUser {
-        Section {
+        LiveSection {
           LabeledContent(
             "Username",
             value: user.publicUsername ?? "Guest"
@@ -104,7 +103,6 @@ struct LiveSettingsAccountsView: View {
       }
     }
       .liveGroupedList()
-      .liveThemeRepaint()
     .navigationTitle("Instances and accounts")
     .navigationBarTitleDisplayMode(.inline)
   }
@@ -128,7 +126,7 @@ struct LiveSettingsAppearanceView: View {
       viewModel: viewModel,
       dependencies: dependencies
     ) {
-      Section {
+      LiveSection {
         LiveAppearanceThemeTiles(
           selection: preferences.binding(\.appearanceTheme),
           isDark: isEffectivelyDark
@@ -140,7 +138,7 @@ struct LiveSettingsAppearanceView: View {
         Text("Appearance").liveSectionHeader()
       }
 
-      Section {
+      LiveSection {
         LiveOptionMenu(
           "Color scheme",
           selection: preferences.binding(\.appearanceMode),
@@ -172,6 +170,7 @@ struct LiveSettingsAppearanceView: View {
 /// Theme picker as live preview tiles: each theme's real surface colours in
 /// a mini feed mock-up (dev feedback, plan 6.1; adapted from beta 9b680fe).
 struct LiveAppearanceThemeTiles: View {
+  @Environment(\.themePalette) private var palette
   @Binding var selection: LiveAppearanceTheme
   let isDark: Bool
 
@@ -188,7 +187,7 @@ struct LiveAppearanceThemeTiles: View {
                 .overlay {
                   RoundedRectangle(cornerRadius: 12, style: .continuous)
                     .strokeBorder(
-                      DemoTheme.accent,
+                      palette.accent,
                       lineWidth: selection == theme ? 2.5 : 0
                     )
                 }
@@ -196,7 +195,7 @@ struct LiveAppearanceThemeTiles: View {
                 .font(
                   .caption2.weight(selection == theme ? .semibold : .regular)
                 )
-                .foregroundStyle(selection == theme ? DemoTheme.accent : .primary)
+                .foregroundStyle(selection == theme ? palette.accent : .primary)
             }
             .contentShape(Rectangle())
           }
@@ -217,52 +216,40 @@ struct LiveAppearanceThemeTiles: View {
 struct LiveAppearanceMiniScreen: View {
   let theme: LiveAppearanceTheme
   let isDark: Bool
+  @Environment(\.themePalette) private var palette
 
   var body: some View {
-    let colors = DemoTheme.themeSurfaceColors(isDark: isDark, theme: theme)
+    let preview = ThemePalette(theme: theme, accent: palette.accent, amoled: false, isDark: isDark)
     return RoundedRectangle(cornerRadius: 12, style: .continuous)
-      .fill(colors.background)
+      .fill(preview.background)
       .overlay(alignment: .topLeading) {
         VStack(alignment: .leading, spacing: 4) {
           RoundedRectangle(cornerRadius: 4, style: .continuous)
-            .fill(colors.variant)
+            .fill(preview.groupedSurface)
             .frame(height: 26)
           Capsule()
-            .fill(textPrimary.opacity(0.75))
+            .fill(preview.textPrimary.opacity(0.75))
             .frame(width: 40, height: 5)
           Capsule()
-            .fill(textSecondary.opacity(0.5))
+            .fill(preview.textSecondary.opacity(0.5))
             .frame(width: 28, height: 4)
           Capsule()
-            .fill(DemoTheme.accent)
+            .fill(preview.accent)
             .frame(width: 22, height: 7)
         }
         .padding(7)
       }
       .overlay {
         RoundedRectangle(cornerRadius: 12, style: .continuous)
-          .strokeBorder(colors.outline, lineWidth: 1)
+          .strokeBorder(preview.elevatedSurface, lineWidth: 1)
       }
       .accessibilityHidden(true)
-  }
-
-  // Android text roles: onSurface = Zinc950 light / Zinc100 dark and
-  // onSurfaceVariant = Zinc700 light / Zinc400 dark, not tinted per theme.
-  private var textPrimary: Color {
-    isDark
-      ? Color(red: 0.957, green: 0.957, blue: 0.961)  // F4F4F5
-      : Color(red: 0.035, green: 0.035, blue: 0.043)  // 09090B
-  }
-
-  private var textSecondary: Color {
-    isDark
-      ? Color(red: 0.631, green: 0.631, blue: 0.667)  // A1A1AA
-      : Color(red: 0.247, green: 0.247, blue: 0.275)  // 3F3F46
   }
 }
 
 /// Accent colours as compact circles with a checkmark on the selected one.
 struct LiveAppearanceAccentDots: View {
+  @Environment(\.themePalette) private var palette
   @Binding var selection: LiveAccentColor
 
   var body: some View {
@@ -279,9 +266,6 @@ struct LiveAppearanceAccentDots: View {
         } else {
           Button {
             selection = accent
-            // Live preview: the accent updates while choosing, Save only
-            // persists the choice.
-            DemoTheme.updateAccent(accent)
           } label: {
             Circle()
               .fill(accent.color)
@@ -295,7 +279,7 @@ struct LiveAppearanceAccentDots: View {
               }
               .overlay {
                 Circle().strokeBorder(
-                  DemoTheme.separator.opacity(0.55),
+                  palette.separator.opacity(0.55),
                   lineWidth: 0.5
                 )
               }
@@ -320,10 +304,7 @@ struct LiveAppearanceAccentDots: View {
       get: { hex.wrappedValue.flatMap(Color.init(hex:)) ?? .accentColor },
       set: { newValue in
         hex.wrappedValue = newValue.hexString
-        // Live preview: refresh the cache and repaint before Save.
-        DemoTheme.customAccentHex = newValue.hexString
         selection = .custom
-        DemoTheme.updateAccent(.custom)
       }
     )
   }
@@ -342,7 +323,7 @@ struct LiveSettingsContentView: View {
         settings: $viewModel.draft,
         services: dependencies.serviceSelection.services
       )
-      Section {
+      LiveSection {
         Toggle("Hide Shorts", isOn: $viewModel.draft.hideShorts)
       } header: {
         Text("Visible surfaces").liveSectionHeader()
@@ -365,7 +346,7 @@ struct LiveSettingsPlayerView: View {
     ) {
       LiveSettingsPlaybackSection(settings: $viewModel.draft)
       localPlaybackSection
-      Section {
+      LiveSection {
         Toggle(
           "Accessible player controls",
           isOn: preferences.binding(\.playerAccessibleControlsEnabled)
@@ -398,7 +379,7 @@ struct LiveSettingsPlayerView: View {
       } header: {
         Text("Gestures").liveSectionHeader()
       }
-      Section {
+      LiveSection {
         LiveOptionMenu(
           "Preferred codec",
           selection: preferences.binding(\.playerPreferredCodec),
@@ -412,7 +393,7 @@ struct LiveSettingsPlayerView: View {
       } header: {
         Text("Default codec").liveSectionHeader()
       }
-      Section {
+      LiveSection {
         Toggle(
           "Show bullet comments",
           isOn: preferences.binding(\.danmakuEnabled)
@@ -441,7 +422,7 @@ struct LiveSettingsPlayerView: View {
   }
 
   private var localPlaybackSection: some View {
-    Section {
+    LiveSection {
       Toggle(
         "Autoplay on this device",
         isOn: preferences.binding(\.playerAutoplayEnabled)
@@ -478,7 +459,7 @@ struct LiveSettingsPrivacyView: View {
       dependencies: dependencies
     ) {
       LiveSettingsPrivacySection(settings: $viewModel.draft)
-      Section {
+      LiveSection {
         NavigationLink("Manage stored data") {
           LivePrivacyDataView(
             history: dependencies.historyService,

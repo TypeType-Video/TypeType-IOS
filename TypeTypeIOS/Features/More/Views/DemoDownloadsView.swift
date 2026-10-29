@@ -10,7 +10,7 @@ struct DemoDownloadsView: View {
           row($download)
         }
       } header: { Text("\(readyCount) ready offline").liveSectionHeader() } footer: {
-        Text("All files and progress on this screen are local mock data.").liveSectionSlotChrome()
+        Text("All files and progress on this screen are local mock data.")
       }
     }
       .listStyle(.insetGrouped)

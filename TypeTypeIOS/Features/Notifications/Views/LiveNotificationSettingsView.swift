@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct LiveNotificationSettingsView: View {
+  @Environment(\.themePalette) private var palette
   @State private var channelNames: [String: String] = [:]
   @StateObject private var viewModel: LiveNotificationSettingsViewModel
   private let subscriptionsService: LiveSubscriptionsServiceProtocol
@@ -37,7 +38,6 @@ struct LiveNotificationSettingsView: View {
       }
     }
     .background(DemoThemeBackground().ignoresSafeArea())
-      .liveThemeRepaint()
     .navigationTitle("Channel notifications")
     .navigationBarTitleDisplayMode(.inline)
     .task { await viewModel.prepare()
@@ -71,7 +71,6 @@ struct LiveNotificationSettingsView: View {
         emptyPreferencesSection
       }
       .liveThemedList()
-      .liveThemeRepaint()
     } else {
       List {
         permissionSection
@@ -104,12 +103,10 @@ struct LiveNotificationSettingsView: View {
           channelSectionHeader
         } footer: {
           Text(viewModel.budgetFooterText)
-            .liveSectionSlotChrome()
             .accessibilityIdentifier("live.notification-settings.budget")
         }
       }
         .liveThemedList()
-      .liveThemeRepaint()
     }
   }
 
@@ -133,7 +130,6 @@ struct LiveNotificationSettingsView: View {
       }
       .accessibilityIdentifier("live.notification-settings.disable-all")
     }
-    .liveSectionSlotChrome()
   }
 
   private func bulkButton(
@@ -144,7 +140,7 @@ struct LiveNotificationSettingsView: View {
     Button(action: action) {
       Text(title)
         .font(.caption.weight(.semibold))
-        .foregroundStyle(enabled ? DemoTheme.accent : Color.secondary)
+        .foregroundStyle(enabled ? palette.accent : Color.secondary)
     }
     .buttonStyle(.plain)
     .disabled(!enabled)
@@ -203,7 +199,7 @@ struct LiveNotificationSettingsView: View {
     HStack(spacing: 12) {
       Image(systemName: toast.systemImage)
         .font(.title3.weight(.semibold))
-        .foregroundStyle(DemoTheme.accent)
+        .foregroundStyle(palette.accent)
       Text(toast.message)
         .font(.callout.weight(.semibold))
         .foregroundStyle(.primary)

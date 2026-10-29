@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct LiveSubscriptionGroupsView: View {
+  @Environment(\.themePalette) private var palette
   @StateObject private var viewModel: LiveSubscriptionGroupsViewModel
   @State private var isCreating = false
   @State private var newGroupName = ""
@@ -21,7 +22,6 @@ struct LiveSubscriptionGroupsView: View {
       }
     }
       .liveThemedList()
-      .liveThemeRepaint()
     .navigationTitle("Groups")
     .navigationBarTitleDisplayMode(.inline)
     .overlay {
@@ -165,7 +165,7 @@ struct LiveSubscriptionGroupsView: View {
   ) -> some View {
     HStack(spacing: 12) {
       Image(systemName: "folder.fill")
-        .foregroundStyle(DemoTheme.accent)
+        .foregroundStyle(palette.accent)
       VStack(alignment: .leading, spacing: 3) {
         Text(group.name)
           .font(.body.weight(.semibold))

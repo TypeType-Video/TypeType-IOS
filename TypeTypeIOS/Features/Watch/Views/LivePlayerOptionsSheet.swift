@@ -34,7 +34,6 @@ struct LivePlayerOptionsSheet: View {
         reportSection
       }
         .liveGroupedList()
-      .liveThemeRepaint()
       .accessibilityIdentifier("live.player.options-sheet")
       .navigationTitle("Player options")
       .navigationBarTitleDisplayMode(.inline)

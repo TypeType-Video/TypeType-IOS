@@ -26,7 +26,7 @@ extension DemoWatchActionsView {
       .background(
         active
           ? Color.accentColor
-          : DemoTheme.surface
+          : palette.surface
       )
       .clipShape(Capsule())
   }

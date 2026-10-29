@@ -83,7 +83,6 @@ struct LiveAccountIdentityView: View {
         }
       }
         .liveThemedList()
-      .liveThemeRepaint()
     }
   }
 

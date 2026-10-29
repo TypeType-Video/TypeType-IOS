@@ -2,6 +2,7 @@ import Foundation
 import SwiftUI
 
 struct LiveChannelControlsView: View {
+  @Environment(\.themePalette) private var palette
   @ObservedObject var viewModel: LiveChannelViewModel
   @State private var presentsSections = false
   @State private var presentsSort = false
@@ -122,7 +123,7 @@ struct LiveChannelControlsView: View {
               Spacer(minLength: 12)
               if option.selected {
                 Image(systemName: "checkmark")
-                  .foregroundStyle(DemoTheme.accent)
+                  .foregroundStyle(palette.accent)
               }
             }
             .padding(.horizontal, 16)
@@ -133,7 +134,7 @@ struct LiveChannelControlsView: View {
           .buttonStyle(.plain)
           if index < options.count - 1 {
             Rectangle()
-              .fill(DemoTheme.separator)
+              .fill(palette.separator)
               .frame(height: 1)
               .padding(.horizontal, 16)
           }
@@ -162,12 +163,12 @@ struct LiveChannelControlsView: View {
     .padding(.horizontal, 12)
     .padding(.vertical, 9)
     .background(
-      DemoTheme.surface,
+      palette.surface,
       in: RoundedRectangle(cornerRadius: 12, style: .continuous)
     )
     .overlay {
       RoundedRectangle(cornerRadius: 12, style: .continuous)
-        .stroke(DemoTheme.separator.opacity(0.55), lineWidth: 0.5)
+        .stroke(palette.separator.opacity(0.55), lineWidth: 0.5)
     }
   }
 }

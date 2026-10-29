@@ -3,6 +3,7 @@ import SwiftUI
 /// Compact popup for the actions-row button. A List inside a popover clips
 /// its rows, so this one is sized to content.
 struct LivePlaybackSleepTimerPopover: View {
+  @Environment(\.themePalette) private var palette
   @ObservedObject var coordinator: LivePlaybackCoordinator
   @Environment(\.dismiss) private var dismiss
 
@@ -53,7 +54,7 @@ struct LivePlaybackSleepTimerPopover: View {
         Spacer(minLength: 12)
         if selected {
           Image(systemName: "checkmark")
-            .foregroundStyle(DemoTheme.accent)
+            .foregroundStyle(palette.accent)
         }
       }
       .padding(.horizontal, 16)
@@ -65,7 +66,7 @@ struct LivePlaybackSleepTimerPopover: View {
 
   private var divider: some View {
     Rectangle()
-      .fill(DemoTheme.separator)
+      .fill(palette.separator)
       .frame(height: 1)
       .padding(.horizontal, 16)
   }

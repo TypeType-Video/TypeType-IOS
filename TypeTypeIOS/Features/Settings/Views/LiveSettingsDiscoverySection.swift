@@ -48,7 +48,7 @@ struct LiveSettingsDiscoverySection: View {
           )
         ).liveRowFill()
       } footer: {
-        Text("Hide live streams from your subscription feed.").liveSectionSlotChrome()
+        Text("Hide live streams from your subscription feed.")
       }
     }
 
