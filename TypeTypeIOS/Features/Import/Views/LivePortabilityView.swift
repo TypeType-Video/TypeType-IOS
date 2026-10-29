@@ -5,7 +5,7 @@ struct LivePortabilityView: View {
   let importService: LiveImportServiceProtocol
   @StateObject private var viewModel: LivePortabilityViewModel
   @State private var showsFilePicker = false
-  @State private var showsShareSheet = false
+  @State private var autoSharedJobID: String?
 
   init(
     service: LivePortabilityServiceProtocol,
@@ -53,11 +53,19 @@ struct LivePortabilityView: View {
         viewModel.selectFile(url)
       }
     }
-    .sheet(isPresented: $showsShareSheet) {
-      if let url = viewModel.shareURL {
-        // The system share sheet directly — the old sheet wrapped a
-        // ShareLink button, which showed as a big empty screen.
-        LiveShareActivityView(url: url)
+    .onChange(of: viewModel.job?.state) { _, state in
+      // The share sheet opens by itself the moment an export is ready.
+      guard state == .completed,
+        let job = viewModel.job,
+        job.kind == .export,
+        autoSharedJobID != job.id
+      else { return }
+      autoSharedJobID = job.id
+      Task {
+        await viewModel.prepareDownload(kind: .artifact)
+        if let url = viewModel.shareURL {
+          LiveSystemSharePresenter.present(url)
+        }
       }
     }
     .alert("Data and backups", isPresented: errorBinding) {
@@ -263,14 +271,18 @@ struct LivePortabilityView: View {
           Button("Prepare export for sharing") {
             Task {
               await viewModel.prepareDownload(kind: .artifact)
-              showsShareSheet = viewModel.shareURL != nil
+              if let url = viewModel.shareURL {
+                LiveSystemSharePresenter.present(url)
+              }
             }
           }
         }
         Button("Download report") {
           Task {
             await viewModel.prepareDownload(kind: .report)
-            showsShareSheet = viewModel.shareURL != nil
+            if let url = viewModel.shareURL {
+              LiveSystemSharePresenter.present(url)
+            }
           }
         }
         Button("Start another", role: .destructive) {
@@ -353,5 +365,27 @@ struct LivePortabilityView: View {
     case .cancelled: return "Cancelled"
     case .failed: return "Failed"
     }
+  }
+}
+
+/// Presents the system share sheet from UIKit: the Liquid Glass sheet iOS
+/// 26 shows for ShareLink. Wrapping UIActivityViewController in a SwiftUI
+/// .sheet renders a plain page instead.
+enum LiveSystemSharePresenter {
+  @MainActor
+  static func present(_ url: URL) {
+    guard let scene = UIApplication.shared.connectedScenes
+      .compactMap({ $0 as? UIWindowScene })
+      .first(where: { $0.activationState == .foregroundActive }),
+      var top = scene.keyWindow?.rootViewController
+    else { return }
+    while let presented = top.presentedViewController {
+      top = presented
+    }
+    let activity = UIActivityViewController(
+      activityItems: [url],
+      applicationActivities: nil
+    )
+    top.present(activity, animated: true)
   }
 }
