@@ -64,7 +64,7 @@ extension LivePlayerView {
         switch value {
         case .first(true):
           beginSpeedRamp()
-        case let .second(true, drag):
+        case let .second(true, drag?):
           beginSpeedRamp()
           applySpeedRamp(translationHeight: drag.translation.height)
         default:
