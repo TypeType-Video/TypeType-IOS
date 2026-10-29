@@ -116,6 +116,11 @@ struct LiveAppPreferences: Codable, Equatable {
   var danmakuSpeed = 1.0
   var danmakuSize = 1.0
 
+  var accent: Color {
+    guard accentColor == .custom else { return accentColor.color }
+    return customAccentHex.flatMap(Color.init(hex:)) ?? .accentColor
+  }
+
   enum CodingKeys: String, CodingKey {
     case accentColor, customAccentHex, appearanceMode, appearanceAmoled
     case appearanceTheme, appearanceFont, appearanceMotion

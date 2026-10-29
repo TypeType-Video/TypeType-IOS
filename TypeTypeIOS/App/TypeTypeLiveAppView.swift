@@ -44,6 +44,10 @@ struct TypeTypeLiveAppView: View {
       }
     }
     .environment(\.demoTheme, palette)
+    .environment(
+      \.themePalette,
+      ThemePalette(preferences: preferences.preferences, isDark: colorScheme == .dark)
+    )
     .task {
       if let launchURL = AppConfig.debugIncomingURL {
         coordinator.receiveIncomingURL(launchURL)
