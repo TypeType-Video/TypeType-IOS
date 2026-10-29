@@ -20,7 +20,7 @@ struct LiveNotificationSettingsView: View {
     Group {
       switch viewModel.state {
       case .idle, .loading:
-        TypeTypeSkeletonList(layout: .rows, count: 6)
+        TypeTypeSkeletonList(layout: .settings, count: 6)
           .frame(maxWidth: .infinity, maxHeight: .infinity)
       case let .failed(message):
         ContentUnavailableView {

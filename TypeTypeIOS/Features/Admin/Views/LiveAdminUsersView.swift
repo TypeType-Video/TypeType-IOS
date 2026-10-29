@@ -40,7 +40,7 @@ struct LiveAdminUsersView: View {
   private var content: some View {
     switch viewModel.state {
     case .idle, .loading:
-      TypeTypeSkeletonList(layout: .rows, count: 8)
+      TypeTypeSkeletonList(layout: .settings, count: 8)
     case let .failed(message):
       ContentUnavailableView {
         Label("Users unavailable", systemImage: "person.3")

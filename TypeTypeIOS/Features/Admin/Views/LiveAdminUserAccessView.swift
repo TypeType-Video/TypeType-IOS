@@ -17,7 +17,7 @@ struct LiveAdminUserAccessView: View {
     Group {
       switch viewModel.state {
       case .idle, .loading:
-        TypeTypeSkeletonList(layout: .rows, count: 6, scrolls: false)
+        TypeTypeSkeletonList(layout: .settings, count: 6, scrolls: false)
       case let .failed(message):
         ContentUnavailableView {
           Label("Access unavailable", systemImage: "person.crop.circle.badge.exclamationmark")

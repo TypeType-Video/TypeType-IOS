@@ -23,7 +23,7 @@ struct LiveDiagnosticsView: View {
         Section {
           HStack {
             Spacer()
-            TypeTypeSkeletonList(layout: .rows, count: 6, scrolls: false)
+            TypeTypeSkeletonList(layout: .settings, count: 6, scrolls: false)
             Spacer()
           }
         }
