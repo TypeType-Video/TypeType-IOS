@@ -89,18 +89,18 @@ final class ParityMutationsUITests: XCTestCase {
 
     app.staticTexts["Downloads"].tap()
     XCTAssertTrue(
-      app.staticTexts["2 ready offline"].waitForExistence(timeout: 3)
+      app.staticTexts["2 READY OFFLINE"].waitForExistence(timeout: 3)
     )
     app.buttons["Download actions"].tap()
     app.buttons["Resume all"].tap()
     XCTAssertTrue(
-      app.staticTexts["4 ready offline"].waitForExistence(timeout: 3)
+      app.staticTexts["4 READY OFFLINE"].waitForExistence(timeout: 3)
     )
 
     app.buttons["Download actions"].tap()
     app.buttons["Clear completed"].tap()
     XCTAssertTrue(
-      app.staticTexts["0 ready offline"].waitForExistence(timeout: 3)
+      app.staticTexts["0 READY OFFLINE"].waitForExistence(timeout: 3)
     )
   }
 
