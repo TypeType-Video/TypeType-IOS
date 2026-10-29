@@ -33,6 +33,8 @@ struct LiveVideoEngagementView: View {
 
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
+      statsRow
+
       channelBanner
 
       if let message = viewModel.message {
@@ -49,8 +51,27 @@ struct LiveVideoEngagementView: View {
     .accessibilityIdentifier("live.video.engagement")
   }
 
-  /// Channel banner in the Android app style: avatar, name with verified
-  /// seal, subscriber count, and the light Subscribe capsule on the right.
+  /// Views, likes and dislikes live in their own row — they used to have
+  /// no place on the page at all.
+  private var statsRow: some View {
+    HStack(spacing: 10) {
+      if video.viewCount >= 0 {
+        metric(count: video.viewCount, symbol: "eye.fill")
+      }
+      if likeCount >= 0 {
+        metric(count: likeCount, symbol: "hand.thumbsup.fill")
+      }
+      if dislikeCount >= 0 {
+        metric(count: dislikeCount, symbol: "hand.thumbsdown.fill")
+      }
+      Spacer(minLength: 0)
+    }
+    .padding(.horizontal, 2)
+    .accessibilityIdentifier("live.video.stats")
+  }
+
+  /// Channel banner: avatar, name with verified seal, subscriber count, and
+  /// the Subscribe capsule on the right.
   private var channelBanner: some View {
     Button(action: { onChannel?() }) {
       HStack(spacing: 12) {
@@ -81,10 +102,18 @@ struct LiveVideoEngagementView: View {
       }
       .contentShape(Rectangle())
       .padding(12)
-      .background(
-        RoundedRectangle(cornerRadius: 14, style: .continuous)
-          .strokeBorder(DemoTheme.separator, lineWidth: 1)
-      )
+      .background {
+        if #available(iOS 26.0, *) {
+          // Liquid Glass card — the modern look, same family as the
+          // settings icon chips.
+          RoundedRectangle(cornerRadius: 14, style: .continuous)
+            .fill(DemoTheme.rowBackground.opacity(0.65))
+            .glassEffect(.regular, in: .rect(cornerRadius: 14))
+        } else {
+          RoundedRectangle(cornerRadius: 14, style: .continuous)
+            .strokeBorder(DemoTheme.separator, lineWidth: 1)
+        }
+      }
     }
     .buttonStyle(.plain)
     .accessibilityIdentifier("live.video.channel.banner")
