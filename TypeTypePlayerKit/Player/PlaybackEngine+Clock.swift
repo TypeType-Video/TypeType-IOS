@@ -11,6 +11,11 @@ extension PlaybackEngine {
       startClock()
     } else if stalled, hasResumeBuffer() {
       stalled = false
+      if let stalledAt {
+        let waited = ContinuousClock.now - stalledAt
+        Self.log.notice("resumed gen=\(self.generation) at \(self.renderer.currentTime.seconds) after \(waited.components.seconds * 1_000 + waited.components.attoseconds / 1_000_000_000_000_000)ms")
+        self.stalledAt = nil
+      }
       if wantsPlay {
         renderer.setRate(rate)
         emit(.state(.playing))
@@ -69,6 +74,7 @@ extension PlaybackEngine {
       return
     }
     stalled = true
+    stalledAt = .now
     Self.log.notice("stalled gen=\(self.generation) start=\(self.startTime.seconds) at \(now.seconds) video=\(self.tracks[.video]?.bufferedEnd.seconds ?? -1) audio=\(self.tracks[.audio]?.bufferedEnd.seconds ?? -1)")
     renderer.setRate(0)
     emit(.state(.buffering))

@@ -29,6 +29,7 @@ actor PlaybackEngine {
   var rate: Float = 1
   var clockStarted = false
   var stalled = false
+  var stalledAt: ContinuousClock.Instant?
   var ended = false
   var watchTask: Task<Void, Never>?
   var startWaiters: [CheckedContinuation<Void, Never>] = []
@@ -121,6 +122,7 @@ actor PlaybackEngine {
     resumeAlignmentWaiters()
     clockStarted = false
     stalled = false
+    stalledAt = nil
     ended = false
     startTime = CMTime(seconds: max(time, 0), preferredTimescale: 90_000)
     let current = generation
