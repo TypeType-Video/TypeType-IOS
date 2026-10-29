@@ -135,7 +135,7 @@ extension LivePlayerLayerCoordinator {
       playbackWasIntended = true
       schedulePlaybackResume()
       settlePlaybackPreservationWindow(
-        checks: toFullScreen ? 4 : 20
+        for: toFullScreen ? .milliseconds(800) : .seconds(4)
       )
     }
   }

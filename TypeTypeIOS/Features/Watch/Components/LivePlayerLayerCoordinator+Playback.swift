@@ -82,7 +82,7 @@ extension LivePlayerLayerCoordinator {
     cancelTransitionTasks()
     schedulePlaybackResume(after: .milliseconds(100))
     settlePlaybackPreservationWindow(
-      checks: isEndingFullScreen ? 20 : 4
+      for: isEndingFullScreen ? .seconds(4) : .milliseconds(800)
     )
   }
 
@@ -105,7 +105,7 @@ extension LivePlayerLayerCoordinator {
       guard let self else { return }
       schedulePlaybackResume()
       settlePlaybackPreservationWindow(
-        checks: isEndingFullScreen ? 20 : 4
+        for: isEndingFullScreen ? .seconds(4) : .milliseconds(800)
       )
     }
     schedulePlaybackResume(after: .milliseconds(100))

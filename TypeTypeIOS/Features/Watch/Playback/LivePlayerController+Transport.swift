@@ -74,18 +74,13 @@ extension LivePlayerController {
     }
     providerRecoveryDesiredAutoplay = true
     playIfActive()
+    let player = player
     presentationResumeTask = Task { @MainActor [weak self] in
-      for delay in [100, 250, 500, 900] {
-        do {
-          try await Task.sleep(for: .milliseconds(delay))
-        } catch {
-          return
-        }
+      await player.resumeEachPause(for: .milliseconds(1_750)) { [weak self] in
         guard let self, player.currentItem != nil else { return }
-        if player.timeControlStatus == .paused {
-          playIfActive()
-        }
+        playIfActive()
       }
+      guard !Task.isCancelled else { return }
       self?.presentationResumeTask = nil
     }
   }
