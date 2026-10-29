@@ -871,4 +871,9 @@ extension EnvironmentValues {
 
 /// The grouped-list card behind the rows. The appearance proxy shares one
 /// instance; `applyUIKitAppearance` re-tints it on theme switches.
-final class ThemeCardChromeView: UIView {}
+final class ThemeCardChromeView: UIView {
+  /// iOS 27 sends `setEffect:` to cell background views (Liquid Glass) —
+  /// plain UIView subclasses crash on the unknown selector
+  /// (NSInvalidArgumentException). The themed card is intentionally flat.
+  @objc func setEffect(_ effect: Any?) {}
+}
