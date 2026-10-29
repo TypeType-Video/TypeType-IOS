@@ -171,15 +171,16 @@ struct LiveVideoLibraryActionsView: View {
   ) -> some View {
     Image(systemName: systemImage)
       .font(.title3.weight(.regular))
-      .foregroundStyle(isActive ? DemoTheme.accent : .primary)
+      .foregroundStyle(isActive ? Color.white : .primary)
       .frame(width: 44, height: 44)
       .background {
         if #available(iOS 26.0, *) {
-          // Liquid Glass circle: tinted with the accent when active.
+          // Liquid Glass circle: accent-tinted when active — a soft wash,
+          // never a solid flood that swallows the glyph.
           Circle()
             .fill(
               (isActive ? DemoTheme.accent : DemoTheme.elevatedSurface)
-                .opacity(0.32)
+                .opacity(0.22)
             )
             .glassEffect(
               .regular.tint(

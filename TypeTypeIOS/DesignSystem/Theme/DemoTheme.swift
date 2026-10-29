@@ -963,7 +963,9 @@ extension View {
   /// render as part of that background layer — hiding it flattened the
   /// whole list.
   func liveGroupedList() -> some View {
-    self.listStyle(.insetGrouped)
+    self
+      .listStyle(.insetGrouped)
+      .environment(\.liveInGroupedList, true)
   }
 }
 
@@ -1011,5 +1013,18 @@ extension View {
         .padding(.vertical, 5)
         .background(Capsule(style: .continuous).fill(DemoTheme.rowBackground))
     }
+  }
+}
+
+struct LiveInGroupedListKey: EnvironmentKey {
+  static let defaultValue = false
+}
+
+extension EnvironmentValues {
+  /// True inside a `liveGroupedList()`: grouped lists have no system header
+  /// chrome to cover, so the slot bleed must not paint its band there.
+  var liveInGroupedList: Bool {
+    get { self[LiveInGroupedListKey.self] }
+    set { self[LiveInGroupedListKey.self] = newValue }
   }
 }
