@@ -90,8 +90,11 @@ final class ServerStore {
   }
 
   private func saveServers(_ servers: [ServerProfile]) {
-    guard let data = try? encoder.encode(servers) else { return }
-    defaults.set(data, forKey: AppConfig.serverListKey)
+    do {
+      defaults.set(try encoder.encode(servers), forKey: AppConfig.serverListKey)
+    } catch {
+      AppLogger.app.failure("Saving the server list", error)
+    }
   }
 
   private func normalizeURL(_ input: String) -> URL? {

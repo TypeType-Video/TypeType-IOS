@@ -113,8 +113,11 @@ final class SessionStore {
   }
 
   private func persistRegistry(_ snapshots: [String: SessionSnapshot]) {
-    guard let data = try? encoder.encode(snapshots) else { return }
-    defaults.set(data, forKey: AppConfig.sessionRegistryKey)
+    do {
+      defaults.set(try encoder.encode(snapshots), forKey: AppConfig.sessionRegistryKey)
+    } catch {
+      AppLogger.app.failure("Saving the sessions", error)
+    }
   }
 
   private func accessToken(for snapshot: SessionSnapshot) -> String? {
