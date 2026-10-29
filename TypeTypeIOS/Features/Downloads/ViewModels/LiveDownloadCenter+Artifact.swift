@@ -8,8 +8,15 @@ extension LiveDownloadCenter {
       return
     }
     var savedURL: URL?
+    let startedAt = DispatchTime.now().uptimeNanoseconds
     do {
       let temporaryURL = try await service.artifact(id: record.job.id)
+      let fetchedMs = Int(
+        Double(DispatchTime.now().uptimeNanoseconds - startedAt) / 1e6
+      )
+      AppLogger.network.info(
+        "download artifact fetched in \(fetchedMs, privacy: .public)ms"
+      )
       let fileName = localFileName(for: record)
       let destination = artifactsURL.appendingPathComponent(fileName)
       savedURL = destination
@@ -56,6 +63,12 @@ extension LiveDownloadCenter {
         replace(record)
       }
     } catch {
+      let failedMs = Int(
+        Double(DispatchTime.now().uptimeNanoseconds - startedAt) / 1e6
+      )
+      AppLogger.network.error(
+        "download artifact failed after \(failedMs, privacy: .public)ms: \(Self.message(for: error), privacy: .public)"
+      )
       if Self.isTransientNetworkFailure(error) {
         record.state = .saving
         record.failureMessage =
