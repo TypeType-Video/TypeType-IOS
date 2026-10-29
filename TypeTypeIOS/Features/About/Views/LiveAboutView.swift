@@ -80,29 +80,7 @@ struct LiveAboutView: View {
         symbol: "heart.fill",
         urlString: "https://github.com/sponsors/Priveetee"
       )
-    } header: { Text("Open source").liveSectionHeader() } footer: {
-      VStack(alignment: .leading, spacing: 4) {
-        Text("Third-party notice")
-          .font(.footnote.weight(.semibold))
-          .foregroundStyle(DemoTheme.accent)
-        Text(
-          "Appearance and theme patterns are inspired by Komi Store, licensed under Apache-2.0."
-        )
-        .font(.caption)
-        .foregroundStyle(.secondary)
-        Link(
-          "Komi Store",
-          destination: URL(
-            string: "https://github.com/kurikomi-labs/komi-store"
-          )!
-        )
-        .font(.caption.weight(.medium))
-        .foregroundStyle(DemoTheme.accent)
-      }
-      .frame(maxWidth: .infinity, alignment: .leading)
-      .padding(.top, 8)
-      .liveSectionSlotChrome()
-    }
+    } header: { Text("Open source").liveSectionHeader() }
   }
 
   @ViewBuilder
