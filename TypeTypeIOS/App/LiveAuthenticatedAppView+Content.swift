@@ -184,6 +184,7 @@ extension LiveAuthenticatedAppView {
   private var offlineDownloads: some View {
     NavigationStack {
       LiveDownloadsView(
+        dependencies: coordinator.dependencies,
         center: downloadCenter,
         onlinePlaybackCoordinator: playbackCoordinator
       )

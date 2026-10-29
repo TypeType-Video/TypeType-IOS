@@ -144,6 +144,7 @@ struct LiveSettingsView: View {
           badge: coordinator.dependencies.downloadCenter.activeCount
         ) {
           LiveDownloadsView(
+            dependencies: coordinator.dependencies,
             center: coordinator.dependencies.downloadCenter,
             onlinePlaybackCoordinator:
               coordinator.dependencies.playbackCoordinator

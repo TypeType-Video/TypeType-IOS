@@ -99,6 +99,7 @@ extension LiveAccountView {
       badge: downloadCenter.activeCount
     ) {
       LiveDownloadsView(
+        dependencies: coordinator.dependencies,
         center: downloadCenter,
         onlinePlaybackCoordinator:
           coordinator.dependencies.playbackCoordinator

@@ -204,6 +204,7 @@ struct LiveLibraryView: View {
       )
     case .downloads:
       LiveDownloadsView(
+        dependencies: coordinator.dependencies,
         center: coordinator.dependencies.downloadCenter,
         onlinePlaybackCoordinator:
           coordinator.dependencies.playbackCoordinator

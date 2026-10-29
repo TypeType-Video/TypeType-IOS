@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct LiveDownloadsView: View {
+  let dependencies: AppDependencies
   @ObservedObject var center: LiveDownloadCenter
   let onlinePlaybackCoordinator: LivePlaybackCoordinator?
   @State private var playbackItem: LiveOfflinePlaybackItem?
@@ -106,7 +107,7 @@ struct LiveDownloadsView: View {
       Text(center.message ?? "The download action failed.")
     }
     .fullScreenCover(item: $playbackItem) { item in
-      LiveOfflinePlaybackView(item: item)
+      LiveOfflinePlaybackView(item: item, dependencies: dependencies)
     }
     .accessibilityIdentifier("live.downloads.screen")
   }
