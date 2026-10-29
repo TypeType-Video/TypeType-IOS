@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct LiveManagedDownloadRow: View {
+  @Environment(\.themePalette) private var palette
   let record: LiveManagedDownload
   let artifactURL: URL?
   let onCancel: () -> Void
@@ -44,7 +45,7 @@ struct LiveManagedDownloadRow: View {
   @ViewBuilder private var progress: some View {
     if record.state.isActive {
       if let value = record.progress {
-        ProgressView(value: value).tint(DemoTheme.accent)
+        ProgressView(value: value).tint(palette.accent)
       } else {
         ProgressView()
       }
@@ -124,7 +125,7 @@ struct LiveManagedDownloadRow: View {
     case .ready: return .green
     case .failed: return .red
     case .cancelled: return .secondary
-    default: return DemoTheme.accent
+    default: return palette.accent
     }
   }
 

@@ -127,7 +127,6 @@ struct LiveCollectionView: View {
       }
       .refreshable { await viewModel.reload() }
       .background(DemoThemeBackground().ignoresSafeArea())
-      .liveThemeRepaint()
     }
   }
 

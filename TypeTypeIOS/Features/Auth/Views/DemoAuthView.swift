@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct DemoAuthView: View {
+  @Environment(\.themePalette) private var palette
   @State private var mode: DemoAuthMode
   @State private var name = ""
   @State private var email = ""
@@ -45,7 +46,7 @@ struct DemoAuthView: View {
         .padding(.top, 14)
         .padding(.trailing, 16)
     }
-    .tint(isLight ? DemoTheme.accent : .white)
+    .tint(isLight ? palette.accent : .white)
     .preferredColorScheme(isLight ? .light : .dark)
   }
 

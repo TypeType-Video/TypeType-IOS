@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct LiveHistoryCard: View {
+  @Environment(\.themePalette) private var palette
   let item: LiveHistoryItem
   let dependencies: AppDependencies
   @ObservedObject private var deArrowStore: LiveDeArrowStore
@@ -32,7 +33,7 @@ struct LiveHistoryCard: View {
             .frame(maxWidth: .infinity)
             .clipped()
           ProgressView(value: item.progressFraction)
-            .tint(DemoTheme.accent)
+            .tint(palette.accent)
             .background(.black.opacity(0.4))
         }
         .clipShape(

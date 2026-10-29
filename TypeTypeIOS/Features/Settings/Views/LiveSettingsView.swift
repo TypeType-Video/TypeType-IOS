@@ -51,7 +51,7 @@ struct LiveSettingsView: View {
   /// sign out live in the More tab.
   private var settingsList: some View {
     List {
-      Section {
+      LiveSection {
         LiveSettingsLinkRow(
           title: "Instances and accounts",
           icon: "person.crop.circle.fill",
@@ -84,7 +84,7 @@ struct LiveSettingsView: View {
         Text("General")
       }
 
-      Section {
+      LiveSection {
         LiveSettingsLinkRow(
           title: "Appearance",
           icon: "paintpalette.fill",
@@ -111,7 +111,7 @@ struct LiveSettingsView: View {
         Text("Display and playback")
       }
 
-      Section {
+      LiveSection {
         LiveSettingsLinkRow(
           title: "Content",
           icon: "slider.horizontal.3",
@@ -136,7 +136,7 @@ struct LiveSettingsView: View {
         Text("Content")
       }
 
-      Section {
+      LiveSection {
         LiveSettingsLinkRow(
           title: "Downloads",
           icon: "arrow.down.circle",
@@ -174,7 +174,7 @@ struct LiveSettingsView: View {
         Text("Data and privacy")
       }
 
-      Section {
+      LiveSection {
         LiveSettingsLinkRow(
           title: "Diagnostics",
           icon: "ladybug.fill",
@@ -203,7 +203,6 @@ struct LiveSettingsView: View {
     }
     .padding(.bottom, playbackCoordinator.showsMiniPlayer ? 82 : 0)
     .liveGroupedList()
-    .liveThemeRepaint()
-    .tint(preferences.preferences.accentColor.color)
+    .tint(preferences.preferences.accent)
   }
 }

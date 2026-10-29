@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct LiveChannelHeaderView: View {
+  @Environment(\.themePalette) private var palette
   let channel: LiveChannelPage
   let isSubscribed: Bool
   let isChangingSubscription: Bool
@@ -37,7 +38,7 @@ struct LiveChannelHeaderView: View {
             if channel.isVerified {
               Image(systemName: "checkmark.seal.fill")
                 .font(.caption)
-                .foregroundStyle(DemoTheme.accent)
+                .foregroundStyle(palette.accent)
                 .accessibilityLabel("Verified")
             }
           }
@@ -71,8 +72,8 @@ struct LiveChannelHeaderView: View {
           .buttonStyle(.bordered)
           .tint(
             isNotificationsEnabled
-              ? DemoTheme.accent
-              : DemoTheme.elevatedSurface
+              ? palette.accent
+              : palette.elevatedSurface
           )
           .buttonBorderShape(.circle)
           .disabled(isChangingNotifications)
@@ -96,8 +97,8 @@ struct LiveChannelHeaderView: View {
         .buttonStyle(.borderedProminent)
         .tint(
           isSubscribed
-            ? DemoTheme.elevatedSurface
-            : DemoTheme.accent
+            ? palette.elevatedSurface
+            : palette.accent
         )
         .buttonBorderShape(.capsule)
         .disabled(isChangingSubscription)

@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct DemoImportFlowView: View {
+  @Environment(\.themePalette) private var palette
   enum Phase {
     case ready
     case importing
@@ -57,11 +58,11 @@ struct DemoImportFlowView: View {
       }
       .frame(maxWidth: .infinity, maxHeight: .infinity)
       .padding(24)
-      .background(DemoTheme.groupedBackground)
+      .background(palette.groupedBackground)
       .navigationTitle(source.title)
       .navigationBarTitleDisplayMode(.inline)
       .toolbarBackground(
-        DemoTheme.groupedBackground,
+        palette.groupedBackground,
         for: .navigationBar
       )
       .toolbarBackground(.visible, for: .navigationBar)

@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct DemoProfileAvatarView: View {
+  @Environment(\.themePalette) private var palette
   @EnvironmentObject private var session: DemoSessionStore
   let size: CGFloat
 
@@ -12,13 +13,13 @@ struct DemoProfileAvatarView: View {
         Text(emoji)
           .font(.system(size: size * 0.55))
           .frame(maxWidth: .infinity, maxHeight: .infinity)
-          .background(DemoTheme.surface)
+          .background(palette.surface)
       } else {
         Image("TypeTypeLogo")
           .resizable()
           .scaledToFit()
           .padding(size * 0.12)
-          .background(DemoTheme.surface)
+          .background(palette.surface)
       }
     }
     .frame(width: size, height: size)

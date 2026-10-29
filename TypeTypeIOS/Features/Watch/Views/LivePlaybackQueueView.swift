@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct LivePlaybackQueueView: View {
+  @Environment(\.themePalette) private var palette
   @ObservedObject var coordinator: LivePlaybackCoordinator
   @State private var presentsQueue = false
 
@@ -38,7 +39,7 @@ struct LivePlaybackQueueView: View {
         .foregroundStyle(.primary)
         .padding(14)
         .background(
-          DemoTheme.surface,
+          palette.surface,
           in: RoundedRectangle(cornerRadius: 16, style: .continuous)
         )
       }

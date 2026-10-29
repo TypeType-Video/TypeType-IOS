@@ -188,7 +188,7 @@ extension LiveAccountView {
       Text(glyph)
         .font(.system(size: 24))
         .frame(width: 46, height: 46)
-        .background(DemoTheme.groupedSurface, in: Circle())
+        .background(palette.groupedSurface, in: Circle())
     } else if user.avatarURL != nil {
       LiveRemoteImage(url: user.avatarURL)
         .frame(width: 46, height: 46)
@@ -210,7 +210,7 @@ extension LiveAccountView {
       .foregroundStyle(.white)
       .padding(.horizontal, 7)
       .padding(.vertical, 3)
-      .background(DemoTheme.accent, in: Capsule())
+      .background(palette.accent, in: Capsule())
       .accessibilityLabel("\(count) \(label)")
   }
 }

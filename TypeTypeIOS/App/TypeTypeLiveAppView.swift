@@ -4,7 +4,7 @@ struct TypeTypeLiveAppView: View {
   @StateObject private var coordinator: RootCoordinator
   @ObservedObject private var preferences = LiveAppPreferencesStore.shared
   @Environment(\.scenePhase) private var scenePhase
-  @Environment(\.colorScheme) private var systemColorScheme
+  @Environment(\.colorScheme) private var colorScheme
 
   @MainActor
   init() {
@@ -19,17 +19,14 @@ struct TypeTypeLiveAppView: View {
     _coordinator = StateObject(
       wrappedValue: RootCoordinator(dependencies: dependencies)
     )
-    DemoTheme.update(preferences: preferences.preferences)
-    DemoTheme.applyUIKitAppearance(preferences.preferences)
-    DemoTheme.refreshLiveBars()
+    ThemeChrome.installAppearance()
   }
 
   var body: some View {
-    // Runs BEFORE every render pass: updating in onChange rendered stale
-    // colors first and needed a second tap to show. The environment scheme
-    // also makes system light/dark changes apply immediately.
-    let _ = applyTheme()
-    let palette = DemoTheme.palette()
+    let palette = ThemePalette(
+      preferences: preferences.preferences,
+      isDark: colorScheme == .dark
+    )
     Group {
       switch coordinator.state {
       case .booting:
@@ -43,7 +40,8 @@ struct TypeTypeLiveAppView: View {
           .id(coordinator.identityScopeID)
       }
     }
-    .environment(\.demoTheme, palette)
+    .environment(\.themePalette, palette)
+    .background(ThemeChromeBridge(chrome: palette.chrome))
     .task {
       if let launchURL = AppConfig.debugIncomingURL {
         coordinator.receiveIncomingURL(launchURL)
@@ -59,16 +57,10 @@ struct TypeTypeLiveAppView: View {
         ),
       value: coordinator.state
     )
-    .tint(preferences.preferences.accentColor.color)
+    .tint(palette.accent)
     .environment(\.font, preferences.preferences.appearanceFont == .expressive
       ? Font.system(.body, design: .rounded)
       : nil)
-    .onChange(of: preferences.preferences) {
-      applyTheme()
-    }
-    .onChange(of: colorScheme) { _, _ in
-      applyTheme()
-    }
     .onChange(of: scenePhase) {
       guard scenePhase == .background,
         preferences.preferences.playerPauseInBackground
@@ -81,18 +73,6 @@ struct TypeTypeLiveAppView: View {
         : preferredColorScheme
     )
   }
-
-  @Environment(\.colorScheme) private var colorScheme
-
-  private func applyTheme() {
-    DemoTheme.update(
-      preferences: preferences.preferences,
-      colorScheme: colorScheme
-    )
-    DemoTheme.applyUIKitAppearance(preferences.preferences)
-    DemoTheme.refreshLiveBars()
-  }
-
 
   private var preferredColorScheme: ColorScheme? {
     if AppConfig.debugForcesLightAppearance { return .light }

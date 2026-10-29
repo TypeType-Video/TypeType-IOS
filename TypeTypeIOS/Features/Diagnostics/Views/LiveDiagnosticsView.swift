@@ -49,7 +49,6 @@ struct LiveDiagnosticsView: View {
       }
     }
       .liveThemedList()
-      .liveThemeRepaint()
     .navigationTitle("Diagnostics")
     .navigationBarTitleDisplayMode(.inline)
     .toolbar {

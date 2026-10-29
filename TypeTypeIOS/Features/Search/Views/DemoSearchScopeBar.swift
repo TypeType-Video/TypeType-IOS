@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct DemoSearchScopeBar: View {
+  @Environment(\.themePalette) private var palette
   @Binding var selection: DemoSearchScope
 
   var body: some View {
@@ -20,7 +21,7 @@ struct DemoSearchScopeBar: View {
               .background(
                 selection == scope
                   ? Color.accentColor
-                  : DemoTheme.surface
+                  : palette.surface
               )
               .clipShape(Capsule())
           }

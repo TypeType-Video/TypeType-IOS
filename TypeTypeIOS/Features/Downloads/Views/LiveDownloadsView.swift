@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct LiveDownloadsView: View {
+  @Environment(\.themePalette) private var palette
   let dependencies: AppDependencies
   @ObservedObject var center: LiveDownloadCenter
   let onlinePlaybackCoordinator: LivePlaybackCoordinator?
@@ -76,7 +77,6 @@ struct LiveDownloadsView: View {
             )
           }
         }
-          .liveThemeRepaint()
           .liveThemedList()
         .refreshable {
           await center.refresh()
@@ -87,7 +87,7 @@ struct LiveDownloadsView: View {
             .foregroundStyle(.secondary)
             .frame(maxWidth: .infinity)
             .padding(.vertical, 6)
-            .background(DemoTheme.background)
+            .background(palette.background)
         }
       }
     }

@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct DemoPlaybackSettingsView: View {
+  @Environment(\.themePalette) private var palette
   @EnvironmentObject var session: DemoSessionStore
 
   var body: some View {
@@ -84,7 +85,7 @@ struct DemoPlaybackSettingsView: View {
       }
       .padding(16)
     }
-    .background(DemoTheme.groupedBackground)
+    .background(palette.groupedBackground)
     .navigationTitle("Playback")
     .navigationBarTitleDisplayMode(.inline)
     .accessibilityIdentifier("demo.more.playback")

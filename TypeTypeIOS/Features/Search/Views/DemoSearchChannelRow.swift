@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct DemoSearchChannelRow: View {
+  @Environment(\.themePalette) private var palette
   @EnvironmentObject private var session: DemoSessionStore
   let channel: DemoSearchChannel
   let onSelect: () -> Void
@@ -58,7 +59,7 @@ struct DemoSearchChannelRow: View {
       } label: {
         Image(systemName: isAllowed ? "checkmark.shield.fill" : "shield")
           .frame(width: 34, height: 34)
-          .background(DemoTheme.elevatedSurface, in: Circle())
+          .background(palette.elevatedSurface, in: Circle())
       }
       .buttonStyle(.plain)
       .accessibilityLabel(isAllowed ? "Remove allowed channel" : "Allow channel")
@@ -83,7 +84,7 @@ struct DemoSearchChannelRow: View {
       .buttonStyle(.plain)
     }
     .padding(12)
-    .background(DemoTheme.surface)
+    .background(palette.surface)
     .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
     .accessibilityIdentifier("demo.search.channel.\(channel.id)")
   }

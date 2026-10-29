@@ -56,7 +56,7 @@ extension DemoWatchDescriptionView {
         .font(.caption.weight(.semibold))
         .padding(.horizontal, 11)
         .frame(height: 36)
-        .background(DemoTheme.elevatedSurface)
+        .background(palette.elevatedSurface)
         .clipShape(Capsule())
     }
     .buttonStyle(.plain)

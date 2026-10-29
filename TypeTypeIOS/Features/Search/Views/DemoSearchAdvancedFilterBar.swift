@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct DemoSearchAdvancedFilterBar: View {
+  @Environment(\.themePalette) private var palette
   @Binding var service: DemoSearchService
   @Binding var content: DemoSearchContentFilter
   @Binding var sort: DemoSearchSort
@@ -82,7 +83,7 @@ struct DemoSearchAdvancedFilterBar: View {
         .foregroundStyle(.primary)
         .padding(.horizontal, 12)
         .frame(height: 34)
-        .background(DemoTheme.surface)
+        .background(palette.surface)
         .clipShape(Capsule())
     }
   }

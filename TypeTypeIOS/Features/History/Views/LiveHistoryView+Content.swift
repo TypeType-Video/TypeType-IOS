@@ -85,7 +85,6 @@ extension LiveHistoryView {
       }
       .refreshable { await viewModel.reload() }
       .background(DemoThemeBackground().ignoresSafeArea())
-      .liveThemeRepaint()
     }
   }
 

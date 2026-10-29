@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct LiveSearchChannelCard: View {
+  @Environment(\.themePalette) private var palette
   let channel: LiveChannelResult
   let action: () -> Void
 
@@ -19,7 +20,7 @@ struct LiveSearchChannelCard: View {
             if channel.isVerified {
               Image(systemName: "checkmark.seal.fill")
                 .font(.caption)
-                .foregroundStyle(DemoTheme.accent)
+                .foregroundStyle(palette.accent)
                 .accessibilityLabel("Verified")
             }
           }
@@ -45,7 +46,7 @@ struct LiveSearchChannelCard: View {
       }
       .padding(14)
       .background(
-        DemoTheme.surface,
+        palette.surface,
         in: RoundedRectangle(cornerRadius: 16, style: .continuous)
       )
     }

@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct DemoWatchDescriptionView: View {
+  @Environment(\.themePalette) var palette
   @EnvironmentObject var session: DemoSessionStore
   let video: DemoVideo
   @ObservedObject var controller: DemoPlayerController
@@ -57,7 +58,7 @@ struct DemoWatchDescriptionView: View {
     }
     .padding(16)
     .foregroundStyle(.primary)
-    .background(DemoTheme.surface)
+    .background(palette.surface)
     .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
     .accessibilityIdentifier("demo.watch.description")
   }
@@ -84,7 +85,7 @@ struct DemoWatchDescriptionView: View {
               }
               .padding(10)
               .frame(width: 158, alignment: .leading)
-              .background(DemoTheme.elevatedSurface)
+              .background(palette.elevatedSurface)
               .clipShape(RoundedRectangle(cornerRadius: 11, style: .continuous))
             }
             .buttonStyle(.plain)

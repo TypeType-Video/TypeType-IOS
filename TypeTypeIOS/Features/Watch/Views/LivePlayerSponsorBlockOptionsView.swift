@@ -62,7 +62,6 @@ struct LivePlayerSponsorBlockOptionsView: View {
       }
     }
       .liveThemedList()
-      .liveThemeRepaint()
     .navigationTitle("SponsorBlock")
     .navigationBarTitleDisplayMode(.inline)
   }

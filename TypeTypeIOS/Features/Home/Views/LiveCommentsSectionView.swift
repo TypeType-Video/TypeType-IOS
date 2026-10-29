@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct LiveCommentsSectionView: View {
+  @Environment(\.themePalette) private var palette
   let videoURL: String
   let dependencies: AppDependencies
   let onChannel: (String) -> Void
@@ -140,7 +141,7 @@ struct LiveCommentsSectionView: View {
     .padding(14)
     .frame(maxWidth: .infinity, alignment: .leading)
     .background(
-      DemoTheme.surface,
+      palette.surface,
       in: RoundedRectangle(cornerRadius: 12, style: .continuous)
     )
   }
@@ -162,7 +163,7 @@ struct LiveCommentsSectionView: View {
     .padding(14)
     .frame(maxWidth: .infinity, alignment: .leading)
     .background(
-      DemoTheme.surface,
+      palette.surface,
       in: RoundedRectangle(cornerRadius: 12, style: .continuous)
     )
   }
@@ -182,7 +183,7 @@ struct LiveCommentsSectionView: View {
     .padding(14)
     .frame(maxWidth: .infinity, alignment: .leading)
     .background(
-      DemoTheme.surface,
+      palette.surface,
       in: RoundedRectangle(cornerRadius: 12, style: .continuous)
     )
   }
@@ -203,6 +204,7 @@ struct LiveCommentsSectionView: View {
 }
 
 private struct LiveCommentRow: View {
+  @Environment(\.themePalette) private var palette
   let comment: LiveCommentItem
   let videoURL: String
   let service: LiveCommentsServiceProtocol
@@ -271,7 +273,7 @@ private struct LiveCommentRow: View {
       if comment.uploaderVerified {
         Image(systemName: "checkmark.seal.fill")
           .font(.caption2)
-          .foregroundStyle(DemoTheme.accent)
+          .foregroundStyle(palette.accent)
           .accessibilityLabel("Verified")
       }
 

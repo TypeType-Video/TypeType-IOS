@@ -3,6 +3,7 @@ import SwiftUI
 /// Remote image through the shared pipeline: cached, deduplicated, downsampled
 /// to the displayed size, with a skeleton while it loads.
 struct LiveRemoteImage: View {
+  @Environment(\.themePalette) private var palette
   let url: URL?
   let contentMode: ContentMode
   @State private var image: UIImage?
@@ -26,7 +27,7 @@ struct LiveRemoteImage: View {
             .clipped()
             .transition(.opacity)
         } else if failed || url == nil {
-          Rectangle().fill(DemoTheme.groupedSurface)
+          Rectangle().fill(palette.groupedSurface)
         } else {
           TypeTypeSkeleton()
         }

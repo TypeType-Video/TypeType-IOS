@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct DemoSearchPlaylistDetailView: View {
+  @Environment(\.themePalette) var palette
   @EnvironmentObject var session: DemoSessionStore
   let playlist: DemoPlaylist
   @State var title: String

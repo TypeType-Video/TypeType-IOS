@@ -3,6 +3,7 @@ import SwiftUI
 /// Loading layouts shaped like the content they stand for, so a page keeps
 /// its structure while it loads instead of showing a lone spinner.
 struct TypeTypeSkeletonList: View {
+  @Environment(\.themePalette) private var palette
   enum Layout {
     /// Feed cards: full-width thumbnail, avatar, three lines.
     case cards
@@ -21,7 +22,7 @@ struct TypeTypeSkeletonList: View {
     if scrolls {
       ScrollView { grid.padding(16) }
         .scrollDisabled(true)
-        .background(DemoTheme.background)
+        .background(palette.background)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("Loading")
     } else {

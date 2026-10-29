@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct LiveVideoQuickActionsModifier: ViewModifier {
+  @Environment(\.themePalette) private var palette
   @StateObject var viewModel: LiveVideoQuickActionsViewModel
   @State var presentsDownload = false
   @State var presentsShareChoice = false
@@ -39,7 +40,7 @@ struct LiveVideoQuickActionsModifier: ViewModifier {
     HStack(spacing: 12) {
       Image(systemName: "checkmark.circle.fill")
         .font(.title3.weight(.semibold))
-        .foregroundStyle(DemoTheme.accent)
+        .foregroundStyle(palette.accent)
       Text(message)
         .font(.callout.weight(.semibold))
         .foregroundStyle(.primary)

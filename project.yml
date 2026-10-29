@@ -26,7 +26,12 @@ targets:
       - TypeTypeIOS/DesignSystem
       - TypeTypeIOS/Features
       - TypeTypeIOS/MockData
-      - TypeTypeIOS/Resources
+      - path: TypeTypeIOS/Resources
+        excludes:
+          - AppIcon.icon
+      - path: TypeTypeIOS/Resources/AppIcon.icon
+        type: file
+        buildPhase: resources
     dependencies:
       - target: TypeTypePlayerKit
     info:

@@ -11,15 +11,16 @@ struct LiveSettingsIconTile: View {
       .foregroundStyle(.white)
       .frame(width: 29, height: 29)
       .background {
-        if #available(iOS 26.0, *) {
-          // Tinted Liquid Glass chip: the modern Settings look.
-          RoundedRectangle(cornerRadius: 7, style: .continuous)
-            .fill(color.opacity(0.45))
-            .glassEffect(.regular.tint(color), in: .rect(cornerRadius: 7))
-        } else {
-          RoundedRectangle(cornerRadius: 7, style: .continuous)
-            .fill(color)
-        }
+        RoundedRectangle(cornerRadius: 7, style: .continuous)
+          .fill(color.gradient)
+      }
+      .overlay {
+        // Glass rim: a light top edge fading out, like the iOS 26 Settings tiles.
+        RoundedRectangle(cornerRadius: 7, style: .continuous)
+          .strokeBorder(
+            LinearGradient(colors: [.white.opacity(0.55), .white.opacity(0)], startPoint: .top, endPoint: .bottom),
+            lineWidth: 0.75
+          )
       }
   }
 }
@@ -28,6 +29,7 @@ struct LiveSettingsIconTile: View {
 /// draws the chevron and hairline automatically; subtitles are left out on
 /// purpose — section grouping keeps the list clear instead.
 struct LiveSettingsLinkRow<Destination: View>: View {
+  @Environment(\.themePalette) private var palette
   let title: String
   let icon: String
   let iconColor: Color
@@ -58,10 +60,10 @@ struct LiveSettingsLinkRow<Destination: View>: View {
             .background {
               if #available(iOS 26.0, *) {
                 Capsule()
-                  .fill(DemoTheme.accent.opacity(0.5))
-                  .glassEffect(.regular.tint(DemoTheme.accent), in: .capsule)
+                  .fill(palette.accent.opacity(0.5))
+                  .glassEffect(.regular.tint(palette.accent), in: .capsule)
               } else {
-                Capsule().fill(DemoTheme.accent)
+                Capsule().fill(palette.accent)
               }
             }
         }

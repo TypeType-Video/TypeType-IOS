@@ -114,7 +114,6 @@ struct LiveAdminUserView: View {
       }
     }
       .liveThemedList()
-      .liveThemeRepaint()
     .navigationTitle(viewModel.user.name)
     .navigationBarTitleDisplayMode(.inline)
     .alert("Administration", isPresented: errorBinding) {

@@ -69,7 +69,6 @@ struct LiveRssFeedsView: View {
         }
       }
         .liveThemedList()
-      .liveThemeRepaint()
     }
   }
 
@@ -135,7 +134,6 @@ struct LiveRssFeedsView: View {
         } header: { Text("Content").liveSectionHeader() }
       }
         .liveThemedList()
-      .liveThemeRepaint()
       .navigationTitle("RSS feed")
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {

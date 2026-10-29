@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct LiveSearchView: View {
+  @Environment(\.themePalette) var palette
   @ObservedObject var coordinator: RootCoordinator
   @StateObject var viewModel: LiveSearchViewModel
   @State var selectedVideo: LiveVideoItem?

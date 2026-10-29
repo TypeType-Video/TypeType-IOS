@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct DemoMoreView: View {
+  @Environment(\.themePalette) private var palette
   let onSignOut: () -> Void
   @EnvironmentObject private var session: DemoSessionStore
 
@@ -31,12 +32,12 @@ struct DemoMoreView: View {
         .padding(.top, 14)
         .padding(.bottom, 30)
       }
-      .background(DemoTheme.groupedBackground)
+      .background(palette.groupedBackground)
       .navigationTitle("More")
       .navigationBarTitleDisplayMode(.inline)
       .toolbarBackground(.visible, for: .navigationBar)
       .toolbarBackground(
-        DemoTheme.groupedBackground.opacity(0.96),
+        palette.groupedBackground.opacity(0.96),
         for: .navigationBar
       )
     }
@@ -61,7 +62,7 @@ struct DemoMoreView: View {
       Spacer()
     }
     .padding(16)
-    .background(DemoTheme.groupedSurface)
+    .background(palette.groupedSurface)
     .clipShape(RoundedRectangle(cornerRadius: 20))
   }
 

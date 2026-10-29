@@ -42,7 +42,7 @@ struct LivePrivacyDataView: View {
 
   private var list: some View {
     List {
-      Section {
+      LiveSection {
         dataRow(
           "Watch history",
           count: viewModel.historyCount,
@@ -59,17 +59,16 @@ struct LivePrivacyDataView: View {
           action: .subscriptions
         )
       } footer: {
-        Text("These actions update the selected TypeType instance.").liveSectionSlotChrome()
+        Text("These actions update the selected TypeType instance.")
       }
       if let message = viewModel.message {
-        Section {
+        LiveSection {
           Label(message, systemImage: "checkmark.circle.fill")
             .foregroundStyle(.green)
         }
       }
     }
       .liveGroupedList()
-      .liveThemeRepaint()
     .refreshable { await viewModel.reload() }
   }
 

@@ -2,6 +2,7 @@ import SwiftUI
 import UIKit
 
 struct ServerSetupView: View {
+  @Environment(\.themePalette) var palette
   @ObservedObject var coordinator: RootCoordinator
   @StateObject private var viewModel = ServerSetupViewModel()
   @State var pendingRemoval: ServerProfile?
@@ -26,7 +27,7 @@ struct ServerSetupView: View {
       }
       .scrollDismissesKeyboard(.interactively)
     }
-    .tint(DemoTheme.accent)
+    .tint(palette.accent)
     .onChange(of: viewModel.url) {
       viewModel.clearError()
       coordinator.connectionError = nil

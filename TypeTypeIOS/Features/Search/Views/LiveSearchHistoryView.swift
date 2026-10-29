@@ -25,7 +25,6 @@ struct LiveSearchHistoryView: View {
       .padding(16)
     }
     .background(DemoThemeBackground().ignoresSafeArea())
-      .liveThemeRepaint()
     .refreshable {
       await viewModel.loadHistory()
     }

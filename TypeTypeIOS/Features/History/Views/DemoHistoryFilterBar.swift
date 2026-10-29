@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct DemoHistoryFilterBar: View {
+  @Environment(\.themePalette) private var palette
   enum Filter: String, CaseIterable {
     case all = "All"
     case today = "Today"
@@ -39,7 +40,7 @@ struct DemoHistoryFilterBar: View {
                 .background(
                   selection == filter
                     ? Color.accentColor
-                    : DemoTheme.surface
+                    : palette.surface
                 )
                 .clipShape(Capsule())
             }

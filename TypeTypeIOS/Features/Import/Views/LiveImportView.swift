@@ -22,7 +22,6 @@ struct LiveImportView: View {
       typeTypeBackupSection
     }
       .liveGroupedList()
-      .liveThemeRepaint()
     .navigationTitle("Import")
     .navigationBarTitleDisplayMode(.inline)
     .fileImporter(

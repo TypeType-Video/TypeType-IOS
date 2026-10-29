@@ -22,7 +22,6 @@ struct LiveSettingsPrivacySection: View {
       Text(
         "Content access is managed by the instance administrator."
       )
-        .liveSectionSlotChrome()
     }
   }
 }

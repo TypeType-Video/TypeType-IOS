@@ -31,7 +31,6 @@ extension LiveHomeView {
       .padding(.vertical, 18)
     }
     .background(DemoThemeBackground().ignoresSafeArea())
-      .liveThemeRepaint()
     .accessibilityIdentifier("live.home.feed")
     .refreshable {
       await viewModel.reload()

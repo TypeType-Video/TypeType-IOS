@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct DemoMoreSectionCard<Content: View>: View {
+  @Environment(\.themePalette) private var palette
   let title: String
   @ViewBuilder let content: Content
 
@@ -16,7 +17,7 @@ struct DemoMoreSectionCard<Content: View>: View {
         content
       }
       .padding(.horizontal, 14)
-      .background(DemoTheme.groupedSurface)
+      .background(palette.groupedSurface)
       .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
     }
   }

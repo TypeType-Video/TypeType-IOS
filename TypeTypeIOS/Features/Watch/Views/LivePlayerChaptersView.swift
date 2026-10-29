@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct LivePlayerChaptersView: View {
+  @Environment(\.themePalette) private var palette
   @ObservedObject var controller: LivePlayerController
   var onSelect: (() -> Void)? = nil
 
@@ -54,7 +55,7 @@ struct LivePlayerChaptersView: View {
         VStack(alignment: .leading, spacing: 2) {
           Text(chapter.title)
             .font(.subheadline.weight(isCurrent ? .semibold : .regular))
-            .foregroundStyle(isCurrent ? DemoTheme.accent : .primary)
+            .foregroundStyle(isCurrent ? palette.accent : .primary)
             .lineLimit(2)
             .multilineTextAlignment(.leading)
 
@@ -70,7 +71,7 @@ struct LivePlayerChaptersView: View {
 
         if isCurrent {
           Image(systemName: "speaker.wave.2.fill")
-            .foregroundStyle(DemoTheme.accent)
+            .foregroundStyle(palette.accent)
             .accessibilityLabel("Current chapter")
         }
       }

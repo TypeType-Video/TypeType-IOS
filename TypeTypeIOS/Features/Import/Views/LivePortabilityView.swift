@@ -19,7 +19,7 @@ struct LivePortabilityView: View {
 
   var body: some View {
     Form {
-      Section {
+      LiveSection {
         NavigationLink {
           LiveImportView(service: importService)
         } label: {
@@ -40,7 +40,6 @@ struct LivePortabilityView: View {
       }
     }
       .liveGroupedList()
-      .liveThemeRepaint()
     .navigationTitle("Data and backups")
     .navigationBarTitleDisplayMode(.inline)
     .task { await viewModel.prepare() }
@@ -80,7 +79,7 @@ struct LivePortabilityView: View {
   }
 
   private var headerSection: some View {
-    Section {
+    LiveSection {
       VStack(alignment: .leading, spacing: 6) {
         Text("Data portability")
           .font(.headline)
@@ -96,7 +95,7 @@ struct LivePortabilityView: View {
   }
 
   private var modeSection: some View {
-    Section {
+    LiveSection {
       Picker("Direction", selection: modeBinding) {
         ForEach(LivePortabilityViewModel.Mode.allCases) { mode in
           Text(mode.title).tag(mode)
@@ -108,7 +107,7 @@ struct LivePortabilityView: View {
 
   @ViewBuilder
   private var setupSection: some View {
-    Section {
+    LiveSection {
       if viewModel.state == .loadingFormats {
         HStack {
           Text("Loading formats")
@@ -126,7 +125,7 @@ struct LivePortabilityView: View {
     } header: { Text("Format").liveSectionHeader() }
 
     if !viewModel.activeCategories.isEmpty {
-      Section {
+      LiveSection {
         Button("Select all") {
           viewModel.selectedCategories = Set(
             viewModel.activeCategories.map(\.rawValue)
@@ -144,7 +143,7 @@ struct LivePortabilityView: View {
   @ViewBuilder
   private var actionSection: some View {
     if viewModel.mode == .import {
-      Section {
+      LiveSection {
         Button("Choose or drop a backup file") {
           showsFilePicker = true
         }
@@ -154,7 +153,7 @@ struct LivePortabilityView: View {
       } header: { Text("Backup file").liveSectionHeader() }
     }
 
-    Section {
+    LiveSection {
       if viewModel.mode == .export {
         Button {
           Task { await viewModel.start() }
@@ -183,7 +182,7 @@ struct LivePortabilityView: View {
       }
     } footer: {
       if viewModel.selectedCategories.isEmpty {
-        Text("Select at least one category.").liveSectionSlotChrome()
+        Text("Select at least one category.")
       }
     }
   }
@@ -191,7 +190,7 @@ struct LivePortabilityView: View {
   @ViewBuilder
   private var jobSection: some View {
     if let job = viewModel.job {
-      Section {
+      LiveSection {
         LabeledContent("Status", value: stateTitle(job))
         if let progress = job.progress {
           ProgressView(
@@ -212,7 +211,7 @@ struct LivePortabilityView: View {
       } header: { Text("Job").liveSectionHeader() }
 
       if let preview = job.preview {
-        Section {
+        LiveSection {
           LabeledContent(
             "Detected format",
             value: portabilityFormatTitle(
@@ -233,7 +232,7 @@ struct LivePortabilityView: View {
           }
         } header: { Text("Preview").liveSectionHeader() }
 
-        Section {
+        LiveSection {
           ForEach(viewModel.previewCategories) { category in
             LabeledContent(
               category.title,
@@ -249,7 +248,7 @@ struct LivePortabilityView: View {
       }
 
       if !job.result.isEmpty {
-        Section {
+        LiveSection {
           ForEach(job.result.sorted(by: { $0.key < $1.key }), id: \.key) {
             item in
             LabeledContent(
@@ -260,7 +259,7 @@ struct LivePortabilityView: View {
         } header: { Text("Result").liveSectionHeader() }
       }
 
-      Section {
+      LiveSection {
         if !job.isTerminal {
           Button("Cancel job", role: .destructive) {
             Task { await viewModel.cancel() }
@@ -290,7 +289,7 @@ struct LivePortabilityView: View {
         }
       } header: { Text("Actions").liveSectionHeader() }
 
-      Section {
+      LiveSection {
         LabeledContent("Job ID", value: job.id)
         if let requestID = job.requestId {
           LabeledContent("Request ID", value: requestID)

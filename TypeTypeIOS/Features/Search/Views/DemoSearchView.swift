@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct DemoSearchView: View {
+  @Environment(\.themePalette) var palette
   @Environment(\.dismiss) var dismiss
   @EnvironmentObject var session: DemoSessionStore
   @State var query: String
@@ -31,12 +32,12 @@ struct DemoSearchView: View {
         }
         .padding(.vertical, 16)
       }
-      .background(DemoTheme.background)
+      .background(palette.background)
       .navigationTitle("Search")
       .navigationBarTitleDisplayMode(.inline)
       .toolbarBackground(.visible, for: .navigationBar)
       .toolbarBackground(
-        DemoTheme.background.opacity(0.96),
+        palette.background.opacity(0.96),
         for: .navigationBar
       )
       .toolbar {

@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct LivePlaybackQueueRow: View {
+  @Environment(\.themePalette) private var palette
   let video: LiveVideoItem
   let isCurrent: Bool
   let onPlay: () -> Void
@@ -32,7 +33,7 @@ struct LivePlaybackQueueRow: View {
       }
     }
     .listRowBackground(
-      isCurrent ? DemoTheme.accent.opacity(0.1) : Color.clear
+      isCurrent ? palette.accent.opacity(0.1) : Color.clear
     )
   }
 
@@ -55,7 +56,7 @@ struct LivePlaybackQueueRow: View {
             .font(.caption.weight(.bold))
             .foregroundStyle(.white)
             .padding(7)
-            .background(DemoTheme.accent, in: Circle())
+            .background(palette.accent, in: Circle())
         }
       }
   }

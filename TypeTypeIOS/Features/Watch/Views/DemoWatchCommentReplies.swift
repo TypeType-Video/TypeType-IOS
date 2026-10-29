@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct DemoWatchCommentReplies: View {
+  @Environment(\.themePalette) private var palette
   let replies: [DemoWatchReply]
   let localReplies: [String]
   let onSeekTimestamp: (Double) -> Void
@@ -30,7 +31,7 @@ struct DemoWatchCommentReplies: View {
     .padding(.leading, 10)
     .overlay(alignment: .leading) {
       Rectangle()
-        .fill(DemoTheme.separator)
+        .fill(palette.separator)
         .frame(width: 1)
     }
   }
@@ -47,7 +48,7 @@ struct DemoWatchCommentReplies: View {
         .fill(
           isLocal
             ? Color(red: 1, green: 0.3, blue: 0.34).opacity(0.3)
-            : DemoTheme.elevatedSurface
+            : palette.elevatedSurface
         )
         .frame(width: 28, height: 28)
         .overlay {

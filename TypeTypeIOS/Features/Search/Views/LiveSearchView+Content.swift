@@ -46,7 +46,7 @@ extension LiveSearchView {
             .font(.caption.weight(.semibold))
             .padding(.horizontal, 11)
             .padding(.vertical, 8)
-            .background(DemoTheme.surface, in: Capsule())
+            .background(palette.surface, in: Capsule())
           }
           .buttonStyle(.plain)
           .accessibilityIdentifier(
@@ -143,7 +143,6 @@ extension LiveSearchView {
     }
     .scrollDismissesKeyboard(.immediately)
     .background(DemoThemeBackground().ignoresSafeArea())
-      .liveThemeRepaint()
   }
 
   @ViewBuilder

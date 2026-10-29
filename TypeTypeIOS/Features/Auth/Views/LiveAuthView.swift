@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct LiveAuthView: View {
+  @Environment(\.themePalette) private var palette
   @ObservedObject var coordinator: RootCoordinator
   @StateObject private var viewModel = LiveAuthViewModel()
   @State private var isLight = false
@@ -68,7 +69,7 @@ struct LiveAuthView: View {
     .task {
       await viewModel.load(using: coordinator)
     }
-    .tint(isLight ? DemoTheme.accent : .white)
+    .tint(isLight ? palette.accent : .white)
     .preferredColorScheme(isLight ? .light : .dark)
   }
 }

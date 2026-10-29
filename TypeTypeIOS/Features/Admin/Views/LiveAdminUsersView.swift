@@ -73,7 +73,6 @@ struct LiveAdminUsersView: View {
         } header: { Text("\(viewModel.total) users").liveSectionHeader() }
       }
         .liveThemedList()
-      .liveThemeRepaint()
       .listStyle(.plain)
       .refreshable { await viewModel.reload() }
     }

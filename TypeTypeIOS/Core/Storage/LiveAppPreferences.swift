@@ -29,10 +29,7 @@ enum LiveAccentColor: String, Codable, CaseIterable, Identifiable {
     case .violet: return .indigo
     case .monochrome: return .primary
     case .system: return .accentColor
-    case .custom:
-      // Cached static (see DemoTheme): the preferences store is
-      // MainActor-isolated and this property is not.
-      return DemoTheme.customAccentHex.flatMap(Color.init(hex:)) ?? .accentColor
+    case .custom: return .accentColor
     }
   }
 }
@@ -115,6 +112,11 @@ struct LiveAppPreferences: Codable, Equatable {
   var danmakuEnabled = false
   var danmakuSpeed = 1.0
   var danmakuSize = 1.0
+
+  var accent: Color {
+    guard accentColor == .custom else { return accentColor.color }
+    return customAccentHex.flatMap(Color.init(hex:)) ?? .accentColor
+  }
 
   enum CodingKeys: String, CodingKey {
     case accentColor, customAccentHex, appearanceMode, appearanceAmoled

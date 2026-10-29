@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct LiveNotificationsView: View {
+  @Environment(\.themePalette) private var palette
   let dependencies: AppDependencies
   @StateObject private var viewModel: LiveNotificationsViewModel
   @State private var selectedVideo: LiveVideoItem?
@@ -96,7 +97,7 @@ struct LiveNotificationsView: View {
               "\(viewModel.unreadCount) unread",
               systemImage: "bell.badge.fill"
             )
-            .foregroundStyle(DemoTheme.accent)
+            .foregroundStyle(palette.accent)
           }
         }
         Section {
@@ -119,7 +120,6 @@ struct LiveNotificationsView: View {
         }
       }
         .liveThemedList()
-      .liveThemeRepaint()
       .listStyle(.plain)
       .refreshable { await viewModel.reload() }
     }

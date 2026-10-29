@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct LiveSearchFilterBar: View {
+  @Environment(\.themePalette) private var palette
   @ObservedObject var viewModel: LiveSearchViewModel
   @State private var presentsService = false
   @State private var presentsContent = false
@@ -136,7 +137,7 @@ struct LiveSearchFilterBar: View {
               Spacer(minLength: 12)
               if option.selected {
                 Image(systemName: "checkmark")
-                  .foregroundStyle(DemoTheme.accent)
+                  .foregroundStyle(palette.accent)
               }
             }
             .padding(.horizontal, 16)
@@ -147,7 +148,7 @@ struct LiveSearchFilterBar: View {
           .buttonStyle(.plain)
           if index < options.count - 1 {
             Rectangle()
-              .fill(DemoTheme.separator)
+              .fill(palette.separator)
               .frame(height: 1)
               .padding(.horizontal, 16)
           }
@@ -171,7 +172,7 @@ struct LiveSearchFilterBar: View {
       .font(.caption.weight(.semibold))
       .padding(.horizontal, 11)
       .padding(.vertical, 8)
-      .background(DemoTheme.surface, in: Capsule())
+      .background(palette.surface, in: Capsule())
   }
 
   private var selectedService: VideoService {

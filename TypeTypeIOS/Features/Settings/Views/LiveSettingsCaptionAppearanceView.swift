@@ -36,7 +36,7 @@ struct LiveSettingsCaptionAppearanceView: View {
 
   var body: some View {
     List {
-      Section {
+      LiveSection {
         LiveOptionMenu(
           "Font",
           selection: $styles.fontFamily,
@@ -63,7 +63,7 @@ struct LiveSettingsCaptionAppearanceView: View {
           options: shadows.map { ($0.1, $0.0) }
         )
       } header: { Text("Text").liveSectionHeader() }
-      Section {
+      LiveSection {
         LiveOptionMenu(
           "Color",
           selection: $styles.textBackground,
@@ -75,7 +75,7 @@ struct LiveSettingsCaptionAppearanceView: View {
           options: opacities.map { ($0, $0.isEmpty ? "System" : $0) }
         )
       } header: { Text("Text background").liveSectionHeader() }
-      Section {
+      LiveSection {
         LiveOptionMenu(
           "Color",
           selection: $styles.displayBackground,
@@ -91,11 +91,9 @@ struct LiveSettingsCaptionAppearanceView: View {
           "These preferences style native subtitles. System keeps "
             + "your iOS accessibility appearance when a value is not set."
         )
-          .liveSectionSlotChrome()
       }
     }
       .liveGroupedList()
-      .liveThemeRepaint()
     .navigationTitle("Caption appearance")
     .navigationBarTitleDisplayMode(.inline)
     .accessibilityIdentifier("live.settings.caption-appearance")
