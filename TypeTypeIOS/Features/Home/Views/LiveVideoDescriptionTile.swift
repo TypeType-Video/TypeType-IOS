@@ -62,16 +62,10 @@ struct LiveVideoDescriptionTile: View {
     .liveGlassCard(cornerRadius: 16)
   }
 
+  /// Views and likes live in the stat chips above — the description keeps
+  /// only the publication line.
   private var summary: String {
-    var values = [
-      LiveVideoMetadataFormatter.views(video.viewCount),
-    ]
-    if likeCount >= 0 {
-      values.append(
-        LiveVideoMetadataFormatter.compactCount(likeCount) + " likes"
-      )
-    }
-    values.append(LiveVideoMetadataFormatter.publication(video))
+    var values = [LiveVideoMetadataFormatter.publication(video)]
     if video.isLive {
       values.insert(String(localized: "Live"), at: 0)
     }

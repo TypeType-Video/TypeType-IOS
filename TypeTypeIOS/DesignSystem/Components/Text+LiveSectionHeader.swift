@@ -43,9 +43,9 @@ extension View {
 /// caption bands in the old theme until the page was recreated.
 private struct SlotChromeBackground: View {
   var body: some View {
-    // The STATIC themed colour: the environment palette resolved to its
-    // default (white) here and left white header bands above the cards.
-    DemoTheme.background
+    // The PAGE colour (pageBackground), not the background role: background
+    // is the card white here, which painted white bands above every card.
+    DemoTheme.pageBackground
       .padding(.horizontal, -24)
       .padding(.vertical, -12)
   }

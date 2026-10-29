@@ -173,21 +173,36 @@ struct LiveVideoLibraryActionsView: View {
       .font(.title3.weight(.regular))
       .foregroundStyle(isActive ? DemoTheme.accent : .primary)
       .frame(width: 44, height: 44)
-      .background(
-        Circle().fill(
-          isActive
-            ? DemoTheme.accent.opacity(0.16)
-            : DemoTheme.elevatedSurface
-        )
-      )
-      .overlay(
-        Circle().strokeBorder(
-          isActive
-            ? DemoTheme.accent.opacity(0.35)
-            : Color.primary.opacity(0.14),
-          lineWidth: 1
-        )
-      )
+      .background {
+        if #available(iOS 26.0, *) {
+          // Liquid Glass circle: tinted with the accent when active.
+          Circle()
+            .fill(
+              (isActive ? DemoTheme.accent : DemoTheme.elevatedSurface)
+                .opacity(0.32)
+            )
+            .glassEffect(
+              .regular.tint(
+                isActive ? DemoTheme.accent : DemoTheme.elevatedSurface
+              ),
+              in: .circle
+            )
+        } else {
+          Circle().fill(
+            isActive
+              ? DemoTheme.accent.opacity(0.16)
+              : DemoTheme.elevatedSurface
+          )
+          .overlay(
+            Circle().strokeBorder(
+              isActive
+                ? DemoTheme.accent.opacity(0.35)
+                : Color.primary.opacity(0.14),
+              lineWidth: 1
+            )
+          )
+        }
+      }
   }
 
   private var shareURL: URL? {
