@@ -941,12 +941,12 @@ extension View {
 }
 
 extension View {
-  /// The modern iOS 26 grouped look: rounded section cards floating on the
-  /// themed page background. The Android-era "flat rows only" rule is
-  /// retired — the target is the current iOS appearance.
+  /// The modern iOS 26 grouped look: rounded section cards on the system
+  /// grouped background. The Android-era "flat rows only" rule is retired.
+  /// The scroll background must stay VISIBLE: on iOS 26 the group cards
+  /// render as part of that background layer — hiding it flattened the
+  /// whole list.
   func liveGroupedList() -> some View {
-    self
-      .listStyle(.insetGrouped)
-      .scrollContentBackground(.hidden)
+    self.listStyle(.insetGrouped)
   }
 }
