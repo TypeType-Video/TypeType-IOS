@@ -28,7 +28,7 @@ final class LivePlaybackActivityController {
       staleDate: nil
     )
     activity = Activity.request(
-      contentAttributes: LivePlaybackActivityAttributes(
+      attributes: LivePlaybackActivityAttributes(
         videoURL: controller.video.url
       ),
       content: content
