@@ -27,19 +27,34 @@ extension LiveDownloadCenter {
         ],
         ofItemAtPath: destination.path
       )
-      try await mediaValidator.validate(
-        fileURL: destination,
-        mode: record.options.mode
-      )
-      record.artifactChecksum = try LiveDownloadChecksum.sha256(
-        at: destination,
-        fileManager: fileManager
-      )
+      // Ready the moment the file is in place: the media validation and the
+      // full-file checksum take ages on large files and used to hold the
+      // "Saving on this device" state hostage. They finish afterwards and
+      // demote the record only if they actually fail.
       record.localFileName = fileName
       record.state = .ready
       record.failureMessage = nil
       record.updatedAt = Date()
       replace(record)
+      do {
+        try await mediaValidator.validate(
+          fileURL: destination,
+          mode: record.options.mode
+        )
+        record.artifactChecksum = try LiveDownloadChecksum.sha256(
+          at: destination,
+          fileManager: fileManager
+        )
+        record.updatedAt = Date()
+        replace(record)
+      } catch {
+        try? fileManager.removeItem(at: savedURL ?? destination)
+        record.state = .failed
+        record.failureMessage =
+          "The download did not pass validation. " + Self.message(for: error)
+        record.updatedAt = Date()
+        replace(record)
+      }
     } catch {
       if Self.isTransientNetworkFailure(error) {
         record.state = .saving

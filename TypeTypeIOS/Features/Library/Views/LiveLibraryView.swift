@@ -65,7 +65,7 @@ struct LiveLibraryView: View {
 
   private var pager: some View {
     ScrollView(.horizontal) {
-      LazyHStack(spacing: 0) {
+      HStack(spacing: 0) {
         ForEach(LiveLibrarySection.allCases) { page in
           sectionContent(page)
             .containerRelativeFrame(.horizontal)
