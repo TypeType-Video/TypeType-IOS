@@ -7,9 +7,11 @@ struct LiveDownloadsView: View {
   @State private var playbackItem: LiveOfflinePlaybackItem?
 
   init(
+    dependencies: AppDependencies,
     center: LiveDownloadCenter,
     onlinePlaybackCoordinator: LivePlaybackCoordinator? = nil
   ) {
+    self.dependencies = dependencies
     self.center = center
     self.onlinePlaybackCoordinator = onlinePlaybackCoordinator
   }
