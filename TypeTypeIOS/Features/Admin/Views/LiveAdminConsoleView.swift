@@ -51,7 +51,7 @@ struct LiveAdminConsoleView: View {
         }
       } header: { Text("Support").liveSectionHeader() }
     }
-      .liveThemedList()
+      .liveGroupedList()
     .navigationTitle("Administration")
     .navigationBarTitleDisplayMode(.inline)
     .accessibilityIdentifier("live.admin.screen")

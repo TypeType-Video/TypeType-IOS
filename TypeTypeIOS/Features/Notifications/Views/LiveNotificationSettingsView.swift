@@ -70,7 +70,7 @@ struct LiveNotificationSettingsView: View {
         permissionSection
         emptyPreferencesSection
       }
-      .liveThemedList()
+      .liveGroupedList()
     } else {
       List {
         permissionSection
@@ -106,7 +106,7 @@ struct LiveNotificationSettingsView: View {
             .accessibilityIdentifier("live.notification-settings.budget")
         }
       }
-        .liveThemedList()
+        .liveGroupedList()
     }
   }
 

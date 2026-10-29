@@ -92,7 +92,7 @@ struct LiveBlockedKeywordsView: View {
         } header: { Text("Keywords").liveSectionHeader() }
       }
     }
-      .liveThemedList()
+      .liveGroupedList()
     .listStyle(.plain)
   }
 

@@ -93,7 +93,7 @@ struct LiveContentControlsView: View {
           }
         }
         .listStyle(.plain)
-        .liveThemedList()
+        .liveGroupedList()
         .refreshable { await viewModel.reload() }
       }
     }

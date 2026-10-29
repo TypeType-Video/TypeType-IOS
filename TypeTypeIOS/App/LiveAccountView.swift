@@ -23,7 +23,7 @@ struct LiveAccountView: View {
         administrationSection
         signOutSection
       }
-      .liveThemedList()
+      .liveGroupedList()
       .navigationTitle("More")
       .navigationBarTitleDisplayMode(.inline)
     }

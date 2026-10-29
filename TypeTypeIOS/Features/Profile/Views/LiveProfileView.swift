@@ -84,7 +84,7 @@ struct LiveProfileView: View {
         }
       }
     }
-      .liveThemedList()
+      .liveGroupedList()
   }
 
   private func importPhoto(_ item: PhotosPickerItem) async {

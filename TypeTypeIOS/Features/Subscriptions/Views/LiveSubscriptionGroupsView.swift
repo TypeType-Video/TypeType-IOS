@@ -21,7 +21,7 @@ struct LiveSubscriptionGroupsView: View {
         channelsSection
       }
     }
-      .liveThemedList()
+      .liveGroupedList()
     .navigationTitle("Groups")
     .navigationBarTitleDisplayMode(.inline)
     .overlay {

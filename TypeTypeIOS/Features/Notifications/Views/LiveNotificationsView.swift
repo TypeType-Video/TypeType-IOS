@@ -119,7 +119,7 @@ struct LiveNotificationsView: View {
           }
         }
       }
-        .liveThemedList()
+        .liveGroupedList()
       .listStyle(.plain)
       .refreshable { await viewModel.reload() }
     }

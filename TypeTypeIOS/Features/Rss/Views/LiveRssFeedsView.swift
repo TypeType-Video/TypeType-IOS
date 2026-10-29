@@ -68,7 +68,7 @@ struct LiveRssFeedsView: View {
           row(feed)
         }
       }
-        .liveThemedList()
+        .liveGroupedList()
     }
   }
 
@@ -133,7 +133,7 @@ struct LiveRssFeedsView: View {
           Toggle("Upcoming", isOn: $viewModel.draftIncludeUpcoming).liveRowFill()
         } header: { Text("Content").liveSectionHeader() }
       }
-        .liveThemedList()
+        .liveGroupedList()
       .navigationTitle("RSS feed")
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {

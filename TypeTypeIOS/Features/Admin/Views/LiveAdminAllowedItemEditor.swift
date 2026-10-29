@@ -18,7 +18,7 @@ struct LiveAdminAllowedItemEditor: View {
           .autocorrectionDisabled()
         TextField("\(label) name (optional)", text: $name)
       }
-        .liveThemedList()
+        .liveGroupedList()
       .navigationTitle(title)
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {

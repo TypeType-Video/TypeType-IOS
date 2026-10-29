@@ -63,7 +63,7 @@ struct LiveAdminSettingsForm: View {
         }
       }
     }
-      .liveThemedList()
+      .liveGroupedList()
   }
 
   private func optionalBinding(

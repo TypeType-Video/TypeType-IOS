@@ -33,7 +33,7 @@ struct LiveResetPasswordView: View {
           }
         }
       }
-        .liveThemedList()
+        .liveGroupedList()
       .navigationTitle("Reset password")
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {

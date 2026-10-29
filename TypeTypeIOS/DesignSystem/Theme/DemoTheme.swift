@@ -70,9 +70,10 @@ struct LiveChipButtonStyle: ButtonStyle {
   }
 }
 
-/// Shared row-surface rule: every list row is painted with the palette's
-/// surface colour, so cards follow the theme like Android's Material
-/// surfaces do. Applied once per list via `.liveThemedList()`.
+/// Shared row-surface rule for feed-style lists that intentionally remain flat.
+/// Settings/admin/profile surfaces use `liveGroupedList()` instead; this
+/// modifier is retained for media/feed lists where a continuous list is the
+/// correct presentation.
 extension View {
   func liveThemedList() -> some View {
     modifier(LiveThemedListModifier())
@@ -98,9 +99,9 @@ private struct LiveThemedListModifier: ViewModifier {
       .background(palette.rowBackground)
       .environment(\.defaultMinListRowHeight, 44)
       .listRowInsets(EdgeInsets(top: 0, leading: 20, bottom: 0, trailing: 20))
-      // Rows sit FLAT on the page — never the surface role (that is for
-      // feed/content cards and chips). Under AMOLED `rowBackground` switches
-      // to the theme surface so the theme stays visible on the black page.
+      // This is intentionally a flat/feed-style list. Settings and other
+      // preference surfaces use liveGroupedList() for the modern grouped
+      // appearance; media queues and content feeds stay continuous.
       .listRowBackground(palette.rowBackground)
       .listRowSeparatorTint(palette.separator)
       // The navigation bar takes the SAME variable as the page — otherwise

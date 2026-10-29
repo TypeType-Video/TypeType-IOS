@@ -25,7 +25,7 @@ struct LiveAboutView: View {
         serverSection
       }
     }
-      .liveThemedList()
+      .liveGroupedList()
     .navigationTitle("About")
     .navigationBarTitleDisplayMode(.inline)
     .externalLinkAlert(pendingURL: $pendingURL)

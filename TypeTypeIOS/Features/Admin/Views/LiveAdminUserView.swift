@@ -113,7 +113,7 @@ struct LiveAdminUserView: View {
         }
       }
     }
-      .liveThemedList()
+      .liveGroupedList()
     .navigationTitle(viewModel.user.name)
     .navigationBarTitleDisplayMode(.inline)
     .alert("Administration", isPresented: errorBinding) {

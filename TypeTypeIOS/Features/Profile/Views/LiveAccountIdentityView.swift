@@ -82,7 +82,7 @@ struct LiveAccountIdentityView: View {
           }
         }
       }
-        .liveThemedList()
+        .liveGroupedList()
     }
   }
 

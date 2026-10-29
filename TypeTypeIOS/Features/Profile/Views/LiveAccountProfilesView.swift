@@ -55,7 +55,7 @@ struct LiveAccountProfilesView: View {
         )
       } header: { Text("New profile").liveSectionHeader() }
     }
-      .liveThemedList()
+      .liveGroupedList()
     .navigationTitle("Profiles")
     .overlay(alignment: .bottom) {
       if let error = viewModel.errorMessage ?? switchError {
