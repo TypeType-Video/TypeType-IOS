@@ -40,7 +40,7 @@ struct LiveSettingsPlaybackSection: View {
         }
         Slider(value: $settings.volume, in: 0...1)
       }
-    } header: { Text("Playback").liveSectionHeader() }
+    } header: { Text("Playback").liveSettingsHeader() }
   }
 
   private static let speeds: [Double] = [0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 2.0]

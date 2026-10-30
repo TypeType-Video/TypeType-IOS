@@ -28,6 +28,6 @@ struct LiveSettingsLanguageSection: View {
           styles: $settings.captionStyles
         )
       }
-    } header: { Text("Language and captions").liveSectionHeader() }
+    } header: { Text("Language and captions").liveSettingsHeader() }
   }
 }

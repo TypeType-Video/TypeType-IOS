@@ -36,7 +36,7 @@ struct LiveSettingsDiscoverySection: View {
         isOn: $settings.hideRelatedVideos
       ).liveRowFill()
       Toggle("Hide comments and danmaku", isOn: $settings.hideComments).liveRowFill()
-    } header: { Text("Interface and discovery").liveSectionHeader() }
+    } header: { Text("Interface and discovery").liveSettingsHeader() }
 
     if settings.hideSubscriptionLiveStreams != nil {
       Section {
@@ -74,6 +74,6 @@ struct LiveSettingsDiscoverySection: View {
         selection: $settings.deArrowTrustMode,
         options: [("accepted", "Accepted"), ("locked", "Locked entries only")]
       )
-    } header: { Text("DeArrow").liveSectionHeader() }
+    } header: { Text("DeArrow").liveSettingsHeader() }
   }
 }

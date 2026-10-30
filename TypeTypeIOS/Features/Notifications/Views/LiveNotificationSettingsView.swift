@@ -114,7 +114,7 @@ struct LiveNotificationSettingsView: View {
   /// polling budget is spelled out in the section footer below.
   private var channelSectionHeader: some View {
     HStack(spacing: 12) {
-      Text("Channel notifications").liveSectionHeader()
+      Text("Channel notifications").liveSettingsHeader()
       bulkButton(
         "Enable all",
         enabled: viewModel.canEnableAll
@@ -180,7 +180,7 @@ struct LiveNotificationSettingsView: View {
           }
         }
       }
-    } header: { Text("iOS permissions").liveSectionHeader() }
+    } header: { Text("iOS permissions").liveSettingsHeader() }
   }
 
   @ViewBuilder

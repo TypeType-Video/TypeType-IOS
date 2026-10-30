@@ -39,7 +39,7 @@ struct LiveSettingsPlayerView: View {
           isOn: preferences.binding(\.playerLongPressSpeedEnabled)
         )
       } header: {
-        Text("Gestures").liveSectionHeader()
+        Text("Gestures").liveSettingsHeader()
       }
       LiveSection {
         LiveOptionMenu(
@@ -53,7 +53,7 @@ struct LiveSettingsPlayerView: View {
           ]
         )
       } header: {
-        Text("Default codec").liveSectionHeader()
+        Text("Default codec").liveSettingsHeader()
       }
       LiveSection {
         Toggle(
@@ -74,7 +74,7 @@ struct LiveSettingsPlayerView: View {
           )
         }
       } header: {
-        Text("Bullet comments").liveSectionHeader()
+        Text("Bullet comments").liveSettingsHeader()
       }
       LiveSettingsLanguageSection(settings: $viewModel.draft)
       LiveSettingsSponsorBlockSection(settings: $viewModel.draft)
@@ -106,7 +106,7 @@ struct LiveSettingsPlayerView: View {
         isOn: preferences.binding(\.playerPauseInBackground)
       )
     } header: {
-        Text("Device playback").liveSectionHeader()
+        Text("Device playback").liveSettingsHeader()
       }
   }
 }

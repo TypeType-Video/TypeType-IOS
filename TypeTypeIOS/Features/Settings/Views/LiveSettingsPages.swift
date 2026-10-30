@@ -44,7 +44,7 @@ struct LiveSettingsAccountsView: View {
           coordinator.showServerSetup()
         }
       } header: {
-        Text("Instances").liveSectionHeader()
+        Text("Instances").liveSettingsHeader()
       }
 
       if let user = coordinator.currentUser {
@@ -64,7 +64,7 @@ struct LiveSettingsAccountsView: View {
             }
           }
         } header: {
-        Text("Account").liveSectionHeader()
+        Text("Account").liveSettingsHeader()
       }
       }
     }
@@ -87,7 +87,7 @@ struct LiveSettingsContentView: View {
       LiveSection {
         Toggle("Hide Shorts", isOn: $viewModel.draft.hideShorts)
       } header: {
-        Text("Visible surfaces").liveSectionHeader()
+        Text("Visible surfaces").liveSettingsHeader()
       }
     }
     .navigationTitle("Content")
@@ -111,7 +111,7 @@ struct LiveSettingsPrivacyView: View {
           )
         }
       } header: {
-        Text("Stored activity").liveSectionHeader()
+        Text("Stored activity").liveSettingsHeader()
       }
     }
     .navigationTitle("Privacy")

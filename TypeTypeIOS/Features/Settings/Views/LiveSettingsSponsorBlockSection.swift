@@ -60,7 +60,7 @@ struct LiveSettingsSponsorBlockSection: View {
         "Mute instead of skip",
         isOn: $settings.sponsorBlockMuteInsteadOfSkip
       ).liveRowFill()
-    } header: { Text("SponsorBlock").liveSectionHeader() }
+    } header: { Text("SponsorBlock").liveSettingsHeader() }
   }
 
   private func categoryBinding(_ key: String) -> Binding<String> {
