@@ -71,13 +71,16 @@ extension LivePlaybackServiceProtocol {
 final class LivePlaybackService: LivePlaybackServiceProtocol {
   let apiClient: APIClient
   let serverURLProvider: () -> URL?
+  let pacing: LivePacing
 
   init(
     apiClient: APIClient,
-    serverURLProvider: @escaping () -> URL?
+    serverURLProvider: @escaping () -> URL?,
+    pacing: LivePacing = .realTime
   ) {
     self.apiClient = apiClient
     self.serverURLProvider = serverURLProvider
+    self.pacing = pacing
   }
 
   let streamCache = LiveStreamMetadataCache()
@@ -171,7 +174,7 @@ final class LivePlaybackService: LivePlaybackServiceProtocol {
         throw error
       }
       let delays = [350, 750, 1_500]
-      try await Task.sleep(for: .milliseconds(delays[attempt]))
+      try await pacing.sleep(for: .milliseconds(delays[attempt]))
       return try await youtubeSABRStream(
         path: path,
         videoURL: videoURL,

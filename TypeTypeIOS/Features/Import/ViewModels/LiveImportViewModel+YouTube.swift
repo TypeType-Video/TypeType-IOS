@@ -96,7 +96,7 @@ extension LiveImportViewModel {
   ) async throws {
     while job.status == "pending" || job.status == "running" {
       try Task.checkCancellation()
-      try await Task.sleep(for: .seconds(1))
+      try await pacing.sleep(for: .seconds(1))
       job = try await service.youTubeJob(id: job.jobID)
       let currentJob = job
       updateArchive(id: archiveID) {
@@ -130,9 +130,7 @@ extension LiveImportViewModel {
         guard case .statusCode(429, _) = error, attempt < 5 else {
           throw error
         }
-        try await Task.sleep(
-          for: .milliseconds(1_200 * (attempt + 1))
-        )
+        try await pacing.sleep(for: .milliseconds(1_200 * (attempt + 1)))
       }
     }
     throw LiveImportError.failed("Unable to load the import report.")

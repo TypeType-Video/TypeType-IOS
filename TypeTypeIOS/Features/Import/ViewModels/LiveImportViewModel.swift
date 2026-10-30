@@ -19,14 +19,17 @@ final class LiveImportViewModel: ObservableObject {
   @Published private(set) var hasResumableRestore = false
 
   let service: LiveImportServiceProtocol
+  let pacing: LivePacing
   private let operationStore: LiveTypeTypeRestoreOperationStore
   private var restoreTask: Task<Void, Never>?
 
   init(
     service: LiveImportServiceProtocol,
-    operationStore: LiveTypeTypeRestoreOperationStore = LiveTypeTypeRestoreOperationStore()
+    operationStore: LiveTypeTypeRestoreOperationStore = LiveTypeTypeRestoreOperationStore(),
+    pacing: LivePacing = .realTime
   ) {
     self.service = service
+    self.pacing = pacing
     self.operationStore = operationStore
     hasResumableRestore = operationStore.load() != nil
   }

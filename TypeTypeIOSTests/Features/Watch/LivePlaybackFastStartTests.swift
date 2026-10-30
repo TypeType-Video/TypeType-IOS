@@ -149,7 +149,8 @@ final class LivePlaybackFastStartTests: XCTestCase {
   private static func service(_ client: RecordingStreamClient) -> LivePlaybackService {
     LivePlaybackService(
       apiClient: client,
-      serverURLProvider: { URL(string: "https://watch.typetype.video/api") }
+      serverURLProvider: { URL(string: "https://watch.typetype.video/api") },
+      pacing: .instant
     )
   }
 

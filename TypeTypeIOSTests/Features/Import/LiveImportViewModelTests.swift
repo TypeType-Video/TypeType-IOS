@@ -42,7 +42,7 @@ final class LiveImportViewModelTests: XCTestCase {
   func testYouTubeQueueRetriesRateLimitedReport() async throws {
     let service = ImportServiceStub()
     service.remainingReportFailures = 2
-    let viewModel = LiveImportViewModel(service: service)
+    let viewModel = LiveImportViewModel(service: service, pacing: .instant)
     let file = try archive(named: "takeout.zip")
     defer {
       try? FileManager.default.removeItem(
