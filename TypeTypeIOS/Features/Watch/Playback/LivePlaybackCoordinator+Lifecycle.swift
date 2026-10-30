@@ -72,7 +72,8 @@ extension LivePlaybackCoordinator {
 
   func replacePlayback(
     with video: LiveVideoItem,
-    autoplay: Bool
+    autoplay: Bool,
+    offline: LiveOfflinePlaybackItem? = nil
   ) {
     playbackGeneration += 1
     let generation = playbackGeneration
@@ -106,7 +107,11 @@ extension LivePlaybackCoordinator {
     }
     currentVideo = video
     controller = next
-    Task { await next.loadIfNeeded() }
+    if let offline {
+      Task { await next.installOffline(stream: offline.watchStream, fileURL: offline.fileURL) }
+    } else {
+      Task { await next.loadIfNeeded() }
+    }
   }
 
   func acceptResolvedMetadata(_ video: LiveVideoItem) {

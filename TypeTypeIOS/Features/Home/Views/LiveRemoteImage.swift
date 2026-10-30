@@ -4,8 +4,8 @@ struct LiveRemoteImage: View {
   @Environment(\.themePalette) private var palette
   let url: URL?
   let contentMode: ContentMode
-  @State private var image: UIImage?
-  @State private var failed = false
+  @State private var loaded: Loaded?
+  @State private var failedURL: URL?
   @Environment(\.displayScale) private var displayScale
   @Environment(\.imagePipeline) private var pipeline
 
@@ -18,14 +18,14 @@ struct LiveRemoteImage: View {
     GeometryReader { proxy in
       let pixels = max(proxy.size.width, proxy.size.height) * displayScale
       ZStack {
-        if let image = image ?? cached(pixels) {
+        if let image = shownImage(pixels) {
           Image(uiImage: image)
             .resizable()
             .aspectRatio(contentMode: contentMode)
             .frame(width: proxy.size.width, height: proxy.size.height)
             .clipped()
             .transition(.opacity)
-        } else if failed || url == nil {
+        } else if url == nil || failedURL == url {
           Rectangle().fill(palette.groupedSurface)
         } else {
           TypeTypeSkeleton()
@@ -42,21 +42,41 @@ struct LiveRemoteImage: View {
     let pixels: CGFloat
   }
 
+  private struct Loaded {
+    let url: URL?
+    let image: UIImage
+  }
+
+  // Never another URL's picture: a reused view would show the previous channel until the new one arrives.
+  private func shownImage(_ pixels: CGFloat) -> UIImage? {
+    if let loaded, loaded.url == url { return loaded.image }
+    return cached(pixels)
+  }
+
   private func cached(_ pixels: CGFloat) -> UIImage? {
     guard let url = LiveImageURLResolver.resolve(url), pixels > 0 else { return nil }
     return pipeline.cachedImage(for: url, maxPixelSize: pixels)
   }
 
+  // A layout change (an expanding description) resizes the view and restarts this task: a zero size is not a
+  // failure, and a superseded load must not overwrite what a newer one showed.
   private func load(_ pixels: CGFloat) async {
-    guard let url = LiveImageURLResolver.resolve(url), pixels > 0 else {
-      failed = true
+    let requested = url
+    guard pixels > 0 else { return }
+    guard let resolved = LiveImageURLResolver.resolve(requested) else {
+      failedURL = requested
       return
     }
     if cached(pixels) != nil { return }
-    let loaded = await pipeline.image(for: url, maxPixelSize: pixels)
+    let image = await pipeline.image(for: resolved, maxPixelSize: pixels)
+    guard !Task.isCancelled, requested == url else { return }
     withAnimation(.easeOut(duration: 0.15)) {
-      image = loaded
-      failed = loaded == nil
+      if let image {
+        loaded = Loaded(url: requested, image: image)
+        failedURL = nil
+      } else if loaded?.url != requested {
+        failedURL = requested
+      }
     }
   }
 }

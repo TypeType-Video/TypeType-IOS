@@ -86,6 +86,8 @@ extension LivePlayerController {
       try await AudioSessionConfigurator.configure(backgroundAudio: true)
       guard !Task.isCancelled else { return }
       self.stream = stream
+      let saved = LiveOfflineResumeStore(defaults: .standard).position(for: video.url) ?? 0
+      pendingSeek = LivePlaybackPreparation.startTime(requested: saved, duration: TimeInterval(stream.duration))
       installPlayerItem(at: fileURL, autoplay: true)
     } catch {
       state = .failed("The audio session could not be configured.")

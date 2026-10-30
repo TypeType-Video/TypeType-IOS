@@ -36,20 +36,7 @@ extension LivePlaybackService {
         for: authenticatedAssetURL(for: sourceURL)
       )
     }
-    guard var components = URLComponents(
-      url: sourceURL,
-      resolvingAgainstBaseURL: false
-    ) else {
-      throw LivePlaybackFailure.invalidServerResource
-    }
-    var items = components.queryItems ?? []
-    if !items.contains(where: { $0.name == "fmt" }) {
-      items.append(URLQueryItem(name: "fmt", value: "vtt"))
-      components.queryItems = items
-    }
-    guard let vttURL = components.url else {
-      throw LivePlaybackFailure.invalidServerResource
-    }
+    let vttURL = LiveSubtitleSourceURL.playbackURL(for: sourceURL)
     return try await apiClient.requestData(
       APIEndpoint(
         path: "/proxy",

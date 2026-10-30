@@ -6,6 +6,7 @@ final class LiveAccountProfilesViewModel: ObservableObject {
   @Published private(set) var isBusy = false
   @Published var newName = ""
   @Published var errorMessage: String?
+  @Published private(set) var isUnavailable = false
 
   private let service: LiveAccountProfileServiceProtocol
 
@@ -13,9 +14,15 @@ final class LiveAccountProfilesViewModel: ObservableObject {
     self.service = service
   }
 
+  // 404 on servers without the profiles route, 403 where an instance turns them off: neither is a failure.
   func load() async {
     await perform {
-      self.profiles = try await self.service.list()
+      do {
+        self.profiles = try await self.service.list()
+        self.isUnavailable = false
+      } catch NetworkError.statusCode(let status, _) where status == 403 || status == 404 {
+        self.isUnavailable = true
+      }
     }
   }
 

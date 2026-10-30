@@ -51,26 +51,6 @@ final class LiveHomeViewModel: ObservableObject {
       .store(in: &cancellables)
   }
 
-  private static func withTimeout<T: Sendable>(
-    seconds: Double,
-    operation: @escaping @Sendable () async throws -> T
-  ) async throws -> T {
-    try await withThrowingTaskGroup(of: T.self) { group in
-      group.addTask {
-        try await operation()
-      }
-      group.addTask {
-        try await Task.sleep(for: .seconds(seconds))
-        throw NetworkError.transport
-      }
-      guard let first = try await group.next() else {
-        throw NetworkError.transport
-      }
-      group.cancelAll()
-      return first
-    }
-  }
-
   func reload() async {
     let currentRequest = UUID()
     requestID = currentRequest
@@ -87,42 +67,11 @@ final class LiveHomeViewModel: ObservableObject {
     showsRecommendations = !settings.hideHomeRecommendations
     showsContinueWatching = !settings.hideContinueWatching
 
-    let serviceID = selectedServiceID
-    let service = self.service
-    let limit = pageSize
-    let task = Task {
-      guard !settings.hideHomeRecommendations else {
-        return HomeRecommendationsPage(
-          items: [],
-          nextCursor: nil,
-          hasMore: false
-        )
-      }
-      return try await Self.withTimeout(seconds: 15) {
-        try await service.recommendations(
-          serviceID: serviceID,
-          intent: "auto",
-          limit: limit,
-          cursor: nil
-        )
-      }
-    }
+    let task = Self.recommendationsTask(
+      service: service, serviceID: selectedServiceID, limit: pageSize, hidden: settings.hideHomeRecommendations
+    )
     loadTask = task
-    let historyService = self.historyService
-    let historyTask = Task {
-      guard !settings.hideContinueWatching else {
-        return [LiveHistoryItem]()
-      }
-      return (try? await Self.withTimeout(seconds: 8) {
-        try await historyService.history(
-          query: nil,
-          from: nil,
-          to: nil,
-          limit: 30,
-          offset: 0
-        )
-      }) ?? []
-    }
+    let historyTask = Self.continueWatchingTask(historyService: historyService, hidden: settings.hideContinueWatching)
 
     let recommendationsResult = await task.result
     let historyResult = await historyTask.result
@@ -156,8 +105,12 @@ final class LiveHomeViewModel: ObservableObject {
     }
   }
 
+  // The feed reloads while the choice saves; a refused save brings the previous feed back.
   func selectService(_ serviceID: Int) async {
-    await serviceSelection.select(serviceID)
+    guard services.contains(where: { $0.id == serviceID }) else { return }
+    let saving = Task { await serviceSelection.select(serviceID) }
+    await applyGlobalService(serviceID)
+    await saving.value
     await applyGlobalService(serviceSelection.selectedID)
   }
 
@@ -227,13 +180,8 @@ final class LiveHomeViewModel: ObservableObject {
   }
 
   private func applyInitial(_ page: HomeRecommendationsPage) {
-    videos = Self.uniqueVisibleVideos(page.items)
-    prefetchThumbnails(for: page.items)
-    nextCursor = page.nextCursor
-    canLoadMore = page.hasMore && page.nextCursor?.isEmpty == false
-    state = videos.isEmpty && continueWatching.isEmpty
-      ? .empty
-      : .loaded
+    videos = []
+    append(page)
   }
 
   private func append(_ page: HomeRecommendationsPage) {

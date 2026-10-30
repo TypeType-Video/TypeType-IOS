@@ -54,16 +54,22 @@ final class LiveServiceSelection: ObservableObject {
     await task.value
   }
 
+  // Applied before the save so the feed switches at once; a refused save puts the previous service back.
   func select(_ serviceID: Int) async {
     guard supportedServiceIDs.contains(serviceID) else { return }
     guard selectedID != serviceID else { return }
+    let previousID = selectedID
+    apply(serviceID)
     do {
       var settings = try await settingsService.settings()
       settings.defaultService = serviceID
       let updated = try await settingsService.update(settings)
+      guard selectedID == serviceID else { return }
       apply(updated.defaultService)
       errorMessage = nil
     } catch {
+      guard selectedID == serviceID else { return }
+      apply(previousID)
       errorMessage = Self.message(for: error)
     }
   }

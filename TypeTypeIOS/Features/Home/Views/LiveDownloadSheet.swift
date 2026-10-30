@@ -47,7 +47,6 @@ struct LiveDownloadSheet: View {
     }
     .presentationDetents([.large])
     .presentationDragIndicator(.visible)
-    .interactiveDismissDisabled(viewModel.isWorking && !viewModel.isFinishing)
     .accessibilityIdentifier("live.download.sheet")
     .task { await deArrowStore.prepare(viewModel.video) }
     .task { await loadStream() }
