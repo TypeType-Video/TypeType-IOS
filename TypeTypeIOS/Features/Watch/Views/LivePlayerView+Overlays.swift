@@ -4,31 +4,7 @@ extension LivePlayerView {
   @ViewBuilder
   var seekFeedbackOverlay: some View {
     if let activeFeedback = seekFeedback {
-      HStack {
-        if activeFeedback.direction == .forward {
-          Spacer(minLength: 0)
-        }
-        Label(
-          activeFeedback.direction == .back
-            ? "-\(activeFeedback.seconds)s"
-            : "+\(activeFeedback.seconds)s",
-          systemImage: activeFeedback.direction == .back
-            ? "arrow.counterclockwise"
-            : "arrow.clockwise"
-        )
-        .font(.headline.weight(.semibold))
-        .foregroundStyle(.white)
-        .padding(.horizontal, 16)
-        .padding(.vertical, 10)
-        .background(.black.opacity(0.68), in: Capsule())
-        .padding(
-          activeFeedback.direction == .back ? .leading : .trailing,
-          42
-        )
-        if activeFeedback.direction == .back {
-          Spacer(minLength: 0)
-        }
-      }
+      LivePlayerSeekWave(feedback: activeFeedback)
       .allowsHitTesting(false)
       .transition(.opacity)
       .task(id: activeFeedback.id) {
@@ -101,31 +77,10 @@ extension LivePlayerView {
   @ViewBuilder
   var swipeAdjustmentOverlay: some View {
     if let adjustment = swipeAdjustment {
-      HStack {
-        if adjustment.kind == .volume {
-          Spacer(minLength: 0)
-        }
-        VStack(spacing: 6) {
-          Image(
-            systemName: adjustment.kind == .brightness
-              ? "sun.max.fill"
-              : "speaker.wave.2.fill"
-          )
-          Text("\(adjustment.percent)%")
-            .font(.caption.weight(.semibold))
-            .monospacedDigit()
-        }
-        .foregroundStyle(.white)
-        .padding(.horizontal, 14)
-        .padding(.vertical, 10)
-        .background(.black.opacity(0.68), in: Capsule())
-        .padding(.horizontal, 28)
-        if adjustment.kind == .brightness {
-          Spacer(minLength: 0)
-        }
-      }
+      LivePlayerLevelOverlay(kind: adjustment.kind, fraction: adjustment.fraction)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
       .allowsHitTesting(false)
-      .transition(.opacity)
+      .transition(.opacity.combined(with: .scale(scale: 0.86)))
       .accessibilityHidden(true)
     }
   }
