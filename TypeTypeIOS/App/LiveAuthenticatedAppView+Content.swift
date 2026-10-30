@@ -51,7 +51,7 @@ extension LiveAuthenticatedAppView {
       }
     }
     // Full-bleed page background: without it the area under the floating tab bar shows the window's black.
-    .background(DemoThemeBackground().ignoresSafeArea())
+    .background(LiveThemeBackground().ignoresSafeArea())
     .toolbarBackground(palette.background, for: .tabBar)
     .overlay {
       GeometryReader { geo in
@@ -161,7 +161,7 @@ extension LiveAuthenticatedAppView {
           }
         }
       }
-      .background(DemoThemeBackground().ignoresSafeArea())
+      .background(LiveThemeBackground().ignoresSafeArea())
       .presentationDragIndicator(.visible)
     }
   }

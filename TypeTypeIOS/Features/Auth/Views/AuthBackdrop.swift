@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct DemoAuthBackdrop: View {
+struct AuthBackdrop: View {
   let isLight: Bool
 
   var body: some View {

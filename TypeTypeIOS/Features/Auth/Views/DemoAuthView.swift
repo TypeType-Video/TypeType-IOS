@@ -2,21 +2,21 @@ import SwiftUI
 
 struct DemoAuthView: View {
   @Environment(\.themePalette) private var palette
-  @State private var mode: DemoAuthMode
+  @State private var mode: AuthMode
   @State private var name = ""
   @State private var email = ""
   @State private var password = ""
   @State private var isLight = false
   let onAuthenticated: () -> Void
 
-  init(initialMode: DemoAuthMode, onAuthenticated: @escaping () -> Void) {
+  init(initialMode: AuthMode, onAuthenticated: @escaping () -> Void) {
     _mode = State(initialValue: initialMode)
     self.onAuthenticated = onAuthenticated
   }
 
   var body: some View {
     ZStack {
-      DemoAuthBackdrop(isLight: isLight)
+      AuthBackdrop(isLight: isLight)
 
       GeometryReader { proxy in
         ScrollView(.vertical) {

@@ -1,13 +1,13 @@
 import SwiftUI
 
 struct TypeTypeDemoAppView: View {
-  let initialAuthMode: DemoAuthMode
+  let initialAuthMode: AuthMode
   let launchDestination: DemoLaunchDestination
   @State private var isAuthenticated: Bool
   @StateObject private var session = DemoSessionStore()
 
   init(
-    initialAuthMode: DemoAuthMode,
+    initialAuthMode: AuthMode,
     launchDestination: DemoLaunchDestination
   ) {
     self.initialAuthMode = initialAuthMode

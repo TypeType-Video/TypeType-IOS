@@ -46,7 +46,7 @@ struct DemoPodcastsView: View {
           )
           .listRowBackground(Color.clear)
         }
-        DemoIncrementalLoadingTrigger(
+        LiveIncrementalLoadingTrigger(
           canLoadMore: visibleCount < episodes.count,
           isLoading: isLoadingMore,
           label: "Loading more episodes",

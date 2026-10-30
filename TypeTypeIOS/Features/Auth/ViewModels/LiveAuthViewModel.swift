@@ -3,7 +3,7 @@ import Foundation
 
 @MainActor
 final class LiveAuthViewModel: ObservableObject {
-  @Published var mode = DemoAuthMode.signIn
+  @Published var mode = AuthMode.signIn
   @Published var name = ""
   @Published var identifier = ""
   @Published var password = ""

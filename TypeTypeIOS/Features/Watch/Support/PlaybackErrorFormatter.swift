@@ -1,6 +1,6 @@
 import Foundation
 
-enum DemoPlaybackErrorFormatter {
+enum PlaybackErrorFormatter {
   static func message(for error: Error?) -> String {
     guard let playbackError = error as NSError? else {
       return "The video could not be loaded."

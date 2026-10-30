@@ -1,6 +1,6 @@
 import AVFoundation
 
-enum DemoAudioSessionConfigurator {
+enum AudioSessionConfigurator {
   static func configure(backgroundAudio _: Bool) async throws {
     try await Task.detached(priority: .userInitiated) {
       let audioSession = AVAudioSession.sharedInstance()

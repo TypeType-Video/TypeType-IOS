@@ -39,7 +39,7 @@ struct LiveSection<Content: View, Header: View, Footer: View>: View {
         .padding(.top, top)
         .padding(.bottom, bottom)
         .listRowInsets(EdgeInsets())
-        .background(DemoThemeBackground())
+        .background(LiveThemeBackground())
     }
   }
 }

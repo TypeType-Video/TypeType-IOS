@@ -29,7 +29,7 @@ extension LiveSearchView {
           ForEach(viewModel.results) { result in
             resultView(result)
           }
-          DemoIncrementalLoadingTrigger(
+          LiveIncrementalLoadingTrigger(
             canLoadMore: viewModel.canLoadMore,
             isLoading: viewModel.isLoadingMore,
             label: "Loading more search results",
@@ -42,7 +42,7 @@ extension LiveSearchView {
       .padding(16)
     }
     .scrollDismissesKeyboard(.immediately)
-    .background(DemoThemeBackground().ignoresSafeArea())
+    .background(LiveThemeBackground().ignoresSafeArea())
   }
 
   @ViewBuilder

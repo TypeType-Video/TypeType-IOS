@@ -111,7 +111,7 @@ struct LiveCommentsSectionView: View {
             )
             Divider()
           }
-          DemoIncrementalLoadingTrigger(
+          LiveIncrementalLoadingTrigger(
             canLoadMore: viewModel.canLoadMore,
             isLoading: viewModel.isLoadingMore,
             label: "Loading more comments",

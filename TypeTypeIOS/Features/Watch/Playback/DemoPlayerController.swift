@@ -100,7 +100,7 @@ final class DemoPlayerController: ObservableObject {
   func setBackgroundAudioEnabled(_ enabled: Bool) {
     Task { [weak self] in
       do {
-        try await DemoAudioSessionConfigurator.configure(backgroundAudio: enabled)
+        try await AudioSessionConfigurator.configure(backgroundAudio: enabled)
       } catch {
         self?.state = .failed("The audio session could not be configured.")
       }
@@ -129,7 +129,7 @@ final class DemoPlayerController: ObservableObject {
         case .readyToPlay:
           state = player.timeControlStatus == .playing ? .playing : .ready
         case .failed:
-          state = .failed(DemoPlaybackErrorFormatter.message(for: item.error))
+          state = .failed(PlaybackErrorFormatter.message(for: item.error))
         @unknown default:
           state = .failed("The player reported an unknown state.")
         }

@@ -149,7 +149,7 @@ struct LiveAdminAllowListView: View {
           }
         }
         if query.isEmpty {
-          DemoIncrementalLoadingTrigger(
+          LiveIncrementalLoadingTrigger(
             canLoadMore: viewModel.canLoadMoreManagedUsers,
             isLoading: viewModel.isLoadingMoreUsers,
             label: "Loading more managed users",

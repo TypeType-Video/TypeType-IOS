@@ -26,7 +26,7 @@ struct LiveOfflinePlaybackView: View {
         dependencies: dependencies,
         playerController: controller
       )
-      .background(DemoThemeBackground().ignoresSafeArea())
+      .background(LiveThemeBackground().ignoresSafeArea())
       .simultaneousGesture(
         DragGesture(minimumDistance: 30)
           .onEnded { value in

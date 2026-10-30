@@ -1,7 +1,7 @@
 import SwiftUI
 import UIKit
 
-struct DemoThemeBackground: View {
+struct LiveThemeBackground: View {
   @Environment(\.themePalette) private var palette
 
   var body: some View {
@@ -33,19 +33,16 @@ struct LiveChipButtonStyle: ButtonStyle {
             .fill(background)
         }
       }
-      .overlay(
-        Capsule(style: .continuous)
-          .strokeBorder(
-            isFilled
-              ? Color.clear
-              : (isActive
-                ? palette.accent.opacity(0.35)
-                : Color.primary.opacity(0.14)),
-            lineWidth: 1
-          )
-      )
+      .overlay(Capsule(style: .continuous).strokeBorder(stroke, lineWidth: 1))
       .contentShape(Rectangle())
       .opacity(configuration.isPressed ? 0.6 : 1)
+  }
+
+  private var stroke: Color {
+    if isFilled {
+      return .clear
+    }
+    return isActive ? palette.accent.opacity(0.35) : Color.primary.opacity(0.14)
   }
 
   private var foreground: Color {
@@ -92,7 +89,7 @@ extension View {
   func liveThemedEmptyState() -> some View {
     self
       .frame(maxWidth: .infinity, maxHeight: .infinity)
-      .background(DemoThemeBackground())
+      .background(LiveThemeBackground())
   }
 
   // iOS 26 paints its own fill under control rows, above listRowBackground: the row colour bleeds past the insets to

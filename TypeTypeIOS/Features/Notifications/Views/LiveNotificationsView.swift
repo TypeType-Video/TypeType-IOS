@@ -107,7 +107,7 @@ struct LiveNotificationsView: View {
               selectedVideo = viewModel.markReadAndOpen(item)
             }
           }
-          DemoIncrementalLoadingTrigger(
+          LiveIncrementalLoadingTrigger(
             canLoadMore: viewModel.canLoadMore,
             isLoading: viewModel.isLoadingMore,
             label: "Loading more notifications",

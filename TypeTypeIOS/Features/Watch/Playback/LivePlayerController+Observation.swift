@@ -115,7 +115,7 @@ extension LivePlayerController {
       resume(item, autoplay: autoplay)
     case .failed:
       let failure = State.failed(
-        DemoPlaybackErrorFormatter.message(for: item.error)
+        PlaybackErrorFormatter.message(for: item.error)
       )
       if state != failure {
         state = failure

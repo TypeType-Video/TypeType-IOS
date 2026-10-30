@@ -79,7 +79,7 @@ extension DemoSearchPlaylistDetailView {
         }
       }
 
-      DemoIncrementalLoadingTrigger(
+      LiveIncrementalLoadingTrigger(
         canLoadMore: visibleVideoCount < sortedVideos.count,
         isLoading: isLoadingMore,
         label: "Loading more playlist videos",

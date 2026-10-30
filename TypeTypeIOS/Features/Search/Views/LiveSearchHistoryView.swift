@@ -22,7 +22,7 @@ struct LiveSearchHistoryView: View {
       }
       .padding(16)
     }
-    .background(DemoThemeBackground().ignoresSafeArea())
+    .background(LiveThemeBackground().ignoresSafeArea())
     .refreshable {
       await viewModel.loadHistory()
     }
@@ -62,7 +62,7 @@ struct LiveSearchHistoryView: View {
         }
         .foregroundStyle(.primary)
       }
-      DemoIncrementalLoadingTrigger(
+      LiveIncrementalLoadingTrigger(
         canLoadMore: viewModel.canLoadMoreHistory,
         isLoading: false,
         label: "Loading more search history",

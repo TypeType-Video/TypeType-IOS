@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct DemoIncrementalLoadingTrigger: View {
+struct LiveIncrementalLoadingTrigger: View {
   let canLoadMore: Bool
   let isLoading: Bool
   let label: LocalizedStringKey

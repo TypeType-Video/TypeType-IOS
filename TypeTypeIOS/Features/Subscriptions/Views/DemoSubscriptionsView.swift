@@ -79,7 +79,7 @@ struct DemoSubscriptionsView: View {
               }
             }
 
-            DemoIncrementalLoadingTrigger(
+            LiveIncrementalLoadingTrigger(
               canLoadMore: visibleVideoCount < followedVideos.count,
               isLoading: isLoadingMore,
               label: "Loading more subscriptions",

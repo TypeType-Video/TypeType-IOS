@@ -47,7 +47,7 @@ struct DemoNotificationsView: View {
                 }
               }
             }
-            DemoIncrementalLoadingTrigger(
+            LiveIncrementalLoadingTrigger(
               canLoadMore: visibleCount < session.notifications.count,
               isLoading: isLoadingMore,
               label: "Loading more notifications",

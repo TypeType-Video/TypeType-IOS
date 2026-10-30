@@ -89,7 +89,7 @@ struct LivePodcastEpisodesView: View {
               }
             )
           }
-          DemoIncrementalLoadingTrigger(
+          LiveIncrementalLoadingTrigger(
             canLoadMore: viewModel.canLoadMore,
             isLoading: viewModel.isLoadingMore,
             label: "Loading more podcast episodes",
@@ -102,7 +102,7 @@ struct LivePodcastEpisodesView: View {
       .padding(16)
     }
     .refreshable { await viewModel.reload() }
-    .background(DemoThemeBackground().ignoresSafeArea())
+    .background(LiveThemeBackground().ignoresSafeArea())
   }
 
   private var header: some View {

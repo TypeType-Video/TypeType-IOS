@@ -83,7 +83,7 @@ extension LivePlayerController {
     isOfflineContent = true
     state = .loading
     do {
-      try await DemoAudioSessionConfigurator.configure(backgroundAudio: true)
+      try await AudioSessionConfigurator.configure(backgroundAudio: true)
       guard !Task.isCancelled else { return }
       self.stream = stream
       installPlayerItem(at: fileURL, autoplay: true)

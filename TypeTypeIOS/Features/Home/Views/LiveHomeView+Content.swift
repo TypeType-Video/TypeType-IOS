@@ -30,7 +30,7 @@ extension LiveHomeView {
       .padding(.horizontal, 16)
       .padding(.vertical, 18)
     }
-    .background(DemoThemeBackground().ignoresSafeArea())
+    .background(LiveThemeBackground().ignoresSafeArea())
     .accessibilityIdentifier("live.home.feed")
     .refreshable {
       await viewModel.reload()
@@ -57,7 +57,7 @@ extension LiveHomeView {
           recommendationCard(video)
         }
 
-        DemoIncrementalLoadingTrigger(
+        LiveIncrementalLoadingTrigger(
           canLoadMore: viewModel.canLoadMore,
           isLoading: viewModel.isLoadingMore,
           label: "Loading more recommendations",

@@ -155,7 +155,7 @@ struct LiveVideoMetadataContentView: View {
       )
     }
     .coordinateSpace(name: "watchScroll")
-    .background(DemoThemeBackground())
+    .background(LiveThemeBackground())
       .liveScrolledState { scrolled in
         isScrolled = scrolled
       }
@@ -227,7 +227,7 @@ struct LiveVideoMetadataContentView: View {
         pip.bringInline()
       }
     }
-    .background(DemoThemeBackground().ignoresSafeArea())
+    .background(LiveThemeBackground().ignoresSafeArea())
     .onDisappear { playerController.flushHistory() }
   }
 

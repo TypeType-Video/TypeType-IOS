@@ -119,7 +119,7 @@ struct LiveCollectionView: View {
         .padding(16)
       }
       .refreshable { await viewModel.reload() }
-      .background(DemoThemeBackground().ignoresSafeArea())
+      .background(LiveThemeBackground().ignoresSafeArea())
     }
   }
 

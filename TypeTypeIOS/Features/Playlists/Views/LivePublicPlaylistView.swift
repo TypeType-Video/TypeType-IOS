@@ -110,7 +110,7 @@ struct LivePublicPlaylistView: View {
                 }
               )
             }
-            DemoIncrementalLoadingTrigger(
+            LiveIncrementalLoadingTrigger(
               canLoadMore: viewModel.canLoadMore,
               isLoading: viewModel.isLoadingMore,
               label: "Loading more playlist videos",
@@ -124,7 +124,7 @@ struct LivePublicPlaylistView: View {
       .padding(16)
     }
     .refreshable { await viewModel.reload() }
-    .background(DemoThemeBackground().ignoresSafeArea())
+    .background(LiveThemeBackground().ignoresSafeArea())
   }
 
   private var columns: [GridItem] {

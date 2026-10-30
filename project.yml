@@ -73,6 +73,9 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: dev.typetype.ios
         PRODUCT_NAME: TypeTypeIOS
         TARGETED_DEVICE_FAMILY: "1,2"
+      configs:
+        Release:
+          EXCLUDED_SOURCE_FILE_NAMES: "Demo*.swift TypeTypeDemoAppView.swift MockAppConfiguration.swift"
 
   TypeTypePlayerKit:
     type: library.static

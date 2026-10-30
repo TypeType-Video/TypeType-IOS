@@ -1,7 +1,7 @@
 import SwiftUI
 import UIKit
 
-struct DemoAuthField: View {
+struct AuthField: View {
   enum Kind {
     case name
     case email
@@ -10,7 +10,7 @@ struct DemoAuthField: View {
 
   let placeholder: LocalizedStringKey
   let kind: Kind
-  let palette: DemoAuthPalette
+  let palette: AuthPalette
   @Binding var text: String
   @State private var revealsPassword = false
 

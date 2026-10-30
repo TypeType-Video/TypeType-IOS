@@ -71,7 +71,7 @@ extension LiveHistoryView {
               }
             }
           }
-          DemoIncrementalLoadingTrigger(
+          LiveIncrementalLoadingTrigger(
             canLoadMore: viewModel.canLoadMore,
             isLoading: viewModel.isLoadingMore,
             label: "Loading more history",
@@ -84,7 +84,7 @@ extension LiveHistoryView {
         .padding(.bottom, 30)
       }
       .refreshable { await viewModel.reload() }
-      .background(DemoThemeBackground().ignoresSafeArea())
+      .background(LiveThemeBackground().ignoresSafeArea())
     }
   }
 

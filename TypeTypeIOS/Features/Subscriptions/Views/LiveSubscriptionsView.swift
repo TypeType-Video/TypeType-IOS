@@ -167,7 +167,7 @@ struct LiveSubscriptionsView: View {
                 }
               )
             }
-            DemoIncrementalLoadingTrigger(
+            LiveIncrementalLoadingTrigger(
               canLoadMore: viewModel.canLoadMore,
               isLoading: viewModel.isLoadingMore,
               label: "Loading more subscriptions",
@@ -181,7 +181,7 @@ struct LiveSubscriptionsView: View {
         .refreshable { await viewModel.reload() }
       }
     }
-    .background(DemoThemeBackground().ignoresSafeArea())
+    .background(LiveThemeBackground().ignoresSafeArea())
     .accessibilityIdentifier("live.subscriptions.videos")
   }
 

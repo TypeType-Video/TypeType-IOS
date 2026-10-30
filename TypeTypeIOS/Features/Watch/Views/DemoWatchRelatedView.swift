@@ -31,7 +31,7 @@ struct DemoWatchRelatedView: View {
           }
         }
 
-        DemoIncrementalLoadingTrigger(
+        LiveIncrementalLoadingTrigger(
           canLoadMore: visibleLimit < visibleVideos.count,
           isLoading: isLoadingMore,
           label: "Loading more videos",

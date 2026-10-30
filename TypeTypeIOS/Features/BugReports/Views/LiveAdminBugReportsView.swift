@@ -82,7 +82,7 @@ struct LiveAdminBugReportsView: View {
             }
             .buttonStyle(.plain)
           }
-          DemoIncrementalLoadingTrigger(
+          LiveIncrementalLoadingTrigger(
             canLoadMore: viewModel.canLoadMore,
             isLoading: viewModel.isLoadingMore,
             label: "Loading more reports",

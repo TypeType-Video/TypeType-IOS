@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct DemoAuthPalette {
+struct AuthPalette {
   let isLight: Bool
 
   var primaryText: Color {

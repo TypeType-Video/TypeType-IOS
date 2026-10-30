@@ -10,7 +10,7 @@ struct ServerSetupView: View {
 
   var body: some View {
     ZStack {
-      DemoAuthBackdrop(isLight: colorScheme == .light)
+      AuthBackdrop(isLight: colorScheme == .light)
 
       ScrollView {
         VStack(spacing: 22) {

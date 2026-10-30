@@ -95,7 +95,7 @@ struct DemoHistoryView: View {
           }
         }
       }
-      DemoIncrementalLoadingTrigger(
+      LiveIncrementalLoadingTrigger(
         canLoadMore: visibleCount < filteredEntries.count,
         isLoading: isLoadingMore,
         label: "Loading more history",

@@ -14,17 +14,25 @@ struct TypeTypeApp: App {
 
   var body: some Scene {
     WindowGroup {
+      #if DEBUG
       if MockAppConfiguration.isEnabled {
         TypeTypeDemoAppView(
           initialAuthMode: MockAppConfiguration.initialAuthMode,
           launchDestination: MockAppConfiguration.launchDestination
         )
       } else {
-        TypeTypeLiveAppView(
-          orientationLock: appDelegate.orientationLock,
-          backgroundRefresh: appDelegate.backgroundRefresh
-        )
+        liveApp
       }
+      #else
+      liveApp
+      #endif
     }
+  }
+
+  private var liveApp: some View {
+    TypeTypeLiveAppView(
+      orientationLock: appDelegate.orientationLock,
+      backgroundRefresh: appDelegate.backgroundRefresh
+    )
   }
 }

@@ -37,7 +37,7 @@ struct LiveNotificationSettingsView: View {
         settingsList
       }
     }
-    .background(DemoThemeBackground().ignoresSafeArea())
+    .background(LiveThemeBackground().ignoresSafeArea())
     .navigationTitle("Channel notifications")
     .navigationBarTitleDisplayMode(.inline)
     .task { await viewModel.prepare()
