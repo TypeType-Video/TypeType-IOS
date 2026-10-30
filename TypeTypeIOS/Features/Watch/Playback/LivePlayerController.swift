@@ -133,7 +133,6 @@ final class LivePlayerController: ObservableObject {
     let defaults = UserDefaults.standard
     let initialPreferences = appPreferences.preferences
     audioOnly = initialPreferences.playerAudioOnlyPlayback
-    autoplayEnabled = initialPreferences.playerAutoplayEnabled
     let defaultDanmakuEnabled = initialPreferences.danmakuEnabled
     bulletCommentsEnabled = defaults.object(
       forKey: Self.bulletCommentsEnabledKey

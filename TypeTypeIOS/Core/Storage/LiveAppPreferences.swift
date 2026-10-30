@@ -13,10 +13,8 @@ struct LiveAppPreferences: Codable, Equatable {
   var playerPreferredCodec = "recommended"
   var playerSwipeSeekEnabled = true
   var playerSwipeBrightnessVolumeEnabled = true
-  var playerPlaybackBrightnessPercent: Int?
   var playerLongPressSpeedEnabled = true
   var playerAccessibleControlsEnabled = false
-  var playerAutoplayEnabled = true
   var playerAutoplayCountdownSeconds = 10
   var playerAudioOnlyPlayback = false
   var playerPauseInBackground = false
@@ -35,9 +33,9 @@ struct LiveAppPreferences: Codable, Equatable {
     case playerDoubleTapSeekEnabled = "playerDoubleTapSeek"
     case playerDoubleTapSeekSeconds = "playerDoubleTapSeekSeconds"
     case playerPreferredCodec, playerSwipeSeekEnabled
-    case playerSwipeBrightnessVolumeEnabled, playerPlaybackBrightnessPercent
+    case playerSwipeBrightnessVolumeEnabled
     case playerLongPressSpeedEnabled, playerAccessibleControlsEnabled
-    case playerAutoplayEnabled, playerAutoplayCountdownSeconds
+    case playerAutoplayCountdownSeconds
     case playerAudioOnlyPlayback, playerPauseInBackground
     case danmakuEnabled, danmakuSpeed, danmakuSize
   }
@@ -82,18 +80,12 @@ struct LiveAppPreferences: Codable, Equatable {
     playerSwipeBrightnessVolumeEnabled = try values.decodeIfPresent(
       Bool.self, forKey: .playerSwipeBrightnessVolumeEnabled
     ) ?? true
-    playerPlaybackBrightnessPercent = try values.decodeIfPresent(
-      Int.self, forKey: .playerPlaybackBrightnessPercent
-    )
     playerLongPressSpeedEnabled = try values.decodeIfPresent(
       Bool.self, forKey: .playerLongPressSpeedEnabled
     ) ?? true
     playerAccessibleControlsEnabled = try values.decodeIfPresent(
       Bool.self, forKey: .playerAccessibleControlsEnabled
     ) ?? false
-    playerAutoplayEnabled = try values.decodeIfPresent(
-      Bool.self, forKey: .playerAutoplayEnabled
-    ) ?? true
     playerAutoplayCountdownSeconds = try values.decodeIfPresent(
       Int.self, forKey: .playerAutoplayCountdownSeconds
     ) ?? 10

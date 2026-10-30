@@ -56,7 +56,6 @@ extension LivePlayerController {
       handleTimeTick(time)
     }
     player.isMuted = muted || sponsorMutedRange != nil
-    player.volume = Float(min(max(settings.volume, 0), 1))
     nativePlayback = playback
     playback.setRate(playbackRate)
     playbackTimeOffset = 0

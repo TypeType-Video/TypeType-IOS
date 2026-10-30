@@ -22,7 +22,6 @@ extension LivePlayerController {
 
   func applyLoadedSettings() {
     autoplayEnabled = settings.autoplay
-      && appPreferences.preferences.playerAutoplayEnabled
     let serverPlaybackSpeed = settings.defaultPlaybackSpeed ?? 1
     if serverPlaybackSpeed != 1,
       UserDefaults.standard.object(
@@ -50,7 +49,6 @@ extension LivePlayerController {
     sponsorBlockSkipNonMusicOnlyOnMusicVideos =
       settings.sponsorBlockSkipNonMusicOnlyOnMusicVideos
     muted = settings.muted
-    setOutputVolume(Float(min(max(settings.volume, 0), 1)))
     setOutputMuted(muted || sponsorMutedRange != nil)
     loopsPlayback = UserDefaults.standard.bool(
       forKey: Self.loopPreferenceKey
