@@ -4,9 +4,7 @@ extension LiveSearchView {
   @ViewBuilder
   var content: some View {
     VStack(spacing: 0) {
-      if viewModel.services.count > 1 {
-        serviceChipRow
-      }
+      LiveSearchFilterBar(viewModel: viewModel, showsResultFilters: showsResultFilters)
       if viewModel.submittedQuery.isEmpty {
         discovery
       } else {
@@ -26,36 +24,12 @@ extension LiveSearchView {
     }
   }
 
-  private var serviceChipRow: some View {
-    ScrollView(.horizontal) {
-      HStack(spacing: 8) {
-        ForEach(viewModel.services) { service in
-          Button {
-            Task { await viewModel.selectService(service.id) }
-          } label: {
-            HStack(spacing: 5) {
-              if service.id == viewModel.selectedServiceID {
-                Image(systemName: "checkmark")
-                  .font(.caption2.weight(.bold))
-              }
-              Text(verbatim: service.name)
-            }
-            .font(.caption.weight(.semibold))
-            .padding(.horizontal, 11)
-            .padding(.vertical, 8)
-            .background(palette.surface, in: Capsule())
-          }
-          .buttonStyle(.plain)
-          .accessibilityIdentifier(
-            "live.search.service.chip.\(service.id)"
-          )
-        }
-      }
-      .padding(.horizontal, 16)
-      .padding(.vertical, 10)
+  private var showsResultFilters: Bool {
+    guard !viewModel.submittedQuery.isEmpty else { return false }
+    switch viewModel.state {
+    case .loaded, .empty: return true
+    default: return false
     }
-    .scrollIndicators(.hidden)
-    .accessibilityIdentifier("live.search.services")
   }
 
   private var discovery: some View {
@@ -64,7 +38,7 @@ extension LiveSearchView {
 
   private var searchLoading: some View {
     TypeTypeSkeletonList(layout: .cards)
-.accessibilityIdentifier("live.search.loading")
+      .accessibilityIdentifier("live.search.loading")
   }
 
   private var searchEmpty: some View {

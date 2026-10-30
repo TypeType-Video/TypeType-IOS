@@ -4,7 +4,6 @@ extension LiveSearchView {
   var searchResults: some View {
     ScrollView {
       LazyVStack(alignment: .leading, spacing: 18) {
-        LiveSearchFilterBar(viewModel: viewModel)
         if let suggestion = viewModel.searchSuggestion,
           !suggestion.isEmpty {
           LiveSearchSuggestionView(

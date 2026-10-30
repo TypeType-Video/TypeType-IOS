@@ -77,7 +77,7 @@ extension LiveAuthenticatedAppView {
         libraryTab
       }
       .badge(downloadCenter.activeCount)
-      Tab(value: LiveAuthenticatedTab.search, role: .search) {
+      Tab("Search", systemImage: "magnifyingglass", value: LiveAuthenticatedTab.search) {
         searchTab
       }
     }
@@ -114,9 +114,7 @@ extension LiveAuthenticatedAppView {
   }
 
   private var searchTab: some View {
-    LiveSearchView(coordinator: coordinator) {
-      selectedTab.wrappedValue = .home
-    }
+    LiveSearchView(coordinator: coordinator)
   }
 
   @ViewBuilder private func miniPlayer(

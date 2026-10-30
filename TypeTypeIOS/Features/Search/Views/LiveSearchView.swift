@@ -10,14 +10,9 @@ struct LiveSearchView: View {
   @State var selectedPlaylist: LivePlaylistResult?
   @FocusState private var searchIsFocused: Bool
   @Environment(\.dismissSearch) private var dismissSearch
-  private let onClose: () -> Void
 
-  init(
-    coordinator: RootCoordinator,
-    onClose: @escaping () -> Void
-  ) {
+  init(coordinator: RootCoordinator) {
     self.coordinator = coordinator
-    self.onClose = onClose
     _viewModel = StateObject(
       wrappedValue: LiveSearchViewModel(
         searchService: coordinator.dependencies.searchService,
@@ -34,17 +29,10 @@ struct LiveSearchView: View {
       content
         .navigationTitle("Search")
         .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-          ToolbarItem(placement: .topBarLeading) {
-            Button("Close", systemImage: "xmark") {
-              onClose()
-            }
-          }
-        }
         .searchable(
           text: $viewModel.query,
           placement: .navigationBarDrawer(displayMode: .always),
-          prompt: "Search videos, channels..."
+          prompt: "Videos, channels, playlists"
         )
         .trackingSearchFocus($searchIsFocused)
         .searchSuggestions {
