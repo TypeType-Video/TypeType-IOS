@@ -2,12 +2,23 @@ import SwiftUI
 
 struct LiveSettingsAccountCard: View {
   @ObservedObject var coordinator: RootCoordinator
-  @Environment(\.themePalette) private var palette
 
   var body: some View {
     NavigationLink {
       LiveSettingsAccountsView(coordinator: coordinator)
     } label: {
+      LiveSettingsAccountSummary(coordinator: coordinator)
+    }
+    .accessibilityHint(Text("Opens instances and accounts"))
+    .accessibilityIdentifier("live.settings.account")
+  }
+}
+
+struct LiveSettingsAccountSummary: View {
+  @ObservedObject var coordinator: RootCoordinator
+  @Environment(\.themePalette) private var palette
+
+  var body: some View {
       HStack(spacing: 14) {
         LiveToolbarAvatar(user: coordinator.currentUser, size: 58)
           .overlay {
@@ -26,10 +37,7 @@ struct LiveSettingsAccountCard: View {
         Spacer(minLength: 0)
       }
       .padding(.vertical, 6)
-    }
-    .accessibilityElement(children: .combine)
-    .accessibilityHint(Text("Opens instances and accounts"))
-    .accessibilityIdentifier("live.settings.account")
+      .accessibilityElement(children: .combine)
   }
 
   private var displayName: String {

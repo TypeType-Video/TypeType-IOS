@@ -11,14 +11,19 @@ struct LiveSettingsView: View {
     _preferences = ObservedObject(wrappedValue: coordinator.dependencies.appPreferences)
     let playbackCoordinator = coordinator.dependencies.playbackCoordinator
     self.playbackCoordinator = playbackCoordinator
-    _viewModel = StateObject(
-      wrappedValue: LiveSettingsViewModel(
-        service: coordinator.dependencies.settingsService,
-        serviceSelection: coordinator.dependencies.serviceSelection,
-        deArrowStore: coordinator.dependencies.deArrowStore,
-        connectivity: coordinator.dependencies.connectivityMonitor,
-        onSaved: { playbackCoordinator.applySettings($0) }
-      )
+    _viewModel = StateObject(wrappedValue: Self.makeViewModel(for: coordinator))
+  }
+
+  @MainActor
+  static func makeViewModel(for coordinator: RootCoordinator) -> LiveSettingsViewModel {
+    let dependencies = coordinator.dependencies
+    let playbackCoordinator = dependencies.playbackCoordinator
+    return LiveSettingsViewModel(
+      service: dependencies.settingsService,
+      serviceSelection: dependencies.serviceSelection,
+      deArrowStore: dependencies.deArrowStore,
+      connectivity: dependencies.connectivityMonitor,
+      onSaved: { playbackCoordinator.applySettings($0) }
     )
   }
 
@@ -55,30 +60,32 @@ struct LiveSettingsView: View {
       LiveSection {
         LiveSettingsAccountCard(coordinator: coordinator)
       }
-
-      LiveSection {
-        experienceRows
-      }
-      LiveSection {
-        contentRows
-      }
-      LiveSection {
-        dataRows
-      } header: {
-        Text("Your data").liveSettingsHeader()
-      }
-      LiveSection {
-        advancedRows
-      } header: {
-        Text("Advanced").liveSettingsHeader()
-      }
-      LiveSection {
-        aboutRow
+      ForEach(Array(coordinator.settingsGroups.enumerated()), id: \.offset) { index, pages in
+        group(pages, title: LiveSettingsPage.groupTitles[index])
       }
     }
     .contentMargins(.top, 8, for: .scrollContent)
     .padding(.bottom, playbackCoordinator.showsMiniPlayer ? 82 : 0)
     .liveGroupedList()
     .tint(preferences.preferences.accent)
+  }
+
+  @ViewBuilder
+  private func group(_ pages: [LiveSettingsPage], title: String?) -> some View {
+    if let title {
+      LiveSection { rows(pages) } header: { Text(LocalizedStringKey(title)).liveSettingsHeader() }
+    } else {
+      LiveSection { rows(pages) }
+    }
+  }
+
+  private func rows(_ pages: [LiveSettingsPage]) -> some View {
+    ForEach(pages) { page in
+      NavigationLink {
+        LiveSettingsDestination(page: page, coordinator: coordinator, viewModel: viewModel, preferences: preferences)
+      } label: {
+        LiveSettingsPageLabel(page: page, downloads: coordinator.dependencies.downloadCenter)
+      }
+    }
   }
 }
