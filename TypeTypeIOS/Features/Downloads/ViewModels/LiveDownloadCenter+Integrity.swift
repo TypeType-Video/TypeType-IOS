@@ -1,8 +1,6 @@
 import Foundation
 
 extension LiveDownloadCenter {
-  /// Hashing a video takes seconds per gigabyte, so it runs off the main thread and the results
-  /// land afterwards.
   func verifyArtifacts() async {
     let candidates = records.compactMap { record -> (id: String, url: URL, expected: String?)? in
       guard record.state == .ready, let url = artifactURL(for: record) else { return nil }

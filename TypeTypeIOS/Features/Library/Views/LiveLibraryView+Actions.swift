@@ -1,7 +1,6 @@
 import SwiftUI
 
 extension LiveLibraryView {
-  /// The section's action, always visible at the strip's trailing edge.
   @ViewBuilder
   var sectionAction: some View {
     switch section {

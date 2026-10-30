@@ -36,7 +36,6 @@ enum LiveVideoMetadataFormatter {
     count.formatted(.number.notation(.compactName))
   }
 
-  /// From the timestamp only: the extractor's text comes in any upstream locale (isiZulu was seen).
   static func publication(_ video: LiveVideoItem) -> String {
     guard let date = video.publicationDate else {
       return ""

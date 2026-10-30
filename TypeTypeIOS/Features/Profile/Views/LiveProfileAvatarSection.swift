@@ -28,9 +28,6 @@ struct LiveProfileAvatarSection: View {
     }
   }
 
-  /// Emoji avatars arrive as hex codes ("1F600", compound codes joined by
-  /// "-"). The old body only ever asked for `avatarURL`, so they rendered
-  /// as the empty image placeholder.
   private var emojiAvatarGlyph: String? {
     guard user?.avatarType?.lowercased() == "emoji",
       let code = user?.avatarCode,

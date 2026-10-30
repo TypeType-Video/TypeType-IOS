@@ -178,8 +178,6 @@ final class LiveSearchViewModel: ObservableObject {
       await submit(submittedQuery)
     }
   }
-  /// Warm the results' thumbnails in the background at utility priority:
-  /// the user sees cache hits, media keeps the resources.
   private func prefetchThumbnails() {
     for result in results.prefix(10) {
       guard case let .video(item) = result,

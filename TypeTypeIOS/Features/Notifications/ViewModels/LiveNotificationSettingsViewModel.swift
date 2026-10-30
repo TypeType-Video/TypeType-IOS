@@ -45,7 +45,6 @@ final class LiveNotificationSettingsViewModel: ObservableObject {
     }
   }
 
-
   var enabledFeedCount: Int {
     preferences.filter { $0.enabled }.count
   }

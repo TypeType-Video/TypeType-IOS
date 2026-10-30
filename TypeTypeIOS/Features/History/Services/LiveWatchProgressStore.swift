@@ -1,7 +1,5 @@
 import Foundation
 
-/// Watch progress for every thumbnail's resume bar: seeded from history and kept fresh by playback,
-/// so cards never fetch it themselves.
 final class LiveWatchProgressStore: ObservableObject {
   @Published private(set) var fractions: [String: Double] = [:]
 
@@ -36,7 +34,6 @@ final class LiveWatchProgressStore: ObservableObject {
       max(Double(positionMilliseconds) / Double(duration), 0),
       1
     )
-    // A watched-through video loses the bar again, like the history page.
     guard fraction > 0 else {
       fractions.removeValue(forKey: videoID)
       return

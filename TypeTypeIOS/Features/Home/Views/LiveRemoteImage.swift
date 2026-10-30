@@ -1,7 +1,5 @@
 import SwiftUI
 
-/// Remote image through the shared pipeline: cached, deduplicated, downsampled
-/// to the displayed size, with a skeleton while it loads.
 struct LiveRemoteImage: View {
   @Environment(\.themePalette) private var palette
   let url: URL?

@@ -2,15 +2,11 @@ import SwiftUI
 
 struct LiveCollectionView: View {
   let dependencies: AppDependencies
-  // StateObject: the init creates the model inline, and an ObservedObject would be replaced on
-  // every parent render after its .task already ran.
   @StateObject var viewModel: LiveCollectionViewModel
   @State private var selectedVideo: LiveVideoItem?
   @State private var selectedChannelURL: String?
   @State private var pendingRemoval: LiveLibraryVideo?
 
-  /// The library owns one view model per kind so its strip actions reach
-  /// the same instance the page renders; standalone uses create their own.
   init(
     kind: LiveLibraryCollectionKind,
     dependencies: AppDependencies,
@@ -42,8 +38,6 @@ struct LiveCollectionView: View {
       .onChange(of: selectedVideo) { _, video in
         guard let video else { return }
         selectedVideo = nil
-        // Videos open in the canonical PiP-aware player cover;
-        // the navigation push slid a second player page in.
         dependencies.playbackCoordinator.open(video)
       }
       .navigationDestination(item: $selectedChannelURL) { channelURL in

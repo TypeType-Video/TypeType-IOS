@@ -64,7 +64,6 @@ final class LiveCollectionViewModel: ObservableObject {
 
   func prepare() async {
     guard state == .idle else { return }
-    // The list that opened this collection already holds its videos: show them, revalidate behind.
     if !videos.isEmpty {
       state = .loaded
     }
@@ -75,7 +74,6 @@ final class LiveCollectionViewModel: ObservableObject {
     loadGeneration += 1
     let generation = loadGeneration
     let startedAt = DispatchTime.now().uptimeNanoseconds
-    // Keep already visible content on screen while revalidating.
     let hadContent = !videos.isEmpty
     if !hadContent {
       state = .loading

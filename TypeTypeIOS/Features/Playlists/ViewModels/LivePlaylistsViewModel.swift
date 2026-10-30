@@ -39,7 +39,6 @@ final class LivePlaylistsViewModel: ObservableObject {
     let generation = reloadGeneration
     lastFailure = nil
     state = .loading
-    // Each section shows up as soon as its own request lands, not after the slowest one.
     async let playlistsLoad: Void = load(generation, { try await self.playlistsService.playlists() }) {
       self.playlists = $0
     }

@@ -47,7 +47,6 @@ extension LiveHomeView {
     }
   }
 
-  /// Notifications with an unread badge, the settings gear and the account avatar.
   @ToolbarContentBuilder
   var accountsToolbar: some ToolbarContent {
     ToolbarItemGroup(placement: .topBarTrailing) {
@@ -118,9 +117,6 @@ extension LiveHomeView {
   }
 }
 
-/// A small account avatar for the toolbar: emoji avatars render as their
-/// glyph, photo avatars as the resolved image, everything else falls back
-/// to the person symbol.
 struct LiveToolbarAvatar: View {
   @Environment(\.themePalette) private var palette
   let user: AuthUser?

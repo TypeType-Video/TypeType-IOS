@@ -65,8 +65,6 @@ struct LiveSearchView: View {
         .onChange(of: viewModel.query) {
           viewModel.queryDidChange()
         }
-        // Re-tapping the Search tab returns to the search input: the
-        // results clear and the field takes focus again.
         .onChange(of: coordinator.searchTabRetaps) {
           viewModel.query = ""
           viewModel.queryDidChange()
@@ -75,8 +73,6 @@ struct LiveSearchView: View {
         .onChange(of: selectedVideo) { _, video in
           guard let video else { return }
           selectedVideo = nil
-          // Videos open in the canonical PiP-aware player cover;
-          // the navigation push slid a second player page in.
           coordinator.dependencies.playbackCoordinator.open(video)
         }
         .navigationDestination(

@@ -51,9 +51,6 @@ final class LiveHomeViewModel: ObservableObject {
       .store(in: &cancellables)
   }
 
-  /// Runs one fetch under a time budget: the operation or the deadline,
-  /// whichever comes first. A stalled request becomes a normal error so the
-  /// page can never hang on it; callers pick their own fallback.
   private static func withTimeout<T: Sendable>(
     seconds: Double,
     operation: @escaping @Sendable () async throws -> T
@@ -82,7 +79,6 @@ final class LiveHomeViewModel: ObservableObject {
     nextCursor = nil
     loadTask?.cancel()
     paginationTask?.cancel()
-    // Time-boxed: one stalled request would keep reload() from ever leaving the loading state.
     let settingsService = self.settingsService
     let settings = (try? await Self.withTimeout(seconds: 4) {
       try await settingsService.settings()
@@ -133,7 +129,6 @@ final class LiveHomeViewModel: ObservableObject {
       return
     }
     if Task.isCancelled {
-      // A restarted view task cancels reload() mid-flight, and loadIfNeeded() only starts from .idle.
       if state == .loading {
         state = .idle
       }
@@ -217,12 +212,9 @@ final class LiveHomeViewModel: ObservableObject {
         state = .empty
       }
     } catch {
-      // The full History screen exposes destructive-action errors.
     }
   }
 
-  /// Background warm-up for what the user is about to see: the pipeline
-  /// dedups, caches and runs at utility priority, so media always wins.
   private func prefetchThumbnails(for items: [LiveVideoItem]) {
     for item in items.prefix(8) {
       guard let url = LiveImageURLResolver.resolve(item.thumbnail) else { continue }

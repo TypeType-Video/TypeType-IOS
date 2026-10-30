@@ -49,9 +49,6 @@ final class LiveChannelViewModel: ObservableObject {
     pushNotificationsService: LivePushNotificationsServiceProtocol? = nil,
     pushNotificationsEnabled: Bool = false
   ) {
-    // Every entry point funnels through here: canonicalize once so
-    // subscriptions rows, video metadata, search rows and deep links all
-    // address the channel in the same form the server canonicalizes to.
     self.channelURL = LiveChannelURLCanonicalizer.canonicalize(channelURL)
     self.channelService = channelService
     self.subscriptionsService = subscriptionsService
@@ -157,7 +154,6 @@ final class LiveChannelViewModel: ObservableObject {
     if tab == .playlists {
       await loadPlaylists()
     } else if tab != .about {
-      // About renders the already-loaded channel details: no fetch.
       await reloadChannel()
     }
   }

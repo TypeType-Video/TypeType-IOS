@@ -10,8 +10,6 @@ struct LiveChannelControlsView: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
       HStack(spacing: 10) {
-        // Popovers, not system menus: the iOS 26/27 glass menu popup
-        // crashes on item taps with `setEffect:` in this app.
         Button {
           presentsSections = true
         } label: {
@@ -82,8 +80,6 @@ struct LiveChannelControlsView: View {
     }
   }
 
-  /// Content tabs need the YouTube listing endpoints; About is local
-  /// channel data and always available.
   private var tabs: [LiveChannelTab] {
     LiveChannelTab.allCases.filter { isYouTube || $0 == .about }
   }
@@ -101,7 +97,6 @@ struct LiveChannelControlsView: View {
     }
   }
 
-  /// `.presentationCompactAdaptation(.popover)` keeps it a bubble on iPhone; the height cap keeps it unclipped.
   private func optionList(
     _ options: [(id: String, label: String, selected: Bool)],
     onSelect: @escaping (String) -> Void

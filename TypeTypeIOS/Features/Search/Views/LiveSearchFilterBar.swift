@@ -23,8 +23,6 @@ struct LiveSearchFilterBar: View {
     .accessibilityIdentifier("live.search.filters")
   }
 
-  // Popovers, not system menus: the iOS 26/27 glass menu popup crashes
-  // on item taps with `setEffect:` in this app.
   private var serviceMenu: some View {
     Button {
       presentsService = true
@@ -115,7 +113,6 @@ struct LiveSearchFilterBar: View {
     .accessibilityIdentifier("live.search.sort-filter")
   }
 
-  /// `.presentationCompactAdaptation(.popover)` keeps it a bubble on iPhone; the height cap keeps it unclipped.
   private func optionList(
     _ options: [(label: String, selected: Bool)],
     onSelect: @escaping (Int) -> Void

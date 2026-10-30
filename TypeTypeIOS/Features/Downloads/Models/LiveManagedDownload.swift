@@ -77,20 +77,15 @@ struct LiveManagedDownload: Codable, Equatable, Identifiable {
   var localFileName: String?
   var artifactChecksum: String?
   var failureMessage: String?
-  /// Watch-page metadata captured at download time. Optional: records
-  /// persisted before this field existed decode as nil.
   var metadata: LiveOfflineVideoMetadata?
 
   var progress: Double? {
-    // The artifact fetch reports no percentage, and a full bar would read as stalled.
     guard state != .saving else { return nil }
     guard let value = job.progressPercent else { return nil }
     return Double(min(max(value, 0), 100)) / 100
   }
 }
 
-/// Everything the offline watch page needs beyond title and URL, frozen at
-/// download time so the page renders without a server.
 struct LiveOfflineVideoMetadata: Codable, Equatable {
   let thumbnailURL: String
   let uploaderName: String
@@ -109,10 +104,8 @@ struct LiveOfflineVideoMetadata: Codable, Equatable {
   let isPostLive: Bool
   let isLiveContent: Bool
   let requiresMembership: Bool
-  /// Engagement at download time (-1 when unknown).
   let likeCount: Int64
   let dislikeCount: Int64
-  /// The channel avatar saved next to the artifact (offline rendering).
   let localAvatarFileName: String?
 
   init(

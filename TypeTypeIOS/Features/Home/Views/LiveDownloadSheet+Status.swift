@@ -26,8 +26,6 @@ extension LiveDownloadSheet {
     Section {
       VStack(alignment: .leading, spacing: 10) {
         if viewModel.isFinishing {
-          // The transfer is complete and the file is being saved on the
-          // device: an honest "finishing" line, no fake 100% bar, no Cancel.
           HStack(spacing: 12) {
             ProgressView()
             Text("Saving on this device")
@@ -66,8 +64,6 @@ extension LiveDownloadSheet {
       }
     } header: { Text("Progress").liveSectionHeader() }
   }
-
-
 
   private var readyStatus: some View {
     Section {

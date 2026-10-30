@@ -24,8 +24,6 @@ extension LiveImportService {
       .subscriptionGroups: "subscriptionGroups",
     ]
 
-    // Without readable metadata the data fields are the only truth: an empty set derived from absent
-    // metadata would strip every category, and the server reports an empty backup as zero restored.
     let declaredCategories = Set(
       (backup["categories"] as? [String] ?? []).compactMap {
         LiveTypeTypeBackupCategory(rawValue: $0)

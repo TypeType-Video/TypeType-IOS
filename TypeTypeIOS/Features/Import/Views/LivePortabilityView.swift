@@ -53,7 +53,6 @@ struct LivePortabilityView: View {
       }
     }
     .onChange(of: viewModel.job?.state) { _, state in
-      // The share sheet opens by itself the moment an export is ready.
       guard state == .completed,
         let job = viewModel.job,
         job.kind == .export,

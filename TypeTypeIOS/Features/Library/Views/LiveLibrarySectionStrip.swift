@@ -1,6 +1,5 @@
 import SwiftUI
 
-/// The action tile's shell: Liquid Glass where available, the grouped surface colour otherwise.
 struct LiveLibraryActionGlass: ViewModifier {
   @Environment(\.themePalette) private var palette
   func body(content: Content) -> some View {
@@ -53,9 +52,6 @@ struct LiveLibrarySectionStrip: View {
       .padding(.horizontal, 16)
       .scrollTargetLayout()
     }
-    // The active pill stays centred: pager swipes flip the selection and
-    // this binding scrolls the strip along instead of clipping the pill at
-    // the screen edge.
     .scrollPosition(id: $stripPosition, anchor: .center)
     .scrollTargetBehavior(.viewAligned)
     .onChange(of: selection) { _, newValue in

@@ -1,8 +1,6 @@
 import SwiftUI
 
 struct LiveVideoCard: View {
-  /// Opens the video's session while the finger is still on the card, so
-  /// the start hides behind the press.
   @Environment(\.livePrewarm) private var prewarm
   @State private var didPrewarm = false
   @Environment(\.liveQuickActionsMenu) private var quickActionsMenu
@@ -41,14 +39,10 @@ struct LiveVideoCard: View {
           .frame(maxWidth: .infinity, alignment: .leading)
       }
     }
-    // On the whole card, thumbnail included: that is where most taps land.
     .task { await deArrowStore.prepare(video) }
     .contentShape(Rectangle())
   }
 
-  /// Prewarm on press-down. Triggered from the button style's `isPressed`:
-  /// a zero-distance DragGesture on the card fought the ScrollView's pan
-  /// and made scrolling stop dead mid-swipe.
   private func triggerPrewarm() {
     guard !didPrewarm else { return }
     didPrewarm = true
@@ -141,7 +135,6 @@ struct LiveVideoCard: View {
         .lineLimit(1)
     }
     .frame(maxWidth: .infinity, alignment: .leading)
-    // Anchored to the corner, not the title: DeArrow swaps titles after load.
     .overlay(alignment: .topTrailing) {
       if let quickActionsMenu {
         LiveDotMenu {

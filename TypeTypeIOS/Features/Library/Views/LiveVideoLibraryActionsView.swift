@@ -1,7 +1,5 @@
 import SwiftUI
 
-/// Icon-only action row under the video: Favorite, Watch later, Playlist,
-/// Share, Download: no labels, translucent circles, accent when active.
 struct LiveVideoLibraryActionsView: View {
   @Environment(\.themePalette) private var palette
   @StateObject private var viewModel: LiveVideoLibraryActionsViewModel
@@ -27,7 +25,6 @@ struct LiveVideoLibraryActionsView: View {
   }
 
   var body: some View {
-    // Six fixed 44 pt buttons: the 18 pt gaps alone overflowed a 375 pt iPhone and widened the whole page.
     ViewThatFits(in: .horizontal) {
       actionsRow(spacing: 18)
       actionsRow(spacing: 10)
@@ -183,13 +180,11 @@ struct LiveVideoLibraryActionsView: View {
       .frame(width: 44, height: 44)
       .background {
         if #available(iOS 26.0, *) {
-          // Inactive takes the row colour: elevatedSurface is too dark under the glass.
           Circle()
             .fill(
               (isActive ? palette.accent : palette.rowBackground)
                 .opacity(isActive ? 0.32 : 0.55)
             )
-            // The washes read too dark in themes: lift the glass.
             .brightness(0.12)
             .glassEffect(
               .regular.tint(

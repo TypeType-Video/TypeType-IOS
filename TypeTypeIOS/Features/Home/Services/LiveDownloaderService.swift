@@ -63,8 +63,6 @@ final class LiveDownloaderService: LiveDownloaderServiceProtocol {
 
   func artifact(id: String) async throws -> URL {
     try await apiClient.download(
-      // Large media over slow object storage: the 90s default timed the
-      // transfer out mid-flight (-1001 with resume data).
       APIEndpoint(
         path: "/downloader/jobs/\(id)/artifact",
         method: .get,

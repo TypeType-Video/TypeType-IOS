@@ -1,7 +1,5 @@
 import SwiftUI
 
-/// Android's description section: title and date are one tap target that unfolds the description.
-/// Counts stay in the engagement stats row.
 struct LiveVideoMetadataHeader: View {
   let video: LiveVideoItem
   let title: String

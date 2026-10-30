@@ -90,10 +90,7 @@ struct LiveHistoryItem: Decodable, Equatable, Identifiable {
   }
 
   init(from decoder: Decoder) throws {
-    // Imported and older rows omit fields newer ones carry; one strict field would fail the page.
     let values = try decoder.container(keyedBy: CodingKeys.self)
-    // Every field is read through `try?`: legacy rows carry wrong types and
-    // omitted keys alike (decodeIfPresent still throws on type mismatch).
     url = (try? values.decode(String.self, forKey: .url))
       ?? (try? values.decodeIfPresent(String.self, forKey: .url))
       ?? ""

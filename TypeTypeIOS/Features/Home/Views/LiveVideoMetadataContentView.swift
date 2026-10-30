@@ -1,7 +1,6 @@
 import SwiftUI
 
 struct LiveVideoMetadataContentView: View {
-
   let video: LiveVideoItem
   let dependencies: AppDependencies
   @ObservedObject var deArrowStore: LiveDeArrowStore
@@ -35,7 +34,6 @@ struct LiveVideoMetadataContentView: View {
     )
   }
 
-  // Nothing around the player has a margin to cancel: a negative inset pushed it 16 pt off both screen edges.
   private var playerInset: CGFloat {
     showsFullscreenLayout || cinemaMode ? 0 : 16
   }
@@ -47,7 +45,6 @@ struct LiveVideoMetadataContentView: View {
   var body: some View {
     ScrollViewReader { proxy in
     VStack(spacing: 0) {
-      // The player floats above as a page overlay, so full screen grows over the page in one motion.
       Color.clear
         .aspectRatio(16 / 9, contentMode: .fit)
         .padding(.horizontal, playerInset)
@@ -82,8 +79,6 @@ struct LiveVideoMetadataContentView: View {
 
         LivePlaybackQueueView(coordinator: playbackCoordinator)
 
-        // The stream arrives with an EMPTY relatedStreams array before the
-        // real list loads: an empty list means "still loading" here.
         let relatedReady = !(
           playerController.stream?.relatedStreams.isEmpty ?? true
         )
@@ -98,8 +93,6 @@ struct LiveVideoMetadataContentView: View {
               onSelect: { selectedRelatedVideo = $0 }
             )
           } else {
-            // The related section's slot holds a skeleton while the stream
-            // loads, so the page shape is stable from the start.
             VStack(alignment: .leading, spacing: 12) {
               TypeTypeSkeleton(cornerRadius: 6)
                 .frame(width: 140, height: 14)
@@ -131,8 +124,6 @@ struct LiveVideoMetadataContentView: View {
               onOpenURL: routeLink
             )
           } else {
-            // The page stays put: comments wait in skeleton until the
-            // related section exists, so nothing jumps when it arrives.
             VStack(alignment: .leading, spacing: 14) {
               ForEach(0..<3, id: \.self) { _ in
                 HStack(alignment: .top, spacing: 10) {
@@ -195,9 +186,6 @@ struct LiveVideoMetadataContentView: View {
     }
     }
     .overlay(alignment: .top) {
-      // The player floats over the page: pinned in its slot inline, filling
-      // (and covering) everything in fullscreen. The surroundings never
-      // move: the growing stage covers them, one figure.
       LivePlayerView(
         controller: playerController,
         coordinator: playbackCoordinator,
@@ -226,9 +214,6 @@ struct LiveVideoMetadataContentView: View {
       )
     }
     .onAppear {
-      // Returning from a push (e.g. a channel page): while the page was
-      // covered the video layer lost its host and the system promoted it
-      // to PiP: hand everything back to the stage.
       if playbackCoordinator.presentation == .mini {
         playbackCoordinator.expand()
       }
@@ -260,9 +245,6 @@ private struct LiveWatchScrollOffsetKey: PreferenceKey {
 }
 
 private extension View {
-  /// Reports whether the scroll content is scrolled past its top. iOS 18+
-  /// reads the scroll geometry directly (the preference-based measurement
-  /// silently never fired on iOS 26); iOS 17 falls back to it.
   @ViewBuilder
   func liveScrolledState(_ onChange: @escaping (Bool) -> Void) -> some View {
     if #available(iOS 18.0, *) {

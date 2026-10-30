@@ -62,9 +62,6 @@ extension LiveVideoQuickActionsModifier {
       serverURL: dependencies.serverStore.selectedServer()?.baseURL,
       sourceURL: viewModel.video.url
     ) != nil {
-      // The popover tears its content down on tap, so the "share as"
-      // dialog and the share sheet are hosted on the modifier body
-      // (same pattern as the download sheet).
       Button {
         presentsShareChoice = true
       } label: {

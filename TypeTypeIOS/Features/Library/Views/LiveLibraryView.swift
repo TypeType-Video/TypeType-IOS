@@ -1,6 +1,5 @@
 import SwiftUI
 
-/// The library tab's sections, switched by the segment strip.
 enum LiveLibrarySection: String, CaseIterable, Identifiable {
   case history, favorites, watchLater, playlists, downloads
 
@@ -21,8 +20,6 @@ struct LiveLibraryView: View {
   @Environment(\.themePalette) var palette
   @ObservedObject var coordinator: RootCoordinator
   @Binding var section: LiveLibrarySection
-  // One model per section owned here: the strip actions act on the same
-  // instance the pages render, and the sort survives browsing.
   @StateObject var historyModel: LiveHistoryViewModel
   @StateObject var favoritesModel: LiveCollectionViewModel
   @StateObject var watchLaterModel: LiveCollectionViewModel
@@ -52,8 +49,6 @@ struct LiveLibraryView: View {
     )
   }
 
-  /// Two-way bridge: the pager writes during the drag (the strip follows
-  /// the finger), pill taps animate the pager to the section.
   private var sectionIDBinding: Binding<LiveLibrarySection?> {
     Binding(
       get: { $section.wrappedValue },
@@ -87,7 +82,6 @@ struct LiveLibraryView: View {
       \.librarySectionContext,
       LiveLibrarySectionContext(value: section, binding: $section)
     )
-    // An inset above the stack, so no page chrome (the History search field) slides over it.
     .safeAreaInset(edge: .top, spacing: 0) {
       HStack(spacing: 6) {
         LiveLibrarySectionStrip(selection: $section)

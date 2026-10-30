@@ -1,8 +1,5 @@
 import UIKit
 
-/// Presents the system share sheet from UIKit: the Liquid Glass sheet iOS
-/// 26 shows for ShareLink. Wrapping UIActivityViewController in a SwiftUI
-/// .sheet renders a plain page instead.
 enum LiveSystemSharePresenter {
   @MainActor
   static func present(_ url: URL) {

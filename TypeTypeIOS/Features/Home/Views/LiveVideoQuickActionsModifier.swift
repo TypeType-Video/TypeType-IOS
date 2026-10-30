@@ -34,8 +34,6 @@ struct LiveVideoQuickActionsModifier: ViewModifier {
     self.onRemove = onRemove
   }
 
-  /// Center glass card: green check, message, swipe-to-dismiss with a slow
-  /// fade, plus the auto-dismiss timer.
   private func toastCard(_ message: String) -> some View {
     HStack(spacing: 12) {
       Image(systemName: "checkmark.circle.fill")
@@ -67,7 +65,6 @@ struct LiveVideoQuickActionsModifier: ViewModifier {
 
   func body(content: Content) -> some View {
     content
-      // The card shows this content behind the "…" button on its title line.
       .environment(
         \.liveQuickActionsMenu,
         AnyView(
@@ -81,8 +78,6 @@ struct LiveVideoQuickActionsModifier: ViewModifier {
             }
         )
       )
-      // Center confirmation on Liquid Glass with a checkmark; it fades by
-      // itself and can be swiped away, the swipe fading it slowly out.
       .overlay {
         if let message = viewModel.message {
           if #available(iOS 26.0, *) {

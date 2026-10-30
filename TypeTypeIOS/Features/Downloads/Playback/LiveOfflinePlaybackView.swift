@@ -1,7 +1,6 @@
 import AVKit
 import SwiftUI
 
-/// Downloads play on the online watch page. The record keeps only title and URL, so metadata is thin.
 struct LiveOfflinePlaybackView: View {
   let item: LiveOfflinePlaybackItem
   let dependencies: AppDependencies
@@ -28,7 +27,6 @@ struct LiveOfflinePlaybackView: View {
         playerController: controller
       )
       .background(DemoThemeBackground().ignoresSafeArea())
-      // Pull down from the video area only, so the page scroll is never fought; audio keeps playing.
       .simultaneousGesture(
         DragGesture(minimumDistance: 30)
           .onEnded { value in
@@ -54,9 +52,6 @@ struct LiveOfflinePlaybackView: View {
       )
     }
     .onDisappear {
-      // Offline playback uses the regular AVPlayer path, not nativePlayback;
-      // stop the controller itself so closing the cover cannot leave a local
-      // player running behind Downloads.
       controller.stop()
     }
     .accessibilityIdentifier("live.offline-player")

@@ -47,9 +47,6 @@ struct LiveSavedPlaylist: Decodable, Equatable, Hashable, Identifiable {
     self.savedAt = savedAt
   }
 
-  // Playlist and channel responses carry deleted or members-only rows with missing fields; one of
-  // them must not fail the whole page.
-
   init(from decoder: Decoder) throws {
     let container = try decoder.container(keyedBy: CodingKeys.self)
     id = try container.decodeIfPresent(String.self, forKey: .id) ?? ""

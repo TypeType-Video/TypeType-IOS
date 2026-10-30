@@ -4,9 +4,6 @@ extension LiveSearchView {
   @ViewBuilder
   var content: some View {
     VStack(spacing: 0) {
-      // Service chips pinned at the top of search (dev feedback, plan 4.1):
-      // always visible, bound to the shared service selection like the
-      // home toolbar.
       if viewModel.services.count > 1 {
         serviceChipRow
       }
