@@ -3,7 +3,7 @@ import SwiftUI
 struct LiveOptionMenu<Option: Hashable>: View {
   let title: String
   @Binding var selection: Option
-  let options: [(value: Option, label: String)]
+  let options: [(value: Option, label: String, icon: String?)]
   var help: LocalizedStringKey?
   var disabledReason: LocalizedStringKey?
   var opensList = false
@@ -18,10 +18,24 @@ struct LiveOptionMenu<Option: Hashable>: View {
   ) {
     self.title = title
     self._selection = selection
-    self.options = options.map { (value: $0.0, label: $0.1) }
+    self.options = options.map { (value: $0.0, label: $0.1, icon: nil) }
     self.help = help
     self.disabledReason = disabledReason
     self.opensList = opensList
+  }
+
+  init(
+    _ title: String,
+    selection: Binding<Option>,
+    options: [(Option, String, String)],
+    help: LocalizedStringKey? = nil,
+    disabledReason: LocalizedStringKey? = nil
+  ) {
+    self.title = title
+    self._selection = selection
+    self.options = options.map { (value: $0.0, label: $0.1, icon: $0.2) }
+    self.help = help
+    self.disabledReason = disabledReason
   }
 
   var body: some View {
@@ -51,7 +65,7 @@ struct LiveOptionMenu<Option: Hashable>: View {
         Menu {
           Picker(selection: $selection) {
             ForEach(options.indices, id: \.self) { index in
-              Text(LiveOptionMenu.localized(options[index].label)).tag(options[index].value)
+              LiveOptionMenu.label(options[index]).tag(options[index].value)
             }
           } label: {
             EmptyView()
@@ -59,6 +73,9 @@ struct LiveOptionMenu<Option: Hashable>: View {
           .pickerStyle(.inline)
         } label: {
           HStack(spacing: 4) {
+            if let icon = currentIcon {
+              Image(systemName: icon)
+            }
             Text(currentLabel)
             Image(systemName: "chevron.up.chevron.down")
               .font(.footnote.weight(.semibold))
@@ -69,6 +86,19 @@ struct LiveOptionMenu<Option: Hashable>: View {
         .accessibilityLabel(Text(LocalizedStringKey(title)))
         .accessibilityValue(Text(currentLabel))
       }
+    }
+  }
+
+  private var currentIcon: String? {
+    options.first { $0.value == selection }?.icon
+  }
+
+  @ViewBuilder
+  static func label(_ option: (value: Option, label: String, icon: String?)) -> some View {
+    if let icon = option.icon {
+      Label(localized(option.label), systemImage: icon)
+    } else {
+      Text(localized(option.label))
     }
   }
 
@@ -101,7 +131,7 @@ struct LiveSettingText: View {
 struct LiveOptionListPage<Option: Hashable>: View {
   let title: String
   @Binding var selection: Option
-  let options: [(value: Option, label: String)]
+  let options: [(value: Option, label: String, icon: String?)]
   @Environment(\.dismiss) private var dismiss
 
   var body: some View {
@@ -113,7 +143,7 @@ struct LiveOptionListPage<Option: Hashable>: View {
             dismiss()
           } label: {
             HStack {
-              Text(LiveOptionMenu<Option>.localized(options[index].label))
+              LiveOptionMenu<Option>.label(options[index])
                 .foregroundStyle(.primary)
               Spacer()
               if options[index].value == selection {
