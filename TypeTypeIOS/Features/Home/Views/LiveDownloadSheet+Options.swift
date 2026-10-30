@@ -32,9 +32,6 @@ extension LiveDownloadSheet {
           .accessibilityElement(children: .combine)
         }
         if viewModel.mode != .thumbnail {
-          Toggle(isOn: $viewModel.sponsorBlock) {
-            LivePlayerOptionLabel("Skip sponsors", icon: "forward.end", detail: "Cuts SponsorBlock segments out of the file.")
-          }
           Toggle(isOn: $viewModel.includesSubtitles) {
             LivePlayerOptionLabel("Subtitles", icon: "captions.bubble")
           }

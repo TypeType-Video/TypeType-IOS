@@ -11,8 +11,8 @@ extension LiveDownloadViewModel {
       videoCodec: mode == .video ? "h264" : nil,
       audioCodec: mode == .video || mode == .audio ? "aac" : nil,
       allowQualityFallback: true,
-      sponsorBlock: sponsorBlock,
-      sponsorBlockCategories: ["sponsor", "intro"],
+      sponsorBlock: false,
+      sponsorBlockCategories: [],
       thumbnailOnly: mode == .thumbnail,
       subtitles: LiveDownloadSubtitleOptions(
         enabled: includesSubtitles,

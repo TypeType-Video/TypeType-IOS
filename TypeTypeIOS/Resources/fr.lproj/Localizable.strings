@@ -739,8 +739,6 @@
 "Download again" = "Télécharger à nouveau";
 "Format" = "Format";
 "Best audio quality" = "Meilleure qualité audio";
-"Skip sponsors" = "Passer les sponsors";
-"Cuts SponsorBlock segments out of the file." = "Retire du fichier les segments signalés par SponsorBlock.";
 "Image" = "Image";
 "Starting the download" = "Démarrage du téléchargement";
 "Share the file" = "Partager le fichier";

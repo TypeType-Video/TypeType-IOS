@@ -19,7 +19,6 @@ final class LiveDownloadViewModel: ObservableObject {
   }
   @Published var quality = "1080p"
   @Published var format = "mp4"
-  @Published var sponsorBlock = false
   @Published var includesSubtitles = false
   @Published var subtitleLanguage = "en"
   @Published private(set) var state = State.idle
@@ -193,7 +192,6 @@ final class LiveDownloadViewModel: ObservableObject {
       format = "jpg"
       quality = "best"
       includesSubtitles = false
-      sponsorBlock = false
     }
   }
 
