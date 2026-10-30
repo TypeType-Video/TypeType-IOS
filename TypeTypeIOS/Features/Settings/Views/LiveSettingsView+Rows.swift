@@ -53,18 +53,10 @@ extension LiveSettingsView {
 
   @ViewBuilder
   var dataRows: some View {
-    LiveSettingsLinkRow(
-      title: "Downloads",
-      icon: "arrow.down",
-      iconColor: .systemTeal,
-      badge: coordinator.dependencies.downloadCenter.activeCount
-    ) {
-      LiveDownloadsView(
-        dependencies: coordinator.dependencies,
-        center: coordinator.dependencies.downloadCenter,
-        onlinePlaybackCoordinator: coordinator.dependencies.playbackCoordinator
-      )
-    }
+    LiveSettingsDownloadsRow(
+      dependencies: coordinator.dependencies,
+      center: coordinator.dependencies.downloadCenter
+    )
     LiveSettingsLinkRow(
       title: "Data and backups",
       icon: "externaldrive.fill",

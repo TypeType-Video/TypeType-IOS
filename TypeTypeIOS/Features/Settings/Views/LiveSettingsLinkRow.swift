@@ -1,6 +1,5 @@
 import SwiftUI
 
-/// An iOS-Settings icon tile: a coloured rounded square with a white glyph.
 struct LiveSettingsIconTile: View {
   let icon: String
   let color: Color
@@ -15,19 +14,16 @@ struct LiveSettingsIconTile: View {
           .fill(color.gradient)
       }
       .overlay {
-        // Glass rim: a light top edge fading out, like the iOS 26 Settings tiles.
         RoundedRectangle(cornerRadius: 7, style: .continuous)
           .strokeBorder(
             LinearGradient(colors: [.white.opacity(0.55), .white.opacity(0)], startPoint: .top, endPoint: .bottom),
             lineWidth: 0.75
           )
       }
+      .accessibilityHidden(true)
   }
 }
 
-/// An iOS-Settings row: icon tile, plain title, the pushed page. The list
-/// draws the chevron and hairline automatically; subtitles are left out on
-/// purpose: section grouping keeps the list clear instead.
 struct LiveSettingsLinkRow<Destination: View>: View {
   @Environment(\.themePalette) private var palette
   let title: String
