@@ -19,7 +19,9 @@ struct LiveNativePlayerControls: View {
           endPoint: .bottom
         )
         .allowsHitTesting(false)
-        playPauseButton
+        if controller.state != .loading {
+          playPauseButton
+        }
         timeline
           .frame(maxHeight: .infinity, alignment: .bottom)
         if !isFullscreen {
@@ -44,9 +46,12 @@ struct LiveNativePlayerControls: View {
     }
     .animation(.easeOut(duration: 0.18), value: showsControls)
     .onChange(of: controller.state) {
-      if controller.state == .playing {
+      switch controller.state {
+      case .playing:
         controls.scheduleHide()
-      } else {
+      case .loading where hasStarted:
+        if controls.visible { controls.keepVisible() }
+      default:
         controls.keepVisible()
       }
     }
@@ -56,8 +61,14 @@ struct LiveNativePlayerControls: View {
     switch controller.state {
     case .ready, .paused: return true
     case .playing: return controls.visible || scrubPosition != nil
-    case .idle, .loading, .failed: return false
+    // A seek buffers: the timeline stays so the new position remains readable until playback resumes.
+    case .loading: return hasStarted && (controls.visible || scrubPosition != nil)
+    case .idle, .failed: return false
     }
+  }
+
+  private var hasStarted: Bool {
+    controller.nativePlayback?.hasStarted == true || controller.isOfflineContent
   }
 
   private var playPauseButton: some View {
@@ -100,7 +111,12 @@ struct LiveNativePlayerControls: View {
       .accessibilityIdentifier("live.player.timeline")
       // An overlay, not a GeometryReader in the row: that inflates the controls bar.
       .overlay(alignment: .center) {
-        sponsorSegmentBands
+        LivePlayerSponsorSegmentBands(controller: controller)
+      }
+      .overlay {
+        if let scrubPosition {
+          LivePlayerTimelineScrubPreview(position: scrubPosition, controller: controller)
+        }
       }
       Text(LivePlaybackChapterNavigator.clockText(seconds: Int(controller.duration)))
       AirPlayRouteButton()
@@ -140,26 +156,5 @@ struct LiveNativePlayerControls: View {
     .foregroundStyle(.white)
     .padding(.horizontal, isFullscreen ? 26 : 12)
     .padding(.bottom, isFullscreen ? 24 : 6)
-  }
-
-  private var sponsorSegmentBands: some View {
-    GeometryReader { proxy in
-      ForEach(controller.visibleSponsorBlockWindows) { window in
-        let band = bandSpan(window, width: proxy.size.width)
-        Capsule()
-          .fill(LiveSponsorBlockPalette.color(for: window.segment.category).opacity(0.55))
-          .frame(width: band.width, height: 5)
-          .position(x: band.center, y: proxy.size.height / 2)
-      }
-    }
-    .allowsHitTesting(false)
-    .accessibilityHidden(true)
-  }
-
-  private func bandSpan(_ window: LiveSponsorBlockWindow, width: CGFloat) -> (width: CGFloat, center: CGFloat) {
-    let span: Double = max(controller.duration, 1)
-    let start: Double = min(max(window.start / span, 0), 1)
-    let end: Double = min(max(window.end / span, 0), 1)
-    return (max(width * CGFloat(end - start), 3), width * CGFloat(start + end) / 2)
   }
 }
