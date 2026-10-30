@@ -71,8 +71,12 @@ struct LiveSearchFilterBar: View {
         set: { value in Task { await viewModel.selectSortFilter(value) } }
       )) {
         Text("Default order").tag(String?.none)
-        ForEach(viewModel.filters.sortFilters, id: \.value) { filter in
-          Text(verbatim: filter.displayName).tag(Optional(filter.value))
+        ForEach(sortGroups, id: \.name) { group in
+          Section(group.name) {
+            ForEach(group.options, id: \.value) { filter in
+              Text(verbatim: filter.displayName).tag(Optional(filter.value))
+            }
+          }
         }
       }
       .pickerStyle(.inline)
@@ -95,6 +99,19 @@ struct LiveSearchFilterBar: View {
     .padding(.horizontal, 12)
     .frame(height: 34)
     .background(isActive ? palette.accent.opacity(0.15) : palette.surface, in: Capsule())
+  }
+
+  private var sortGroups: [(name: String, options: [LiveSearchFilterOption])] {
+    var groups: [(name: String, options: [LiveSearchFilterOption])] = []
+    for filter in viewModel.filters.sortFilters where filter.displayName.lowercased() != "all" {
+      let name = filter.groupName ?? ""
+      if let index = groups.firstIndex(where: { $0.name == name }) {
+        groups[index].options.append(filter)
+      } else {
+        groups.append((name, [filter]))
+      }
+    }
+    return groups
   }
 
   private var selectedService: VideoService? {

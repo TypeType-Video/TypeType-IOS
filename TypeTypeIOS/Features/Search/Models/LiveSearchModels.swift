@@ -9,12 +9,20 @@ struct LiveSearchFilterOption: Decodable, Hashable, Identifiable {
   }
 
   var displayName: String {
-    label
-      .replacingOccurrences(of: "_", with: " ")
-      .split(separator: " ")
-      .map { word in
-        word.prefix(1).uppercased() + word.dropFirst()
-      }
+    let value = label.split(separator: ":", maxSplits: 1).last.map(String.init) ?? label
+    let trimmed = value.trimmingCharacters(in: .whitespaces)
+    return Self.words(trimmed.hasPrefix("sort_") ? String(trimmed.dropFirst(5)) : trimmed)
+  }
+
+  var groupName: String? {
+    guard label.contains(":"), let group = label.split(separator: ":").first else { return nil }
+    let name = group == "sortby" ? "sort_by" : String(group)
+    return Self.words(name)
+  }
+
+  private static func words(_ raw: String) -> String {
+    raw.split(whereSeparator: { $0 == "_" || $0 == " " })
+      .map { $0.prefix(1).uppercased() + $0.dropFirst().lowercased() }
       .joined(separator: " ")
   }
 }

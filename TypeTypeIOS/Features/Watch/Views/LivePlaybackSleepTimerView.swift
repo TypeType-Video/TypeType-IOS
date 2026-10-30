@@ -23,7 +23,6 @@ struct LivePlaybackSleepTimerMenu<Label: View>: View {
     } label: {
       label()
     }
-    .accessibilityIdentifier("live.player.sleep-timer.menu")
   }
 
   @ViewBuilder
