@@ -67,6 +67,12 @@ extension View {
   func liveRowBackground() -> some View {
     listRowBackground(ThemeRowFill())
   }
+
+  func liveBareRow() -> some View {
+    listRowBackground(Color.clear)
+      .listRowInsets(EdgeInsets(top: 6, leading: 0, bottom: 6, trailing: 0))
+      .listRowSeparator(.hidden)
+  }
 }
 
 struct ThemeRowFill: View {

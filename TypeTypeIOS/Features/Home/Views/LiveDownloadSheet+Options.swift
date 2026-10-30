@@ -4,8 +4,7 @@ extension LiveDownloadSheet {
   var options: some View {
     Group {
       typePicker
-        .listRowBackground(Color.clear)
-        .listRowInsets(EdgeInsets(top: 4, leading: 20, bottom: 4, trailing: 20))
+        .liveBareRow()
       LiveSection {
         switch viewModel.mode {
         case .video:
@@ -17,6 +16,20 @@ extension LiveDownloadSheet {
                   values: [("jpg", "JPEG"), ("png", "PNG"), ("webp", "WebP")])
         case .audio:
           LivePlayerOptionLabel("Best audio quality", icon: "waveform")
+        }
+        if viewModel.mode != .thumbnail {
+          LabeledContent {
+            if let bytes = estimatedBytes {
+              Text("About \(LiveDownloadTexts.size(bytes))")
+            } else if stream == nil {
+              ProgressView().controlSize(.small)
+            } else {
+              Text("Unknown")
+            }
+          } label: {
+            LivePlayerOptionLabel("Size", icon: "internaldrive")
+          }
+          .accessibilityElement(children: .combine)
         }
         if viewModel.mode != .thumbnail {
           Toggle(isOn: $viewModel.sponsorBlock) {
@@ -32,6 +45,10 @@ extension LiveDownloadSheet {
         }
       }
     }
+  }
+
+  private var estimatedBytes: Int64? {
+    stream.flatMap { LiveDownloadSizeEstimate.bytes(for: $0, mode: viewModel.mode, quality: viewModel.quality) }
   }
 
   private var typePicker: some View {

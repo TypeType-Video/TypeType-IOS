@@ -6,6 +6,7 @@ struct LiveDownloadSheet: View {
   @ObservedObject var deArrowStore: LiveDeArrowStore
   @Environment(\.dismiss) var dismiss
   @StateObject var viewModel: LiveDownloadViewModel
+  @State var stream: LivePlaybackStream?
 
   init(video: LiveVideoItem, dependencies: AppDependencies) {
     self.dependencies = dependencies
@@ -25,20 +26,17 @@ struct LiveDownloadSheet: View {
     NavigationStack {
       List {
         header
-          .listRowBackground(Color.clear)
-          .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20))
+          .liveBareRow()
         if showsOptions {
           options
+          startButton
+            .liveBareRow()
         }
         status
       }
       .liveGroupedList()
-      .contentMargins(.top, 0, for: .scrollContent)
-      .safeAreaInset(edge: .bottom) {
-        if showsOptions {
-          startButton
-        }
-      }
+      .listSectionSpacing(.compact)
+      .contentMargins(.top, 8, for: .scrollContent)
       .navigationTitle("Download")
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {
@@ -52,6 +50,21 @@ struct LiveDownloadSheet: View {
     .interactiveDismissDisabled(viewModel.isWorking && !viewModel.isFinishing)
     .accessibilityIdentifier("live.download.sheet")
     .task { await deArrowStore.prepare(viewModel.video) }
+    .task { await loadStream() }
+  }
+
+  private func loadStream() async {
+    let playback = dependencies.playbackCoordinator
+    if playback.currentVideo?.url == viewModel.video.url, let current = playback.controller?.stream {
+      stream = current
+      return
+    }
+    guard let service = dependencies.playbackService else { return }
+    do {
+      stream = try await service.stream(for: viewModel.video.url)
+    } catch {
+      AppLogger.network.failure("Loading streams for the download size", error)
+    }
   }
 
   private var showsOptions: Bool {
@@ -81,7 +94,7 @@ struct LiveDownloadSheet: View {
     Button {
       Task { await viewModel.start() }
     } label: {
-      Label(viewModel.state == .idle ? "Download" : "Download again", systemImage: "arrow.down")
+      Label(viewModel.state == .idle ? "Start download" : "Download again", systemImage: "arrow.down")
         .font(.headline)
         .frame(maxWidth: .infinity)
         .frame(height: 50)
@@ -89,9 +102,7 @@ struct LiveDownloadSheet: View {
     .liveProminentButton()
     .buttonBorderShape(.roundedRectangle(radius: 14))
     .disabled(!viewModel.canStart)
-    .padding(.horizontal, 20)
-    .padding(.vertical, 10)
-    .background(LiveThemeBackground().ignoresSafeArea())
+    .padding(.top, 4)
     .accessibilityIdentifier("live.download.start")
   }
 
