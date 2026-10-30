@@ -7,8 +7,8 @@ struct LiveSettingsDownloadsRow: View {
   var body: some View {
     LiveSettingsLinkRow(
       title: "Downloads",
+      subtitle: "Videos saved for offline viewing",
       icon: "arrow.down",
-      iconColor: .systemTeal,
       value: center.storageUsage > 0
         ? ByteCountFormatter.string(fromByteCount: center.storageUsage, countStyle: .file)
         : nil,

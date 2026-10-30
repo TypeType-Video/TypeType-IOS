@@ -5,22 +5,22 @@ extension LiveSettingsView {
   var experienceRows: some View {
     LiveSettingsLinkRow(
       title: "Appearance",
-      icon: "paintpalette.fill",
-      iconColor: .systemIndigo
+      subtitle: "Theme, color and font",
+      icon: "paintpalette.fill"
     ) {
       LiveSettingsAppearanceView(viewModel: viewModel, preferences: preferences)
     }
     LiveSettingsLinkRow(
       title: "Player",
-      icon: "play.fill",
-      iconColor: .systemBlue
+      subtitle: "Playback, gestures, languages, SponsorBlock",
+      icon: "play.fill"
     ) {
       LiveSettingsPlayerView(viewModel: viewModel, preferences: preferences)
     }
     LiveSettingsLinkRow(
       title: "Push notifications",
-      icon: "bell.fill",
-      iconColor: .systemRed
+      subtitle: "Channels that alert you",
+      icon: "bell.fill"
     ) {
       LiveNotificationSettingsView(dependencies: coordinator.dependencies)
     }
@@ -30,8 +30,8 @@ extension LiveSettingsView {
   var contentRows: some View {
     LiveSettingsLinkRow(
       title: "Content",
-      icon: "rectangle.stack.fill",
-      iconColor: .systemPurple
+      subtitle: "Home page, DeArrow, hidden sections",
+      icon: "rectangle.stack.fill"
     ) {
       LiveSettingsContentView(dependencies: coordinator.dependencies, viewModel: viewModel)
     }
@@ -40,8 +40,8 @@ extension LiveSettingsView {
     {
       LiveSettingsLinkRow(
         title: "Private RSS feeds",
-        icon: "dot.radiowaves.up.forward",
-        iconColor: .systemOrange
+        subtitle: "Private links to your feeds",
+        icon: "dot.radiowaves.up.forward"
       ) {
         LiveRssFeedsView(
           feedService: rssFeedService,
@@ -59,8 +59,8 @@ extension LiveSettingsView {
     )
     LiveSettingsLinkRow(
       title: "Data and backups",
-      icon: "externaldrive.fill",
-      iconColor: .systemGreen
+      subtitle: "Import and export your data",
+      icon: "externaldrive.fill"
     ) {
       LivePortabilityView(
         service: coordinator.dependencies.portabilityService,
@@ -69,8 +69,8 @@ extension LiveSettingsView {
     }
     LiveSettingsLinkRow(
       title: "Privacy",
-      icon: "hand.raised.fill",
-      iconColor: .systemBlue
+      subtitle: "Watch history and stored activity",
+      icon: "hand.raised.fill"
     ) {
       LiveSettingsPrivacyView(dependencies: coordinator.dependencies, viewModel: viewModel)
     }
@@ -80,8 +80,8 @@ extension LiveSettingsView {
   var advancedRows: some View {
     LiveSettingsLinkRow(
       title: "Blocked",
-      icon: "nosign",
-      iconColor: .systemGray
+      subtitle: "Hidden channels, videos and keywords",
+      icon: "nosign"
     ) {
       LiveContentControlsView(
         service: coordinator.dependencies.contentControlsService,
@@ -90,8 +90,8 @@ extension LiveSettingsView {
     }
     LiveSettingsLinkRow(
       title: "Diagnostics",
-      icon: "ladybug.fill",
-      iconColor: .systemGray
+      subtitle: "Recent requests, for troubleshooting",
+      icon: "ladybug.fill"
     ) {
       LiveDiagnosticsView(
         store: coordinator.dependencies.diagnosticsStore,
@@ -103,8 +103,8 @@ extension LiveSettingsView {
   var aboutRow: some View {
     LiveSettingsLinkRow(
       title: "About",
-      icon: "info",
-      iconColor: .systemGray
+      subtitle: "Versions and license",
+      icon: "info"
     ) {
       LiveAboutView(coordinator: coordinator, versionService: coordinator.dependencies.versionService)
     }

@@ -63,8 +63,7 @@ extension LiveAccountView {
     Section {
       LiveSettingsLinkRow(
         title: "Settings",
-        icon: "gearshape.fill",
-        iconColor: .systemGray
+        icon: "gearshape.fill"
       ) {
         LiveSettingsView(coordinator: coordinator)
       }
@@ -73,10 +72,7 @@ extension LiveAccountView {
         LiveNotificationsView(dependencies: coordinator.dependencies)
       } label: {
         HStack(spacing: 14) {
-          LiveSettingsIconTile(
-            icon: "bell.fill",
-            color: .systemRed
-          )
+          LiveSettingsIconTile(icon: "bell.fill")
           Text("Notifications")
           Spacer(minLength: 0)
           if notificationCenter.unreadCount > 0 {
@@ -95,7 +91,6 @@ extension LiveAccountView {
     LiveSettingsLinkRow(
       title: "Downloads",
       icon: "arrow.down.circle",
-      iconColor: .systemTeal,
       badge: downloadCenter.activeCount
     ) {
       LiveDownloadsView(
@@ -112,8 +107,7 @@ extension LiveAccountView {
       Section {
         LiveSettingsLinkRow(
           title: "Report a problem",
-          icon: "ladybug.fill",
-          iconColor: .systemRed
+          icon: "ladybug.fill"
         ) {
           LiveReportIssueView(
             service: coordinator.dependencies.bugReportsService
@@ -122,8 +116,7 @@ extension LiveAccountView {
         if user.role == .admin || user.role == .moderator {
           LiveSettingsLinkRow(
             title: "Manage bug reports",
-            icon: "ladybug.fill",
-            iconColor: .systemGray
+            icon: "ladybug.fill"
           ) {
             LiveAdminBugReportsView(
               service: coordinator.dependencies.bugReportsService,
@@ -142,8 +135,7 @@ extension LiveAccountView {
       Section {
         LiveSettingsLinkRow(
           title: "Admin console",
-          icon: "person.3.fill",
-          iconColor: .systemRed
+          icon: "person.3.fill"
         ) {
           LiveAdminConsoleView(
             dependencies: coordinator.dependencies,

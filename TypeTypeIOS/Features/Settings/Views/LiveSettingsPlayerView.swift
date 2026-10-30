@@ -7,21 +7,21 @@ struct LiveSettingsPlayerView: View {
   var body: some View {
     List {
       LiveSection {
-        LiveSettingsLinkRow(title: "Playback", icon: "play.fill", iconColor: .systemBlue) {
+        LiveSettingsLinkRow(title: "Playback", subtitle: "Autoplay, quality, speed, codec", icon: "play.fill") {
           LiveSettingsPlaybackPage(viewModel: viewModel, preferences: preferences)
         }
-        LiveSettingsLinkRow(title: "Gestures", icon: "hand.tap.fill", iconColor: .systemOrange) {
+        LiveSettingsLinkRow(title: "Gestures", subtitle: "Tap, swipe and hold on the video", icon: "hand.tap.fill") {
           LiveSettingsGesturesPage(preferences: preferences)
         }
-        LiveSettingsLinkRow(title: "Language and captions", icon: "captions.bubble.fill", iconColor: .systemIndigo) {
+        LiveSettingsLinkRow(title: "Language and captions", subtitle: "Subtitles and audio track", icon: "captions.bubble.fill") {
           LiveSettingsLanguagePage(viewModel: viewModel)
         }
       }
       LiveSection {
-        LiveSettingsLinkRow(title: "SponsorBlock", icon: "forward.end.fill", iconColor: .systemGreen) {
+        LiveSettingsLinkRow(title: "SponsorBlock", subtitle: "Skip sponsors and other segments", icon: "forward.end.fill") {
           LiveSettingsSponsorBlockPage(viewModel: viewModel)
         }
-        LiveSettingsLinkRow(title: "Bullet comments", icon: "text.bubble.fill", iconColor: .systemPink) {
+        LiveSettingsLinkRow(title: "Bullet comments", subtitle: "Comments that scroll over the video", icon: "text.bubble.fill") {
           LiveSettingsDanmakuPage(preferences: preferences)
         }
       }
