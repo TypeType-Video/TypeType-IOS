@@ -31,7 +31,12 @@ struct LivePlayerView: View {
   @State var autoPictureInPictureActive = false
   @StateObject var nativeControls = LiveNativeControlsState()
   @Environment(\.verticalSizeClass) private var verticalSizeClass
+  @Environment(\.accessibilityVoiceOverEnabled) var voiceOverEnabled
   var isScrolled = false
+
+  var accessibleControls: Bool {
+    preferences.preferences.usesAccessiblePlayerControls(voiceOver: voiceOverEnabled)
+  }
 
   var body: some View {
     GeometryReader { proxy in
@@ -39,6 +44,9 @@ struct LivePlayerView: View {
         Color.black
 
         videoSurface(width: proxy.size.width)
+          .onChange(of: accessibleControls, initial: true) { _, value in
+            nativeControls.staysVisible = value
+          }
 
         if controller.audioOnly {
           ZStack {

@@ -41,7 +41,7 @@ extension LivePlayerView {
   ) {
     LivePlayerView.logGesture("doubleTap x=\(Int(location.x))")
     guard
-      !preferences.preferences.playerAccessibleControlsEnabled,
+      !accessibleControls,
       preferences.preferences.playerDoubleTapSeekEnabled
     else {
       return
@@ -89,7 +89,7 @@ extension LivePlayerView {
     if case let .began(kind, _) = event {
       LivePlayerView.logGesture("swipe began \(kind)")
     }
-    guard preferences.preferences.playerSwipeBrightnessVolumeEnabled else {
+    guard !accessibleControls, preferences.preferences.playerSwipeBrightnessVolumeEnabled else {
       return
     }
     switch event {
@@ -154,7 +154,7 @@ extension LivePlayerView {
   }
 
   func beginSpeedRamp() {
-    guard preferences.preferences.playerLongPressSpeedEnabled,
+    guard !accessibleControls, preferences.preferences.playerLongPressSpeedEnabled,
       longPressBaseRate == nil
     else { return }
     LivePlayerView.logGesture("speedRamp ON")
@@ -173,7 +173,7 @@ extension LivePlayerView {
 
   func setLongPressBoost(active: Bool) {
     LivePlayerView.logGesture(active ? "longPress ON" : "longPress OFF")
-    guard preferences.preferences.playerLongPressSpeedEnabled else { return }
+    guard !accessibleControls, preferences.preferences.playerLongPressSpeedEnabled else { return }
     longPressBoostTask?.cancel()
     longPressBoostTask = nil
     if active {

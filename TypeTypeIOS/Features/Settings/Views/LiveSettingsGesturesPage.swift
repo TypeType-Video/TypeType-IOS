@@ -2,6 +2,7 @@ import SwiftUI
 
 struct LiveSettingsGesturesPage: View {
   @ObservedObject var preferences: LiveAppPreferencesStore
+  @Environment(\.accessibilityVoiceOverEnabled) private var voiceOverEnabled
 
   var body: some View {
     List {
@@ -53,7 +54,7 @@ struct LiveSettingsGesturesPage: View {
   }
 
   private var gestureReason: LocalizedStringKey? {
-    preferences.preferences.playerAccessibleControlsEnabled
+    preferences.preferences.usesAccessiblePlayerControls(voiceOver: voiceOverEnabled)
       ? "Off while accessible player controls are on."
       : nil
   }

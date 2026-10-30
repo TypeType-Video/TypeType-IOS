@@ -200,6 +200,7 @@ extension LivePlayerLayerCoordinator: UIGestureRecognizerDelegate {
       // Direction only: the pan begins after about 10 pt, so a distance gate would fail every scrub.
       guard abs(translation.x) > abs(translation.y) * 1.25,
         controller.appPreferences.preferences.playerSwipeSeekEnabled,
+        !controller.appPreferences.preferences.usesAccessiblePlayerControls(),
         controller.duration > 0
       else { return false }
       horizontalSeekBasePosition = controller.position

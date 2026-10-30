@@ -3,6 +3,11 @@ import Foundation
 @MainActor
 final class LiveNativeControlsState: ObservableObject {
   @Published var visible = true
+  var staysVisible = false {
+    didSet {
+      if staysVisible { keepVisible() }
+    }
+  }
   private var hideTask: Task<Void, Never>?
   private var tapTask: Task<Void, Never>?
 
@@ -11,6 +16,7 @@ final class LiveNativeControlsState: ObservableObject {
     tapTask = Task { [weak self] in
       try? await Task.sleep(for: .milliseconds(260))
       guard !Task.isCancelled, let self else { return }
+      guard !staysVisible else { return }
       visible.toggle()
       if visible { scheduleHide() }
     }
@@ -27,6 +33,7 @@ final class LiveNativeControlsState: ObservableObject {
 
   func scheduleHide() {
     hideTask?.cancel()
+    guard !staysVisible else { return }
     hideTask = Task { [weak self] in
       try? await Task.sleep(for: .seconds(3))
       guard !Task.isCancelled else { return }
