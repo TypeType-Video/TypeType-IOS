@@ -454,3 +454,6 @@
 "Skip sponsors and other segments" = "Passer les sponsors et autres segments";
 "Comments that scroll over the video" = "Commentaires qui défilent sur la vidéo";
 "Account settings can be changed again once you are connected." = "Les réglages du compte redeviennent modifiables une fois connecté.";
+"The default service could not be updated." = "Le service par défaut n’a pas pu être modifié.";
+"Seek backward 10 seconds" = "Reculer de 10 secondes";
+"Seek forward 10 seconds" = "Avancer de 10 secondes";
