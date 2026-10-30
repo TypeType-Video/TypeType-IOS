@@ -12,9 +12,11 @@ extension LiveHomeView {
     }
   }
 
+  // Leading, next to the logo: four trailing items push settings and the account into the overflow menu on iPad,
+  // where the tab bar takes the middle of the bar, and cut the centred title on small iPhones.
   @ToolbarContentBuilder
   var serviceToolbar: some ToolbarContent {
-    ToolbarItem(placement: .topBarTrailing) {
+    ToolbarItem(placement: .topBarLeading) {
       if viewModel.services.count > 1 {
         Menu {
           ForEach(viewModel.services) { service in
