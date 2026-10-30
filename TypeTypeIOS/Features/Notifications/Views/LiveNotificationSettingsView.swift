@@ -1,8 +1,7 @@
 import SwiftUI
 
 struct LiveNotificationSettingsView: View {
-  @Environment(\.themePalette) private var palette
-  @Environment(\.accessibilityReduceMotion) private var reduceMotion
+  @Environment(\.liveToasts) private var toasts
   @State private var subscriptions: [String: LiveSubscription] = [:]
   @State private var search = ""
   @StateObject private var viewModel: LiveNotificationSettingsViewModel
@@ -25,8 +24,11 @@ struct LiveNotificationSettingsView: View {
       .navigationTitle("Channel notifications")
       .navigationBarTitleDisplayMode(.inline)
       .task { await prepare() }
-      .overlay(alignment: .bottom) { toastOverlay }
-      .animation(.smooth(duration: 0.3), value: viewModel.toast)
+      .onChange(of: viewModel.toast) { _, toast in
+        guard let toast else { return }
+        toasts?.show(LiveNotificationTexts.message(for: toast))
+        viewModel.dismissToast()
+      }
       .alert("Notification settings", isPresented: errorBinding) {
         Button("OK") { viewModel.dismissError() }
       } message: {
@@ -86,39 +88,6 @@ struct LiveNotificationSettingsView: View {
     await viewModel.prepare()
     guard let list = try? await subscriptionsService.subscriptions() else { return }
     subscriptions = Dictionary(list.map { ($0.channelURL, $0) }, uniquingKeysWith: { first, _ in first })
-  }
-
-  @ViewBuilder
-  private var toastOverlay: some View {
-    if let toast = viewModel.toast {
-      let card = HStack(spacing: 12) {
-        Image(systemName: "checkmark.circle.fill")
-          .font(.title3.weight(.semibold))
-          .foregroundStyle(palette.accent)
-        Text(LiveNotificationTexts.message(for: toast))
-          .font(.callout.weight(.semibold))
-          .multilineTextAlignment(.leading)
-      }
-      .padding(.horizontal, 20)
-      .padding(.vertical, 14)
-      .accessibilityElement(children: .combine)
-      .accessibilityIdentifier("live.notification-settings.toast")
-      .task(id: toast) {
-        try? await Task.sleep(for: .seconds(3))
-        viewModel.dismissToast()
-      }
-      .onTapGesture { viewModel.dismissToast() }
-      Group {
-        if #available(iOS 26.0, *) {
-          card.glassEffect(.regular, in: .capsule)
-        } else {
-          card.background(.regularMaterial, in: Capsule())
-        }
-      }
-      .padding(.horizontal, 16)
-      .padding(.bottom, 24)
-      .transition(.liveBanner(reduceMotion: reduceMotion))
-    }
   }
 
   private var errorBinding: Binding<Bool> {

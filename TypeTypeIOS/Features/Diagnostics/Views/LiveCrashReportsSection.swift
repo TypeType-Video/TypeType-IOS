@@ -40,7 +40,7 @@ struct LiveCrashReportsSection: View {
 
 struct LiveCrashReportView: View {
   let report: LiveCrashReport
-  @State private var copied = false
+  @Environment(\.liveToasts) private var toasts
 
   var body: some View {
     List {
@@ -52,9 +52,9 @@ struct LiveCrashReportView: View {
       LiveSection {
         Button {
           UIPasteboard.general.string = report.text
-          copied = true
+          toasts?.show(String(localized: "Report copied"))
         } label: {
-          Label(copied ? "Report copied" : "Copy report", systemImage: copied ? "checkmark" : "doc.on.doc")
+          Label("Copy report", systemImage: "doc.on.doc")
         }
       }
     }

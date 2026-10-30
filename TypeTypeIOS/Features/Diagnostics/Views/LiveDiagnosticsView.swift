@@ -9,7 +9,7 @@ struct LiveDiagnosticsView: View {
   @State private var isLoading = true
   @State private var confirmsClear = false
   @State private var copiedRequestID: String?
-  @Environment(\.accessibilityReduceMotion) private var reduceMotion
+  @Environment(\.liveToasts) private var toasts
 
   var body: some View {
     List {
@@ -80,16 +80,8 @@ struct LiveDiagnosticsView: View {
     }
     .refreshable { await reload() }
     .task { await reload() }
-    .overlay(alignment: .bottom) {
-      if copiedRequestID != nil {
-        Text("Request ID copied")
-          .font(.footnote.weight(.semibold))
-          .padding(.horizontal, 14)
-          .padding(.vertical, 9)
-          .background(.regularMaterial, in: Capsule())
-          .padding(.bottom, 16)
-          .transition(.liveBanner(reduceMotion: reduceMotion))
-      }
+    .onChange(of: copiedRequestID) { _, id in
+      if id != nil { toasts?.show(String(localized: "Request ID copied")) }
     }
     .accessibilityIdentifier("live.diagnostics.screen")
   }

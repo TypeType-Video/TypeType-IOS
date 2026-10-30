@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct LiveVideoQuickActionsModifier: ViewModifier {
-  @Environment(\.themePalette) private var palette
+  @Environment(\.liveToasts) private var toasts
   @StateObject var viewModel: LiveVideoQuickActionsViewModel
   @State var presentsDownload = false
   @State var presentsShareChoice = false
@@ -34,35 +34,6 @@ struct LiveVideoQuickActionsModifier: ViewModifier {
     self.onRemove = onRemove
   }
 
-  private func toastCard(_ message: String) -> some View {
-    HStack(spacing: 12) {
-      Image(systemName: "checkmark.circle.fill")
-        .font(.title3.weight(.semibold))
-        .foregroundStyle(palette.accent)
-      Text(message)
-        .font(.callout.weight(.semibold))
-        .foregroundStyle(.primary)
-        .multilineTextAlignment(.leading)
-    }
-    .padding(.horizontal, 22)
-    .padding(.vertical, 16)
-    .transition(.opacity)
-    .gesture(
-      DragGesture(minimumDistance: 24)
-        .onEnded { _ in
-          withAnimation(.easeOut(duration: 0.6)) {
-            viewModel.dismissMessage()
-          }
-        }
-    )
-    .task {
-      try? await Task.sleep(for: .seconds(2.6))
-      withAnimation(.easeOut(duration: 0.35)) {
-        viewModel.dismissMessage()
-      }
-    }
-  }
-
   func body(content: Content) -> some View {
     content
       .environment(
@@ -78,18 +49,11 @@ struct LiveVideoQuickActionsModifier: ViewModifier {
             }
         )
       )
-      .overlay {
-        if let message = viewModel.message {
-          if #available(iOS 26.0, *) {
-            toastCard(message)
-              .glassEffect(.regular, in: .capsule)
-          } else {
-            toastCard(message)
-              .background(.black.opacity(0.85), in: Capsule())
-          }
-        }
+      .onChange(of: viewModel.message) { _, message in
+        guard let message else { return }
+        toasts?.show(message)
+        viewModel.dismissMessage()
       }
-      .animation(.easeIn(duration: 0.18), value: viewModel.message)
       .sheet(isPresented: $presentsDownload) {
         LiveDownloadSheet(
           video: viewModel.video,

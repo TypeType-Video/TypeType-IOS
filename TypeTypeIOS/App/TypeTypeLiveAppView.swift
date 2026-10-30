@@ -53,6 +53,7 @@ struct TypeTypeLiveAppView: View {
     .background(ThemeChromeBridge(chrome: palette.chrome))
     .environmentObject(coordinator.dependencies.watchProgress)
     .environment(\.imagePipeline, coordinator.dependencies.imagePipeline)
+    .environment(\.liveToasts, coordinator.dependencies.toasts)
     .environmentObject(preferences)
     .task {
       if let launchURL = AppConfig.debugIncomingURL {
