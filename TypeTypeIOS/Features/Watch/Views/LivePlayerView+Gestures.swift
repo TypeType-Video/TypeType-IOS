@@ -56,7 +56,7 @@ extension LivePlayerView {
     ) else {
       return
     }
-    // Build on the pending target: the position only moves once the seek has run.
+    // Build on the last target: the reported position lags behind a seek that is still loading.
     let pending = doubleTapSeek.flatMap {
       $0.direction == direction && Date().timeIntervalSince($0.at) < 1.5 ? $0 : nil
     }
@@ -75,12 +75,7 @@ extension LivePlayerView {
       direction: direction,
       seconds: seconds
     )
-    doubleTapSeekTask?.cancel()
-    doubleTapSeekTask = Task { @MainActor in
-      try? await Task.sleep(for: .milliseconds(450))
-      guard !Task.isCancelled else { return }
-      controller.seek(to: target)
-    }
+    controller.seek(to: target)
   }
 
   func handleSwipeAdjustment(

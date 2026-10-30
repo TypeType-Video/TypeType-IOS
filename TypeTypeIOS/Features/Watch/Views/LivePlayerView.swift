@@ -12,7 +12,6 @@ struct LivePlayerView: View {
 
   @State var seekFeedback: PlayerDoubleTapSeekFeedback?
   @State var doubleTapSeek: (target: TimeInterval, seconds: Int, direction: PlayerDoubleTapSeekDirection, at: Date)?
-  @State var doubleTapSeekTask: Task<Void, Never>?
   @State var swipeAdjustment: PlayerSwipeAdjustmentState?
   @State var speedBoostRate: Float?
   nonisolated(unsafe) static var gestureLog: [String] = []
