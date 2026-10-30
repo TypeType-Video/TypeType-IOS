@@ -85,6 +85,16 @@ struct LiveSettingsAccountsView: View {
 
       if coordinator.currentUser.map({ !$0.id.hasPrefix("guest:") }) == true {
         LiveSavedAccountsSection(coordinator: coordinator)
+        if coordinator.instance?.youtubeRemoteLoginEnabled == true,
+          let service = coordinator.dependencies.youtubeSessionService {
+          LiveSection {
+            NavigationLink {
+              LiveYouTubeSessionView(coordinator: coordinator, service: service)
+            } label: {
+              LiveSettingText(title: "YouTube sign-in", detail: "For videos that need a signed-in YouTube session.")
+            }
+          }
+        }
       }
 
       if let user = coordinator.currentUser {
