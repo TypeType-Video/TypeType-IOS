@@ -1,5 +1,6 @@
 import BackgroundTasks
 import Foundation
+import UserNotifications
 
 @MainActor
 final class LiveBackgroundRefreshCoordinator {
@@ -51,12 +52,30 @@ final class LiveBackgroundRefreshCoordinator {
   func handle(_ task: BGAppRefreshTask) async {
     scheduleRefresh()
     let refreshTask = Task { [weak dependencies] in
-      await dependencies?.notificationCenter.refresh()
+      guard let dependencies else { return }
+      await dependencies.notificationCenter.refresh()
+      await Self.postNewNotifications(dependencies)
     }
     task.expirationHandler = {
       refreshTask.cancel()
     }
     await refreshTask.value
     task.setTaskCompleted(success: !refreshTask.isCancelled)
+  }
+
+  private static func postNewNotifications(_ dependencies: AppDependencies) async {
+    guard let serverID = dependencies.serverStore.selectedServerID(),
+      let session = dependencies.sessionStore.session(forServerID: serverID),
+      !session.userID.hasPrefix("guest:")
+    else { return }
+    let center = UNUserNotificationCenter.current()
+    do {
+      let page = try await dependencies.notificationsService.notifications(page: 1, limit: 20)
+      guard !Task.isCancelled else { return }
+      let poster = LiveLocalNotificationPoster(center: center, defaults: .standard)
+      await poster.post(page.items, unreadCount: page.unreadCount, scope: "\(serverID):\(session.userID)")
+    } catch {
+      AppLogger.app.failure("Refreshing notifications in the background", error)
+    }
   }
 }
