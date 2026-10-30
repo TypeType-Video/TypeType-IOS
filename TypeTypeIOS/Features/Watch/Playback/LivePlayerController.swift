@@ -1,4 +1,5 @@
 import AVFoundation
+import Combine
 import Foundation
 
 @MainActor
@@ -90,6 +91,7 @@ final class LivePlayerController: ObservableObject {
   var seekTask: Task<Void, Never>?
   var playbackServer: LivePlaybackHTTPServer?
   var itemObservation: NSKeyValueObservation?
+  var bulletCommentPreferencesObservation: AnyCancellable?
   var playbackObservation: NSKeyValueObservation?
   var endObservation: NSObjectProtocol?
   var timeObserver: Any?
@@ -133,20 +135,8 @@ final class LivePlayerController: ObservableObject {
     let defaults = UserDefaults.standard
     let initialPreferences = appPreferences.preferences
     audioOnly = initialPreferences.playerAudioOnlyPlayback
-    let defaultDanmakuEnabled = initialPreferences.danmakuEnabled
-    bulletCommentsEnabled = defaults.object(
-      forKey: Self.bulletCommentsEnabledKey
-    ) == nil
-      ? defaultDanmakuEnabled
-      : defaults.bool(forKey: Self.bulletCommentsEnabledKey)
-    let storedSpeed = defaults.object(
-      forKey: Self.bulletCommentSpeedKey
-    ) == nil ? 1 : defaults.double(forKey: Self.bulletCommentSpeedKey)
-    bulletCommentSpeed = min(max(storedSpeed, 0.5), 2)
-    let storedSize = defaults.object(
-      forKey: Self.bulletCommentSizeKey
-    ) == nil ? 1 : defaults.double(forKey: Self.bulletCommentSizeKey)
-    bulletCommentSize = min(max(storedSize, 0.5), 2)
+    Self.moveLegacyBulletCommentChoices(into: appPreferences, from: defaults)
+    observeBulletCommentPreferences()
     player.automaticallyWaitsToMinimizeStalling = true
     installPeriodicObserver()
   }
