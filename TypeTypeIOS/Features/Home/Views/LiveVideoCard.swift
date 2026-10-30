@@ -3,6 +3,8 @@ import SwiftUI
 struct LiveVideoCard: View {
   @Environment(\.livePrewarm) private var prewarm
   @State private var didPrewarm = false
+  @State private var showsActions = false
+  @State private var openedByLongPress = false
   @Environment(\.liveQuickActionsMenu) private var quickActionsMenu
   @Environment(\.themePalette) private var palette
 
@@ -25,10 +27,21 @@ struct LiveVideoCard: View {
 
   var body: some View {
     VStack(alignment: .leading, spacing: 10) {
-      Button(action: action) {
+      Button {
+        if openedByLongPress {
+          openedByLongPress = false
+        } else {
+          action()
+        }
+      } label: {
         thumbnail
       }
       .buttonStyle(LivePrewarmButtonStyle(onPrewarm: triggerPrewarm))
+      .simultaneousGesture(LongPressGesture(minimumDuration: 0.45).onEnded { _ in openActions() })
+      .accessibilityAction(named: Text("More actions")) { showsActions = true }
+      .onChange(of: showsActions) { _, shown in
+        if !shown { openedByLongPress = false }
+      }
       .accessibilityLabel("Open video \(branding.title)")
       .accessibilityHint("Opens video details")
       .accessibilityIdentifier("live.home.video.card.\(video.id)")
@@ -45,6 +58,13 @@ struct LiveVideoCard: View {
 
   // Prewarm from the button style's isPressed: a zero-distance DragGesture fights the ScrollView pan and stops
   // scrolling.
+  private func openActions() {
+    guard quickActionsMenu != nil else { return }
+    openedByLongPress = true
+    showsActions = true
+    UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+  }
+
   private func triggerPrewarm() {
     guard !didPrewarm else { return }
     didPrewarm = true
@@ -140,7 +160,7 @@ struct LiveVideoCard: View {
     // Anchored to the corner, not the title: DeArrow swaps titles after load.
     .overlay(alignment: .topTrailing) {
       if let quickActionsMenu {
-        LiveDotMenu {
+        LiveDotMenu(isPresented: $showsActions) {
           quickActionsMenu
         }
         .accessibilityLabel("More actions for \(branding.title)")

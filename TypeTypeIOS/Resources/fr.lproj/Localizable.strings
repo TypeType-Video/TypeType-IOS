@@ -684,3 +684,8 @@
 "Hidden everywhere in the app" = "Masquées partout dans l’app";
 "Videos whose title contains them are hidden" = "Les vidéos dont le titre les contient sont masquées";
 "Channels kept even when others are limited" = "Chaînes gardées même quand les autres sont limitées";
+"End of video" = "Fin de la vidéo";
+"Turn off sleep timer" = "Arrêter la minuterie";
+"Sleep timer" = "Minuterie de mise en veille";
+"More actions" = "Plus d’actions";
+"More actions for %@" = "Plus d’actions pour %@";

@@ -30,13 +30,19 @@ struct LiveDotMenuRowStyle: ButtonStyle {
 
 // A button and a popover, not Menu: a Menu closed mid-scroll leaves its label frozen on screen.
 struct LiveDotMenu<Content: View>: View {
-  @State private var isPresented = false
+  @State private var ownPresentation = false
   @State private var anchorFrame: CGRect?
   @State private var opensUpward = true
+  private let external: Binding<Bool>?
   private let content: Content
 
-  init(@ViewBuilder content: () -> Content) {
+  init(isPresented: Binding<Bool>? = nil, @ViewBuilder content: () -> Content) {
+    external = isPresented
     self.content = content()
+  }
+
+  private var isPresented: Binding<Bool> {
+    external ?? $ownPresentation
   }
 
   var body: some View {
@@ -44,7 +50,7 @@ struct LiveDotMenu<Content: View>: View {
       if let frame = anchorFrame {
         opensUpward = frame.midY > UIScreen.main.bounds.height / 2
       }
-      isPresented = true
+      isPresented.wrappedValue = true
     } label: {
       LiveDotsGlyph()
     }
@@ -54,7 +60,7 @@ struct LiveDotMenu<Content: View>: View {
       anchorFrame = frame
     }
     .popover(
-      isPresented: $isPresented,
+      isPresented: isPresented,
       attachmentAnchor: .point(.init(x: 0.5, y: 0.0)),
       arrowEdge: opensUpward ? .bottom : .top
     ) {
@@ -67,7 +73,7 @@ struct LiveDotMenu<Content: View>: View {
       .padding(8)
       .frame(width: 300, alignment: .leading)
       .frame(maxHeight: 460)
-      .simultaneousGesture(TapGesture().onEnded { isPresented = false })
+      .simultaneousGesture(TapGesture().onEnded { isPresented.wrappedValue = false })
       .presentationCompactAdaptation(.popover)
     }
   }

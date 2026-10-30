@@ -1,73 +1,38 @@
 import SwiftUI
 
-// A List inside a popover clips its rows, so this one is sized to its content.
-struct LivePlaybackSleepTimerPopover: View {
-  @Environment(\.themePalette) private var palette
+struct LivePlaybackSleepTimerMenu<Label: View>: View {
   @ObservedObject var coordinator: LivePlaybackCoordinator
-  @Environment(\.dismiss) private var dismiss
+  @ViewBuilder let label: () -> Label
 
   var body: some View {
-    VStack(alignment: .leading, spacing: 0) {
+    Menu {
       ForEach([15, 30, 60, 90], id: \.self) { minutes in
-        row(
-          title: "\(minutes) minutes",
-          selected: isSelected(minutes: minutes)
-        ) {
+        choice(String(localized: "\(minutes) minutes"), selected: isSelected(minutes: minutes)) {
           coordinator.startSleepTimer(minutes: minutes)
-          dismiss()
         }
-        divider
       }
-      row(
-        title: "End of video",
-        selected: coordinator.sleepTimer.mode == .endOfVideo
-      ) {
+      choice(String(localized: "End of video"), selected: coordinator.sleepTimer.mode == .endOfVideo) {
         coordinator.stopAtEndOfVideo()
-        dismiss()
       }
       if coordinator.sleepTimer.isActive {
-        divider
-        row(title: "Turn off sleep timer", selected: false, destructive: true) {
+        Divider()
+        Button("Turn off sleep timer", systemImage: "timer.slash", role: .destructive) {
           coordinator.cancelSleepTimer()
-          dismiss()
         }
       }
-    }
-    .frame(width: 280)
-    .presentationCompactAdaptation(.popover)
-    .accessibilityIdentifier("live.player.sleep-timer.popover")
-  }
-
-  private func row(
-    title: String,
-    selected: Bool,
-    destructive: Bool = false,
-    action: @escaping () -> Void
-  ) -> some View {
-    Button {
-      action()
     } label: {
-      HStack(spacing: 12) {
-        Text(title)
-          .foregroundStyle(destructive ? Color.systemRed : .primary)
-        Spacer(minLength: 12)
-        if selected {
-          Image(systemName: "checkmark")
-            .foregroundStyle(palette.accent)
-        }
-      }
-      .padding(.horizontal, 16)
-      .frame(minHeight: 44)
-      .contentShape(Rectangle())
+      label()
     }
-    .buttonStyle(.plain)
+    .accessibilityIdentifier("live.player.sleep-timer.menu")
   }
 
-  private var divider: some View {
-    Rectangle()
-      .fill(palette.separator)
-      .frame(height: 1)
-      .padding(.horizontal, 16)
+  @ViewBuilder
+  private func choice(_ title: String, selected: Bool, action: @escaping () -> Void) -> some View {
+    if selected {
+      Button(title, systemImage: "checkmark", action: action)
+    } else {
+      Button(title, action: action)
+    }
   }
 
   private func isSelected(minutes: Int) -> Bool {

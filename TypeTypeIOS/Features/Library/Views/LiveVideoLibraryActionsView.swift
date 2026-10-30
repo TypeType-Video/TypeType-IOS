@@ -8,7 +8,6 @@ struct LiveVideoLibraryActionsView: View {
   @State private var createsPlaylist = false
   @Environment(\.liveWatchExtrasEnabled) private var extrasEnabled
   @State private var presentsDownload = false
-  @State private var presentsSleepTimer = false
   @ObservedObject private var playbackCoordinator: LivePlaybackCoordinator
 
   init(video: LiveVideoItem, dependencies: AppDependencies) {
@@ -140,21 +139,11 @@ struct LiveVideoLibraryActionsView: View {
       }
       .accessibilityIdentifier("live.video.download")
 
-      iconButton(
-        systemImage: "timer",
-        label: "Sleep timer",
-        isActive: playbackCoordinator.sleepTimer.isActive
-      ) {
-        presentsSleepTimer = true
+      LivePlaybackSleepTimerMenu(coordinator: playbackCoordinator) {
+        iconLabel("timer", isActive: playbackCoordinator.sleepTimer.isActive)
       }
+      .accessibilityLabel("Sleep timer")
       .accessibilityIdentifier("live.video.sleep-timer")
-      .popover(
-        isPresented: $presentsSleepTimer,
-        attachmentAnchor: .point(.init(x: 0.5, y: 1.0)),
-        arrowEdge: .top
-      ) {
-        LivePlaybackSleepTimerPopover(coordinator: playbackCoordinator)
-      }
     }
   }
 
