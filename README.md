@@ -10,7 +10,6 @@ You want to know the current position of TypeType about AI ? Go check [this](htt
 
 <div align="center">
 
-[![iOS](https://github.com/TypeType-Video/TypeType-IOS/actions/workflows/ios.yml/badge.svg?branch=main)](https://github.com/TypeType-Video/TypeType-IOS/actions/workflows/ios.yml)
 [![MPL 2.0](https://img.shields.io/badge/license-MPL--2.0-orange.svg)](LICENSE)
 [![iOS 17+](https://img.shields.io/badge/iOS-17%2B-000000.svg?logo=apple)](project.yml)
 [![Swift 5.10](https://img.shields.io/badge/Swift-5.10-F05138.svg?logo=swift&logoColor=white)](project.yml)
@@ -20,9 +19,9 @@ You want to know the current position of TypeType about AI ? Go check [this](htt
 
 TypeType iOS is the native SwiftUI client for
 [TypeType](https://github.com/TypeType-Video/TypeType). It combines adaptive
-iPhone and iPad navigation with AVKit playback, background audio, Picture in
-Picture, offline media, and persistent access to a selected self-hosted
-instance.
+iPhone and iPad navigation with an in-house native player, background audio,
+Picture in Picture, offline media, and persistent access to a selected
+self-hosted instance.
 
 The client communicates exclusively with
 [TypeType-Server](https://github.com/TypeType-Video/TypeType-Server). Media
@@ -41,46 +40,52 @@ downloads, recommendations, and authoritative user data remain server-side.
 | --- | --- |
 | ![TypeType home on iPad](assets/screenshots/ipad-home.png) | ![TypeType watch page on iPad](assets/screenshots/ipad-player.png) |
 
-The screenshots come directly from the current iPhone and iPad application
-builds. Reproducible interface fixtures keep visual regressions independent
-from changing public feeds.
+Screenshots of the iPhone and iPad builds from October 2026; the settings,
+downloads and search pages have been rebuilt since. Reproducible interface
+fixtures keep visual regressions independent from changing public feeds.
 
 ## Features
 
-- One adaptive SwiftUI interface for iPhone and iPad
+- One adaptive SwiftUI interface for iPhone and iPad, with settings in a split
+  view on iPad
 - Instance setup, guest access, local accounts, OIDC, password reset, and
-  Keychain-backed persistent sessions
-- Account profiles with isolated server-side sessions
-- Channel notification preferences when the instance enables push delivery
-- Subscription groups with creation, management, filtering, and per-channel
-  quick actions
+  Keychain-backed persistent sessions; several accounts per instance
+- Account profiles with isolated server-side sessions, and YouTube sign-in
+  through the instance's remote browser
 - Home, multi-service search, channels, podcasts, subscriptions, history,
   playlists, favorites, and Watch Later
 - YouTube, BiliBili, and NicoNico discovery with provider-aware playback and
   native NicoNico danmaku
-- Queue, captions, chapters, SponsorBlock, DeArrow, comments, related videos,
-  sleep timer, and playback-speed controls
-- Player double-tap seek zones with native AVKit controls
-- Server-backed audio and video downloads with persistent tracking and native
-  offline playback
-- Profile, imports, notifications, content controls, diagnostics, settings,
-  and instance administration
-- Dark and light appearances with Dynamic Type and VoiceOver-friendly controls
+- Player gestures matching the Android app: swipe for volume, brightness and
+  seeking with a storyboard preview and fine seeking, double tap to skip, hold
+  for 2x
+- Queue, autoplay, captions, chapters, SponsorBlock with skip notices, DeArrow,
+  comments, related videos, sleep timer, and playback speed
+- Server-backed audio, video and image downloads with an estimated size,
+  progress tracking, and native offline playback
+- Subscription groups, channel notification preferences when the instance
+  enables push delivery, and blocked channels, videos and keywords
+- Settings that save on their own, imports and backups, MetricKit crash and
+  hang reports, diagnostics, and instance administration
+- Six themes with accent colours, AMOLED black, a Liquid Glass app icon,
+  Dynamic Type, Reduce Motion, VoiceOver labels, and English and French
 
 ## Native playback
 
 | Source | Native path |
 | --- | --- |
-| YouTube | TypeType SABR sessions, fragmented MP4 segments, bounded live and VOD buffers, native seeking, and selectable H.264/AAC tracks |
-| BiliBili | Authenticated byte-range loading, SIDX indexing, separate audio/video adaptation to local HLS, and automatic source fallback |
+| YouTube | In-house player: TypeType SABR sessions, fragmented MP4 segments decoded and drawn through `AVSampleBufferDisplayLayer`, bounded buffers, native seeking, and selectable H.264/AAC tracks |
+| BiliBili | In-house player: authenticated byte-range loading, SIDX indexing, separate audio and video tracks, and automatic source fallback |
+| Live streams | HLS through AVPlayer with AVKit controls |
 | NicoNico | Provider media through AVKit with synchronized, configurable danmaku |
 | Downloads | Validated local audio or video artifacts played directly with AVKit |
 
-The application presents online media through the native player rather than a
-WebView. Full-screen playback, Picture in Picture, mini-player transitions,
-audio-only round trips, background audio, captions, queue state, and playback
-progress share one controller. Downloaded artifacts use a dedicated offline
-AVKit player.
+The application presents online media through native players rather than a
+WebView. The in-house player draws its own controls, full screen included, and
+keeps Picture in Picture through the sample buffer layer; AVKit controls stay
+wherever AVPlayer still plays. Full-screen playback, Picture in Picture,
+mini-player transitions, audio-only round trips, background audio, captions,
+queue state, and playback progress share one controller.
 
 Playback is designed to survive transient network failures. SABR window
 requests are serialized and refreshed near the playback edge, interrupted
@@ -105,8 +110,9 @@ backend validation:
 - Live XCUITests exercise randomized YouTube, BiliBili, and NicoNico videos,
   long-form playback, full-screen round trips, audio-only transitions, process
   relaunches, provider fallback, and real transport interruptions.
-- GitHub Actions runs the unit suite and builds the Release configuration for
-  every push and pull request targeting `dev` or `main`.
+- Continuous integration is paused for now
+  (`.github/workflows/ios.yml.disabled`); run the suites locally before
+  opening a pull request.
 
 ## Stack
 
@@ -115,7 +121,7 @@ backend validation:
 | Language | Swift 5.10 |
 | Platform | iOS 17+ |
 | Interface | SwiftUI |
-| Playback | AVFoundation and AVKit |
+| Playback | AVFoundation, AVKit, and an in-house sample buffer player |
 | Networking | URLSession |
 | Persistence | Keychain and UserDefaults |
 | Project generation | XcodeGen |
@@ -177,10 +183,9 @@ and credentials are not stored in this repository.
 
 ## Releases
 
-GitHub Actions validates unit tests and a Release build on pushes to `dev` and
-`main`, and on pull requests. Maintainers can publish the version declared by
-`MARKETING_VERSION` in `project.yml` by manually running the `iOS` workflow
-from `main` with release publication enabled.
+Releases are cut from `main` with the version declared by `MARKETING_VERSION`
+in `project.yml`. The release workflow is paused together with the rest of
+continuous integration.
 
 Each GitHub release contains an unsigned IPA and its SHA-256 checksum. The IPA
 must be signed for the destination device by Xcode or a compatible sideloading
@@ -193,10 +198,10 @@ credentials are never handled by the public build.
 | --- | --- |
 | `TypeTypeIOS/App` | Application entry point and root composition |
 | `TypeTypeIOS/Core` | Networking, authentication, storage, logging, and configuration |
-| `TypeTypeIOS/DesignSystem` | Theme tokens and reusable native components |
+| `TypeTypeIOS/DesignSystem` | Theme palette and reusable native components |
 | `TypeTypeIOS/Features` | Feature-first screens, models, services, and state |
 | `TypeTypeIOS/MockData` | Debug-only deterministic UI-regression catalog |
-| `TypeTypeIOS/Resources` | Asset catalogs and bundled playback fixture |
+| `TypeTypeIOS/Resources` | Asset catalogs, app icon, and English and French strings |
 | `TypeTypeIOSTests` | Unit and integration tests |
 | `TypeTypeIOSUITests` | Deterministic iPhone and iPad interface regression tests |
 | `TypeTypeIOSLiveUITests` | Opt-in end-to-end checks against TypeType-Server |
@@ -218,10 +223,10 @@ Bug reports and feature requests belong in the
 
 ## Media and trademarks
 
-The bundled demonstration movie is
+The debug-only demonstration catalogue streams
 [Big Buck Bunny](https://peach.blender.org/), © 2008 Blender Foundation,
-licensed under [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/). The
-copy in this repository is encoded for offline application playback.
+licensed under [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/), from
+a public mirror. No copy of the movie is stored in this repository.
 
 Third-party names, logos, and trademarks remain the property of their
 respective owners. Their inclusion in the interface does not place them under
