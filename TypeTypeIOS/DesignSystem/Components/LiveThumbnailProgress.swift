@@ -1,7 +1,5 @@
 import SwiftUI
 
-/// The history page's resume bar, reused on every thumbnail that knows the
-/// watch progress. Apply before `clipShape` so the bar follows the corners.
 extension View {
   @ViewBuilder
   func liveThumbnailProgress(_ fraction: Double?) -> some View {

@@ -8,7 +8,6 @@ final class TypeTypeAppDelegate: NSObject, UIApplicationDelegate {
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
   ) -> Bool {
-    // Background tasks must be registered before launch finishes.
     backgroundRefresh.registerIfNeeded()
     return true
   }

@@ -1,6 +1,5 @@
 import SwiftUI
 
-/// Confirmation card that drops down from its button like the dropdowns, instead of a bottom sheet.
 struct LiveConfirmCard: View {
   let title: String
   var message: String? = nil
@@ -55,8 +54,6 @@ struct LiveConfirmCard: View {
 }
 
 extension View {
-  /// The app's standard confirm: a glass card dropping from the attached
-  /// element (see LiveConfirmCard). Replaces every confirmationDialog.
   func liveConfirmPopover(
     isPresented: Binding<Bool>,
     title: String,

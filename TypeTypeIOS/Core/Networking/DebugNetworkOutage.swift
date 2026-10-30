@@ -1,7 +1,5 @@
 import Foundation
 
-/// Debug builds only: `TT_DEBUG_OUTAGE=start:duration` (seconds) fails every instance request as offline
-/// in that window, since a simulator test cannot cut the network.
 enum DebugNetworkOutage {
   #if DEBUG
   private static let launchedAt = Date()

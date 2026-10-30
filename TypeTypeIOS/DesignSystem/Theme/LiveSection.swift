@@ -1,7 +1,5 @@
 import SwiftUI
 
-/// A grouped-list section whose rows take the theme's row colour. The colour sits on the rows
-/// only: on the whole `Section` it would paint a band behind the header too.
 struct LiveSection<Content: View, Header: View, Footer: View>: View {
   private let content: Content
   private let header: Header
@@ -27,8 +25,6 @@ struct LiveSection<Content: View, Header: View, Footer: View>: View {
     }
   }
 
-  /// iOS 26 paints a system colour behind grouped section headers and footers. The slot drops the
-  /// system insets so the page colour can cover the whole of it.
   @ViewBuilder
   private func slot<Slot: View>(_ view: Slot, top: CGFloat, bottom: CGFloat) -> some View {
     if Slot.self == EmptyView.self {
@@ -64,14 +60,11 @@ extension LiveSection where Header == EmptyView, Footer == EmptyView {
 }
 
 extension View {
-  /// Paints a row's cell in the theme's row colour. iOS 26 grouped cells ignore the UIKit cell
-  /// colour.
   func liveRowBackground() -> some View {
     listRowBackground(ThemeRowFill())
   }
 }
 
-/// The theme's row colour as a view, for row backgrounds and fills.
 struct ThemeRowFill: View {
   @Environment(\.themePalette) private var palette
 

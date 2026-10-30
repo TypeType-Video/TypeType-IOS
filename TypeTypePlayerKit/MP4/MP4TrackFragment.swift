@@ -151,7 +151,6 @@ struct MP4TrackRun {
           decodeTime: decodeTime,
           duration: duration,
           compositionOffset: compositionOffsets?[index] ?? 0,
-          // sample_is_non_sync_sample
           isSync: sampleFlags & 0x0001_0000 == 0
         )
       )

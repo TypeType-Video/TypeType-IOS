@@ -72,9 +72,6 @@ final class PlayerInteractionUITests: XCTestCase {
     }
     XCTAssertTrue(more.isHittable)
     more.tap()
-    // Native menu entries surface under different accessibility classes
-    // (buttons or menu items) depending on iOS version, so match by label
-    // anywhere in the hierarchy instead of one element class.
     let watchLater = app.descendants(matching: .any).matching(
       NSPredicate(format: "label CONTAINS 'Watch later'")
     ).firstMatch

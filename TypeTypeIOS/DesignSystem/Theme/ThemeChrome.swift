@@ -1,8 +1,6 @@
 import SwiftUI
 import UIKit
 
-/// The UIKit side of the theme: navigation bars, tab bars and list cells are UIKit views, so they
-/// read the palette from a window trait instead of the SwiftUI environment.
 struct ThemeChrome: Equatable {
   var background: UIColor
   var row: UIColor
@@ -16,8 +14,6 @@ private struct ThemeChromeTrait: UITraitDefinition {
 }
 
 extension ThemeChrome {
-  /// Installed once at launch. The colours are dynamic, so a trait change on the window
-  /// repaints every bar and cell already on screen.
   @MainActor
   static func installAppearance() {
     let background = UIColor { $0[ThemeChromeTrait.self].background }
@@ -41,7 +37,6 @@ extension ThemeChrome {
   }
 }
 
-/// Puts the chrome colours on the window that hosts the SwiftUI root.
 struct ThemeChromeBridge: UIViewRepresentable {
   let chrome: ThemeChrome
 

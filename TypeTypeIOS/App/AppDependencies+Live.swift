@@ -7,8 +7,6 @@ extension AppDependencies {
     backgroundRefresh: LiveBackgroundRefreshCoordinator
   ) -> AppDependencies {
     let serverStore = ServerStore()
-    // Relative server image references (avatars) resolve against the active
-    // instance, mirroring the Android client.
     LiveImageURLResolver.baseURLProvider = {
       serverStore.selectedServer()?.baseURL
     }

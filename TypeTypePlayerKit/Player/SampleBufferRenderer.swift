@@ -1,11 +1,7 @@
 import AVFoundation
 
-// AVFoundation's renderers and synchronizer accept calls from any thread.
 final class SampleBufferRenderer: @unchecked Sendable {
   let displayLayer: AVSampleBufferDisplayLayer
-  // Newer SDKs mark the layer's renderer main-actor isolated; the engine
-  // lives off the main queue, so the renderer is captured once here and
-  // marked unsafe-nonisolated, matching how AVFoundation actually treats it.
   private nonisolated(unsafe) let videoRenderer: AVSampleBufferVideoRenderer
   let audioRenderer = AVSampleBufferAudioRenderer()
   let synchronizer = AVSampleBufferRenderSynchronizer()
@@ -15,7 +11,6 @@ final class SampleBufferRenderer: @unchecked Sendable {
   init() {
     displayLayer = AVSampleBufferDisplayLayer()
     displayLayer.videoGravity = .resizeAspect
-    // The engine decides when there is enough data; a delayed start would keep the old clock time.
     synchronizer.delaysRateChangeUntilHasSufficientMediaData = false
     videoRenderer = displayLayer.sampleBufferRenderer
     synchronizer.addRenderer(videoRenderer)

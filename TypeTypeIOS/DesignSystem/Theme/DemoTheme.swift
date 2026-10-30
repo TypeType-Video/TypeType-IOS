@@ -1,7 +1,6 @@
 import SwiftUI
 import UIKit
 
-/// Environment-driven page background: repaints live on theme changes.
 struct DemoThemeBackground: View {
   @Environment(\.themePalette) private var palette
 
@@ -10,7 +9,6 @@ struct DemoThemeBackground: View {
   }
 }
 
-/// Capsule action button: filled for the primary action, translucent otherwise, accent when active.
 struct LiveChipButtonStyle: ButtonStyle {
   var isFilled = false
   var isActive = false
@@ -27,7 +25,6 @@ struct LiveChipButtonStyle: ButtonStyle {
       .frame(minHeight: 38)
       .background {
         if #available(iOS 26.0, *) {
-          // Liquid Glass pill, tinted with the theme colour.
           Capsule(style: .continuous)
             .fill(background.opacity(0.28))
             .glassEffect(.regular.tint(background), in: .capsule)
@@ -66,7 +63,6 @@ struct LiveChipButtonStyle: ButtonStyle {
   }
 }
 
-/// Flat feeds and queues: rows on the theme's row colour. Preference pages use `liveGroupedList()`.
 extension View {
   func liveThemedList() -> some View {
     modifier(LiveThemedListModifier())
@@ -78,22 +74,18 @@ private struct LiveThemedListModifier: ViewModifier {
 
   func body(content: Content) -> some View {
     content
-      // Flat rows on the page colour; grouped lists use `liveGroupedList()`.
       .listStyle(.plain)
       .scrollContentBackground(.hidden)
-      // Shows through transparent rows and the gaps between filled ones, so every row looks the same.
       .background(palette.rowBackground)
       .environment(\.defaultMinListRowHeight, 44)
       .listRowInsets(EdgeInsets(top: 0, leading: 20, bottom: 0, trailing: 20))
       .listRowBackground(palette.rowBackground)
       .listRowSeparatorTint(palette.separator)
-      // Otherwise the bar stays system white above a coloured page.
       .toolbarBackground(palette.background, for: .navigationBar)
       .toolbarBackground(.visible, for: .navigationBar)
   }
 }
 
-/// Empty states such as `ContentUnavailableView` paint a system background; this fills the page colour.
 extension View {
   func liveThemedEmptyState() -> some View {
     self
@@ -101,8 +93,6 @@ extension View {
       .background(DemoThemeBackground())
   }
 
-  /// iOS 26 paints its own fill under rows whose content is a control (Toggle, Button), on top
-  /// of `listRowBackground`. The row colour bleeds past the content insets to cover it.
   func liveRowFill() -> some View {
     frame(maxWidth: .infinity, minHeight: 44)
       .background(ThemeRowFill().padding(.horizontal, -20))
@@ -110,9 +100,6 @@ extension View {
   }
 }
 
-/// SwiftUI ships no `Color.systemRed`; the Settings tiles use the iOS
-/// Settings palette, so bridge UIKit's adaptive system colours across.
-/// They follow light/dark automatically like every other system colour.
 extension Color {
   static let systemBlue = Color(uiColor: .systemBlue)
   static let systemRed = Color(uiColor: .systemRed)
@@ -126,8 +113,6 @@ extension Color {
 }
 
 extension View {
-  /// Rounded section cards on the page colour. Sections paint their own rows with
-  /// `liveRowBackground()`, so the system's grouped background can go.
   func liveGroupedList() -> some View {
     modifier(LiveGroupedListModifier())
   }
@@ -146,13 +131,10 @@ private struct LiveGroupedListModifier: ViewModifier {
 }
 
 extension View {
-  /// Themed Liquid Glass card: glass tinted with the theme's row colour on iOS 26, the plain
-  /// row colour below.
   func liveGlassCard(cornerRadius: CGFloat = 14) -> some View {
     background(LiveGlassFill(shape: RoundedRectangle(cornerRadius: cornerRadius, style: .continuous), opacity: 0.55))
   }
 
-  /// Themed Liquid Glass pill for compact chips (stats, actions).
   func liveGlassChip() -> some View {
     padding(.horizontal, 10)
       .padding(.vertical, 5)

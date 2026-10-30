@@ -1,8 +1,6 @@
 import CoreMedia
 
 public enum MP4SampleBuffers {
-  /// `hiddenBefore`: frames presented earlier are decoded but not shown, so a
-  /// seek can start from the previous keyframe without flashing it.
   public static func make(
     samples: [MP4Sample],
     data: Data,

@@ -16,10 +16,6 @@ final class SearchUITests: XCTestCase {
     search.tap()
     search.typeText("video")
 
-    // Assert each kind under its own scope: the mixed list stacks channels
-    // and playlists below the fold in a lazy stack, while a scoped list
-    // shows them at the top. Match by identifier prefix so catalog rewrites
-    // do not break the contract being tested: search finds every kind.
     app.buttons["demo.search.scope.channels"].tap()
     let channelRow = app.descendants(matching: .any).matching(
       NSPredicate(format: "identifier BEGINSWITH 'demo.search.channel.'")

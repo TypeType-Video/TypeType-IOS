@@ -7,7 +7,6 @@ struct MP4SampleEntry {
   var channelCount = 0
   var sampleRate = 0.0
 
-  // Child boxes follow 78 bytes of VisualSampleEntry, 28 of AudioSampleEntry v0.
   private static let visualHeader = 78
   private static let audioHeader = 28
 
@@ -37,7 +36,6 @@ struct MP4SampleEntry {
       result.channelCount = Int(try reader.uint16(at: base + 16))
       result.sampleRate = Double(try reader.uint32(at: base + 24) >> 16)
       let esds = try reader.requiredBox(MP4FourCC("esds"), in: (base + audioHeader)..<entry.end)
-      // Core Audio's cookie is the ES descriptor, without the full-box header.
       result.configuration = try reader.data((esds.content.lowerBound + 4)..<esds.end)
     }
     return result

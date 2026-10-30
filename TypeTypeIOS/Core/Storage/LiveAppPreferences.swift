@@ -2,7 +2,6 @@ import SwiftUI
 
 struct LiveAppPreferences: Codable, Equatable {
   var accentColor = LiveAccentColor.red
-  /// The custom accent picked with the rightmost swatch (hex RGB).
   var customAccentHex: String? = nil
   var appearanceMode = LiveAppearanceMode.system
   var appearanceAmoled = false

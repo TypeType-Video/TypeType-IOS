@@ -8,10 +8,7 @@ struct APIEndpoint {
   let body: Data?
   let requiresAuth: Bool
   let timeoutInterval: TimeInterval?
-  /// False when a failure is an answer, not a hiccup (a route that refuses
-  /// some videos), so the caller falls back at once instead of after retries.
   let retriesTransientFailures: Bool
-  /// Media bytes for playback: sent on the media session, ahead of the rest.
   let isMedia: Bool
   let handlesCookies: Bool
 

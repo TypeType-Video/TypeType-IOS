@@ -7,7 +7,6 @@ public struct MP4IndexEntry: Equatable, Sendable {
 }
 
 public enum MP4SegmentIndex {
-  // Offsets in a sidx count from the end of the box.
   public static func entries(in data: Data, fileOffset: Int64) throws -> [MP4IndexEntry] {
     try data.withUnsafeBytes { bytes in
       let reader = MP4ByteReader(bytes: bytes)
@@ -38,7 +37,6 @@ public enum MP4SegmentIndex {
         let reference = try reader.uint32(at: cursor)
         let duration = Double(try reader.uint32(at: cursor + 4))
         cursor += 12
-        // reference_type 1: a nested sidx.
         guard reference & 0x8000_0000 == 0 else { throw MP4Error.invalidBox("nested sidx") }
         let size = Int64(reference & 0x7FFF_FFFF)
         entries.append(

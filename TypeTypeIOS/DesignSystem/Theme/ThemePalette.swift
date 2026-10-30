@@ -1,8 +1,6 @@
 import SwiftUI
 import UIKit
 
-/// Every colour role of one theme in one scheme. Built from the preferences at the app root and
-/// handed down through the environment, so a theme switch repaints every view that reads it.
 struct ThemePalette: Equatable {
   var background: Color
   var groupedBackground: Color
@@ -30,11 +28,8 @@ struct ThemePalette: Equatable {
     surface = Color(uiColor: surfaces.surface)
     groupedSurface = Color(uiColor: surfaces.groupedSurface)
     elevatedSurface = Color(uiColor: surfaces.elevatedSurface)
-    // Rows and cards sit on the page in the surface colour: lighter than the page in dark,
-    // white on grey in light.
     rowBackground = Color(uiColor: surfaces.surface)
     separator = (isDark ? Color.white : Color.black).opacity(0.12)
-    // Android onSurface / onSurfaceVariant: Zinc text, never tinted per theme.
     textPrimary = isDark ? Color(hex24: 0xF4F4F5) : Color(hex24: 0x09090B)
     textSecondary = isDark ? Color(hex24: 0xA1A1AA) : Color(hex24: 0x3F3F46)
     self.accent = accent

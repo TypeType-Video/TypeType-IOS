@@ -4,8 +4,6 @@ extension LiveAuthenticatedAppView {
   var shell: some View {
     tabs
     .onChange(of: playbackCoordinator.presentation) { _, newValue in
-      // No slide on a PiP restore: the system animates its window onto the player, and a sliding
-      // cover would move that target while it does.
       if newValue == .expanded {
         if playbackCoordinator.controller?.pictureInPicture.isEngaged == true {
           var transaction = Transaction()
@@ -50,21 +48,10 @@ extension LiveAuthenticatedAppView {
         legacyTabs
       }
     }
-    // The tab bar floats in a glass pill; without a full-bleed page
-    // background the area below it shows the window's black: only the
-    // More tab covered it because its List fills the safe area.
     .background(DemoThemeBackground().ignoresSafeArea())
     .toolbarBackground(palette.background, for: .tabBar)
-    // Layout-aware: the mini player sits above whatever height the tab
-    // bar actually has on this device. The old hardcoded 49pt clearance
-    // overlapped the bar on modern devices and on the iPhone SE.
     .overlay {
-      // PiP-style free-floating card; the view clamps itself above the tab
-      // bar so it never collides with navigation or menus.
       GeometryReader { geo in
-        // Safe zones at both edges: the tab bar's inset and the status
-        // bar / island's inset, each plus one margin of clearance. The card
-        // clamp treats both bands as untouchable.
         miniPlayer(
           containerSize: geo.size,
           tabBarBand: geo.safeAreaInsets.bottom + 12,
@@ -74,8 +61,6 @@ extension LiveAuthenticatedAppView {
     }
   }
 
-  /// iOS 18+: search rides the tab bar as the system search tab, and the
-  /// badge shows active downloads on the library tab like beta does.
   @available(iOS 18.0, *)
   private var modernTabs: some View {
     TabView(selection: selectedTab) {
@@ -126,7 +111,6 @@ extension LiveAuthenticatedAppView {
   }
 
   private var searchTab: some View {
-    // In tab mode "closing" search means going back to the feed tab.
     LiveSearchView(coordinator: coordinator) {
       selectedTab.wrappedValue = .home
     }
@@ -137,8 +121,6 @@ extension LiveAuthenticatedAppView {
     tabBarBand: CGFloat,
     topBand: CGFloat
   ) -> some View {
-    // The in-app card is the FALLBACK for a failed or unavailable PiP:
-    // while the system PiP window is engaged it would only duplicate it.
     if playbackCoordinator.showsMiniPlayer,
       playbackCoordinator.controller?.pictureInPicture.isEngaged != true {
       LiveMiniPlayerView(
@@ -199,7 +181,6 @@ extension LiveAuthenticatedAppView {
 }
 
 private extension LiveAuthenticatedAppView {
-  /// Pull down on the player to minimize into Picture in Picture.
   var minimizePullDown: some Gesture {
     DragGesture(minimumDistance: 30)
       .onEnded { value in
@@ -207,8 +188,6 @@ private extension LiveAuthenticatedAppView {
           value.startLocation.y < 320,
           value.translation.height > 120,
           abs(value.translation.height) > abs(value.translation.width),
-          // Only from the top of the page: scrolling through the content
-          // (even upward) must never minimize the player.
           playbackCoordinator.controller?.isPlayerSurfaceFullyVisible == true
         else {
           return
@@ -218,5 +197,3 @@ private extension LiveAuthenticatedAppView {
       }
   }
 }
-
-

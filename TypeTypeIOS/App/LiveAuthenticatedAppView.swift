@@ -12,8 +12,6 @@ struct LiveAuthenticatedAppView: View {
     Binding(
       get: { coordinator.selectedTab },
       set: { newValue in
-        // TabView writes the binding even when the active tab is tapped
-        // again: that re-tap is the "back to this tab's input" gesture.
         if newValue == coordinator.selectedTab {
           coordinator.handleTabReselection(newValue)
         } else {
@@ -56,15 +54,11 @@ struct LiveAuthenticatedAppView: View {
     }
     .animation(.snappy.delay(0.25), value: playbackCoordinator.showsMiniPlayer)
     .onChange(of: scenePhase) { _, phase in
-      // Leaving the app with the in-house player active hands the video to
-      // the system PiP; returning brings it back to the player page.
       let previousPhase = lastScenePhase
       lastScenePhase = phase
       guard let controller = playbackCoordinator.controller,
         controller.nativePlayback != nil
       else { return }
-      // PiP must start while leaving (.active to .inactive): at .background it is too late. The
-      // .background to .inactive step is a return and must not start it.
       if phase == .inactive,
         previousPhase == .active,
         !controller.pictureInPicture.isEngaged,
@@ -75,8 +69,6 @@ struct LiveAuthenticatedAppView: View {
         controller.pictureInPicture.isEngaged
           || controller.pictureInPicture.isSystemActive {
         controller.pictureInPicture.bringInline()
-        // A programmatic stop does not reliably fire the system's restore
-        // callback: bring the presentation back ourselves.
         playbackCoordinator.expand()
       }
     }
@@ -85,8 +77,6 @@ struct LiveAuthenticatedAppView: View {
     }
     .task {
       coordinator.dependencies.playbackService?.preconnectMedia()
-      // Thumbnails draw watch-progress bars from the shared store; seed it
-      // at launch so every surface shows them without opening History first.
       if let page = try? await coordinator.dependencies.historyService.history(
         query: nil, from: nil, to: nil, limit: 50, offset: 0
       ) {
@@ -184,9 +174,6 @@ struct LiveAuthenticatedAppView: View {
     else {
       return
     }
-    // Video links open in the canonical PiP-aware player cover. Presenting
-    // the incoming-link page as well slid a second player page in and opened
-    // every video twice. Channels and playlists keep the incoming page.
     if case let .video(video) = link.destination {
       playbackCoordinator.open(video)
       return

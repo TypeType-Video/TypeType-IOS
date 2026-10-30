@@ -30,7 +30,6 @@ extension PlaybackEngine {
     }
   }
 
-  // A source may estimate the first sequence; the fragment's own times confirm or move it.
   private func locateStart(
     _ kind: MP4TrackKind,
     sequence: inout Int,
@@ -130,8 +129,6 @@ extension PlaybackEngine {
     clockMayChange()
   }
 
-  // The server repositions its pump on every segment it has to wait for: requests from both
-  // tracks must stay near the same time, or the pump swings between them and stalls.
   private func waitForAlignment(_ kind: MP4TrackKind, generation current: Int) async throws {
     let slack = CMTime(value: 1, timescale: 1)
     while true {

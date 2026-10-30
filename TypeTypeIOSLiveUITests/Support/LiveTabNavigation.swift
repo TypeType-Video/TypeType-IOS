@@ -1,8 +1,5 @@
 import XCTest
 
-/// Navigation helpers for the library/search tab arrangement. The search
-/// entry rides as the last tab in the bar; the three label variants cover
-/// the test device languages.
 extension XCUIApplication {
   var searchTabButton: XCUIElement {
     let bar = tabBars.firstMatch

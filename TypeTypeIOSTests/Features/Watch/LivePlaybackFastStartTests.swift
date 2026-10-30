@@ -326,7 +326,6 @@ final class LiveStartupBudgetTests: XCTestCase {
 
 final class LiveSABRSegmentContinuityTests: XCTestCase {
   func testRoundedOverlapsBetweenSegmentsAreAccepted() {
-    // Seen on a resumed video: 337837 + 6257 = 344094, next segment at 344091.
     XCTAssertTrue(LiveSABRPlaybackSession.segmentFollows(startMS: 344_091, previousEndMS: 344_094))
     XCTAssertTrue(LiveSABRPlaybackSession.segmentFollows(startMS: 0, previousEndMS: -1))
     XCTAssertFalse(LiveSABRPlaybackSession.segmentFollows(startMS: 300_000, previousEndMS: 344_094))

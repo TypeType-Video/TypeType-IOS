@@ -1,7 +1,6 @@
 import SwiftUI
 
 extension Color {
-  /// Parses #RRGGBB (with or without the leading hash).
   init?(hex: String) {
     var value = hex.trimmingCharacters(in: .whitespaces)
     if value.hasPrefix("#") { value.removeFirst() }
@@ -15,7 +14,6 @@ extension Color {
     )
   }
 
-  /// #RRGGBB for persistence.
   var hexString: String {
     let ui = UIColor(self)
     var red: CGFloat = 0

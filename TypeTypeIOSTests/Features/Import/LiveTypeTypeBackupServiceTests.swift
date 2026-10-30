@@ -129,9 +129,6 @@ final class LiveTypeTypeBackupServiceTests: XCTestCase {
   }
 
   func testRestoreKeepsSelectedCategoriesWhenMetadataIsMissing() throws {
-    // Backups without a "categories" metadata list used to be stripped to
-    // nothing: the empty intersection dropped every selected category and
-    // the server restored zero entries without reporting an error.
     let source = Data(
       """
       {

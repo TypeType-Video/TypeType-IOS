@@ -2,10 +2,7 @@ import SwiftUI
 import ImageIO
 import UIKit
 
-/// Thumbnails and avatars. Unlike AsyncImage a load outlives its cell, identical requests share one
-/// download, images are downsampled to their display size and failures are retried.
 actor TypeTypeImagePipeline {
-
   private nonisolated let memory = ImageMemoryCache()
   private var inFlight: [String: Task<UIImage?, Never>] = [:]
   private let session: URLSession
@@ -14,7 +11,6 @@ actor TypeTypeImagePipeline {
     self.session = session
   }
 
-  /// Cached image for this URL and pixel size, without waiting.
   nonisolated func cachedImage(for url: URL, maxPixelSize: CGFloat) -> UIImage? {
     memory.image(for: Self.key(url, maxPixelSize))
   }
@@ -24,8 +20,6 @@ actor TypeTypeImagePipeline {
     if let cached = memory.image(for: key) { return cached }
     if let running = inFlight[key] { return await running.value }
     let session = session
-    // Video and audio always win: image fetches run at utility priority so
-    // they never compete with the media pipeline for resources.
     let task = Task.detached(priority: .utility) {
       await Self.load(url, maxPixelSize: Self.bucket(maxPixelSize), session: session)
     }
@@ -38,7 +32,6 @@ actor TypeTypeImagePipeline {
     return image
   }
 
-  /// Sizes are rounded up to a few buckets so nearby layouts share cache entries.
   private static func bucket(_ size: CGFloat) -> CGFloat {
     for limit: CGFloat in [160, 320, 640, 960, 1_280] where size <= limit { return limit }
     return 1_920
@@ -60,7 +53,6 @@ actor TypeTypeImagePipeline {
       }
       guard let (data, response) = try? await session.data(from: url) else { continue }
       if let http = response as? HTTPURLResponse, !(200..<300).contains(http.statusCode) {
-        // A missing image will not appear on retry.
         if http.statusCode == 404 { return nil }
         continue
       }
@@ -83,7 +75,6 @@ actor TypeTypeImagePipeline {
   }
 }
 
-/// NSCache is documented as thread-safe; this wrapper states that to Swift.
 private final class ImageMemoryCache: @unchecked Sendable {
   private let storage: NSCache<NSString, UIImage> = {
     let cache = NSCache<NSString, UIImage>()
@@ -101,7 +92,6 @@ private final class ImageMemoryCache: @unchecked Sendable {
 }
 
 private struct TypeTypeImagePipelineKey: EnvironmentKey {
-  // Only reached outside the app root (previews); the app injects the shared one.
   static let defaultValue = TypeTypeImagePipeline()
 }
 

@@ -1,21 +1,15 @@
 import SwiftUI
 
-/// Loading layouts shaped like the content they stand for, so a page keeps
-/// its structure while it loads instead of showing a lone spinner.
 struct TypeTypeSkeletonList: View {
   @Environment(\.themePalette) private var palette
   enum Layout {
-    /// Feed cards: full-width thumbnail, avatar, three lines.
     case cards
-    /// Compact rows: small thumbnail and lines beside it.
     case rows
-    /// Settings rows: label lines only, no media chrome.
     case settings
   }
 
   var layout = Layout.cards
   var count = 6
-  /// False when the skeleton sits inside a page that already scrolls.
   var scrolls = true
 
   var body: some View {
@@ -67,8 +61,6 @@ struct TypeTypeSkeletonList: View {
     }
   }
 
-  /// A settings row: label line + caption line, nothing that reads as a
-  /// video thumbnail.
   private var setting: some View {
     VStack(alignment: .leading, spacing: 8) {
       TypeTypeSkeleton(cornerRadius: 6)
