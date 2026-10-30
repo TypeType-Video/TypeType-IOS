@@ -149,9 +149,7 @@ final class LiveAuthenticationUITests: XCTestCase {
     let search = app.searchTabButton
     XCTAssertTrue(search.waitForExistence(timeout: 3))
     search.tap()
-    let field = app.searchFields[
-      "Search videos, channels..."
-    ]
+    let field = app.textFields["live.search.field"]
     XCTAssertTrue(field.waitForExistence(timeout: 3))
     field.tap()
     field.typeText("Big Buck Bunny")

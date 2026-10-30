@@ -8,9 +8,6 @@ struct LiveSearchFilterBar: View {
   var body: some View {
     ScrollView(.horizontal) {
       HStack(spacing: 8) {
-        if viewModel.services.count > 1 {
-          serviceMenu
-        }
         if showsResultFilters, !viewModel.visibleContentFilters.isEmpty {
           contentMenu
         }
@@ -24,26 +21,6 @@ struct LiveSearchFilterBar: View {
     }
     .scrollIndicators(.hidden)
     .accessibilityIdentifier("live.search.filters")
-  }
-
-  private var serviceMenu: some View {
-    Menu {
-      Picker("Service", selection: Binding(
-        get: { viewModel.selectedServiceID },
-        set: { id in Task { await viewModel.selectService(id) } }
-      )) {
-        ForEach(viewModel.services) { service in
-          Label { Text(verbatim: service.name) } icon: { Image(systemName: service.systemImage) }
-            .tag(service.id)
-        }
-      }
-      .pickerStyle(.inline)
-    } label: {
-      chip(Text(verbatim: selectedService?.name ?? ""), systemImage: selectedService?.systemImage ?? "globe")
-    }
-    .accessibilityLabel(Text("Service"))
-    .accessibilityValue(Text(verbatim: selectedService?.name ?? ""))
-    .accessibilityIdentifier("live.search.service")
   }
 
   private var contentMenu: some View {
@@ -116,10 +93,6 @@ struct LiveSearchFilterBar: View {
       }
     }
     return groups
-  }
-
-  private var selectedService: VideoService? {
-    viewModel.services.first { $0.id == viewModel.selectedServiceID } ?? viewModel.services.first
   }
 
   private var contentTitle: Text {

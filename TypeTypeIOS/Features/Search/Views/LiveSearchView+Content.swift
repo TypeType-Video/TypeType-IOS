@@ -4,7 +4,9 @@ extension LiveSearchView {
   @ViewBuilder
   var content: some View {
     VStack(spacing: 0) {
-      LiveSearchFilterBar(viewModel: viewModel, showsResultFilters: showsResultFilters)
+      if showsResultFilters {
+        LiveSearchFilterBar(viewModel: viewModel, showsResultFilters: true)
+      }
       if viewModel.submittedQuery.isEmpty {
         discovery
       } else {

@@ -39,7 +39,7 @@ final class PlaybackLifecycleLiveUITests: XCTestCase {
     if search.waitForExistence(timeout: 5) {
       search.tap()
     }
-    let field = app.searchFields["Search videos, channels..."]
+    let field = app.textFields["live.search.field"]
     XCTAssertTrue(field.waitForExistence(timeout: 5))
     field.tap()
     let clear = app.buttons["Clear text"]
