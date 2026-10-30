@@ -5,8 +5,9 @@ struct LiveSettingsPlaybackPage: View {
   @ObservedObject var preferences: LiveAppPreferencesStore
 
   var body: some View {
-    LiveSettingsEditingPage(viewModel: viewModel) {
+    LiveSettingsEditingPage(viewModel: viewModel, scope: .mixed) {
       LiveSettingsPlaybackSection(settings: $viewModel.draft)
+        .disabled(viewModel.isOffline)
       LiveSettingsDevicePlaybackSection(preferences: preferences)
       LiveSection {
         LiveOptionMenu(
@@ -21,8 +22,6 @@ struct LiveSettingsPlaybackPage: View {
         )
       } header: {
         Text("Default codec").liveSettingsHeader()
-      } footer: {
-        Text("Smart lets the server pick the format for this device.").liveSettingsFooter()
       }
     }
     .navigationTitle("Playback")
@@ -56,8 +55,6 @@ struct LiveSettingsDevicePlaybackSection: View {
       ).liveRowFill()
     } header: {
       Text("Device playback").liveSettingsHeader()
-    } footer: {
-      Text("These only apply to this device.").liveSettingsFooter()
     }
   }
 }

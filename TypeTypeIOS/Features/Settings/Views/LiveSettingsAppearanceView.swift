@@ -13,7 +13,7 @@ struct LiveSettingsAppearanceView: View {
   @ObservedObject var preferences: LiveAppPreferencesStore
 
   var body: some View {
-    LiveSettingsEditingPage(viewModel: viewModel) {
+    LiveSettingsEditingPage(viewModel: viewModel, scope: .device) {
       Section {
         LiveAppearancePreview()
           .listRowInsets(EdgeInsets())

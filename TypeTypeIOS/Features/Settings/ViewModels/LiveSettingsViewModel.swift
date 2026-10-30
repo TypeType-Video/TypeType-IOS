@@ -1,3 +1,4 @@
+import Combine
 import Foundation
 
 @MainActor
@@ -14,6 +15,7 @@ final class LiveSettingsViewModel: ObservableObject {
     didSet { scheduleSave() }
   }
   @Published private(set) var errorMessage: String?
+  @Published private(set) var isOffline = false
 
   private let service: LiveSettingsServiceProtocol
   private let serviceSelection: LiveServiceSelection
@@ -27,6 +29,7 @@ final class LiveSettingsViewModel: ObservableObject {
     service: LiveSettingsServiceProtocol,
     serviceSelection: LiveServiceSelection,
     deArrowStore: LiveDeArrowStore,
+    connectivity: LiveConnectivityMonitor? = nil,
     saveDelay: Duration = .milliseconds(500),
     onSaved: @escaping @MainActor (LiveSettings) -> Void = { _ in }
   ) {
@@ -35,6 +38,11 @@ final class LiveSettingsViewModel: ObservableObject {
     self.deArrowStore = deArrowStore
     self.saveDelay = saveDelay
     self.onSaved = onSaved
+    connectivity?.$status
+      .map { $0 == .offline }
+      .removeDuplicates()
+      .receive(on: DispatchQueue.main)
+      .assign(to: &$isOffline)
   }
 
   deinit {

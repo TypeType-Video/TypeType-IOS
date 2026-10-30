@@ -31,8 +31,6 @@ struct LiveSettingsPlaybackSection: View {
       ).liveRowFill()
     } header: {
       Text("Video").liveSettingsHeader()
-    } footer: {
-      Text("Saved to your account and used on every device signed in to it.").liveSettingsFooter()
     }
     LiveSection {
       Toggle("Start muted", isOn: $settings.muted).liveRowFill()

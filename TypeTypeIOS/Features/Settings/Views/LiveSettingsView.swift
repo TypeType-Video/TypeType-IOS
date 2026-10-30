@@ -16,6 +16,7 @@ struct LiveSettingsView: View {
         service: coordinator.dependencies.settingsService,
         serviceSelection: coordinator.dependencies.serviceSelection,
         deArrowStore: coordinator.dependencies.deArrowStore,
+        connectivity: coordinator.dependencies.connectivityMonitor,
         onSaved: { playbackCoordinator.applySettings($0) }
       )
     )
@@ -24,7 +25,7 @@ struct LiveSettingsView: View {
   var body: some View {
     content
       .navigationTitle("Settings")
-      .navigationBarTitleDisplayMode(.large)
+      .navigationBarTitleDisplayMode(.inline)
       .task { await viewModel.prepare() }
       .accessibilityIdentifier("live.settings.screen")
   }
@@ -52,10 +53,7 @@ struct LiveSettingsView: View {
   private var settingsList: some View {
     List {
       LiveSection {
-        LiveSettingsAccountCard(
-          coordinator: coordinator,
-          connectivity: coordinator.dependencies.connectivityMonitor
-        )
+        LiveSettingsAccountCard(coordinator: coordinator)
       }
 
       LiveSection {
@@ -78,6 +76,7 @@ struct LiveSettingsView: View {
         aboutRow
       }
     }
+    .contentMargins(.top, 8, for: .scrollContent)
     .padding(.bottom, playbackCoordinator.showsMiniPlayer ? 82 : 0)
     .liveGroupedList()
     .tint(preferences.preferences.accent)

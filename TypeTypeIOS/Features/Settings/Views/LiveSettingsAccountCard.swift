@@ -2,7 +2,6 @@ import SwiftUI
 
 struct LiveSettingsAccountCard: View {
   @ObservedObject var coordinator: RootCoordinator
-  @ObservedObject var connectivity: LiveConnectivityMonitor
   @Environment(\.themePalette) private var palette
 
   var body: some View {
@@ -23,7 +22,6 @@ struct LiveSettingsAccountCard: View {
             .font(.subheadline)
             .foregroundStyle(.secondary)
             .lineLimit(1)
-          statusLine
         }
         Spacer(minLength: 0)
       }
@@ -47,24 +45,5 @@ struct LiveSettingsAccountCard: View {
       let host = URL(string: address)?.host()
     else { return name }
     return name == host ? host : "\(name) · \(host)"
-  }
-
-  private var statusLine: some View {
-    HStack(spacing: 6) {
-      Circle()
-        .fill(status.color)
-        .frame(width: 7, height: 7)
-      Text(status.title)
-        .font(.caption.weight(.medium))
-        .foregroundStyle(.secondary)
-    }
-  }
-
-  private var status: (title: LocalizedStringKey, color: Color) {
-    switch connectivity.status {
-    case .online: ("Connected", .green)
-    case .offline: ("Offline", .orange)
-    case .checking: ("Checking connection", Color.secondary)
-    }
   }
 }
