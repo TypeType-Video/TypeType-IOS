@@ -174,19 +174,7 @@ final class LivePlayerController: ObservableObject {
   }
 
   var availableAudioSources: [LivePlaybackAudioSource] {
-    guard let stream else { return [] }
-    let sabr = stream.audioStreams.filter {
-      $0.isSABR && $0.isAppleAAC
-    }
-    let compatible = sabr.isEmpty
-      ? stream.audioStreams.filter {
-        !$0.isSABR && $0.isAppleProviderAudio
-      }
-      : sabr
-    var seen: Set<String> = []
-    return compatible.filter {
-      seen.insert($0.id).inserted
-    }
+    stream?.playableAudioSources ?? []
   }
 
   var transportLabel: String {

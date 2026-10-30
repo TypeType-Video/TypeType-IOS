@@ -31,7 +31,8 @@ extension LivePlaybackPreferences {
     language: String,
     preferOriginal: Bool
   ) -> LivePlaybackAudioSource? {
-    let tracks = stream.audioStreams
+    // Only what the audio track menu offers: an Opus pick there leaves the menu showing an empty value.
+    let tracks = stream.playableAudioSources
     if preferOriginal {
       return tracks.first { $0.audioTrackID != nil && $0.audioTrackID == stream.originalAudioTrackID }
         ?? tracks.first { $0.isOriginal && $0.audioTrackID != nil }
