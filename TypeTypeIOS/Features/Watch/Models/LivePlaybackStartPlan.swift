@@ -1,9 +1,6 @@
 import Foundation
 
 extension LivePlaybackPreferences {
-  /// What a fresh start plays: the account's quality and audio language, the
-  /// app's codec and audio-only choice, and no manual selection. The prewarm
-  /// and the real start must agree on it, or the server cannot hand over.
   static func initial(
     for stream: LivePlaybackStream,
     settings: LiveSettings,
@@ -29,7 +26,6 @@ extension LivePlaybackPreferences {
 }
 
 extension LivePlaybackPreparation {
-  /// Where a start begins: the requested time, or 0 inside the last 5 s.
   static func startTime(
     requested: TimeInterval,
     duration: TimeInterval

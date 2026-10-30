@@ -105,7 +105,6 @@ actor LiveSABRPlaybackSession {
     do {
       snapshot = try await loadIndexedSnapshot()
     } catch {
-      // After a seek the server can publish the new window slower than one index budget.
       try await Task.sleep(for: .milliseconds(Self.minimumRetryMS))
       snapshot = try await loadIndexedSnapshot()
     }
@@ -224,9 +223,6 @@ actor LiveSABRPlaybackSession {
       else {
         throw LivePlaybackFailure.invalidSABRContract
       }
-      // The VOD playlist only needs each track's segment count, which the
-      // first answer already carries; the newest window segment is published
-      // a poll or two later and only matters once playback reaches it.
       let knowsSegmentCount = value.tracks.audio.endSegment > 0
         && (preparation.audioOnly || value.tracks.video.endSegment > 0)
       let published = value.live

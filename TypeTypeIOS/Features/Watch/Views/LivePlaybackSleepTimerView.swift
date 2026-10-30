@@ -1,7 +1,5 @@
 import SwiftUI
 
-/// Compact popup for the actions-row button. A List inside a popover clips
-/// its rows, so this one is sized to content.
 struct LivePlaybackSleepTimerPopover: View {
   @Environment(\.themePalette) private var palette
   @ObservedObject var coordinator: LivePlaybackCoordinator

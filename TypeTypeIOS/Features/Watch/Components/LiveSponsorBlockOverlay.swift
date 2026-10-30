@@ -17,9 +17,6 @@ struct LiveSponsorBlockOverlay: View {
         timeline
       }
     }
-    // Keep the hosting view alive while no segment is active. Without a
-    // minimal intrinsic size Auto Layout collapses it to 0 × 0 before the
-    // timeline can reveal the next SponsorBlock banner.
     .padding(1)
   }
 

@@ -1,7 +1,6 @@
 import Foundation
 import TypeTypePlayerKit
 
-// Immutable; the playback service already serves concurrent loads.
 final class LiveSABRSegmentSource: MediaSegmentSource, @unchecked Sendable {
   let trackKinds: [MP4TrackKind]
   private let session: LiveSABRPlaybackSession
@@ -18,8 +17,6 @@ final class LiveSABRSegmentSource: MediaSegmentSource, @unchecked Sendable {
     return try await LiveSABRPendingResource.load(track.initURL, service: service)
   }
 
-  // Segments are numbered from the start of the video and the server repositions its pump on
-  // demand: a start outside the known window is estimated, and the engine corrects it.
   func firstSequence(for kind: MP4TrackKind, at time: TimeInterval) async throws -> Int {
     let snapshot = try await session.snapshot()
     let targetMS = Int64(max(time, 0) * 1_000)

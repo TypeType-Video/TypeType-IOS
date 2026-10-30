@@ -2,8 +2,6 @@ import AVFoundation
 import SwiftUI
 import UIKit
 
-/// Play/pause with instant icon feedback: this view observes the player
-/// controller directly, so the symbol flips the moment the state changes.
 struct MiniPlayPauseButton: View {
   @ObservedObject var controller: LivePlayerController
   let diameter: CGFloat
@@ -24,9 +22,6 @@ struct MiniPlayPauseButton: View {
   }
 }
 
-/// Renders the playing video in the mini player: the same AVPlayer can back
-/// several layers, so the small preview shows live video while the full
-/// surface is off screen. Audio-only keeps the poster instead.
 struct LiveVideoPreviewLayer: UIViewRepresentable {
   let player: AVPlayer
 

@@ -3,8 +3,6 @@ import Foundation
 extension LivePlayerController {
   var isLiveStream: Bool { stream?.isLive == true || video.isLive }
 
-  /// Playback starts from the fast playback stream; full metadata (related
-  /// videos, chapters, SponsorBlock, description) replaces it when it arrives.
   func loadFullMetadata(using service: LivePlaybackServiceProtocol) {
     metadataTask?.cancel()
     let videoURL = video.url

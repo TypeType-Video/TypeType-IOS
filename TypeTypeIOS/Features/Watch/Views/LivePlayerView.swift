@@ -31,8 +31,6 @@ struct LivePlayerView: View {
   @State var autoPictureInPictureActive = false
   @StateObject var nativeControls = LiveNativeControlsState()
   @Environment(\.verticalSizeClass) private var verticalSizeClass
-  /// Drives the rounded lower corners: the "content slides under the
-  /// pinned player" hint while the watch page is scrolled.
   var isScrolled = false
 
   var body: some View {
@@ -44,8 +42,6 @@ struct LivePlayerView: View {
 
         if controller.audioOnly {
           ZStack {
-            // No .scaledToFill here: LiveRemoteImage is GeometryReader-based and the wrapper inflates
-            // the stage. It fills through its own contentMode.
             LiveRemoteImage(url: posterURL)
               .blur(radius: 28)
               .opacity(0.48)
@@ -78,11 +74,8 @@ struct LivePlayerView: View {
             onOptions: { showsOptions = true }
           )
         }
-        // The seek preview draws above the controls: the pause button used
-        // to cover the mm:ss target and the seek icon.
         seekFeedbackOverlay
         horizontalSeekOverlay
-        // Above the transport controls: the UIKit overlay below never received taps.
         LiveSponsorBlockOverlay(
           controller: controller,
           fillsAvailableSpace: false

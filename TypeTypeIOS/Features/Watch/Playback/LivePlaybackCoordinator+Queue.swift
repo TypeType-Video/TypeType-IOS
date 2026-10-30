@@ -131,8 +131,6 @@ extension LivePlaybackCoordinator {
 }
 
 extension LivePlaybackCoordinator {
-  /// Warms the next queue entry's stream metadata so advancing (autoplay or
-  /// manual) starts without the fetch round trip.
   func prewarmNextQueueEntry() {
     guard queue.isActive,
       let nextIndex = queue.nextIndex,
@@ -147,8 +145,6 @@ extension LivePlaybackCoordinator {
     }
   }
 
-  /// Near the end of the current video: opens the next one's session so
-  /// autoplay or a skip starts on a session the server already prepared.
   func prewarmNextQueueSession() {
     guard queue.isActive,
       queue.repeatMode != .one,

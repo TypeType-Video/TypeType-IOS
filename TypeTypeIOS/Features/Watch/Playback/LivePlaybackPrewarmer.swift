@@ -1,8 +1,5 @@
 import Foundation
 
-/// Opens a YouTube session before the tap with the exact request the real
-/// start will send (same formats and start time), so the server hands the
-/// prewarmed session over instead of opening another one.
 @MainActor
 final class LivePlaybackPrewarmer {
   private let service: LivePlaybackServiceProtocol

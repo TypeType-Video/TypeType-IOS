@@ -1,8 +1,5 @@
 import SwiftUI
 
-/// Shown over the video surface while Picture in Picture is running: the
-/// inline surface stays covered instead of rendering the video twice, and
-/// the user can bring playback back into the app.
 struct LivePictureInPictureNotice: View {
   @ObservedObject var pictureInPicture: LivePictureInPictureDriver
 

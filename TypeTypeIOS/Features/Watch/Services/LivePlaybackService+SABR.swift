@@ -19,8 +19,6 @@ extension LivePlaybackService {
     )
   }
 
-  /// Opens the session before the tap (`prewarm=true`); the next create of
-  /// the same request takes it over on the server instead of opening another.
   func prewarmSABRPlayback(
     videoID: String,
     request: LiveSABRPlaybackRequest
@@ -157,8 +155,6 @@ extension LivePlaybackService {
     return authenticatedAssetURL(for: url)
   }
 
-  // The server only writes its playback traces (prewarm handoff, pump) for requests that carry one.
-  // Prewarm and create share it, so the server log shows whether the prewarmed session was taken over.
   static func playbackTraceHeader(videoID: String, request: LiveSABRPlaybackRequest) -> [String: String] {
     let safeID = videoID.filter { ($0.isASCII && ($0.isLetter || $0.isNumber)) || "._-".contains($0) }
     return ["X-Playback-Trace-ID": "ios.\(safeID).\(request.startTimeMS)"]

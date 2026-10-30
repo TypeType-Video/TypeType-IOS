@@ -16,13 +16,8 @@ extension LivePlayerView {
         evaluateAutoPictureInPicture(frame)
       }
       .onAppear {
-        // A surface that reappears after a PiP round trip must not come
-        // back with hidden controls.
         controller.pictureInPicture.markControlsRefresh()
       }
-      // Seek and speed gestures live on the video surface only: as
-      // container-level simultaneous gestures they also fired when
-      // tapping controls, so double-tapping pause sought -10s.
       .simultaneousGesture(
         SpatialTapGesture(count: 2)
           .onEnded { value in
@@ -39,8 +34,6 @@ extension LivePlayerView {
           }
       )
       .simultaneousGesture(speedRampGesture)
-      // Swipe down leaves full screen: from the centre third only, so it
-      // never fights the brightness/volume swipes on the outer thirds.
       .simultaneousGesture(
         DragGesture(minimumDistance: 30)
           .onEnded { value in
@@ -54,9 +47,6 @@ extension LivePlayerView {
       )
   }
 
-  /// One gesture owns the entire speed-ramp interaction: hold for 350ms,
-  /// then drag vertically. Splitting long-press and drag into independent
-  /// gestures let the drag win the touch before the hold became active.
   private var speedRampGesture: some Gesture {
     LongPressGesture(minimumDuration: 0.35)
       .sequenced(before: DragGesture(minimumDistance: 0))

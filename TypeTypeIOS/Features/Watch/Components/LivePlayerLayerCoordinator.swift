@@ -52,7 +52,6 @@ final class LivePlayerLayerCoordinator:
     danmakuView.isUserInteractionEnabled = false
     danmakuView.translatesAutoresizingMaskIntoConstraints = false
     overlay.addSubview(danmakuView)
-    // 999, not required: required pins fight AVKit's control layout, autoresizing covers the controls.
     let danmakuPins = [
       danmakuView.leadingAnchor.constraint(equalTo: overlay.leadingAnchor),
       danmakuView.trailingAnchor.constraint(equalTo: overlay.trailingAnchor),
@@ -196,11 +195,7 @@ extension LivePlayerLayerCoordinator: UIGestureRecognizerDelegate {
 
     let startLocation = recognizer.location(in: view)
     let translation = recognizer.translation(in: view)
-    // Each recognizer owns ONE direction: the seek pan only horizontal, the
-    // adjustment pan only vertical: so a brightness swipe never pops the
-    // mm:ss preview and a scrub never starts an adjustment.
     if recognizer === horizontalSeekGestureRecognizer {
-      // Direction only: the pan begins after about 10 pt, so a distance gate would fail every scrub.
       guard abs(translation.x) > abs(translation.y) * 1.25,
         controller.appPreferences.preferences.playerSwipeSeekEnabled,
         controller.duration > 0

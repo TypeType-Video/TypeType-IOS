@@ -176,8 +176,6 @@ extension LivePlayerView {
   var statusOverlay: some View {
     switch controller.state {
     case .idle, .loading:
-      // The video's own thumbnail as the poster while it prepares; the
-      // spinner rides on top of it, small.
       ZStack {
         if !controller.extrasReleased, let poster = posterURL {
           LiveRemoteImage(url: poster)

@@ -17,8 +17,6 @@ final class LivePlayerController: ObservableObject {
   @Published var state: State = .idle {
     didSet { releaseExtrasIfStarted() }
   }
-  /// False until the video starts (or its start ends another way); the rest
-  /// of the watch page waits for it so the network goes to the video first.
   @Published var extrasReleased = false
   var firstFrameJobs: [() -> Void] = []
   @Published var stream: LivePlaybackStream?
@@ -26,26 +24,18 @@ final class LivePlayerController: ObservableObject {
   @Published var nativeSubtitleCues: [LiveSubtitleCue] = []
   var nativeSubtitlesTask: Task<Void, Never>?
   var nativeFallbackUsed = false
-  // Tracks the presented native full screen host so gestures stay away from it.
   @Published var isPresentingFullscreen = false
   lazy var fullscreen = LiveNativeFullscreenPresenter(controller: self)
-  /// True while the in-house video sits in the docked corner card (the
-  /// scroll-away state) instead of the inline player position.
   @Published var isVideoDocked = false
-  /// Playing a downloaded file: no server exists to fill comments,
-  /// related videos or subscriptions: the page must not wait on them.
   @Published var isOfflineContent = false
   @Published var preparation: LivePlaybackPreparation?
-  /// Milliseconds from loading to the first playing frame of the last start.
   @Published var lastStartupMilliseconds: Int?
   var startupTrace = LivePlaybackStartupTrace()
   var metadataTask: Task<Void, Never>?
-  /// Bumped by each load or restart; a slower, older load never installs.
   var loadGeneration = 0
   var startupWatchdog: Task<Void, Never>?
   var startupRetryUsed = false
   var sabrOfflineRetries = 0
-  /// True while full metadata (related videos, chapters) is still loading.
   @Published var isLoadingFullMetadata = false
   @Published var position: TimeInterval = 0
   @Published var duration: TimeInterval = 0
@@ -83,12 +73,7 @@ final class LivePlayerController: ObservableObject {
   let video: LiveVideoItem
   let initialAutoplay: Bool
   let pictureInPicture = LivePictureInPictureDriver()
-  /// Whether the player surface sits at the top of the page (page not
-  /// scrolled). Gates the pull-down-to-mini gesture.
   var isPlayerSurfaceFullyVisible = true
-  /// Set on stop/close: pending async work (item-ready observers, delayed
-  /// resumes, provider recovery) must never start playback afterwards:
-  /// that produced audio with no player UI at all.
   var isTornDown = false
   let service: LivePlaybackServiceProtocol?
   let settingsService: LiveSettingsServiceProtocol
@@ -246,7 +231,6 @@ final class LivePlayerController: ObservableObject {
   }
 
   static func message(for error: Error) -> String {
-    // The instance words refusals itself ("only available in Japan").
     if case let NetworkError.statusCode(code, message)? = error as? NetworkError,
       (400..<500).contains(code), code != 401,
       let message = message?.trimmingCharacters(in: .whitespacesAndNewlines),

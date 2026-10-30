@@ -1,17 +1,12 @@
 import Foundation
 
 extension LivePlaybackHTTPServer {
-  /// Number of media segments per track loaded before the player asks.
   static let warmupSegmentCount = 2
 
-  /// Fetches what AVPlayer asks for first (playlists, init and first segments) as soon as the session
-  /// is ready. Through `load(_:)`, so the player's own requests join these or hit the cache.
   func warmSABRStart() {
     warmTracks([sabrAudioRouteID, sabrVideoRouteID].compactMap { $0 })
   }
 
-  /// Same warm-up for provider HLS (NicoNico): both media playlists, their
-  /// key and init segment, and the first segments.
   func warmProviderHLSStart() {
     guard case let .separateHLS(videoURL, audioURL)? = preparation.providerPlayback else { return }
     warmTracks([
@@ -46,8 +41,6 @@ extension LivePlaybackHTTPServer {
     }
   }
 
-  /// Init segment, key and first segments to play, from `#EXT-X-START` on a resume so the beginning
-  /// is never fetched for nothing.
   static func startResourcePaths(in playlist: String, segmentCount: Int) -> [String] {
     var paths: [String] = []
     var startOffset: Double = 0
@@ -67,7 +60,6 @@ extension LivePlaybackHTTPServer {
       } else if !line.isEmpty, !line.hasPrefix("#"), let url = URL(string: line) {
         elapsed += pendingDuration
         pendingDuration = 0
-        // Segments that end before the start position are never played.
         guard elapsed > startOffset else { continue }
         paths.append(url.path)
         segments += 1
@@ -94,8 +86,6 @@ extension LivePlaybackHTTPServer {
     return (error as NSError).domain == NSURLErrorDomain
   }
 
-  /// True while upstream loads keep failing for lack of network: the player
-  /// retries those by itself, so the SABR session must not be rebuilt.
   func isWaitingForNetwork(within interval: TimeInterval = 6) -> Bool {
     lock.withLock {
       guard let lastTransportFailureAt else { return false }
@@ -105,7 +95,6 @@ extension LivePlaybackHTTPServer {
 }
 
 extension LivePlaybackHTTPServer.Route {
-  /// Short label for debug traces; never includes tokens.
   var debugName: String {
     switch target {
     case let .upstream(url): return "upstream \(url.path.suffix(24))"

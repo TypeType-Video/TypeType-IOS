@@ -1,6 +1,5 @@
 import Foundation
 
-/// Short-lived, thread-safe cache for stream metadata.
 final class LiveStreamMetadataCache: @unchecked Sendable {
   private struct Entry {
     let stream: LivePlaybackStream
@@ -28,8 +27,6 @@ final class LiveStreamMetadataCache: @unchecked Sendable {
   }
 }
 
-/// Shares one running request between callers asking for the same stream,
-/// so a touch-down prewarm and the player opening never fetch it twice.
 actor LiveStreamRequests {
   private var running: [String: Task<LivePlaybackStream, Error>] = [:]
 

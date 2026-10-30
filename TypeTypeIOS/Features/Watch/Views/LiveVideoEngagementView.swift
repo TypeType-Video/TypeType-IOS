@@ -70,8 +70,6 @@ struct LiveVideoEngagementView: View {
     .accessibilityIdentifier("live.video.stats")
   }
 
-  /// Channel banner: avatar, name with verified seal, subscriber count, and
-  /// the Subscribe capsule on the right.
   private var channelBanner: some View {
     Button(action: { onChannel?() }) {
       HStack(spacing: 12) {

@@ -80,10 +80,7 @@ final class LivePlaybackService: LivePlaybackServiceProtocol {
     self.serverURLProvider = serverURLProvider
   }
 
-  /// Stream metadata is stable for minutes: reopening a video or advancing
-  /// the queue re-uses the last response instead of re-fetching.
   let streamCache = LiveStreamMetadataCache()
-  /// Playback-only bootstrap responses, kept apart from full metadata.
   let playbackCache = LiveStreamMetadataCache()
   static let streamCacheTTL: TimeInterval = 600
   let requests = LiveStreamRequests()
@@ -100,7 +97,6 @@ final class LivePlaybackService: LivePlaybackServiceProtocol {
     let loaded = try await requests.value(for: "full|" + videoURL) { [self] in
       try await loadStream(for: videoURL)
     }
-    // Live manifests are short-lived and the live edge moves: never reuse them.
     if !loaded.isLive {
       streamCache.store(loaded, for: videoURL)
     }
@@ -162,7 +158,6 @@ final class LivePlaybackService: LivePlaybackServiceProtocol {
     attempt: Int
   ) async throws -> LivePlaybackStream {
     do {
-      // This loop owns the retries: client retries inside it multiplied 4 attempts into 12 requests.
       return try await requestStream(
         path: path,
         videoURL: videoURL,

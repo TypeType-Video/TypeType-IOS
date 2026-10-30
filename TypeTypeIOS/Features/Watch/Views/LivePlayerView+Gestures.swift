@@ -1,29 +1,19 @@
 import SwiftUI
 
 extension LivePlayerView {
-  /// YouTube-style: when the player scrolls away (reading comments), float
-  /// it into Picture in Picture automatically. Edge-triggered: one start per
-  /// scroll-away, re-armed when the player is visible again.
   func evaluateAutoPictureInPicture(_ frame: CGRect) {
-    // Rotating into full screen moves this surface; that is not the reader scrolling away.
     guard !controller.isPresentingFullscreen else { return }
     let screenH = UIScreen.main.bounds.height
     controller.isPlayerSurfaceFullyVisible =
       frame.minY >= 44 && frame.maxY <= screenH - 100
-    // Dev spec: PiP only when the box is FULLY out of view, and back the
-    // moment any part of it re-enters the viewport.
     let isAway = frame.maxY <= 0
     if controller.nativePlayback != nil {
-      // The in-house player docks into an in-app corner card: a system PiP hand-off stalls the app.
       controller.isVideoDocked = isAway
       autoPictureInPictureArmed = !isAway
       return
     }
     if !isAway {
       autoPictureInPictureArmed = true
-      // Only auto-started PiP windows return here; a manual mini player
-      // stays. The return waits until the player is about half re-entered,
-      // so the window flies to a visible rect instead of an off-screen one.
       if autoPictureInPictureActive,
         frame.maxY >= frame.height * 0.5 {
         autoPictureInPictureActive = false
@@ -55,7 +45,6 @@ extension LivePlayerView {
     else {
       return
     }
-    // The middle band holds the transport buttons.
     guard location.x < width * 0.35 || location.x > width * 0.65 else {
       return
     }
@@ -65,7 +54,6 @@ extension LivePlayerView {
     ) else {
       return
     }
-    // Build on the pending target: the position only moves once the seek has run.
     let pending = doubleTapSeek.flatMap {
       $0.direction == direction && Date().timeIntervalSince($0.at) < 1.5 ? $0 : nil
     }
@@ -121,8 +109,6 @@ extension LivePlayerView {
     }
   }
 
-  /// Hold baseline is 2x; dragging up ramps toward 4x, down toward 1x,
-  /// in half-step clicks (200pt = 2x of travel). The HUD shows the rate.
   func applySpeedRamp(translationHeight: CGFloat) {
     let raw = 2.0 + (-translationHeight / 200.0) * 2.0
     let stepped = (raw * 2).rounded() / 2
@@ -188,7 +174,6 @@ extension LivePlayerView {
     longPressBoostTask?.cancel()
     longPressBoostTask = nil
     if active {
-      // Boost only after the long-press threshold, or every tap changes the rate twice.
       longPressBoostTask = Task {
         try? await Task.sleep(nanoseconds: 350_000_000)
         guard !Task.isCancelled else { return }

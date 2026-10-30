@@ -84,9 +84,6 @@ enum LiveDescriptionTextFormatter {
     "bull": "•", "copy": "©", "reg": "®", "trade": "™", "times": "×", "yen": "¥",
   ]
 
-  /// Decodes named and numeric entities in plain Swift. NSAttributedString's
-  /// HTML importer must not be used here: it runs WebKit in a nested run loop,
-  /// which re-enters SwiftUI while a view body is computed and crashes.
   static func decodingHTMLEntities(in value: String) -> String {
     guard value.contains("&") else { return value }
     var result = ""

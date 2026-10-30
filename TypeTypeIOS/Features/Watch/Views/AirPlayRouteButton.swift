@@ -1,8 +1,6 @@
 import AVKit
 import SwiftUI
 
-/// The system route picker: unlike a custom button it opens the real AirPlay sheet and routes
-/// AVPlayer through the system.
 struct AirPlayRouteButton: UIViewRepresentable {
   func makeUIView(context: Context) -> AVRoutePickerView {
     let view = AVRoutePickerView()

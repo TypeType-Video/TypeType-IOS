@@ -1,6 +1,5 @@
 import Foundation
 
-// A SABR resource the server has not pumped yet answers {"ready": false, "retryAfterMs": n}.
 enum LiveSABRPendingResource {
   static let pollLimit = 120
 

@@ -1,7 +1,5 @@
 import Foundation
 
-/// Media bytes (segments, playlists, subtitles) go through the media session:
-/// high priority, no disk cache.
 extension LivePlaybackService {
   func resourceData(for assetURL: URL) async throws -> Data {
     let endpoint = try serverEndpoint(for: assetURL)

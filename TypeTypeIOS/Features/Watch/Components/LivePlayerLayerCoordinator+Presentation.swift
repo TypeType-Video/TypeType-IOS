@@ -69,8 +69,6 @@ extension LivePlayerLayerCoordinator {
     _ playerViewController: AVPlayerViewController
   ) {
     completePictureInPictureTransition()
-    // AVKit can leave its controls hidden after the hand-back; the toggle
-    // must cross a runloop tick to take effect.
     playerViewController.showsPlaybackControls = false
     DispatchQueue.main.async {
       playerViewController.showsPlaybackControls = true
@@ -88,7 +86,6 @@ extension LivePlayerLayerCoordinator {
     restoreUserInterfaceForPictureInPictureStopWithCompletionHandler
       completionHandler: @escaping (Bool) -> Void
   ) {
-    // Force AVKit's controls back before the hand-back animation lands.
     playerViewController.showsPlaybackControls = false
     DispatchQueue.main.async {
       playerViewController.showsPlaybackControls = true
@@ -108,13 +105,10 @@ extension LivePlayerLayerCoordinator {
     with coordinator: UIViewControllerTransitionCoordinator
   ) {
     presentationTransitionInProgress = true
-    // Full screen rotates the device to landscape; leaving returns portrait.
     LiveScreenOrientation.set(toFullScreen ? .landscape : .portrait)
     pendingPauseIntentTask?.cancel()
     resumeAfterTransitionTask?.cancel()
     settleTransitionTask?.cancel()
-    // AVKit reparents its content view while entering and leaving full
-    // screen. Hosting views must leave that subtree during the move.
     remove()
 
     coordinator.animate(

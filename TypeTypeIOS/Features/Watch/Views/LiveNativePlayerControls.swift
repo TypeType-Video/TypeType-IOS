@@ -98,8 +98,6 @@ struct LiveNativePlayerControls: View {
       .tint(.white)
       .accessibilityLabel("Playback position")
       .accessibilityIdentifier("live.player.timeline")
-      // Bands ride the slider as an overlay: a GeometryReader in the row
-      // layout would inflate the whole controls bar (and misplace it).
       .overlay(alignment: .center) {
         sponsorSegmentBands
       }
@@ -121,8 +119,6 @@ struct LiveNativePlayerControls: View {
         .buttonStyle(.plain)
         .popover(
           isPresented: $presentsChapters,
-          // Full screen puts the bar by the bottom edge: the popover opens
-          // upward there, downward everywhere else.
           attachmentAnchor: .point(.init(x: 0.5, y: isFullscreen ? 0.0 : 1.0)),
           arrowEdge: isFullscreen ? .bottom : .top
         ) {
@@ -132,7 +128,6 @@ struct LiveNativePlayerControls: View {
           .frame(width: 320, height: 380)
           .presentationCompactAdaptation(.popover)
         }
-        // The controls must stay up while the chapter list is open.
         .onChange(of: presentsChapters) {
           if presentsChapters {
             controls.keepVisible()
@@ -164,9 +159,6 @@ struct LiveNativePlayerControls: View {
     .padding(.bottom, isFullscreen ? 24 : 6)
   }
 
-  /// SponsorBlock segments over the track: shown for the mark/skip
-  /// categories (the policy filters disabled ones out), one colour per
-  /// category, display-only (plan task 2.1).
   private var sponsorSegmentBands: some View {
     GeometryReader { proxy in
       ForEach(controller.visibleSponsorBlockWindows) { window in

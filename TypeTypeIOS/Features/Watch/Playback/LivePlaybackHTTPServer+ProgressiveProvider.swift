@@ -153,8 +153,6 @@ extension LivePlaybackHTTPServer {
     return lines.joined(separator: "\n")
   }
 
-  /// The first segment loads before playback so a broken source fails fast and the fallback runs;
-  /// the rest warms in the background through `load(_:)`.
   private func warmProgressiveStart(_ routes: [Route]) async throws {
     guard let first = routes.first else { return }
     _ = try await load(first)

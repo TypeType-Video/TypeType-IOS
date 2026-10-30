@@ -1,8 +1,6 @@
 import Foundation
 import OSLog
 
-/// Time from the start of loading to the first playing frame, with the time
-/// of each step, so startup regressions can be measured instead of guessed.
 struct LivePlaybackStartupTrace {
   private var startedAt: ContinuousClock.Instant?
   private var steps: [(name: String, at: Duration)] = []
@@ -19,7 +17,6 @@ struct LivePlaybackStartupTrace {
     steps.append((step, .now - startedAt))
   }
 
-  /// Total milliseconds the first time playback starts; nil afterwards.
   mutating func finish(source: String) -> Int? {
     guard let startedAt else { return nil }
     let total = Self.milliseconds(.now - startedAt)

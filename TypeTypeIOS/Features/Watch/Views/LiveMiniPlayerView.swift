@@ -1,18 +1,11 @@
 import AVFoundation
 import SwiftUI
 
-/// Picture-in-picture style mini player: a compact, freely movable video
-/// card that snaps to the nearest edge like the system PiP window. The card
-/// moves as one piece and is clamped above the tab bar at all times.
 struct LiveMiniPlayerView: View {
   @ObservedObject var coordinator: LivePlaybackCoordinator
   let onExpand: () -> Void
   let containerSize: CGSize
-  /// Distance from the container's bottom edge up to the tab bar top; the
-  /// card may never enter this band.
   let tabBarBand: CGFloat
-  /// Distance from the container's top edge down past the status bar /
-  /// Dynamic Island; the card may never enter this band either.
   let topBand: CGFloat
 
   @State private var dragOffset: CGSize = .zero
@@ -29,9 +22,6 @@ struct LiveMiniPlayerView: View {
       ZStack {
         if controller.audioOnly {
           ZStack {
-            // No .scaledToFill on LiveRemoteImage (see the watch-page
-            // player): the fill wrapper inflates the card and clipped the
-            // close/expand row out of reach.
             LiveRemoteImage(url: video.thumbnail)
               .blur(radius: 18)
               .opacity(0.5)
@@ -99,8 +89,6 @@ struct LiveMiniPlayerView: View {
           .frame(maxWidth: .infinity)
         }
         .padding(12)
-        // One rasterized layer: re-compositing glass every drag frame is
-        // what made the movement stutter.
         .compositingGroup()
       }
       .frame(width: Self.cardWidth, height: Self.cardHeight)
@@ -110,12 +98,8 @@ struct LiveMiniPlayerView: View {
           .strokeBorder(.white.opacity(0.14), lineWidth: 1)
       }
       .shadow(color: .black.opacity(0.3), radius: 12, y: 5)
-      // Offset-based placement keeps the card and its controls one atomic
-      // piece; absolute positioning let the buttons detach while dragging.
       .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
       .offset(clampedOffset)
-      // simultaneousGesture: the drag must work no matter which child
-      // (tap surface, buttons) is under the finger.
       .simultaneousGesture(freeDrag)
       .accessibilityElement(children: .contain)
       .accessibilityAction(named: "Expand player") {
@@ -147,10 +131,6 @@ struct LiveMiniPlayerView: View {
     .accessibilityIdentifier(identifier)
   }
 
-  // MARK: - Free movement with edge snapping
-
-  /// Offset from the flush bottom-trailing placement to the resting slot
-  /// (bottom trailing, inside the margins, above the tab bar band).
   private var restingOffset: CGSize {
     CGSize(width: -Self.margin, height: -(tabBarBand + Self.margin))
   }
@@ -160,8 +140,6 @@ struct LiveMiniPlayerView: View {
   }
 
   private var clampedOffset: CGSize {
-    // Total offset from the flush corner; the card stays inside the margins,
-    // below the top band and above the tab bar band at all times.
     let minOffsetY = -(containerSize.height - Self.cardHeight - topBand - Self.margin)
     let maxOffsetY = -(tabBarBand + Self.margin)
     return CGSize(
@@ -184,8 +162,6 @@ struct LiveMiniPlayerView: View {
       }
       .onEnded { _ in
         isDragging = false
-        // Snap to the nearest horizontal edge like the system PiP window;
-        // the vertical position is kept.
         withAnimation(.snappy(duration: 0.22)) {
           let totalX = restingOffset.width + dragOffset.width
           let midX = minOffsetX / 2
@@ -198,12 +174,9 @@ struct LiveMiniPlayerView: View {
 }
 
 extension View {
-  /// Liquid-Glass look on iOS 26 and later, translucent material below.
   @ViewBuilder
   func pipGlassBackground() -> some View {
     if #available(iOS 26.0, *) {
-      // Clear glass is the most transparent system glass; like all system
-      // glass it also follows the global "Reduce Transparency" setting.
       self.glassEffect(.clear, in: Circle())
     } else {
       self.background(.ultraThinMaterial, in: Circle())

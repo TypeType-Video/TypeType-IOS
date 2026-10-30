@@ -26,7 +26,6 @@ extension LivePlaybackService {
     let codecOrdered = codecCandidates.isEmpty ? sources : codecCandidates
     let ordered = codecOrdered.sorted {
       if $0.height != $1.height { return $0.height < $1.height }
-      // Same height: the more efficient codec wins (fewer bytes to start).
       let lhsRank = Self.codecEfficiencyRank($0.codec)
       let rhsRank = Self.codecEfficiencyRank($1.codec)
       if lhsRank != rhsRank { return lhsRank < rhsRank }
@@ -39,7 +38,6 @@ extension LivePlaybackService {
     return ordered.last
   }
 
-  /// Higher is preferred at equal height among sources iOS can play.
   static func codecEfficiencyRank(_ codec: String?) -> Int {
     let codec = codec?.lowercased() ?? ""
     if codec.hasPrefix("hvc1") { return 2 }
@@ -114,8 +112,6 @@ extension LivePlaybackService {
     for sourceURL: URL,
     authenticated: Bool
   ) -> URL? {
-    // Resources the server already hosts (`/media/…`) are loaded directly:
-    // wrapping a relative URL in /proxy fails with "Missing URL scheme".
     if sourceURL.scheme == nil || isSelectedServerURL(sourceURL) {
       guard let resolved = serverResourceURL(for: sourceURL.absoluteString) else { return nil }
       return authenticated ? authenticatedAssetURL(for: resolved) : resolved

@@ -2,7 +2,6 @@ import AVKit
 import Combine
 
 extension AVPictureInPictureController {
-  /// Waits for the system to allow a start (it refuses while the player is still loading).
   @MainActor
   func becomesPossible(within timeout: Duration) async -> Bool {
     if isPictureInPicturePossible { return true }

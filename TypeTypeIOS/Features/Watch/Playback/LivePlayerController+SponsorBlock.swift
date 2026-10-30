@@ -16,7 +16,6 @@ extension LivePlayerController {
     }
   }
 
-  /// Stream chapters plus the ones derived from SponsorBlock segments.
   var displayedChapters: [LivePlaybackChapter] {
     (availableChapters + sponsorBlockChapters).sorted {
       $0.startTimeSeconds < $1.startTimeSeconds

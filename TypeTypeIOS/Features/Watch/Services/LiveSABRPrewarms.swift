@@ -1,7 +1,5 @@
 import Foundation
 
-/// The server keeps a prewarmed session 60 s for a create with the same user, video, formats and start.
-/// A create waits for a prewarm still in flight and a late prewarm is dropped: one start, one session.
 actor LiveSABRPrewarms {
   struct Key: Hashable {
     let videoID: String
@@ -23,7 +21,6 @@ actor LiveSABRPrewarms {
     }
   }
 
-  /// Under the server's 60 s so a handoff is never assumed after it expired.
   static let lifetime: Duration = .seconds(50)
   private var inFlight: [Key: Task<Void, Never>] = [:]
   private var settled: [Key: ContinuousClock.Instant] = [:]
@@ -38,7 +35,6 @@ actor LiveSABRPrewarms {
     settled[key] = .now
   }
 
-  /// Runs right before a real create of `key`.
   func settle(_ key: Key) async {
     if let task = inFlight[key] {
       await task.value

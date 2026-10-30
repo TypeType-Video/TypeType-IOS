@@ -12,8 +12,6 @@ extension LivePlaybackService {
       $0.isSABR && $0.isAppleAAC && $0.itag > 0
     }
     if preferences.audioOnly {
-      // Audio-only never decodes video (its itag only fills the SABR contract), so any video will do.
-      // Audio prefers AAC, which the platform decodes reliably.
       if videos.isEmpty {
         videos = stream.allVideoSources.filter { $0.isSABR && $0.itag > 0 }
       }
@@ -122,8 +120,6 @@ extension LivePlaybackService {
       declared: audio.deliveryMethod,
       sourceURL: audioURL
     )
-    // NicoNico labels its HLS audio "progressive" and its media URLs carry no
-    // .m3u8 extension: audio without byte-range data next to HLS video is HLS.
     if videoMethod == "hls", audioMethod == "progressive",
       audio.initEnd == 0, audio.indexEnd == 0 {
       audioMethod = "hls"

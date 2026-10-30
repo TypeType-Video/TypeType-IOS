@@ -6,7 +6,6 @@ final class LiveNativeControlsState: ObservableObject {
   private var hideTask: Task<Void, Never>?
   private var tapTask: Task<Void, Never>?
 
-  // Waits out the double-tap window, so a double tap seeks without flashing the controls.
   func tap() {
     tapTask?.cancel()
     tapTask = Task { [weak self] in

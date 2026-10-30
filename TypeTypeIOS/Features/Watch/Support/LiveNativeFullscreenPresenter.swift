@@ -1,13 +1,11 @@
 import UIKit
 
-// Full screen is the watch page itself: the window turns and the player grows in the same animation.
 @MainActor
 final class LiveNativeFullscreenPresenter {
   private weak var controller: LivePlayerController?
   private let orientationLock: LiveOrientationLock
   private var orientationObservation: NSObjectProtocol?
   private var portraitExit: Task<Void, Never>?
-  // A phone picked up off the table says "portrait" again, that's not someone leaving full screen.
   private var closesOnPortrait = false
 
   var isPageActive = false {
@@ -37,8 +35,6 @@ final class LiveNativeFullscreenPresenter {
     guard let controller else { return }
     closesOnPortrait = false
     cancelPortraitExit()
-    // Idempotent: a landscape window with the full screen layout leaves
-    // even when the flag is out of step with it.
     controller.isPresentingFullscreen = false
     if isPageActive {
       orientationLock.refresh()
@@ -90,7 +86,6 @@ final class LiveNativeFullscreenPresenter {
       return
     }
     guard isPresenting, closesOnPortrait, portraitExit == nil else { return }
-    // Flipping from one landscape side to the other reads "portrait" for a moment on the way.
     portraitExit = Task { @MainActor [weak self] in
       try? await Task.sleep(for: .milliseconds(350))
       guard !Task.isCancelled else { return }
@@ -111,7 +106,6 @@ final class LiveNativeFullscreenPresenter {
     else { return }
     closesOnPortrait = orientation.isLandscape
     controller.isPresentingFullscreen = true
-    // What is this piece of crap: phone turned left means interface landscape RIGHT. Thanks Apple.
     orientationLock.claim(by: self, turningTo: orientation == .landscapeRight ? .landscapeLeft : .landscapeRight)
   }
 }

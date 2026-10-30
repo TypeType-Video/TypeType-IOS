@@ -31,14 +31,11 @@ enum LiveShareURLBuilder {
     return components.url ?? source
   }
 
-  /// The untouched source link (e.g. the YouTube URL) shared when the
-  /// user picks "Original link" instead of the TypeType instance link.
   static func original(sourceURL: String) -> URL? {
     URL(string: sourceURL)
   }
 }
 
-/// System share sheet for a single shared URL.
 struct LiveShareActivityView: UIViewControllerRepresentable {
   let url: URL
 
@@ -57,9 +54,6 @@ struct LiveShareActivityView: UIViewControllerRepresentable {
   ) {}
 }
 
-/// Share button with a "share as" step: a small confirmation dialog
-/// asks for the TypeType instance link (default) or the original source
-/// link before the system share sheet opens for the chosen URL.
 struct LiveShareAsLinkButton<Label: View>: View {
   let typeTypeURL: URL?
   let originalURL: URL?
@@ -111,7 +105,6 @@ struct LiveShareAsLinkButton<Label: View>: View {
   }
 }
 
-/// "Share as" choice card: the same dropping glass card as the confirms.
 struct LiveShareChoiceCard: View {
   var hasOriginal = true
   let onTypeType: () -> Void
