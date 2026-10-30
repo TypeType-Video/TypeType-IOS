@@ -61,7 +61,8 @@ struct LiveDownloadsView: View {
             Button("Delete all", role: .destructive) { confirmsRemoveAll = true }
               .font(.subheadline.weight(.semibold))
               .buttonStyle(.borderless)
-              .confirmationDialog("Delete all finished downloads?", isPresented: $confirmsRemoveAll, titleVisibility: .visible) {
+              .alert("Delete all finished downloads?", isPresented: $confirmsRemoveAll) {
+                Button("Cancel", role: .cancel) {}
                 Button("Delete all", role: .destructive) { Task { await removeAll() } }
               } message: {
                 Text("Downloads in progress are kept.")
@@ -91,6 +92,7 @@ struct LiveDownloadsView: View {
             onRetry: { run { try await center.retry(id: record.id) } },
             onRemove: { run { try await center.remove(id: record.id) } }
           )
+          .liveBareRow()
         }
       } header: {
         Text(title).liveSectionHeader()

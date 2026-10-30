@@ -42,7 +42,8 @@ struct LiveSearchHistoryView: View {
       Button("Clear") { confirmsClear = true }
         .font(.subheadline.weight(.semibold))
         .accessibilityHint(Text("Removes all saved searches"))
-        .confirmationDialog("Clear search history?", isPresented: $confirmsClear, titleVisibility: .visible) {
+        .alert("Clear search history?", isPresented: $confirmsClear) {
+          Button("Cancel", role: .cancel) {}
           Button("Clear all", role: .destructive) {
             Task { await viewModel.clearHistory() }
           }
