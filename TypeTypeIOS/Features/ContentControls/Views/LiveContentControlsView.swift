@@ -68,7 +68,7 @@ struct LiveContentControlsView: View {
       } else {
       if viewModel.items.isEmpty {
         ContentUnavailableView(
-          "No \(viewModel.kind.title.lowercased())",
+          viewModel.kind.emptyTitle,
           systemImage: "checkmark.shield"
         ).liveThemedEmptyState()
       } else {

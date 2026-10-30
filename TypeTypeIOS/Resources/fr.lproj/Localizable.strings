@@ -670,3 +670,14 @@
 "Not set" = "Non défini";
 "Choose a setting" = "Choisissez un réglage";
 "Instances, accounts and YouTube sign-in" = "Instances, comptes et connexion à YouTube";
+"Block a channel" = "Bloquer une chaîne";
+"Block a video" = "Bloquer une vidéo";
+"Block a keyword" = "Bloquer un mot-clé";
+"Allow a channel" = "Autoriser une chaîne";
+"No blocked channels" = "Aucune chaîne bloquée";
+"No blocked videos" = "Aucune vidéo bloquée";
+"No allowed channels" = "Aucune chaîne autorisée";
+"No notifications" = "Aucune notification";
+"Blocked channels" = "Chaînes bloquées";
+"Blocked videos" = "Vidéos bloquées";
+"Allowed channels" = "Chaînes autorisées";

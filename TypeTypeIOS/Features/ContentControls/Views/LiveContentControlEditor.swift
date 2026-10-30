@@ -28,7 +28,7 @@ struct LiveContentControlEditor: View {
         }
       }
         .liveGroupedList()
-      .navigationTitle("Add \(kind.title.lowercased())")
+      .navigationTitle(kind.addTitle)
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {
         ToolbarItem(placement: .cancellationAction) {

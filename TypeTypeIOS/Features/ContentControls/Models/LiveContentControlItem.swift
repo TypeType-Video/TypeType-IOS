@@ -74,4 +74,22 @@ enum LiveContentControlKind: String, CaseIterable, Identifiable {
     case .allowedChannels: return "Allowed channels"
     }
   }
+
+  var addTitle: String {
+    switch self {
+    case .blockedChannels: String(localized: "Block a channel")
+    case .blockedVideos: String(localized: "Block a video")
+    case .blockedKeywords: String(localized: "Block a keyword")
+    case .allowedChannels: String(localized: "Allow a channel")
+    }
+  }
+
+  var emptyTitle: String {
+    switch self {
+    case .blockedChannels: String(localized: "No blocked channels")
+    case .blockedVideos: String(localized: "No blocked videos")
+    case .blockedKeywords: String(localized: "No blocked keywords")
+    case .allowedChannels: String(localized: "No allowed channels")
+    }
+  }
 }

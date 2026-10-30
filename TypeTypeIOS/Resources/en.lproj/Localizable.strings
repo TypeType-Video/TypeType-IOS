@@ -670,3 +670,14 @@
 "Not set" = "Not set";
 "Choose a setting" = "Choose a setting";
 "Instances, accounts and YouTube sign-in" = "Instances, accounts and YouTube sign-in";
+"Block a channel" = "Block a channel";
+"Block a video" = "Block a video";
+"Block a keyword" = "Block a keyword";
+"Allow a channel" = "Allow a channel";
+"No blocked channels" = "No blocked channels";
+"No blocked videos" = "No blocked videos";
+"No allowed channels" = "No allowed channels";
+"No notifications" = "No notifications";
+"Blocked channels" = "Blocked channels";
+"Blocked videos" = "Blocked videos";
+"Allowed channels" = "Allowed channels";

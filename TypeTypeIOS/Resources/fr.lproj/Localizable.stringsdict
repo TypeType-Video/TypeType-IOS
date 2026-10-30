@@ -2,69 +2,85 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-  <key>%lld channels turned on.</key>
-  <dict>
-    <key>NSStringLocalizedFormatKey</key>
-    <string>%#@count@</string>
-    <key>count</key>
-    <dict>
-      <key>NSStringFormatSpecTypeKey</key>
-      <string>NSStringPluralRuleType</string>
-      <key>NSStringFormatValueTypeKey</key>
-      <string>lld</string>
-      <key>one</key>
-      <string>%lld chaîne activée.</string>
-      <key>other</key>
-      <string>%lld chaînes activées.</string>
-    </dict>
-  </dict>
-  <key>%lld channels turned off.</key>
-  <dict>
-    <key>NSStringLocalizedFormatKey</key>
-    <string>%#@count@</string>
-    <key>count</key>
-    <dict>
-      <key>NSStringFormatSpecTypeKey</key>
-      <string>NSStringPluralRuleType</string>
-      <key>NSStringFormatValueTypeKey</key>
-      <string>lld</string>
-      <key>one</key>
-      <string>%lld chaîne désactivée.</string>
-      <key>other</key>
-      <string>%lld chaînes désactivées.</string>
-    </dict>
-  </dict>
-  <key>%lld channels stayed off: the limit is reached.</key>
-  <dict>
-    <key>NSStringLocalizedFormatKey</key>
-    <string>%#@count@</string>
-    <key>count</key>
-    <dict>
-      <key>NSStringFormatSpecTypeKey</key>
-      <string>NSStringPluralRuleType</string>
-      <key>NSStringFormatValueTypeKey</key>
-      <string>lld</string>
-      <key>one</key>
-      <string>%lld chaîne est restée désactivée : la limite est atteinte.</string>
-      <key>other</key>
-      <string>%lld chaînes sont restées désactivées : la limite est atteinte.</string>
-    </dict>
-  </dict>
-  <key>%lld channels left before the limit of %lld.</key>
-  <dict>
-    <key>NSStringLocalizedFormatKey</key>
-    <string>%1$#@count@</string>
-    <key>count</key>
-    <dict>
-      <key>NSStringFormatSpecTypeKey</key>
-      <string>NSStringPluralRuleType</string>
-      <key>NSStringFormatValueTypeKey</key>
-      <string>lld</string>
-      <key>one</key>
-      <string>Encore %1$lld chaîne avant la limite de %2$lld.</string>
-      <key>other</key>
-      <string>Encore %1$lld chaînes avant la limite de %2$lld.</string>
-    </dict>
-  </dict>
+	<key>%lld channels left before the limit of %lld.</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%1$#@count@</string>
+		<key>count</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>one</key>
+			<string>Encore %1$lld chaîne avant la limite de %2$lld.</string>
+			<key>other</key>
+			<string>Encore %1$lld chaînes avant la limite de %2$lld.</string>
+		</dict>
+	</dict>
+	<key>%lld channels stayed off: the limit is reached.</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@count@</string>
+		<key>count</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>one</key>
+			<string>%lld chaîne est restée désactivée : la limite est atteinte.</string>
+			<key>other</key>
+			<string>%lld chaînes sont restées désactivées : la limite est atteinte.</string>
+		</dict>
+	</dict>
+	<key>%lld channels turned off.</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@count@</string>
+		<key>count</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>one</key>
+			<string>%lld chaîne désactivée.</string>
+			<key>other</key>
+			<string>%lld chaînes désactivées.</string>
+		</dict>
+	</dict>
+	<key>%lld channels turned on.</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@count@</string>
+		<key>count</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>one</key>
+			<string>%lld chaîne activée.</string>
+			<key>other</key>
+			<string>%lld chaînes activées.</string>
+		</dict>
+	</dict>
+	<key>%lld unread</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@count@</string>
+		<key>count</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>one</key>
+			<string>%lld non lue</string>
+			<key>other</key>
+			<string>%lld non lues</string>
+		</dict>
+	</dict>
 </dict>
 </plist>
