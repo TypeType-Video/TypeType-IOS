@@ -28,7 +28,6 @@ final class LiveNotificationCenter: ObservableObject {
         }
         unreadCount = max(value, 0)
       } catch {
-        // A badge must never block the authenticated application.
       }
     }
     inFlightRefreshTasks.insert(task)

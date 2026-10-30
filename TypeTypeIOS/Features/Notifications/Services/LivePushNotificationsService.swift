@@ -8,9 +8,6 @@ protocol LivePushNotificationsServiceProtocol {
     channelURL: String,
     enabled: Bool
   ) async throws -> LiveChannelNotificationPreference
-  /// Bulk toggle behind "Enable all"/"Disable all": one request with the
-  /// channels to flip (TypeType-Android: PUT
-  /// notifications/channel-preferences/bulk).
   func setChannelPreferences(
     enabled: Bool,
     channelURLs: [String]
@@ -18,8 +15,6 @@ protocol LivePushNotificationsServiceProtocol {
 }
 
 extension LivePushNotificationsServiceProtocol {
-  /// Per-channel fallback for stubs and tests; the real service replaces
-  /// it with the single bulk request.
   func setChannelPreferences(
     enabled: Bool,
     channelURLs: [String]
@@ -99,7 +94,6 @@ final class LivePushNotificationsService: LivePushNotificationsServiceProtocol {
   }
 }
 
-/// Mirrors TypeType-Android's `ChannelNotificationPreferencesBulkRequestDto`.
 private struct LiveChannelNotificationPreferencesBulkPayload: Encodable {
   let enabled: Bool
   let channelURLs: [String]
@@ -110,13 +104,10 @@ private struct LiveChannelNotificationPreferencesBulkPayload: Encodable {
   }
 }
 
-/// Ceiling on outgoing notifications requests per second: the backend
-/// allows 120/s, this holds the client at ~60/s.
 private actor LiveNotificationRequestGate {
   private var nextSlot: ContinuousClock.Instant = .now
   private let spacing: Duration = .milliseconds(17)
 
-  /// Waits until this request's slot before the caller performs it.
   func acquire() async {
     let now = ContinuousClock.Instant.now
     let slot = max(nextSlot, now)

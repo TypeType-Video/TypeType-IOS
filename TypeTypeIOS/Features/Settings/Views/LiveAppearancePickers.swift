@@ -1,7 +1,5 @@
 import SwiftUI
 
-/// Theme picker as live preview tiles: each theme's real surface colours in
-/// a mini feed mock-up (dev feedback, plan 6.1; adapted from beta 9b680fe).
 struct LiveAppearanceThemeTiles: View {
   @Environment(\.themePalette) private var palette
   @Binding var selection: LiveAppearanceTheme
@@ -45,7 +43,6 @@ struct LiveAppearanceThemeTiles: View {
   }
 }
 
-/// A tiny feed mock-up drawn in one theme's real surface colours.
 struct LiveAppearanceMiniScreen: View {
   let theme: LiveAppearanceTheme
   let isDark: Bool
@@ -80,7 +77,6 @@ struct LiveAppearanceMiniScreen: View {
   }
 }
 
-/// Accent colours as compact circles with a checkmark on the selected one.
 struct LiveAppearanceAccentDots: View {
   @Environment(\.themePalette) private var palette
   @Binding var selection: LiveAccentColor
@@ -90,8 +86,6 @@ struct LiveAppearanceAccentDots: View {
     HStack(spacing: 0) {
       ForEach(LiveAccentColor.allCases) { accent in
         if accent == .custom {
-          // The rightmost swatch opens the system colour picker and
-          // applies the picked colour as the custom accent.
           ColorPicker("", selection: customColorBinding, supportsOpacity: false)
             .labelsHidden()
             .frame(maxWidth: .infinity)
@@ -131,7 +125,6 @@ struct LiveAppearanceAccentDots: View {
     .accessibilityIdentifier("live.settings.appearance.accent")
   }
 
-  /// Picking a custom colour stores it (hex) and selects the custom accent.
   private var customColorBinding: Binding<Color> {
     Binding(
       get: { customHex.flatMap(Color.init(hex:)) ?? .accentColor },

@@ -110,8 +110,6 @@ struct LiveNotificationSettingsView: View {
     }
   }
 
-  /// "Enable all"/"Disable all" beside the styled caption; the remaining
-  /// polling budget is spelled out in the section footer below.
   private var channelSectionHeader: some View {
     HStack(spacing: 12) {
       Text("Channel notifications").liveSettingsHeader()
@@ -191,8 +189,6 @@ struct LiveNotificationSettingsView: View {
     }
   }
 
-  /// Center glass card (the favourites toast pattern): symbol, message,
-  /// swipe-to-dismiss with a slow fade, plus the auto-dismiss timer.
   private func toastCard(
     _ toast: LiveNotificationSettingsViewModel.Toast
   ) -> some View {

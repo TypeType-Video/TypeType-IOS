@@ -2,15 +2,11 @@ import Foundation
 
 @MainActor
 final class LiveNotificationSettingsViewModel: ObservableObject {
-  /// Transient feedback card (the favourites-toast pattern): one message
-  /// with its symbol, auto-dismissed by the view.
   struct Toast: Equatable {
     let message: String
     let systemImage: String
   }
 
-  /// The instance's per-user polling budget: each enabled channel costs `pollingQueriesPerEnabledFeed`
-  /// queries a cycle, and going over it answers 429.
   static let pollingQueryBudget = 120
   static let pollingQueriesPerEnabledFeed = 1
 
@@ -49,9 +45,7 @@ final class LiveNotificationSettingsViewModel: ObservableObject {
     }
   }
 
-  // MARK: Polling budget
 
-  /// Number of enabled channel feeds: the server's polling workload.
   var enabledFeedCount: Int {
     preferences.filter { $0.enabled }.count
   }
@@ -64,7 +58,6 @@ final class LiveNotificationSettingsViewModel: ObservableObject {
     max(0, Self.pollingQueryBudget - usedPollingQueries)
   }
 
-  /// True while one more enabled feed still fits under the cap.
   var canEnableMore: Bool {
     remainingPollingQueries >= Self.pollingQueriesPerEnabledFeed
   }
@@ -132,9 +125,6 @@ final class LiveNotificationSettingsViewModel: ObservableObject {
     else {
       return
     }
-    // Budget guard: never let the enabled feeds exceed the polling cap.
-    // The enable is blocked here with a toast, before the request: one
-    // more feed would only earn a server 429.
     if enabled, !isCurrentlyEnabled(preference), !canEnableMore {
       toast = Self.budgetBlockedToast
       return
@@ -164,9 +154,6 @@ final class LiveNotificationSettingsViewModel: ObservableObject {
     }
   }
 
-  /// Sweeps every channel on ("Enable all") or off ("Disable all").
-  /// Enabling only fills the remaining polling budget: channels that do
-  /// not fit stay off and the toast says how many were skipped.
   func setAllEnabled(_ enabled: Bool) async {
     guard !isBulkUpdating else { return }
     let targets = sortedPreferences.filter { $0.enabled != enabled }
@@ -190,8 +177,6 @@ final class LiveNotificationSettingsViewModel: ObservableObject {
     isBulkUpdating = true
     defer { isBulkUpdating = false }
 
-    // Optimistic: the toggles flip at once, the batch is reconciled from
-    // the server's response (or a quiet resync) below.
     for preference in appliedTargets {
       if let index = indexOf(preference) {
         preferences[index].enabled = enabled
@@ -209,8 +194,6 @@ final class LiveNotificationSettingsViewModel: ObservableObject {
         }
       }
     } catch {
-      // A failed batch can leave some rows applied and some not; resync
-      // quietly so the list never disagrees with the server.
       await resync()
       errorMessage = Self.message(for: error)
       return
@@ -255,8 +238,6 @@ final class LiveNotificationSettingsViewModel: ObservableObject {
     return preferences[index].enabled
   }
 
-  /// Replaces the local rows with the server's without touching `state`:
-  /// a resync after a failed bulk batch must not flash the skeleton.
   private func resync() async {
     if let fresh = try? await service.channelPreferences() {
       preferences = fresh
