@@ -87,10 +87,6 @@ final class LiveNotificationSettingsViewModel: ObservableObject {
     preferences.contains(where: { $0.enabled }) && !isBulkUpdating
   }
 
-  var budgetFooterText: String {
-    LiveNotificationTexts.note(for: limit) ?? ""
-  }
-
   var limit: Limit {
     if !canEnableMore { return .reached }
     let remaining = remainingPollingQueries / Self.pollingQueriesPerEnabledFeed

@@ -29,8 +29,3 @@ enum LiveNotificationTexts {
     }
   }
 }
-
-extension LiveNotificationSettingsViewModel.Toast {
-  @MainActor var message: String { LiveNotificationTexts.message(for: self) }
-  var systemImage: String { isWarning ? "exclamationmark.triangle.fill" : "checkmark.circle.fill" }
-}
