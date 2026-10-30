@@ -87,10 +87,8 @@ struct LiveSettingsCaptionAppearanceView: View {
           options: opacities.map { ($0, $0.isEmpty ? "System" : $0) }
         )
       } header: { Text("Caption area").liveSettingsHeader() } footer: {
-        Text(
-          "These preferences style native subtitles. System keeps "
-            + "your iOS accessibility appearance when a value is not set."
-        )
+        Text("Values left on System keep the caption style set in iOS accessibility settings.")
+          .liveSettingsFooter()
       }
     }
       .liveGroupedList()
