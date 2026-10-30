@@ -33,13 +33,6 @@ struct LiveSearchHistoryView: View {
     }
     .scrollDismissesKeyboard(.immediately)
     .refreshable { await viewModel.loadHistory() }
-    .confirmationDialog("Clear search history?", isPresented: $confirmsClear, titleVisibility: .visible) {
-      Button("Clear all", role: .destructive) {
-        Task { await viewModel.clearHistory() }
-      }
-    } message: {
-      Text("This removes all saved searches from your account.")
-    }
     .accessibilityIdentifier("live.search.history")
   }
 
@@ -49,6 +42,13 @@ struct LiveSearchHistoryView: View {
       Button("Clear") { confirmsClear = true }
         .font(.subheadline.weight(.semibold))
         .accessibilityHint(Text("Removes all saved searches"))
+        .confirmationDialog("Clear search history?", isPresented: $confirmsClear, titleVisibility: .visible) {
+          Button("Clear all", role: .destructive) {
+            Task { await viewModel.clearHistory() }
+          }
+        } message: {
+          Text("This removes all saved searches from your account.")
+        }
     }
   }
 

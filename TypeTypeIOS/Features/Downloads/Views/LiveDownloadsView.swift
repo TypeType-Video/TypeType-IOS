@@ -38,11 +38,6 @@ struct LiveDownloadsView: View {
       toasts?.show(message, tone: .failure)
       center.message = nil
     }
-    .confirmationDialog("Delete all finished downloads?", isPresented: $confirmsRemoveAll, titleVisibility: .visible) {
-      Button("Delete all", role: .destructive) { Task { await removeAll() } }
-    } message: {
-      Text("Downloads in progress are kept.")
-    }
     .fullScreenCover(item: $playbackItem) { item in
       LiveOfflinePlaybackView(item: item, dependencies: dependencies)
     }
@@ -57,7 +52,7 @@ struct LiveDownloadsView: View {
           VStack(alignment: .leading, spacing: 2) {
             Text(LiveDownloadTexts.size(center.storageUsage))
               .font(.headline.monospacedDigit())
-            Text("Used on this device")
+            Text("On this device")
               .font(.footnote)
               .foregroundStyle(.secondary)
           }
@@ -66,6 +61,11 @@ struct LiveDownloadsView: View {
             Button("Delete all", role: .destructive) { confirmsRemoveAll = true }
               .font(.subheadline.weight(.semibold))
               .buttonStyle(.borderless)
+              .confirmationDialog("Delete all finished downloads?", isPresented: $confirmsRemoveAll, titleVisibility: .visible) {
+                Button("Delete all", role: .destructive) { Task { await removeAll() } }
+              } message: {
+                Text("Downloads in progress are kept.")
+              }
           }
         }
         .accessibilityElement(children: .combine)
