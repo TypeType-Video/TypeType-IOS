@@ -2,9 +2,24 @@ import Foundation
 
 @MainActor
 final class LiveNotificationSettingsViewModel: ObservableObject {
-  struct Toast: Equatable {
-    let message: String
-    let systemImage: String
+  enum Toast: Equatable {
+    case limitReached
+    case turnedOn(Int, leftOff: Int)
+    case turnedOff(Int)
+
+    var isWarning: Bool {
+      switch self {
+      case .limitReached: true
+      case let .turnedOn(_, leftOff): leftOff > 0
+      case .turnedOff: false
+      }
+    }
+  }
+
+  enum Limit: Equatable {
+    case comfortable
+    case close(remaining: Int)
+    case reached
   }
 
   // Each enabled channel costs one polling query a cycle; over the budget the server answers 429.
@@ -73,7 +88,13 @@ final class LiveNotificationSettingsViewModel: ObservableObject {
   }
 
   var budgetFooterText: String {
-    "\(usedPollingQueries) of \(Self.pollingQueryBudget) polling queries used · \(remainingPollingQueries) remaining. Each enabled channel is polled for new uploads."
+    LiveNotificationTexts.note(for: limit) ?? ""
+  }
+
+  var limit: Limit {
+    if !canEnableMore { return .reached }
+    let remaining = remainingPollingQueries / Self.pollingQueriesPerEnabledFeed
+    return remaining <= 10 ? .close(remaining: remaining) : .comfortable
   }
 
   func prepare() async {
@@ -102,7 +123,7 @@ final class LiveNotificationSettingsViewModel: ObservableObject {
     do {
       permissionStatus = try await permissionManager.requestAuthorization()
     } catch {
-      errorMessage = "iOS notification permission could not be requested."
+      errorMessage = String(localized: "iOS notification permission could not be requested.")
     }
   }
 
@@ -126,7 +147,7 @@ final class LiveNotificationSettingsViewModel: ObservableObject {
       return
     }
     if enabled, !isCurrentlyEnabled(preference), !canEnableMore {
-      toast = Self.budgetBlockedToast
+      toast = .limitReached
       return
     }
     updatingURLs.insert(preference.channelURL)
@@ -170,7 +191,7 @@ final class LiveNotificationSettingsViewModel: ObservableObject {
     }
 
     guard !appliedTargets.isEmpty else {
-      toast = Self.budgetBlockedToast
+      toast = .limitReached
       return
     }
 
@@ -199,19 +220,7 @@ final class LiveNotificationSettingsViewModel: ObservableObject {
       return
     }
 
-    if enabled, blocked > 0 {
-      toast = Toast(
-        message: "Enabled \(appliedTargets.count) channels. \(blocked) stayed off — the \(Self.pollingQueryBudget)-query notification budget is full.",
-        systemImage: "exclamationmark.triangle.fill"
-      )
-    } else {
-      toast = Toast(
-        message: enabled
-          ? "Notifications enabled for \(appliedTargets.count) channels."
-          : "Notifications disabled for \(appliedTargets.count) channels.",
-        systemImage: "checkmark.circle.fill"
-      )
-    }
+    toast = enabled ? .turnedOn(appliedTargets.count, leftOff: blocked) : .turnedOff(appliedTargets.count)
   }
 
   func dismissError() {
@@ -220,13 +229,6 @@ final class LiveNotificationSettingsViewModel: ObservableObject {
 
   func dismissToast() {
     toast = nil
-  }
-
-  private static var budgetBlockedToast: Toast {
-    Toast(
-      message: "The notification budget is full: \(pollingQueryBudget) of \(pollingQueryBudget) polling queries are committed. Disable a channel before enabling another.",
-      systemImage: "exclamationmark.triangle.fill"
-    )
   }
 
   private func isCurrentlyEnabled(
@@ -253,6 +255,6 @@ final class LiveNotificationSettingsViewModel: ObservableObject {
 
   private static func message(for error: Error) -> String {
     (error as? LocalizedError)?.errorDescription
-      ?? "Notification settings could not be updated."
+      ?? String(localized: "Notification settings could not be updated.")
   }
 }
