@@ -73,14 +73,14 @@ struct LivePrivacyDataView: View {
   }
 
   private func dataRow(
-    _ title: String,
+    _ title: LocalizedStringKey,
     count: Int,
     action: Action
   ) -> some View {
     HStack {
       VStack(alignment: .leading) {
         Text(title)
-        Text("\(count) \(count == 1 ? "item" : "items")")
+        Text("^[\(count) item](inflect: true)")
           .font(.caption)
           .foregroundStyle(.secondary)
       }
@@ -91,7 +91,7 @@ struct LivePrivacyDataView: View {
       .disabled(count == 0 || viewModel.isBusy)
       .liveConfirmPopover(
         isPresented: Binding(
-          get: { confirmation?.title == action.title },
+          get: { confirmation == action },
           set: { if !$0 { confirmation = nil } }
         ),
         title: action.title,

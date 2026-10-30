@@ -69,9 +69,11 @@ struct LiveSettingsAccountsView: View {
               if coordinator.selectedServer?.id == server.id {
                 Image(systemName: "checkmark")
                   .foregroundStyle(.tint)
+                  .accessibilityHidden(true)
               }
             }
           }
+          .accessibilityAddTraits(coordinator.selectedServer?.id == server.id ? .isSelected : [])
         }
 
         Button("Add instance") {
@@ -83,10 +85,9 @@ struct LiveSettingsAccountsView: View {
 
       if let user = coordinator.currentUser {
         LiveSection {
-          LabeledContent(
-            "Username",
-            value: user.publicUsername ?? "Guest"
-          )
+          LabeledContent("Username") {
+            Text(user.publicUsername ?? String(localized: "Guest"))
+          }
           if !user.id.hasPrefix("guest:") {
             NavigationLink("Profile") {
               LiveProfileView(coordinator: coordinator, user: user)
@@ -129,15 +130,19 @@ struct LiveSettingsPrivacyView: View {
   @ObservedObject var viewModel: LiveSettingsViewModel
 
   var body: some View {
-    LiveSettingsEditingPage(viewModel: viewModel) {
+    LiveSettingsEditingPage(viewModel: viewModel, scope: .mixed) {
       LiveSettingsPrivacySection(settings: $viewModel.draft)
+        .disabled(viewModel.isOffline)
+      LiveSettingsSessionSection(service: dependencies.sessionActivityService)
       LiveSection {
-        NavigationLink("Manage stored data") {
+        NavigationLink {
           LivePrivacyDataView(
             history: dependencies.historyService,
             searchHistory: dependencies.searchHistoryService,
             subscriptions: dependencies.subscriptionsService
           )
+        } label: {
+          LiveSettingText(title: "Manage stored data", detail: "Clear your history, searches or subscriptions.")
         }
       } header: {
         Text("Stored activity").liveSettingsHeader()

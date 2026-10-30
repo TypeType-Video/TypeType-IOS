@@ -11,11 +11,11 @@ struct LiveConfirmCard: View {
   var body: some View {
     VStack(spacing: 0) {
       VStack(spacing: 8) {
-        Text(title)
+        Text(LocalizedStringKey(title))
           .font(.headline)
           .multilineTextAlignment(.center)
         if let message, !message.isEmpty {
-          Text(message)
+          Text(LocalizedStringKey(message))
             .font(.footnote)
             .foregroundStyle(.secondary)
             .multilineTextAlignment(.center)
@@ -31,7 +31,7 @@ struct LiveConfirmCard: View {
         dismiss()
         onConfirm()
       } label: {
-        Text(confirmTitle)
+        Text(LocalizedStringKey(confirmTitle))
           .fontWeight(.semibold)
           .foregroundStyle(
             destructive ? AnyShapeStyle(Color.systemRed) : AnyShapeStyle(.tint)

@@ -1,3 +1,4 @@
+import UIKit
 import XCTest
 @testable import TypeTypeIOS
 
@@ -133,6 +134,16 @@ final class LiveSessionActivityServiceTests: XCTestCase {
     XCTAssertEqual(service.snapshots, [playing, paused])
   }
 
+  func testDeviceNameIsTrimmedAndFallsBackWhenEmpty() {
+    let service = makeService()
+
+    service.setDeviceName("  Living room iPad  ")
+    XCTAssertEqual(service.deviceName, "Living room iPad")
+
+    service.setDeviceName("   ")
+    XCTAssertEqual(service.deviceName, UIDevice.current.name)
+  }
+
   private func makeService(
     canReport: @escaping () -> Bool = { true }
   ) -> LiveSessionActivityService {
@@ -202,6 +213,11 @@ private final class SessionActivityServiceSpy:
   LiveSessionActivityServiceProtocol {
   private(set) var events: [String] = []
   private(set) var snapshots: [LivePlaybackActivitySnapshot] = []
+  private(set) var deviceName = "iPhone"
+
+  func setDeviceName(_ name: String) {
+    deviceName = name
+  }
 
   func report() async throws {
     events.append("activity")
