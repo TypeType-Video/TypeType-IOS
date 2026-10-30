@@ -23,19 +23,28 @@ struct LiveSettingsSponsorBlockPage: View {
         LiveOptionMenu(
           "Global behavior",
           selection: $viewModel.draft.sponsorBlockMode,
-          options: LiveSponsorBlockMode.allCases.map { ($0.rawValue, $0.title) }
+          options: LiveSponsorBlockMode.allCases.map { ($0.rawValue, $0.title) },
+          help: modeHelp
         )
-        Stepper(
-          "Minimum duration: \(viewModel.draft.sponsorBlockMinimumDuration)s",
-          value: $viewModel.draft.sponsorBlockMinimumDuration,
-          in: 0...600
-        ).liveRowFill()
-        Toggle("Mute instead of skip", isOn: $viewModel.draft.sponsorBlockMuteInsteadOfSkip)
-          .liveRowFill()
-        Toggle(
+        LiveOptionMenu(
+          "Minimum duration",
+          selection: $viewModel.draft.sponsorBlockMinimumDuration,
+          options: minimumDurations.map { ($0, $0 == 0 ? "None" : "\($0)s") },
+          help: "Shorter segments are left alone.",
+          disabledReason: offReason
+        )
+        LiveSettingToggle(
+          "Mute instead of skip",
+          help: "Segments play without sound instead of being jumped over.",
+          isOn: $viewModel.draft.sponsorBlockMuteInsteadOfSkip,
+          disabledReason: offReason
+        )
+        LiveSettingToggle(
           "Non-music only on music videos",
-          isOn: $viewModel.draft.sponsorBlockSkipNonMusicOnlyOnMusicVideos
-        ).liveRowFill()
+          help: "On music videos, only the parts without music are skipped.",
+          isOn: $viewModel.draft.sponsorBlockSkipNonMusicOnlyOnMusicVideos,
+          disabledReason: offReason
+        )
       } header: {
         Text("Behavior").liveSettingsHeader()
       }
@@ -44,7 +53,8 @@ struct LiveSettingsSponsorBlockPage: View {
           LiveOptionMenu(
             title,
             selection: categoryBinding(key),
-            options: [("auto_skip", "Skip"), ("mark_only", "Mark"), ("disabled", "Hide")]
+            options: [("auto_skip", "Skip"), ("mark_only", "Mark"), ("disabled", "Hide")],
+            disabledReason: offReason
           )
         }
       } header: {
@@ -54,22 +64,58 @@ struct LiveSettingsSponsorBlockPage: View {
           .liveSettingsFooter()
       }
       LiveSection {
-        Toggle("Show current segment", isOn: $viewModel.draft.sponsorBlockShowCurrentSegment)
-          .liveRowFill()
-        Toggle("Show SponsorBlock chapters", isOn: $viewModel.draft.sponsorBlockShowChapters)
-          .liveRowFill()
-        Toggle("Show full-video labels", isOn: $viewModel.draft.sponsorBlockShowFullVideoLabels)
-          .liveRowFill()
-        Toggle(
+        LiveSettingToggle(
+          "Show current segment",
+          help: "Names the segment while it plays.",
+          isOn: $viewModel.draft.sponsorBlockShowCurrentSegment,
+          disabledReason: offReason
+        )
+        LiveSettingToggle(
+          "Show SponsorBlock chapters",
+          help: "Segments appear in the chapter list.",
+          isOn: $viewModel.draft.sponsorBlockShowChapters,
+          disabledReason: offReason
+        )
+        LiveSettingToggle(
+          "Show full-video labels",
+          help: "Flags videos that are entirely a sponsor or a promotion.",
+          isOn: $viewModel.draft.sponsorBlockShowFullVideoLabels,
+          disabledReason: offReason
+        )
+        LiveSettingToggle(
           "Manual skip for full-video labels",
-          isOn: $viewModel.draft.sponsorBlockManualSkipOnFullVideo
-        ).liveRowFill()
+          help: "A fully labeled video is never skipped on its own.",
+          isOn: $viewModel.draft.sponsorBlockManualSkipOnFullVideo,
+          disabledReason: offReason
+        )
       } header: {
         Text("Display").liveSettingsHeader()
       }
     }
     .navigationTitle("SponsorBlock")
     .navigationBarTitleDisplayMode(.inline)
+  }
+
+  private var minimumDurations: [Int] {
+    let base = [0, 1, 3, 5, 10, 30]
+    let current = viewModel.draft.sponsorBlockMinimumDuration
+    return base.contains(current) ? base : (base + [current]).sorted()
+  }
+
+  private var isOff: Bool {
+    viewModel.draft.sponsorBlockMode == LiveSponsorBlockMode.disabled.rawValue
+  }
+
+  private var offReason: LocalizedStringKey? {
+    isOff ? "SponsorBlock is off." : nil
+  }
+
+  private var modeHelp: LocalizedStringKey {
+    switch LiveSponsorBlockMode(rawValue: viewModel.draft.sponsorBlockMode) {
+    case .autoSkip: "Segments follow the rule of their category below."
+    case .markOnly: "Segments show on the progress bar and are never skipped."
+    case .disabled, .none: "SponsorBlock data is ignored."
+    }
   }
 
   private func categoryBinding(_ key: String) -> Binding<String> {

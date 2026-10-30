@@ -6,29 +6,45 @@ struct LiveSettingsLanguagePage: View {
   var body: some View {
     LiveSettingsEditingPage(viewModel: viewModel) {
       LiveSection {
-        Toggle("Enable subtitles by default", isOn: $viewModel.draft.subtitlesEnabled)
-          .liveRowFill()
-        TextField("Subtitle language code", text: $viewModel.draft.defaultSubtitleLanguage)
-          .textInputAutocapitalization(.never)
-          .autocorrectionDisabled()
-        NavigationLink("Caption appearance") {
+        LiveSettingToggle(
+          "Enable subtitles by default",
+          help: "Subtitles show as soon as a video starts.",
+          isOn: $viewModel.draft.subtitlesEnabled
+        )
+        LiveOptionMenu(
+          "Subtitle language",
+          selection: $viewModel.draft.defaultSubtitleLanguage,
+          options: LiveLanguageOptions.options,
+          help: "The track picked when a video has several.",
+          disabledReason: viewModel.draft.subtitlesEnabled ? nil : "Turn on subtitles to use this.",
+          opensList: true
+        )
+        NavigationLink {
           LiveSettingsCaptionAppearanceView(styles: $viewModel.draft.captionStyles)
+        } label: {
+          LiveSettingText(title: "Caption appearance", detail: "Font, size and colors of subtitles.")
         }
       } header: {
         Text("Subtitles").liveSettingsHeader()
-      } footer: {
-        Text("Use a language code such as en, fr or ja.").liveSettingsFooter()
       }
       LiveSection {
-        TextField("Audio language code", text: $viewModel.draft.defaultAudioLanguage)
-          .textInputAutocapitalization(.never)
-          .autocorrectionDisabled()
-        Toggle("Prefer original language", isOn: $viewModel.draft.preferOriginalLanguage)
-          .liveRowFill()
+        LiveSettingToggle(
+          "Prefer original language",
+          help: "Always use the original audio track instead of a dubbed one.",
+          isOn: $viewModel.draft.preferOriginalLanguage
+        )
+        LiveOptionMenu(
+          "Audio language",
+          selection: $viewModel.draft.defaultAudioLanguage,
+          options: LiveLanguageOptions.options,
+          help: "The track picked when a video has several.",
+          disabledReason: viewModel.draft.preferOriginalLanguage
+            ? "Ignored while the original language is forced."
+            : nil,
+          opensList: true
+        )
       } header: {
         Text("Audio").liveSettingsHeader()
-      } footer: {
-        Text("The original language wins over dubbed tracks when both exist.").liveSettingsFooter()
       }
     }
     .navigationTitle("Language and captions")

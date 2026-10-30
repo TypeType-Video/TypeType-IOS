@@ -118,11 +118,6 @@ struct LiveSettingsContentView: View {
         settings: $viewModel.draft,
         services: dependencies.serviceSelection.services
       )
-      LiveSection {
-        Toggle("Hide Shorts", isOn: $viewModel.draft.hideShorts)
-      } header: {
-        Text("Visible surfaces").liveSettingsHeader()
-      }
     }
     .navigationTitle("Content")
     .navigationBarTitleDisplayMode(.inline)
