@@ -30,7 +30,7 @@ struct PlayerSwipeAdjustmentState: Equatable, Identifiable {
 
 enum PlayerHorizontalSeekEvent: Equatable {
   case began(position: TimeInterval)
-  case updated(position: TimeInterval)
+  case updated(position: TimeInterval, isFine: Bool)
   case ended(position: TimeInterval)
 }
 

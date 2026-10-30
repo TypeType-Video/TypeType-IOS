@@ -165,7 +165,7 @@ struct LiveNativePlayerControls: View {
       ForEach(controller.visibleSponsorBlockWindows) { window in
         let band = bandSpan(window, width: proxy.size.width)
         Capsule()
-          .fill(sponsorBandColor(window.segment.category).opacity(0.55))
+          .fill(LiveSponsorBlockPalette.color(for: window.segment.category).opacity(0.55))
           .frame(width: band.width, height: 5)
           .position(x: band.center, y: proxy.size.height / 2)
       }
@@ -179,16 +179,5 @@ struct LiveNativePlayerControls: View {
     let start: Double = min(max(window.start / span, 0), 1)
     let end: Double = min(max(window.end / span, 0), 1)
     return (max(width * CGFloat(end - start), 3), width * CGFloat(start + end) / 2)
-  }
-
-  private func sponsorBandColor(_ category: String) -> Color {
-    switch category {
-    case "sponsor": return .systemOrange
-    case "selfpromo": return .systemBlue
-    case "interaction": return .systemPurple
-    case "intro", "outro": return .systemGreen
-    case "music", "music_offtopic": return .systemRed
-    default: return .systemGray
-    }
   }
 }

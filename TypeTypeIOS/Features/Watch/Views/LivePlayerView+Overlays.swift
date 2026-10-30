@@ -90,20 +90,15 @@ extension LivePlayerView {
   @ViewBuilder
   var horizontalSeekOverlay: some View {
     if let preview = horizontalSeekPreview {
-      VStack(spacing: 6) {
-        Text(LiveVideoMetadataFormatter.duration(Int64(preview.rounded())))
-          .font(.headline.weight(.semibold))
-          .monospacedDigit()
-        Text("Release to seek")
-          .font(.caption2)
-      }
-      .foregroundStyle(.white)
-      .padding(.horizontal, 16)
-      .padding(.vertical, 10)
-      .background(.black.opacity(0.72), in: Capsule())
-      .allowsHitTesting(false)
+      LivePlayerSeekScrubOverlay(
+        position: preview.position,
+        isFine: preview.isFine,
+        duration: controller.duration,
+        storyboard: LivePlaybackPreviewFrames.best(controller.stream?.previewFrames ?? []),
+        windows: controller.visibleSponsorBlockWindows,
+        isFullscreen: showsFullscreenLayout
+      )
       .transition(.opacity)
-      .accessibilityHidden(true)
     }
   }
 

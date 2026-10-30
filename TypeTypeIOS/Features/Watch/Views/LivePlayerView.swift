@@ -26,7 +26,7 @@ struct LivePlayerView: View {
   @State var systemBrightnessBeforeSwipe: CGFloat?
   @State var longPressBaseRate: Float?
   @GestureState var isSpeedRamping = false
-  @State var horizontalSeekPreview: TimeInterval?
+  @State var horizontalSeekPreview: (position: TimeInterval, isFine: Bool)?
   @State var autoPictureInPictureArmed = true
   @State var autoPictureInPictureActive = false
   @StateObject var nativeControls = LiveNativeControlsState()
@@ -82,6 +82,8 @@ struct LivePlayerView: View {
             },
             onOptions: { showsOptions = true }
           )
+          .opacity(horizontalSeekPreview == nil ? 1 : 0)
+          .allowsHitTesting(horizontalSeekPreview == nil)
         }
         seekFeedbackOverlay
         horizontalSeekOverlay

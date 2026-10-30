@@ -125,9 +125,9 @@ extension LivePlayerView {
   ) {
     switch event {
     case let .began(position):
-      horizontalSeekPreview = position
-    case let .updated(position):
-      horizontalSeekPreview = position
+      horizontalSeekPreview = (position, false)
+    case let .updated(position, isFine):
+      horizontalSeekPreview = (position, isFine)
     case let .ended(position):
       horizontalSeekPreview = nil
       controller.seek(to: position)

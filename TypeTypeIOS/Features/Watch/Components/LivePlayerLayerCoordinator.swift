@@ -28,6 +28,9 @@ final class LivePlayerLayerCoordinator:
   private var swipeGestureKind: PlayerSwipeAdjustmentKind?
   private var swipeGestureBaseFraction: CGFloat = 0.5
   private var horizontalSeekBasePosition: TimeInterval = 0
+  private var timelineSeek: PlayerTimelineSeekGesture?
+  private var timelineSeekLastX: CGFloat = 0
+  private let seekHaptics = UISelectionFeedbackGenerator()
 
   init(controller: LivePlayerController) {
     self.controller = controller
@@ -127,22 +130,27 @@ final class LivePlayerLayerCoordinator:
     else { return }
 
     let translation = recognizer.translation(in: view)
-    let progress = min(
-      max(translation.x / view.bounds.width, -0.45),
-      0.45
-    )
-    let target = min(
-      max(horizontalSeekBasePosition + progress * controller.duration, 0),
-      controller.duration
-    )
-
     switch recognizer.state {
     case .began:
+      timelineSeek = PlayerTimelineSeekGesture(
+        start: horizontalSeekBasePosition,
+        duration: controller.duration,
+        width: view.bounds.width
+      )
+      timelineSeekLastX = translation.x
+      seekHaptics.selectionChanged()
       horizontalSeekHandler?(.began(position: horizontalSeekBasePosition))
     case .changed:
-      horizontalSeekHandler?(.updated(position: target))
+      guard var seek = timelineSeek else { return }
+      let wasFine = seek.isFine
+      let position = seek.move(deltaX: translation.x - timelineSeekLastX, downwardTravel: translation.y)
+      timelineSeekLastX = translation.x
+      timelineSeek = seek
+      if seek.isFine != wasFine { seekHaptics.selectionChanged() }
+      horizontalSeekHandler?(.updated(position: position, isFine: seek.isFine))
     case .ended, .cancelled, .failed:
-      horizontalSeekHandler?(.ended(position: target))
+      horizontalSeekHandler?(.ended(position: timelineSeek?.position ?? horizontalSeekBasePosition))
+      timelineSeek = nil
       horizontalSeekBasePosition = controller.position
     default:
       break
