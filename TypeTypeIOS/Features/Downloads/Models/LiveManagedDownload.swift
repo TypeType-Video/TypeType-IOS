@@ -17,14 +17,14 @@ enum LiveManagedDownloadState: String, Codable {
 
   var title: String {
     switch self {
-    case .queued: return "Waiting in queue"
-    case .preparing: return "Preparing media"
-    case .downloading: return "Downloading"
-    case .finalizing: return "Finalizing"
-    case .saving: return "Saving on this device"
-    case .ready: return "Ready offline"
-    case .failed: return "Download failed"
-    case .cancelled: return "Cancelled"
+    case .queued: return String(localized: "Waiting in queue")
+    case .preparing: return String(localized: "Preparing media")
+    case .downloading: return String(localized: "Downloading")
+    case .finalizing: return String(localized: "Finalizing")
+    case .saving: return String(localized: "Saving on this device")
+    case .ready: return String(localized: "Ready offline")
+    case .failed: return String(localized: "Download failed")
+    case .cancelled: return String(localized: "Cancelled")
     }
   }
 
