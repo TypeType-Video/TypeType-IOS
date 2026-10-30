@@ -62,6 +62,7 @@ final class LivePlayerController: ObservableObject {
   @Published var sponsorBlockShowFullVideoLabels = true
   @Published var sponsorBlockManualSkipOnFullVideo = true
   @Published var sponsorBlockSkipNonMusicOnlyOnMusicVideos = false
+  @Published var sponsorBlockNotice: LiveSponsorBlockNotice?
   @Published var muted = false
   @Published var bulletCommentsEnabled = false
   @Published var bulletCommentSpeed = 1.0

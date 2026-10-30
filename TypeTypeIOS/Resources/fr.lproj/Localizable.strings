@@ -750,3 +750,12 @@
 "Add to %@" = "Ajouter à %@";
 "No subscriptions" = "Aucun abonnement";
 "Fine seeking · %@" = "Recherche précise · %@";
+"Skipped automatically" = "Ignoré automatiquement";
+"Muted automatically" = "Son coupé automatiquement";
+"Sponsored message" = "Message sponsorisé";
+"Self-promotion" = "Autopromotion";
+"Intermission or intro" = "Pause ou intro";
+"Endcards or credits" = "Écrans de fin ou générique";
+"Preview or recap" = "Aperçu ou récap";
+"Tangents or jokes" = "Digressions ou blagues";
+"Music: non-music" = "Musique : passage non musical";

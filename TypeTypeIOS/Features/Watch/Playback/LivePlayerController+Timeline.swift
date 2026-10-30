@@ -78,6 +78,10 @@ extension LivePlayerController {
       return
     }
     handledSponsorSegments.insert(window.id)
+    sponsorBlockNotice = LiveSponsorBlockNotice(
+      category: window.segment.category,
+      muted: settings.sponsorBlockMuteInsteadOfSkip
+    )
     if settings.sponsorBlockMuteInsteadOfSkip {
       setOutputMuted(true)
       sponsorMutedRange = window.start..<window.end
