@@ -56,7 +56,10 @@ struct LiveVideoCard: View {
         .accessibilityIdentifier("live.home.video.card.\(video.id)")
 
       HStack(alignment: .top, spacing: 10) {
-        channelAvatar
+        // Shorts from a search come without any channel: an empty circle there reads as a broken image.
+        if video.uploaderAvatar != nil || !video.uploaderURL.isEmpty {
+          channelAvatar
+        }
         metadata
           .frame(maxWidth: .infinity, alignment: .leading)
       }
