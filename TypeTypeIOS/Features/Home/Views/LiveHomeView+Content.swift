@@ -140,7 +140,7 @@ extension LiveHomeView {
       Button("Refresh") {
         Task { await viewModel.reload() }
       }
-      .buttonStyle(.borderedProminent)
+      .liveProminentButton()
     }
     .accessibilityIdentifier("live.home.empty")
   }
@@ -154,7 +154,7 @@ extension LiveHomeView {
       Button("Try again") {
         Task { await viewModel.reload() }
       }
-      .buttonStyle(.borderedProminent)
+      .liveProminentButton()
     }
     .accessibilityIdentifier("live.home.error")
   }

@@ -17,7 +17,7 @@ struct LivePictureInPictureNotice: View {
           Button("Show in Player") {
             pictureInPicture.bringInline()
           }
-          .buttonStyle(.borderedProminent)
+          .liveProminentButton()
           .accessibilityIdentifier("live.player.pip.bringInline")
         }
         .padding(24)

@@ -35,7 +35,7 @@ struct LivePublicPlaylistHeader: View {
             systemImage: isSaved ? "bookmark.fill" : "bookmark"
           )
         }
-        .buttonStyle(.borderedProminent)
+        .liveProminentButton()
         .accessibilityIdentifier("live.public-playlist.save")
       }
       HStack(spacing: 12) {
@@ -43,7 +43,7 @@ struct LivePublicPlaylistHeader: View {
           Label("Play all", systemImage: "play.fill")
             .frame(maxWidth: .infinity)
         }
-        .buttonStyle(.borderedProminent)
+        .liveProminentButton()
         .disabled(isPreparingPlayback)
 
         Button(action: onShuffle) {

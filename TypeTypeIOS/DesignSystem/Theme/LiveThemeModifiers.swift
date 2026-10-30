@@ -47,7 +47,7 @@ struct LiveChipButtonStyle: ButtonStyle {
 
   private var foreground: Color {
     if isFilled {
-      return isActive ? .white : palette.background
+      return isActive ? palette.onAccent : palette.background
     }
     return isActive ? palette.accent : .primary
   }

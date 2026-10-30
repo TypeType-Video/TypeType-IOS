@@ -58,7 +58,7 @@ struct LiveChannelHeaderView: View {
           subscribedMenu
         } else {
           Button("Subscribe", action: onSubscription)
-            .buttonStyle(.borderedProminent)
+            .liveProminentButton()
             .tint(palette.accent)
             .buttonBorderShape(.capsule)
             .accessibilityIdentifier("live.channel.subscription")

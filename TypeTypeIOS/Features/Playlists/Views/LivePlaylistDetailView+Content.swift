@@ -53,7 +53,7 @@ extension LivePlaylistDetailView {
                 Label("Play all", systemImage: "play.fill")
                   .frame(maxWidth: .infinity)
               }
-              .buttonStyle(.borderedProminent)
+              .liveProminentButton()
 
               Button {
                 startPlayback(

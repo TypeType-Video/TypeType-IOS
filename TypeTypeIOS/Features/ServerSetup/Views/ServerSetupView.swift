@@ -106,7 +106,7 @@ struct ServerSetupView: View {
         .frame(maxWidth: .infinity)
         .frame(minHeight: 46)
       }
-      .buttonStyle(.borderedProminent)
+      .liveProminentButton()
       .disabled(!viewModel.canConnect)
       .accessibilityIdentifier("live.server.connect")
     }

@@ -53,7 +53,7 @@ extension LiveSearchView {
         viewModel.query = ""
         viewModel.queryDidChange()
       }
-      .buttonStyle(.borderedProminent)
+      .liveProminentButton()
     }
     .accessibilityIdentifier("live.search.empty")
   }
@@ -67,7 +67,7 @@ extension LiveSearchView {
       Button("Try again") {
         Task { await viewModel.submit(viewModel.submittedQuery) }
       }
-      .buttonStyle(.borderedProminent)
+      .liveProminentButton()
     }
     .accessibilityIdentifier("live.search.error")
   }

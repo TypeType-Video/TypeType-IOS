@@ -194,7 +194,7 @@ extension LivePlayerView {
           .font(.footnote)
           .multilineTextAlignment(.center)
         Button("Try again", action: controller.retry)
-          .buttonStyle(.borderedProminent)
+          .liveProminentButton()
       }
       .foregroundStyle(.white)
       .padding(24)
