@@ -114,10 +114,6 @@ enum LiveContentControlKind: String, CaseIterable, Identifiable {
 
 extension LiveContentControlItem {
   var serviceName: String {
-    let host = URL(string: url)?.host()?.lowercased() ?? ""
-    if host.contains("youtube") || host.contains("youtu.be") { return "YouTube" }
-    if host.contains("nicovideo") || host.contains("nico.ms") { return "NicoNico" }
-    if host.contains("bilibili") || host.contains("b23.tv") { return "BiliBili" }
-    return host.isEmpty ? url : host
+    VideoService.hosting(url)?.name ?? URL(string: url)?.host() ?? url
   }
 }
