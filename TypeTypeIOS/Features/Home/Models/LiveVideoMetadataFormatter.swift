@@ -22,6 +22,8 @@ enum LiveVideoMetadataFormatter {
   }
 
   static func views(_ count: Int64) -> String {
+    // The server sends -1 when the service does not report a view count.
+    guard count >= 0 else { return "" }
     let value = count.formatted(
       .number.notation(.compactName)
     )
