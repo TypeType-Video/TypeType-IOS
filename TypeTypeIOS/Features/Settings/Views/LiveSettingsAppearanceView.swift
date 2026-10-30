@@ -36,20 +36,27 @@ struct LiveSettingsAppearanceView: View {
         LiveOptionMenu(
           "Color scheme",
           selection: preferences.binding(\.appearanceMode),
-          options: LiveAppearanceMode.allCases.map { ($0, $0.title) }
+          options: LiveAppearanceMode.allCases.map { ($0, $0.title) },
+          help: "Follow the system, or always light or dark."
         )
         if isEffectivelyDark {
-          Toggle("AMOLED black", isOn: preferences.binding(\.appearanceAmoled))
+          LiveSettingToggle(
+            "AMOLED black",
+            help: "Pure black pages in dark mode.",
+            isOn: preferences.binding(\.appearanceAmoled)
+          )
         }
         LiveOptionMenu(
           "Font",
           selection: preferences.binding(\.appearanceFont),
-          options: LiveAppearanceFont.allCases.map { ($0, $0.title) }
+          options: LiveAppearanceFont.allCases.map { ($0, $0.title) },
+          help: "System uses the device typeface, Expressive a rounded one."
         )
         LiveOptionMenu(
           "Motion",
           selection: preferences.binding(\.appearanceMotion),
-          options: LiveAppearanceMotion.allCases.map { ($0, $0.title) }
+          options: LiveAppearanceMotion.allCases.map { ($0, $0.title) },
+          help: "How much screens animate when they change."
         )
       }
     }
