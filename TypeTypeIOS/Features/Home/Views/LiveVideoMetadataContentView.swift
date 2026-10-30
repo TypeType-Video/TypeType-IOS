@@ -6,7 +6,7 @@ struct LiveVideoMetadataContentView: View {
   @ObservedObject var deArrowStore: LiveDeArrowStore
   @ObservedObject var playerController: LivePlayerController
   @ObservedObject var playbackCoordinator: LivePlaybackCoordinator
-  @StateObject private var channelMetadataViewModel:
+  @StateObject var channelMetadataViewModel:
     LiveVideoChannelMetadataViewModel
   @Environment(\.verticalSizeClass) private var verticalSizeClass
   @State var selectedChannelURL: String?
@@ -94,23 +94,7 @@ struct LiveVideoMetadataContentView: View {
               onSelect: { playbackCoordinator.open($0) }
             )
           } else {
-            VStack(alignment: .leading, spacing: 12) {
-              TypeTypeSkeleton(cornerRadius: 6)
-                .frame(width: 140, height: 14)
-              ForEach(0..<2, id: \.self) { _ in
-                HStack(alignment: .top, spacing: 10) {
-                  TypeTypeSkeleton(cornerRadius: 8)
-                    .frame(width: 160, height: 90)
-                  VStack(alignment: .leading, spacing: 6) {
-                    TypeTypeSkeleton(cornerRadius: 4)
-                      .frame(height: 12)
-                    TypeTypeSkeleton(cornerRadius: 4)
-                      .frame(width: 180, height: 10)
-                  }
-                }
-              }
-            }
-            .accessibilityLabel("Loading related videos")
+            LiveWatchSectionPlaceholder(kind: .related)
           }
         }
 
@@ -125,21 +109,7 @@ struct LiveVideoMetadataContentView: View {
               onOpenURL: routeLink
             )
           } else {
-            VStack(alignment: .leading, spacing: 14) {
-              ForEach(0..<3, id: \.self) { _ in
-                HStack(alignment: .top, spacing: 10) {
-                  TypeTypeSkeleton(cornerRadius: 18)
-                    .frame(width: 36, height: 36)
-                  VStack(alignment: .leading, spacing: 6) {
-                    TypeTypeSkeleton(cornerRadius: 4)
-                      .frame(width: 120, height: 10)
-                    TypeTypeSkeleton(cornerRadius: 4)
-                      .frame(height: 10)
-                  }
-                }
-              }
-            }
-            .accessibilityLabel("Loading comments")
+            LiveWatchSectionPlaceholder(kind: .comments)
           }
         }
       }
@@ -160,22 +130,7 @@ struct LiveVideoMetadataContentView: View {
       }
     .navigationTitle("Video")
     .navigationBarTitleDisplayMode(.inline)
-    .navigationDestination(
-      item: $selectedChannelURL
-    ) { channelURL in
-      LiveChannelView(
-        channelURL: channelURL,
-        dependencies: dependencies
-      )
-    }
-    .navigationDestination(
-      item: $selectedPublicPlaylist
-    ) { playlist in
-      LivePublicPlaylistView(
-        playlist: playlist,
-        dependencies: dependencies
-      )
-    }
+    .watchNavigation(self)
     }
     }
     .overlay(alignment: .top) {
@@ -206,63 +161,8 @@ struct LiveVideoMetadataContentView: View {
           playerController.stream?.uploaderSubscriberCount
       )
     }
-    .onAppear {
-      // Back from a push the system may have promoted the layer to PiP while the page was covered: hand it back to
-      // the stage.
-      if playbackCoordinator.presentation == .mini {
-        playbackCoordinator.expand()
-      }
-      let pip = playerController.pictureInPicture
-      if pip.isEngaged || pip.isSystemActive {
-        AppLogger.playback.info("pip driver: restoring inline after navigation")
-        pip.bringInline()
-      }
-    }
+    .onAppear(perform: restoreInlinePlayback)
     .background(LiveThemeBackground().ignoresSafeArea())
-    .onDisappear {
-      playerController.flushHistory()
-      // A pushed channel or playlist only covers the page: minimizing here starts PiP, which pauses on the way back.
-      guard selectedChannelURL == nil, selectedPublicPlaylist == nil else { return }
-      let departingVideoURL = video.url
-      Task { @MainActor in
-        await Task.yield()
-        guard playbackCoordinator.currentVideo?.url == departingVideoURL else { return }
-        playbackCoordinator.minimize()
-      }
-    }
-  }
-
-  private var subscriberCount: Int64? {
-    if let count = playerController.stream?.uploaderSubscriberCount,
-      count >= 0 {
-      return count
-    }
-    return channelMetadataViewModel.subscriberCount
-  }
-}
-
-private struct LiveWatchScrollOffsetKey: PreferenceKey {
-  static var defaultValue: CGFloat = 0
-
-  static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
-    value = nextValue()
-  }
-}
-
-private extension View {
-  // iOS 18 and later read the scroll geometry directly: the preference measurement never fires on iOS 26.
-  @ViewBuilder
-  func liveScrolledState(_ onChange: @escaping (Bool) -> Void) -> some View {
-    if #available(iOS 18.0, *) {
-      self.onScrollGeometryChange(for: Bool.self) { geometry in
-        geometry.contentOffset.y > 8
-      } action: { _, scrolled in
-        onChange(scrolled)
-      }
-    } else {
-      self.onPreferenceChange(LiveWatchScrollOffsetKey.self) { offset in
-        onChange(offset < -8)
-      }
-    }
+    .onDisappear(perform: leavePage)
   }
 }
