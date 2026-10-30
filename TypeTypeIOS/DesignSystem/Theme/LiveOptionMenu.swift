@@ -1,9 +1,21 @@
 import SwiftUI
 
+enum LiveOptionIcon {
+  case system(String)
+  case asset(String)
+
+  var image: Image {
+    switch self {
+    case let .system(name): Image(systemName: name)
+    case let .asset(name): Image(name)
+    }
+  }
+}
+
 struct LiveOptionMenu<Option: Hashable>: View {
   let title: String
   @Binding var selection: Option
-  let options: [(value: Option, label: String, icon: String?)]
+  let options: [(value: Option, label: String, icon: LiveOptionIcon?)]
   var help: LocalizedStringKey?
   var disabledReason: LocalizedStringKey?
   var opensList = false
@@ -27,7 +39,7 @@ struct LiveOptionMenu<Option: Hashable>: View {
   init(
     _ title: String,
     selection: Binding<Option>,
-    options: [(Option, String, String)],
+    options: [(Option, String, LiveOptionIcon)],
     help: LocalizedStringKey? = nil,
     disabledReason: LocalizedStringKey? = nil
   ) {
@@ -74,7 +86,10 @@ struct LiveOptionMenu<Option: Hashable>: View {
         } label: {
           HStack(spacing: 4) {
             if let icon = currentIcon {
-              Image(systemName: icon)
+              icon.image
+                .resizable()
+                .scaledToFit()
+                .frame(width: 20, height: 20)
             }
             Text(currentLabel)
             Image(systemName: "chevron.up.chevron.down")
@@ -89,14 +104,14 @@ struct LiveOptionMenu<Option: Hashable>: View {
     }
   }
 
-  private var currentIcon: String? {
+  private var currentIcon: LiveOptionIcon? {
     options.first { $0.value == selection }?.icon
   }
 
   @ViewBuilder
-  static func label(_ option: (value: Option, label: String, icon: String?)) -> some View {
+  static func label(_ option: (value: Option, label: String, icon: LiveOptionIcon?)) -> some View {
     if let icon = option.icon {
-      Label(localized(option.label), systemImage: icon)
+      Label { Text(localized(option.label)) } icon: { icon.image }
     } else {
       Text(localized(option.label))
     }
@@ -131,7 +146,7 @@ struct LiveSettingText: View {
 struct LiveOptionListPage<Option: Hashable>: View {
   let title: String
   @Binding var selection: Option
-  let options: [(value: Option, label: String, icon: String?)]
+  let options: [(value: Option, label: String, icon: LiveOptionIcon?)]
   @Environment(\.dismiss) private var dismiss
 
   var body: some View {

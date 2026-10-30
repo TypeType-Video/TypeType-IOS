@@ -10,12 +10,12 @@ struct LiveSettingsDiscoverySection: View {
         "Default landing page",
         selection: $settings.defaultLandingPage,
         options: [
-          ("home", "Home", "house"),
-          ("subscriptions", "Subscriptions", "play.square.stack"),
-          ("history", "History", "clock.arrow.circlepath"),
-          ("playlists", "Playlists", "music.note.list"),
-          ("watch-later", "Watch later", "clock"),
-          ("favorites", "Favorites", "heart"),
+          ("home", "Home", .system("house")),
+          ("subscriptions", "Subscriptions", .system("play.square.stack")),
+          ("history", "History", .system("clock.arrow.circlepath")),
+          ("playlists", "Playlists", .system("music.note.list")),
+          ("watch-later", "Watch later", .system("clock")),
+          ("favorites", "Favorites", .system("heart")),
         ],
         help: "The page TypeType opens on after sign-in."
       )
@@ -23,7 +23,7 @@ struct LiveSettingsDiscoverySection: View {
         LiveOptionMenu(
           "Default service",
           selection: $settings.defaultService,
-          options: services.map { ($0.id, $0.name, $0.systemImage) },
+          options: services.map { ($0.id, $0.name, $0.assetName.map(LiveOptionIcon.asset) ?? .system($0.systemImage)) },
           help: "Where Home, Search and links open first."
         )
       }

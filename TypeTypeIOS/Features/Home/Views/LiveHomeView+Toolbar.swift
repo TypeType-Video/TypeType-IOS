@@ -101,17 +101,8 @@ extension LiveHomeView {
     } ?? viewModel.services[0]
   }
 
-  @ViewBuilder
   private var serviceLabel: some View {
-    if let assetName = selectedService.assetName {
-      Image(assetName)
-        .resizable()
-        .scaledToFit()
-        .frame(width: 25, height: 25)
-    } else {
-      Image(systemName: selectedService.systemImage)
-        .frame(width: 25, height: 25)
-    }
+    LiveServiceLogo(service: selectedService, size: 25)
   }
 }
 
