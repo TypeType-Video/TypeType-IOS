@@ -15,3 +15,5 @@ Package.resolved
 # Env
 .env
 .env.local
+
+.hermes/
