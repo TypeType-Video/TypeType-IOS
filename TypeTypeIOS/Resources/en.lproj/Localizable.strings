@@ -343,3 +343,10 @@
 "%@ likes" = "%@ likes";
 "Change not saved" = "Change not saved";
 "Settings could not be updated." = "Settings could not be updated.";
+"Guest" = "Guest";
+"Connected" = "Connected";
+"Offline" = "Offline";
+"Checking connection" = "Checking connection";
+"Opens instances and accounts" = "Opens instances and accounts";
+"Your data" = "Your data";
+"Advanced" = "Advanced";

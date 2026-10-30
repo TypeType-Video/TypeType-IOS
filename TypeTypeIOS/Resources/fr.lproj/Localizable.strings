@@ -343,3 +343,10 @@
 "%@ likes" = "%@ j'aime";
 "Change not saved" = "Modification non enregistrée";
 "Settings could not be updated." = "Les réglages n’ont pas pu être mis à jour.";
+"Guest" = "Invité";
+"Connected" = "Connecté";
+"Offline" = "Hors ligne";
+"Checking connection" = "Vérification de la connexion";
+"Opens instances and accounts" = "Ouvre les instances et les comptes";
+"Your data" = "Vos données";
+"Advanced" = "Avancé";

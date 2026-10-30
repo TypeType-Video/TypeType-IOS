@@ -1,9 +1,9 @@
 import SwiftUI
 
 struct LiveSettingsView: View {
-  @StateObject private var viewModel: LiveSettingsViewModel
-  @ObservedObject private var coordinator: RootCoordinator
-  @ObservedObject private var preferences: LiveAppPreferencesStore
+  @StateObject var viewModel: LiveSettingsViewModel
+  @ObservedObject var coordinator: RootCoordinator
+  @ObservedObject var preferences: LiveAppPreferencesStore
   @ObservedObject private var playbackCoordinator: LivePlaybackCoordinator
 
   init(coordinator: RootCoordinator) {
@@ -24,7 +24,7 @@ struct LiveSettingsView: View {
   var body: some View {
     content
       .navigationTitle("Settings")
-      .navigationBarTitleDisplayMode(.inline)
+      .navigationBarTitleDisplayMode(.large)
       .task { await viewModel.prepare() }
       .accessibilityIdentifier("live.settings.screen")
   }
@@ -49,157 +49,33 @@ struct LiveSettingsView: View {
     }
   }
 
-  /// The iOS-Settings hub: groups with plain headers, one-line rows with
-  /// coloured icon tiles, no subtitles or duplicated actions. Profile and
-  /// sign out live in the More tab.
   private var settingsList: some View {
     List {
       LiveSection {
-        LiveSettingsLinkRow(
-          title: "Instances and accounts",
-          icon: "person.crop.circle.fill",
-          iconColor: .systemBlue
-        ) {
-          LiveSettingsAccountsView(coordinator: coordinator)
-        }
-        LiveSettingsLinkRow(
-          title: "Push notifications",
-          icon: "bell.fill",
-          iconColor: .systemRed
-        ) {
-          LiveNotificationSettingsView(dependencies: coordinator.dependencies)
-        }
-        if coordinator.dependencies.rssEnabled,
-          let rssFeedService = coordinator.dependencies.rssFeedService {
-          LiveSettingsLinkRow(
-            title: "Private RSS feeds",
-            icon: "dot.radiowaves.left.and.right",
-            iconColor: .systemBlue
-          ) {
-            LiveRssFeedsView(
-              feedService: rssFeedService,
-              subscriptionsService:
-                coordinator.dependencies.subscriptionsService
-            )
-          }
-        }
-      } header: {
-        Text("General")
+        LiveSettingsAccountCard(
+          coordinator: coordinator,
+          connectivity: coordinator.dependencies.connectivityMonitor
+        )
       }
 
       LiveSection {
-        LiveSettingsLinkRow(
-          title: "Appearance",
-          icon: "paintpalette.fill",
-          iconColor: .systemPurple
-        ) {
-          LiveSettingsAppearanceView(
-            viewModel: viewModel,
-            preferences: preferences
-          )
-        }
-        LiveSettingsLinkRow(
-          title: "Player",
-          icon: "play.circle.fill",
-          iconColor: .systemBlue
-        ) {
-          LiveSettingsPlayerView(
-            viewModel: viewModel,
-            preferences: preferences
-          )
-        }
-      } header: {
-        Text("Display and playback")
+        experienceRows
       }
-
       LiveSection {
-        LiveSettingsLinkRow(
-          title: "Content",
-          icon: "slider.horizontal.3",
-          iconColor: .systemOrange
-        ) {
-          LiveSettingsContentView(
-            dependencies: coordinator.dependencies,
-            viewModel: viewModel
-          )
-        }
-        LiveSettingsLinkRow(
-          title: "Blocked",
-          icon: "slash.circle.fill",
-          iconColor: .systemGray
-        ) {
-          LiveContentControlsView(
-            service: coordinator.dependencies.contentControlsService,
-            canCreateGlobal: coordinator.currentUser?.role != .user
-          )
-        }
-      } header: {
-        Text("Content")
+        contentRows
       }
-
       LiveSection {
-        LiveSettingsLinkRow(
-          title: "Downloads",
-          icon: "arrow.down.circle",
-          iconColor: .systemTeal,
-          badge: coordinator.dependencies.downloadCenter.activeCount
-        ) {
-          LiveDownloadsView(
-            dependencies: coordinator.dependencies,
-            center: coordinator.dependencies.downloadCenter,
-            onlinePlaybackCoordinator:
-              coordinator.dependencies.playbackCoordinator
-          )
-        }
-        LiveSettingsLinkRow(
-          title: "Data and backups",
-          icon: "square.and.arrow.up.fill",
-          iconColor: .systemGreen
-        ) {
-          LivePortabilityView(
-            service: coordinator.dependencies.portabilityService,
-            importService: coordinator.dependencies.importService
-          )
-        }
-        LiveSettingsLinkRow(
-          title: "Privacy",
-          icon: "lock.fill",
-          iconColor: .systemBlue
-        ) {
-          LiveSettingsPrivacyView(
-            dependencies: coordinator.dependencies,
-            viewModel: viewModel
-          )
-        }
+        dataRows
       } header: {
-        Text("Data and privacy")
+        Text("Your data").liveSettingsHeader()
       }
-
       LiveSection {
-        LiveSettingsLinkRow(
-          title: "Diagnostics",
-          icon: "ladybug.fill",
-          iconColor: .systemGray
-        ) {
-          LiveDiagnosticsView(
-            store: coordinator.dependencies.diagnosticsStore,
-            scopeProvider: {
-              coordinator.dependencies.diagnosticScope()
-            }
-          )
-        }
-        LiveSettingsLinkRow(
-          title: "About",
-          icon: "info.circle.fill",
-          iconColor: .systemGray
-        ) {
-          LiveAboutView(
-            coordinator: coordinator,
-            versionService: coordinator.dependencies.versionService
-          )
-        }
+        advancedRows
       } header: {
-        Text("About")
+        Text("Advanced").liveSettingsHeader()
+      }
+      LiveSection {
+        aboutRow
       }
     }
     .padding(.bottom, playbackCoordinator.showsMiniPlayer ? 82 : 0)
