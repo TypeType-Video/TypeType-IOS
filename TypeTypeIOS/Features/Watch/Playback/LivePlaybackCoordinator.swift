@@ -31,7 +31,7 @@ final class LivePlaybackCoordinator: ObservableObject {
   var playbackGeneration = 0
   var sleepTimerTask: Task<Void, Never>?
   var autoplayCountdownTask: Task<Void, Never>?
-  var pendingAutoplayIndex: Int?
+  var pendingAutoplay: LivePendingAutoplay?
   var prewarmer: LivePlaybackPrewarmer?
 
   init(
