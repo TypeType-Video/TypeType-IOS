@@ -5,12 +5,11 @@ struct LiveVideoMetadataContentView: View {
   let dependencies: AppDependencies
   @ObservedObject var deArrowStore: LiveDeArrowStore
   @ObservedObject var playerController: LivePlayerController
-  @ObservedObject private var playbackCoordinator: LivePlaybackCoordinator
+  @ObservedObject var playbackCoordinator: LivePlaybackCoordinator
   @StateObject private var channelMetadataViewModel:
     LiveVideoChannelMetadataViewModel
   @Environment(\.verticalSizeClass) private var verticalSizeClass
   @State var selectedChannelURL: String?
-  @State var selectedRelatedVideo: LiveVideoItem?
   @State var selectedPublicPlaylist: LivePlaylistResult?
   @State var pendingExternalURL: URL?
   @AppStorage("typetype.player.cinema-mode")
@@ -92,7 +91,7 @@ struct LiveVideoMetadataContentView: View {
               videos: related,
               deArrowStore: deArrowStore,
               dependencies: dependencies,
-              onSelect: { selectedRelatedVideo = $0 }
+              onSelect: { playbackCoordinator.open($0) }
             )
           } else {
             VStack(alignment: .leading, spacing: 12) {
@@ -170,14 +169,6 @@ struct LiveVideoMetadataContentView: View {
       )
     }
     .navigationDestination(
-      item: $selectedRelatedVideo
-    ) { relatedVideo in
-      LiveVideoMetadataView(
-        video: relatedVideo,
-        dependencies: dependencies
-      )
-    }
-    .navigationDestination(
       item: $selectedPublicPlaylist
     ) { playlist in
       LivePublicPlaylistView(
@@ -228,7 +219,17 @@ struct LiveVideoMetadataContentView: View {
       }
     }
     .background(LiveThemeBackground().ignoresSafeArea())
-    .onDisappear { playerController.flushHistory() }
+    .onDisappear {
+      playerController.flushHistory()
+      // A pushed channel or playlist only covers the page: minimizing here starts PiP, which pauses on the way back.
+      guard selectedChannelURL == nil, selectedPublicPlaylist == nil else { return }
+      let departingVideoURL = video.url
+      Task { @MainActor in
+        await Task.yield()
+        guard playbackCoordinator.currentVideo?.url == departingVideoURL else { return }
+        playbackCoordinator.minimize()
+      }
+    }
   }
 
   private var subscriberCount: Int64? {

@@ -32,17 +32,5 @@ struct LiveVideoMetadataView: View {
       guard !Task.isCancelled else { return }
       playbackCoordinator.open(video)
     }
-    .onDisappear {
-      let departingVideoURL = video.url
-      Task { @MainActor in
-        await Task.yield()
-        guard playbackCoordinator.currentVideo?.url
-          == departingVideoURL
-        else {
-          return
-        }
-        playbackCoordinator.minimize()
-      }
-    }
   }
 }
