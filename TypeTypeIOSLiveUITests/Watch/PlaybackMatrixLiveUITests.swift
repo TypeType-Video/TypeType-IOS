@@ -67,7 +67,7 @@ final class PlaybackMatrixLiveUITests: XCTestCase {
     try openMatrixDownloads(in: app)
     try assertMatrixDownloadReadyAndPlayable(
       action: "Watch",
-      playerIdentifier: "live.offline-player",
+      playerIdentifier: "live.player.surface",
       in: app
     )
   }

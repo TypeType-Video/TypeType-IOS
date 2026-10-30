@@ -26,8 +26,7 @@ struct LiveSettingsDestination: View {
     case .downloads:
       LiveDownloadsView(
         dependencies: dependencies,
-        center: dependencies.downloadCenter,
-        onlinePlaybackCoordinator: dependencies.playbackCoordinator
+        center: dependencies.downloadCenter
       )
     case .data:
       LivePortabilityView(service: dependencies.portabilityService, importService: dependencies.importService)

@@ -101,6 +101,19 @@ final class LivePlaybackCoordinator: ObservableObject {
     replacePlayback(with: video, autoplay: true)
   }
 
+  // Downloads play in the same player as online videos: one controller, so the mini player, PiP and background audio
+  // never end up with two players fighting over the page.
+  func open(offline item: LiveOfflinePlaybackItem) {
+    adoptCurrentScopeIfNeeded()
+    if currentVideo?.url == item.watchVideo.url, controller?.isOfflineContent == true {
+      presentation = .expanded
+      return
+    }
+    clearQueue()
+    presentation = .expanded
+    replacePlayback(with: item.watchVideo, autoplay: true, offline: item)
+  }
+
   @discardableResult
   func startQueue(
     title: String,

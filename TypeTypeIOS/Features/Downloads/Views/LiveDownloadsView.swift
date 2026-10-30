@@ -3,19 +3,12 @@ import SwiftUI
 struct LiveDownloadsView: View {
   let dependencies: AppDependencies
   @ObservedObject var center: LiveDownloadCenter
-  let onlinePlaybackCoordinator: LivePlaybackCoordinator?
-  @State private var playbackItem: LiveOfflinePlaybackItem?
   @State private var confirmsRemoveAll = false
   @Environment(\.liveToasts) private var toasts
 
-  init(
-    dependencies: AppDependencies,
-    center: LiveDownloadCenter,
-    onlinePlaybackCoordinator: LivePlaybackCoordinator? = nil
-  ) {
+  init(dependencies: AppDependencies, center: LiveDownloadCenter) {
     self.dependencies = dependencies
     self.center = center
-    self.onlinePlaybackCoordinator = onlinePlaybackCoordinator
   }
 
   var body: some View {
@@ -37,9 +30,6 @@ struct LiveDownloadsView: View {
       guard let message else { return }
       toasts?.show(message, tone: .failure)
       center.message = nil
-    }
-    .fullScreenCover(item: $playbackItem) { item in
-      LiveOfflinePlaybackView(item: item, dependencies: dependencies)
     }
     .accessibilityIdentifier("live.downloads.screen")
   }
@@ -112,8 +102,7 @@ struct LiveDownloadsView: View {
       center.message = String(localized: "The downloaded file is no longer available.")
       return
     }
-    onlinePlaybackCoordinator?.controller?.pause()
-    playbackItem = LiveOfflinePlaybackItem(record: record, fileURL: url)
+    dependencies.playbackCoordinator.open(offline: LiveOfflinePlaybackItem(record: record, fileURL: url))
   }
 
   private func run(_ action: @escaping () async throws -> Void) {
