@@ -8,12 +8,11 @@ extension LivePlaybackPreferences {
     audioOnly: Bool,
     preferredCodec: String
   ) -> LivePlaybackPreferences {
-    let language = settings.defaultAudioLanguage.lowercased()
-    let preferredAudio = language.isEmpty
-      ? nil
-      : stream.audioStreams.first {
-        $0.audioLocale?.lowercased().hasPrefix(language) == true
-      }
+    let preferredAudio = initialAudio(
+      in: stream,
+      language: settings.defaultAudioLanguage,
+      preferOriginal: settings.preferOriginalLanguage
+    )
     return LivePlaybackPreferences(
       quality: settings.defaultQuality,
       preferredCodec: preferredCodec,
@@ -23,6 +22,23 @@ extension LivePlaybackPreferences {
       audioSourceID: preferredAudio?.id,
       audioOnly: audioOnly
     )
+  }
+}
+
+extension LivePlaybackPreferences {
+  static func initialAudio(
+    in stream: LivePlaybackStream,
+    language: String,
+    preferOriginal: Bool
+  ) -> LivePlaybackAudioSource? {
+    let tracks = stream.audioStreams
+    if preferOriginal {
+      return tracks.first { $0.audioTrackID != nil && $0.audioTrackID == stream.originalAudioTrackID }
+        ?? tracks.first { $0.isOriginal && $0.audioTrackID != nil }
+    }
+    let code = language.lowercased()
+    guard !code.isEmpty else { return nil }
+    return tracks.first { $0.audioLocale?.lowercased().hasPrefix(code) == true }
   }
 }
 
