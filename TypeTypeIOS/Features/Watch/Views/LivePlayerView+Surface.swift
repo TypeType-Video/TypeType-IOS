@@ -63,7 +63,8 @@ extension LivePlayerView {
 
   private var fullscreenExitAction: (() -> Void)? {
     guard showsFullscreenLayout || controller.isPresentingFullscreen else { return nil }
-    return { controller.exitNativeFullscreen("surface-drag", byUser: true) }
+    // Down from full screen hands the video to PiP and the mini player; the button is the way back to the page.
+    return { coordinator.minimize() }
   }
 
   @ViewBuilder
