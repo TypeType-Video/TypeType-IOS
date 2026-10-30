@@ -9,6 +9,7 @@ struct LiveDiagnosticsView: View {
   @State private var isLoading = true
   @State private var confirmsClear = false
   @State private var copiedRequestID: String?
+  @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
   var body: some View {
     List {
@@ -87,7 +88,7 @@ struct LiveDiagnosticsView: View {
           .padding(.vertical, 9)
           .background(.regularMaterial, in: Capsule())
           .padding(.bottom, 16)
-          .transition(.move(edge: .bottom).combined(with: .opacity))
+          .transition(.liveBanner(reduceMotion: reduceMotion))
       }
     }
     .accessibilityIdentifier("live.diagnostics.screen")

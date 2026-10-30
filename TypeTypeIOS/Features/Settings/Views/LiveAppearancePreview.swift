@@ -2,6 +2,7 @@ import SwiftUI
 
 struct LiveAppearancePreview: View {
   @Environment(\.themePalette) private var palette
+  @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
   var body: some View {
     VStack(spacing: 0) {
@@ -17,7 +18,7 @@ struct LiveAppearancePreview: View {
       RoundedRectangle(cornerRadius: 26, style: .continuous)
         .strokeBorder(palette.separator, lineWidth: 1)
     }
-    .animation(.smooth(duration: 0.35), value: palette)
+    .animation(reduceMotion ? nil : .smooth(duration: 0.35), value: palette)
     .accessibilityElement(children: .ignore)
     .accessibilityLabel(Text("Preview of the selected appearance"))
     .accessibilityIdentifier("live.settings.appearance.preview")

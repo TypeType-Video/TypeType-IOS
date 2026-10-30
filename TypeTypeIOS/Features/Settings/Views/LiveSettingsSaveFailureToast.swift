@@ -3,6 +3,7 @@ import SwiftUI
 struct LiveSettingsSaveFailureToast: ViewModifier {
   @ObservedObject var viewModel: LiveSettingsViewModel
   @Environment(\.themePalette) private var palette
+  @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
   func body(content: Content) -> some View {
     content
@@ -11,7 +12,7 @@ struct LiveSettingsSaveFailureToast: ViewModifier {
           toast(message)
             .padding(.horizontal, 16)
             .padding(.bottom, 24)
-            .transition(.move(edge: .bottom).combined(with: .opacity))
+            .transition(.liveBanner(reduceMotion: reduceMotion))
         }
       }
       .animation(.smooth(duration: 0.3), value: viewModel.errorMessage)

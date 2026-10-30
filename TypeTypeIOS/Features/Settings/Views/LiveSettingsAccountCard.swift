@@ -17,27 +17,31 @@ struct LiveSettingsAccountCard: View {
 struct LiveSettingsAccountSummary: View {
   @ObservedObject var coordinator: RootCoordinator
   @Environment(\.themePalette) private var palette
+  @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
   var body: some View {
-      HStack(spacing: 14) {
-        LiveToolbarAvatar(user: coordinator.currentUser, size: 58)
-          .overlay {
-            Circle().strokeBorder(palette.accent.opacity(0.35), lineWidth: 1.5)
-          }
-        VStack(alignment: .leading, spacing: 3) {
-          Text(displayName)
-            .font(.title3.weight(.semibold))
-            .foregroundStyle(.primary)
-            .lineLimit(1)
-          Text(instanceLine)
-            .font(.subheadline)
-            .foregroundStyle(.secondary)
-            .lineLimit(1)
+    let layout = dynamicTypeSize.isAccessibilitySize
+      ? AnyLayout(VStackLayout(alignment: .leading, spacing: 10))
+      : AnyLayout(HStackLayout(spacing: 14))
+    layout {
+      LiveToolbarAvatar(user: coordinator.currentUser, size: 58)
+        .overlay {
+          Circle().strokeBorder(palette.accent.opacity(0.35), lineWidth: 1.5)
         }
-        Spacer(minLength: 0)
+      VStack(alignment: .leading, spacing: 3) {
+        Text(displayName)
+          .font(.title3.weight(.semibold))
+          .foregroundStyle(.primary)
+          .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 1)
+        Text(instanceLine)
+          .font(.subheadline)
+          .foregroundStyle(.secondary)
+          .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 1)
       }
-      .padding(.vertical, 6)
-      .accessibilityElement(children: .combine)
+      Spacer(minLength: 0)
+    }
+    .padding(.vertical, 6)
+    .accessibilityElement(children: .combine)
   }
 
   private var displayName: String {

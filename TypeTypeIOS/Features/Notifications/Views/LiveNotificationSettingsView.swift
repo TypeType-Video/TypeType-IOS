@@ -2,6 +2,7 @@ import SwiftUI
 
 struct LiveNotificationSettingsView: View {
   @Environment(\.themePalette) private var palette
+  @Environment(\.accessibilityReduceMotion) private var reduceMotion
   @State private var subscriptions: [String: LiveSubscription] = [:]
   @State private var search = ""
   @StateObject private var viewModel: LiveNotificationSettingsViewModel
@@ -116,7 +117,7 @@ struct LiveNotificationSettingsView: View {
       }
       .padding(.horizontal, 16)
       .padding(.bottom, 24)
-      .transition(.move(edge: .bottom).combined(with: .opacity))
+      .transition(.liveBanner(reduceMotion: reduceMotion))
     }
   }
 
