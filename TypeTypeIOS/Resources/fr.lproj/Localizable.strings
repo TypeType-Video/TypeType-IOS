@@ -636,3 +636,11 @@
 "Copy report" = "Copier le rapport";
 "Crash report" = "Rapport de plantage";
 "Freeze report" = "Rapport de blocage";
+"This account needs to sign in again." = "Ce compte doit se reconnecter.";
+"Forget" = "Oublier";
+"Sign in with another account" = "Se connecter avec un autre compte";
+"Accounts on this instance" = "Comptes sur cette instance";
+"Tap an account to switch to it. Swipe left to forget it on this device." = "Touchez un compte pour passer dessus. Balayez vers la gauche pour l’oublier sur cet appareil.";
+"Couldn’t switch account" = "Impossible de changer de compte";
+"Forget this account?" = "Oublier ce compte ?";
+"It is removed from this device. You can sign in again later." = "Il est retiré de cet appareil. Vous pourrez vous reconnecter plus tard.";

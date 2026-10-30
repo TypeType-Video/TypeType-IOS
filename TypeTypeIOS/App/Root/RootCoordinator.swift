@@ -109,6 +109,9 @@ final class RootCoordinator: ObservableObject {
     } catch {
       AppLogger.auth.failure("Signing out on the server", error)
     }
+    if let serverID = selectedServer?.id, let userID = currentUser?.id {
+      dependencies.sessionStore.savedAccounts.forget(serverID: serverID, userID: userID)
+    }
     endSession()
   }
 

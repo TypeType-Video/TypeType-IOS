@@ -83,6 +83,10 @@ struct LiveSettingsAccountsView: View {
         Text("Instances").liveSettingsHeader()
       }
 
+      if coordinator.currentUser.map({ !$0.id.hasPrefix("guest:") }) == true {
+        LiveSavedAccountsSection(coordinator: coordinator)
+      }
+
       if let user = coordinator.currentUser {
         LiveSection {
           LabeledContent("Username") {

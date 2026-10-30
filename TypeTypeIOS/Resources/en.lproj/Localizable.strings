@@ -636,3 +636,11 @@
 "Copy report" = "Copy report";
 "Crash report" = "Crash report";
 "Freeze report" = "Freeze report";
+"This account needs to sign in again." = "This account needs to sign in again.";
+"Forget" = "Forget";
+"Sign in with another account" = "Sign in with another account";
+"Accounts on this instance" = "Accounts on this instance";
+"Tap an account to switch to it. Swipe left to forget it on this device." = "Tap an account to switch to it. Swipe left to forget it on this device.";
+"Couldn’t switch account" = "Couldn’t switch account";
+"Forget this account?" = "Forget this account?";
+"It is removed from this device. You can sign in again later." = "It is removed from this device. You can sign in again later.";
