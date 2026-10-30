@@ -19,7 +19,8 @@ struct LiveSearchFilterBar: View {
         }
       }
       .padding(.horizontal, 16)
-      .padding(.vertical, 8)
+      .padding(.top, 4)
+      .padding(.bottom, 8)
     }
     .scrollIndicators(.hidden)
     .accessibilityIdentifier("live.search.filters")
@@ -98,7 +99,10 @@ struct LiveSearchFilterBar: View {
     .foregroundStyle(isActive ? palette.accent : .primary)
     .padding(.horizontal, 12)
     .frame(height: 34)
-    .background(isActive ? palette.accent.opacity(0.15) : palette.surface, in: Capsule())
+    .background(
+      isActive ? palette.accent.opacity(0.15) : palette.surface,
+      in: RoundedRectangle(cornerRadius: 10, style: .continuous)
+    )
   }
 
   private var sortGroups: [(name: String, options: [LiveSearchFilterOption])] {

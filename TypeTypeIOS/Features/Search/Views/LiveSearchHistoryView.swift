@@ -15,28 +15,22 @@ struct LiveSearchHistoryView: View {
         .liveThemedEmptyState()
       } else {
         List {
-          Section {
-            ForEach(viewModel.history) { item in
+          LiveSection {
+            ForEach(Array(viewModel.history.enumerated()), id: \.element.id) { index, item in
               row(item.term)
+                .onAppear {
+                  guard viewModel.canLoadMoreHistory, index >= viewModel.history.count - 3 else { return }
+                  Task { await viewModel.loadMoreHistory() }
+                }
             }
-            LiveIncrementalLoadingTrigger(
-              canLoadMore: viewModel.canLoadMoreHistory,
-              isLoading: false,
-              label: "Loading more search history",
-              identifier: "live.search.history-more"
-            ) {
-              Task { await viewModel.loadMoreHistory() }
-            }
-            .listRowSeparator(.hidden)
           } header: {
             header
           }
         }
-        .listStyle(.plain)
-        .scrollContentBackground(.hidden)
+        .liveGroupedList()
+        .contentMargins(.top, 0, for: .scrollContent)
       }
     }
-    .background(LiveThemeBackground().ignoresSafeArea())
     .scrollDismissesKeyboard(.immediately)
     .refreshable { await viewModel.loadHistory() }
     .confirmationDialog("Clear search history?", isPresented: $confirmsClear, titleVisibility: .visible) {
@@ -50,29 +44,28 @@ struct LiveSearchHistoryView: View {
   }
 
   private var header: some View {
-    HStack {
-      Text("Recent searches").liveSectionHeader()
+    HStack(alignment: .firstTextBaseline) {
+      Text("Recent searches").liveSettingsHeader()
       Button("Clear") { confirmsClear = true }
-        .font(.subheadline)
+        .font(.subheadline.weight(.semibold))
         .accessibilityHint(Text("Removes all saved searches"))
     }
-    .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
   }
 
   private func row(_ term: String) -> some View {
-    HStack(spacing: 14) {
+    HStack(spacing: 12) {
       Button {
         Task { await viewModel.submit(term) }
       } label: {
-        HStack(spacing: 14) {
-          Image(systemName: "clock.arrow.circlepath")
-            .foregroundStyle(.secondary)
-            .accessibilityHidden(true)
+        Label {
           Text(term)
             .foregroundStyle(.primary)
             .lineLimit(1)
-          Spacer(minLength: 0)
+        } icon: {
+          Image(systemName: "clock.arrow.circlepath")
+            .foregroundStyle(.secondary)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .contentShape(Rectangle())
       }
       .buttonStyle(.plain)
@@ -82,12 +75,12 @@ struct LiveSearchHistoryView: View {
         viewModel.queryDidChange()
       } label: {
         Image(systemName: "arrow.up.left")
+          .font(.footnote.weight(.semibold))
           .foregroundStyle(.secondary)
           .frame(width: 32, height: 32)
       }
       .buttonStyle(.plain)
       .accessibilityLabel(Text("Edit \(term)"))
     }
-    .listRowBackground(Color.clear)
   }
 }

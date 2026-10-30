@@ -22,6 +22,7 @@ extension LiveSearchView {
         }
       }
     }
+    .background(LiveThemeBackground().ignoresSafeArea())
   }
 
   private var showsResultFilters: Bool {

@@ -42,6 +42,7 @@ final class LiveSearchViewModel: ObservableObject {
   var suggestionTask: Task<[String], Error>?
   var historyPage = 1
   var canLoadMoreHistory = false
+  var isLoadingMoreHistory = false
   init(
     searchService: LiveSearchServiceProtocol,
     historyService: LiveSearchHistoryServiceProtocol,

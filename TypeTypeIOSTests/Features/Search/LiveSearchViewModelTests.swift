@@ -165,6 +165,20 @@ final class LiveSearchViewModelTests: XCTestCase {
     XCTAssertEqual(search.filterServices.last, 5)
   }
 
+  func testNearbyRowsLoadTheNextHistoryPageOnce() async {
+    let items = (0..<8).map { LiveSearchHistoryItem(id: "\($0)", term: "term \($0)", searchedAt: Int64($0)) }
+    let history = SearchHistoryStub(items: items)
+    let viewModel = makeViewModel(search: SearchServiceStub(pages: []), history: history)
+    await viewModel.loadHistory()
+
+    async let first: Void = viewModel.loadMoreHistory()
+    async let second: Void = viewModel.loadMoreHistory()
+    async let third: Void = viewModel.loadMoreHistory()
+    _ = await (first, second, third)
+
+    XCTAssertEqual(history.requestedPages, [1, 2])
+  }
+
   private func makeViewModel(
     search: SearchServiceStub,
     history: SearchHistoryStub,
@@ -294,6 +308,7 @@ private final class SearchHistoryStub:
   private let lock = NSLock()
   private var items: [LiveSearchHistoryItem]
   private var terms: [String] = []
+  private var pages: [Int] = []
   private let addDelay: Duration?
 
   init(
@@ -308,11 +323,17 @@ private final class SearchHistoryStub:
     lock.withLock { terms }
   }
 
+  var requestedPages: [Int] {
+    lock.withLock { pages }
+  }
+
   func history(
     page: Int,
     limit: Int
   ) async throws -> [LiveSearchHistoryItem] {
-    lock.withLock { items }
+    lock.withLock { pages.append(page) }
+    await Task.yield()
+    return lock.withLock { items }
   }
 
   func add(term: String) async throws -> LiveSearchHistoryItem {
