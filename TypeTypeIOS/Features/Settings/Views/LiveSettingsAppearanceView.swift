@@ -14,6 +14,11 @@ struct LiveSettingsAppearanceView: View {
 
   var body: some View {
     LiveSettingsEditingPage(viewModel: viewModel) {
+      Section {
+        LiveAppearancePreview()
+          .listRowInsets(EdgeInsets())
+          .listRowBackground(Color.clear)
+      }
       LiveSection {
         LiveAppearanceThemeTiles(
           selection: preferences.binding(\.appearanceTheme),
@@ -24,7 +29,7 @@ struct LiveSettingsAppearanceView: View {
           customHex: preferences.binding(\.customAccentHex)
         )
       } header: {
-        Text("Appearance").liveSettingsHeader()
+        Text("Theme").liveSettingsHeader()
       }
 
       LiveSection {
@@ -33,8 +38,6 @@ struct LiveSettingsAppearanceView: View {
           selection: preferences.binding(\.appearanceMode),
           options: LiveAppearanceMode.allCases.map { ($0, $0.title) }
         )
-        // The AMOLED row is visible only when the app is effectively dark
-        // (Dark, or System with a dark system): in light it does nothing.
         if isEffectivelyDark {
           Toggle("AMOLED black", isOn: preferences.binding(\.appearanceAmoled))
         }
