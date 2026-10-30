@@ -761,3 +761,5 @@
 "Music: non-music" = "Musique : passage non musical";
 "Subtitles unavailable" = "Sous-titres indisponibles";
 "The server could not load this subtitle track." = "Le serveur n’a pas pu charger cette piste de sous-titres.";
+"Profiles unavailable" = "Profils indisponibles";
+"This instance does not offer account profiles." = "Cette instance ne propose pas de profils de compte.";

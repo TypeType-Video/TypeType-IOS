@@ -761,3 +761,5 @@
 "Music: non-music" = "Music: non-music";
 "Subtitles unavailable" = "Subtitles unavailable";
 "The server could not load this subtitle track." = "The server could not load this subtitle track.";
+"Profiles unavailable" = "Profiles unavailable";
+"This instance does not offer account profiles." = "This instance does not offer account profiles.";
