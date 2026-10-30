@@ -9,15 +9,11 @@ struct LiveSettingsAppearanceView: View {
         && colorScheme == .dark)
   }
 
-  let dependencies: AppDependencies
   @ObservedObject var viewModel: LiveSettingsViewModel
   @ObservedObject var preferences: LiveAppPreferencesStore
 
   var body: some View {
-    LiveSettingsEditingPage(
-      viewModel: viewModel,
-      dependencies: dependencies
-    ) {
+    LiveSettingsEditingPage(viewModel: viewModel) {
       LiveSection {
         LiveAppearanceThemeTiles(
           selection: preferences.binding(\.appearanceTheme),

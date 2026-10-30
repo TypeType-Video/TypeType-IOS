@@ -341,3 +341,5 @@
 "Shows the description" = "Shows the description";
 "Hides the description" = "Hides the description";
 "%@ likes" = "%@ likes";
+"Change not saved" = "Change not saved";
+"Settings could not be updated." = "Settings could not be updated.";

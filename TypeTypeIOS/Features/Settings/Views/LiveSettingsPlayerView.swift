@@ -1,15 +1,11 @@
 import SwiftUI
 
 struct LiveSettingsPlayerView: View {
-  let dependencies: AppDependencies
   @ObservedObject var viewModel: LiveSettingsViewModel
   @ObservedObject var preferences: LiveAppPreferencesStore
 
   var body: some View {
-    LiveSettingsEditingPage(
-      viewModel: viewModel,
-      dependencies: dependencies
-    ) {
+    LiveSettingsEditingPage(viewModel: viewModel) {
       LiveSettingsPlaybackSection(settings: $viewModel.draft)
       localPlaybackSection
       LiveSection {

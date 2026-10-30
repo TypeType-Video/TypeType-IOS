@@ -341,3 +341,5 @@
 "Shows the description" = "Affiche la description";
 "Hides the description" = "Masque la description";
 "%@ likes" = "%@ j'aime";
+"Change not saved" = "Modification non enregistrée";
+"Settings could not be updated." = "Les réglages n’ont pas pu être mis à jour.";

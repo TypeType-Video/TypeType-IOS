@@ -9,12 +9,14 @@ struct LiveSettingsView: View {
   init(coordinator: RootCoordinator) {
     self.coordinator = coordinator
     _preferences = ObservedObject(wrappedValue: coordinator.dependencies.appPreferences)
-    playbackCoordinator = coordinator.dependencies.playbackCoordinator
+    let playbackCoordinator = coordinator.dependencies.playbackCoordinator
+    self.playbackCoordinator = playbackCoordinator
     _viewModel = StateObject(
       wrappedValue: LiveSettingsViewModel(
         service: coordinator.dependencies.settingsService,
         serviceSelection: coordinator.dependencies.serviceSelection,
-        deArrowStore: coordinator.dependencies.deArrowStore
+        deArrowStore: coordinator.dependencies.deArrowStore,
+        onSaved: { playbackCoordinator.applySettings($0) }
       )
     )
   }
@@ -92,7 +94,6 @@ struct LiveSettingsView: View {
           iconColor: .systemPurple
         ) {
           LiveSettingsAppearanceView(
-            dependencies: coordinator.dependencies,
             viewModel: viewModel,
             preferences: preferences
           )
@@ -103,7 +104,6 @@ struct LiveSettingsView: View {
           iconColor: .systemBlue
         ) {
           LiveSettingsPlayerView(
-            dependencies: coordinator.dependencies,
             viewModel: viewModel,
             preferences: preferences
           )

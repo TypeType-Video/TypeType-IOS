@@ -2,48 +2,14 @@ import SwiftUI
 
 struct LiveSettingsEditingPage<Content: View>: View {
   @ObservedObject var viewModel: LiveSettingsViewModel
-  let dependencies: AppDependencies
   @ViewBuilder let content: () -> Content
 
   var body: some View {
     List {
       content()
-
-      if let message = viewModel.message {
-        LiveSection {
-          Label(message, systemImage: "checkmark.circle.fill")
-            .foregroundStyle(.green)
-        }
-      }
     }
-      .liveGroupedList()
-    .toolbar {
-      ToolbarItemGroup(placement: .topBarTrailing) {
-        if viewModel.hasChanges {
-          Button("Reset") { viewModel.resetDraft() }
-        }
-        Button("Save") {
-          Task {
-            guard let settings = await viewModel.save() else { return }
-            dependencies.playbackCoordinator.applySettings(settings)
-          }
-        }
-        .disabled(!viewModel.hasChanges || viewModel.isSaving)
-        .accessibilityIdentifier("live.settings.save")
-      }
-    }
-    .alert("Settings", isPresented: errorBinding) {
-      Button("OK") { viewModel.dismissError() }
-    } message: {
-      Text(viewModel.errorMessage ?? "")
-    }
-  }
-
-  private var errorBinding: Binding<Bool> {
-    Binding(
-      get: { viewModel.errorMessage != nil },
-      set: { if !$0 { viewModel.dismissError() } }
-    )
+    .liveGroupedList()
+    .liveSettingsSaveFailureToast(viewModel)
   }
 }
 
@@ -113,10 +79,7 @@ struct LiveSettingsContentView: View {
   @ObservedObject var viewModel: LiveSettingsViewModel
 
   var body: some View {
-    LiveSettingsEditingPage(
-      viewModel: viewModel,
-      dependencies: dependencies
-    ) {
+    LiveSettingsEditingPage(viewModel: viewModel) {
       LiveSettingsDiscoverySection(
         settings: $viewModel.draft,
         services: dependencies.serviceSelection.services
@@ -137,10 +100,7 @@ struct LiveSettingsPrivacyView: View {
   @ObservedObject var viewModel: LiveSettingsViewModel
 
   var body: some View {
-    LiveSettingsEditingPage(
-      viewModel: viewModel,
-      dependencies: dependencies
-    ) {
+    LiveSettingsEditingPage(viewModel: viewModel) {
       LiveSettingsPrivacySection(settings: $viewModel.draft)
       LiveSection {
         NavigationLink("Manage stored data") {
