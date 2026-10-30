@@ -3,28 +3,9 @@ import Foundation
 @MainActor
 final class LiveNotificationSettingsViewModel: ObservableObject {
   enum Toast: Equatable {
-    case limitReached
-    case turnedOn(Int, leftOff: Int)
+    case turnedOn(Int)
     case turnedOff(Int)
-
-    var isWarning: Bool {
-      switch self {
-      case .limitReached: true
-      case let .turnedOn(_, leftOff): leftOff > 0
-      case .turnedOff: false
-      }
-    }
   }
-
-  enum Limit: Equatable {
-    case comfortable
-    case close(remaining: Int)
-    case reached
-  }
-
-  // Each enabled channel costs one polling query a cycle; over the budget the server answers 429.
-  static let pollingQueryBudget = 120
-  static let pollingQueriesPerEnabledFeed = 1
 
   enum State: Equatable {
     case idle
@@ -61,36 +42,12 @@ final class LiveNotificationSettingsViewModel: ObservableObject {
     }
   }
 
-  var enabledFeedCount: Int {
-    preferences.filter { $0.enabled }.count
-  }
-
-  var usedPollingQueries: Int {
-    enabledFeedCount * Self.pollingQueriesPerEnabledFeed
-  }
-
-  var remainingPollingQueries: Int {
-    max(0, Self.pollingQueryBudget - usedPollingQueries)
-  }
-
-  var canEnableMore: Bool {
-    remainingPollingQueries >= Self.pollingQueriesPerEnabledFeed
-  }
-
   var canEnableAll: Bool {
-    canEnableMore
-      && preferences.contains(where: { !$0.enabled })
-      && !isBulkUpdating
+    preferences.contains(where: { !$0.enabled }) && !isBulkUpdating
   }
 
   var canDisableAll: Bool {
     preferences.contains(where: { $0.enabled }) && !isBulkUpdating
-  }
-
-  var limit: Limit {
-    if !canEnableMore { return .reached }
-    let remaining = remainingPollingQueries / Self.pollingQueriesPerEnabledFeed
-    return remaining <= 10 ? .close(remaining: remaining) : .comfortable
   }
 
   func prepare() async {
@@ -142,10 +99,6 @@ final class LiveNotificationSettingsViewModel: ObservableObject {
     else {
       return
     }
-    if enabled, !isCurrentlyEnabled(preference), !canEnableMore {
-      toast = .limitReached
-      return
-    }
     updatingURLs.insert(preference.channelURL)
 
     if let index = indexOf(preference) {
@@ -176,21 +129,7 @@ final class LiveNotificationSettingsViewModel: ObservableObject {
     let targets = sortedPreferences.filter { $0.enabled != enabled }
     guard !targets.isEmpty else { return }
 
-    var appliedTargets = targets
-    let blocked: Int
-    if enabled {
-      let room = remainingPollingQueries / Self.pollingQueriesPerEnabledFeed
-      appliedTargets = Array(targets.prefix(room))
-      blocked = targets.count - appliedTargets.count
-    } else {
-      blocked = 0
-    }
-
-    guard !appliedTargets.isEmpty else {
-      toast = .limitReached
-      return
-    }
-
+    let appliedTargets = targets
     isBulkUpdating = true
     defer { isBulkUpdating = false }
 
@@ -216,7 +155,7 @@ final class LiveNotificationSettingsViewModel: ObservableObject {
       return
     }
 
-    toast = enabled ? .turnedOn(appliedTargets.count, leftOff: blocked) : .turnedOff(appliedTargets.count)
+    toast = enabled ? .turnedOn(appliedTargets.count) : .turnedOff(appliedTargets.count)
   }
 
   func dismissError() {

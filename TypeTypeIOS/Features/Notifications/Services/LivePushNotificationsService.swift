@@ -31,10 +31,12 @@ extension LivePushNotificationsServiceProtocol {
 
 final class LivePushNotificationsService: LivePushNotificationsServiceProtocol {
   private let apiClient: APIClient
+  private let pacing: LivePacing
   private let requestGate = LiveNotificationRequestGate()
 
-  init(apiClient: APIClient) {
+  init(apiClient: APIClient, pacing: LivePacing = .realTime) {
     self.apiClient = apiClient
+    self.pacing = pacing
   }
 
   func channelPreferences() async throws -> [
@@ -76,22 +78,35 @@ final class LivePushNotificationsService: LivePushNotificationsServiceProtocol {
     enabled: Bool,
     channelURLs: [String]
   ) async throws -> [LiveChannelNotificationPreference] {
-    await requestGate.acquire()
-    return try await apiClient.request(
-      APIEndpoint(
-        path: "/notifications/channel-preferences/bulk",
-        method: .put,
-        body: try APIEndpoint.jsonBody(
-          LiveChannelNotificationPreferencesBulkPayload(
-            enabled: enabled,
-            channelURLs: channelURLs
-          )
-        ),
-        requiresAuth: true
+    let endpoint = APIEndpoint(
+      path: "/notifications/channel-preferences/bulk",
+      method: .put,
+      body: try APIEndpoint.jsonBody(
+        LiveChannelNotificationPreferencesBulkPayload(enabled: enabled, channelURLs: channelURLs)
       ),
-      as: [LiveChannelNotificationPreference].self
+      requiresAuth: true
     )
+    var attempt = 0
+    while true {
+      await requestGate.acquire()
+      do {
+        return try await apiClient.request(endpoint, as: [LiveChannelNotificationPreference].self)
+      } catch {
+        attempt += 1
+        guard attempt < 3, Self.isTransient(error) else { throw error }
+        try await pacing.sleep(for: .seconds(attempt))
+      }
+    }
   }
+
+  private static func isTransient(_ error: Error) -> Bool {
+    switch error as? NetworkError {
+    case .transport: true
+    case let .statusCode(code, _): code == 429 || (500...599).contains(code)
+    default: false
+    }
+  }
+
 }
 
 private struct LiveChannelNotificationPreferencesBulkPayload: Encodable {

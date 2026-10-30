@@ -92,7 +92,7 @@ struct LiveNotificationSettingsView: View {
   private var toastOverlay: some View {
     if let toast = viewModel.toast {
       let card = HStack(spacing: 12) {
-        Image(systemName: toast.isWarning ? "exclamationmark.triangle.fill" : "checkmark.circle.fill")
+        Image(systemName: "checkmark.circle.fill")
           .font(.title3.weight(.semibold))
           .foregroundStyle(palette.accent)
         Text(LiveNotificationTexts.message(for: toast))

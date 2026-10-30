@@ -602,7 +602,6 @@
 "Save watch history" = "Save watch history";
 "TypeType on GitHub" = "TypeType on GitHub";
 "Support TypeType" = "Support TypeType";
-"Limit of %lld channels reached. Turn one off to turn on another." = "Limit of %lld channels reached. Turn one off to turn on another.";
 "iOS notification permission could not be requested." = "iOS notification permission could not be requested.";
 "Notification settings could not be updated." = "Notification settings could not be updated.";
 "Notification choices appear once you subscribe to a channel." = "Notification choices appear once you subscribe to a channel.";

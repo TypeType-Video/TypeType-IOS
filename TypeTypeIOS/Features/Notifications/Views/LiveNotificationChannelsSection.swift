@@ -34,12 +34,6 @@ struct LiveNotificationChannelsSection: View {
         }
         .accessibilityIdentifier("live.notification-settings.disable-all")
       }
-    } footer: {
-      if let note = LiveNotificationTexts.note(for: viewModel.limit) {
-        Text(note)
-          .liveSettingsFooter()
-          .accessibilityIdentifier("live.notification-settings.budget")
-      }
     }
   }
 
