@@ -38,7 +38,7 @@ struct LiveContentControlListView: View {
   init(kind: LiveContentControlKind, service: LiveContentControlsServiceProtocol, canCreateGlobal: Bool) {
     self.kind = kind
     self.canCreateGlobal = canCreateGlobal
-    _viewModel = StateObject(wrappedValue: LiveContentControlsViewModel(service: service))
+    _viewModel = StateObject(wrappedValue: LiveContentControlsViewModel(service: service, kind: kind))
   }
 
   var body: some View {
@@ -50,7 +50,7 @@ struct LiveContentControlListView: View {
           Button("Add", systemImage: "plus") { addsItem = true }
         }
       }
-      .task { await viewModel.select(kind) }
+      .task { await viewModel.prepare() }
       .sheet(isPresented: $addsItem) {
         LiveContentControlEditor(kind: kind, canCreateGlobal: canCreateGlobal, onSave: viewModel.add)
       }
