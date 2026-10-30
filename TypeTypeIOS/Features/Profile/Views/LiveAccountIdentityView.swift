@@ -66,7 +66,7 @@ struct LiveAccountIdentityView: View {
               Text("Save identity").frame(maxWidth: .infinity)
             }
           }
-          .buttonStyle(.borderedProminent)
+          .liveProminentButton()
           .disabled(
             viewModel.managedByOIDC
               || viewModel.isSaving

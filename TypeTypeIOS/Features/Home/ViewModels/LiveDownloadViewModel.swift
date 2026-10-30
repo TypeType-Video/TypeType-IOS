@@ -19,7 +19,6 @@ final class LiveDownloadViewModel: ObservableObject {
   }
   @Published var quality = "1080p"
   @Published var format = "mp4"
-  @Published var sponsorBlock = false
   @Published var includesSubtitles = false
   @Published var subtitleLanguage = "en"
   @Published private(set) var state = State.idle
@@ -30,15 +29,12 @@ final class LiveDownloadViewModel: ObservableObject {
   let video: LiveVideoItem
   private let center: LiveDownloadCenter
 
-  /// The server transfer is complete and the file is being saved on the
-  /// device: no live transfer to protect from dismissal.
   var isFinishing: Bool {
     guard let job else { return false }
     let status = job.status.lowercased()
     return status == "done" || status == "completed"
       || job.progressPercent == 100
   }
-  /// Engagement captured at download time for the offline watch page.
   private let likeCount: Int64
   private let dislikeCount: Int64
   private var recordID: String?
@@ -196,7 +192,6 @@ final class LiveDownloadViewModel: ObservableObject {
       format = "jpg"
       quality = "best"
       includesSubtitles = false
-      sponsorBlock = false
     }
   }
 

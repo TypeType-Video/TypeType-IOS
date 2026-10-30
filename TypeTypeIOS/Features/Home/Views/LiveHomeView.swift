@@ -15,7 +15,8 @@ struct LiveHomeView: View {
         service: coordinator.dependencies.homeFeedService,
         historyService: coordinator.dependencies.historyService,
         settingsService: coordinator.dependencies.settingsService,
-        serviceSelection: coordinator.dependencies.serviceSelection
+        serviceSelection: coordinator.dependencies.serviceSelection,
+        imagePipeline: coordinator.dependencies.imagePipeline
       )
     )
   }
@@ -33,8 +34,6 @@ struct LiveHomeView: View {
         .onChange(of: selectedVideo) { _, video in
           guard let video else { return }
           selectedVideo = nil
-          // Videos open in the canonical PiP-aware player cover;
-          // the navigation push slid a second player page in.
           coordinator.dependencies.playbackCoordinator.open(video)
         }
         .navigationDestination(item: $selectedChannelURL) { channelURL in

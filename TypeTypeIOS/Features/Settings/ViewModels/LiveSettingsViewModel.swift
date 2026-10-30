@@ -1,3 +1,4 @@
+import Combine
 import Foundation
 
 @MainActor
@@ -10,28 +11,42 @@ final class LiveSettingsViewModel: ObservableObject {
   }
 
   @Published private(set) var state = State.idle
-  @Published var draft = LiveSettings()
-  @Published private(set) var isSaving = false
-  @Published private(set) var message: String?
+  @Published var draft = LiveSettings() {
+    didSet { scheduleSave() }
+  }
   @Published private(set) var errorMessage: String?
+  @Published private(set) var isOffline = false
 
   private let service: LiveSettingsServiceProtocol
   private let serviceSelection: LiveServiceSelection
   private let deArrowStore: LiveDeArrowStore
+  private let onSaved: @MainActor (LiveSettings) -> Void
+  private let saveDelay: Duration
   private var saved = LiveSettings()
+  private var saveTask: Task<Void, Never>?
 
   init(
     service: LiveSettingsServiceProtocol,
     serviceSelection: LiveServiceSelection,
-    deArrowStore: LiveDeArrowStore
+    deArrowStore: LiveDeArrowStore,
+    connectivity: LiveConnectivityMonitor? = nil,
+    saveDelay: Duration = .milliseconds(500),
+    onSaved: @escaping @MainActor (LiveSettings) -> Void = { _ in }
   ) {
     self.service = service
     self.serviceSelection = serviceSelection
     self.deArrowStore = deArrowStore
+    self.saveDelay = saveDelay
+    self.onSaved = onSaved
+    connectivity?.$status
+      .map { $0 == .offline }
+      .removeDuplicates()
+      .receive(on: DispatchQueue.main)
+      .assign(to: &$isOffline)
   }
 
-  var hasChanges: Bool {
-    draft != saved
+  deinit {
+    saveTask?.cancel()
   }
 
   func prepare() async {
@@ -40,6 +55,7 @@ final class LiveSettingsViewModel: ObservableObject {
   }
 
   func reload() async {
+    saveTask?.cancel()
     state = .loading
     do {
       let settings = try await service.settings()
@@ -52,35 +68,47 @@ final class LiveSettingsViewModel: ObservableObject {
     }
   }
 
-  @discardableResult
-  func save() async -> LiveSettings? {
-    guard !isSaving, hasChanges else { return nil }
-    isSaving = true
-    defer { isSaving = false }
-    do {
-      let updated = try await service.update(draft)
-      saved = updated
-      draft = updated
-      serviceSelection.synchronize(with: updated)
-      deArrowStore.invalidatePreferences()
-      message = "Settings saved"
-      return updated
-    } catch {
-      errorMessage = text(for: error)
-      return nil
-    }
-  }
-
-  func resetDraft() {
-    draft = saved
-  }
-
   func dismissError() {
     errorMessage = nil
   }
 
+  private func scheduleSave() {
+    guard state == .loaded, draft != saved else { return }
+    let previous = saveTask
+    previous?.cancel()
+    saveTask = Task { [weak self, saveDelay] in
+      await previous?.value
+      do {
+        try await Task.sleep(for: saveDelay)
+      } catch {
+        return
+      }
+      await self?.save()
+    }
+  }
+
+  private func save() async {
+    let sent = draft
+    guard sent != saved else { return }
+    do {
+      let updated = try await service.update(sent)
+      saved = updated
+      if draft == sent {
+        draft = updated
+      }
+      serviceSelection.synchronize(with: updated)
+      deArrowStore.invalidatePreferences()
+      onSaved(updated)
+    } catch {
+      guard !Task.isCancelled, draft == sent else { return }
+      AppLogger.app.failure("Saving the settings", error)
+      draft = saved
+      errorMessage = text(for: error)
+    }
+  }
+
   private func text(for error: Error) -> String {
     (error as? LocalizedError)?.errorDescription
-      ?? "Settings could not be updated."
+      ?? String(localized: "Settings could not be updated.")
   }
 }

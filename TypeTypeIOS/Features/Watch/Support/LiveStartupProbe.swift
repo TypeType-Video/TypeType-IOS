@@ -1,8 +1,6 @@
 import SwiftUI
 
 extension View {
-  /// Startup time for the local benchmark, read through accessibility in
-  /// debug builds; never shown, and absent from release builds.
   @ViewBuilder
   func liveStartupProbe(_ milliseconds: Int?) -> some View {
     #if DEBUG

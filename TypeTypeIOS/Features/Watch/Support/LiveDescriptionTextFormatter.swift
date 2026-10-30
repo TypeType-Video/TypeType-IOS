@@ -42,15 +42,15 @@ enum LiveDescriptionTextFormatter {
     return value.trimmingCharacters(in: .whitespacesAndNewlines)
   }
 
+  private static let anchorPattern = try? NSRegularExpression(
+    pattern: #"<a\b[^>]*href\s*=\s*["']([^"']+)["'][^>]*>(.*?)</a>"#,
+    options: [.caseInsensitive, .dotMatchesLineSeparators]
+  )
+
   private static func preservingAnchorDestinations(
     in value: String
   ) -> String {
-    guard let expression = try? NSRegularExpression(
-      pattern: #"<a\b[^>]*href\s*=\s*["']([^"']+)["'][^>]*>(.*?)</a>"#,
-      options: [.caseInsensitive, .dotMatchesLineSeparators]
-    ) else {
-      return value
-    }
+    guard let expression = anchorPattern else { return value }
 
     let range = NSRange(value.startIndex..., in: value)
     let matches = expression.matches(in: value, range: range)
@@ -84,9 +84,7 @@ enum LiveDescriptionTextFormatter {
     "bull": "•", "copy": "©", "reg": "®", "trade": "™", "times": "×", "yen": "¥",
   ]
 
-  /// Decodes named and numeric entities in plain Swift. NSAttributedString's
-  /// HTML importer must not be used here: it runs WebKit in a nested run loop,
-  /// which re-enters SwiftUI while a view body is computed and crashes.
+  // Not NSAttributedString's HTML importer: it runs WebKit in a nested run loop that re-enters SwiftUI.
   static func decodingHTMLEntities(in value: String) -> String {
     guard value.contains("&") else { return value }
     var result = ""

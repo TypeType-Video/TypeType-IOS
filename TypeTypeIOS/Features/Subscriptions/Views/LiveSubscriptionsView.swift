@@ -7,6 +7,7 @@ struct LiveSubscriptionsView: View {
   @State private var selectedVideoChannelURL: String?
   @State private var selectedChannel: LiveSubscription?
   @State private var isShowingGroups = false
+  @State private var channelQuery = ""
 
   init(coordinator: RootCoordinator) {
     self.coordinator = coordinator
@@ -57,7 +58,7 @@ struct LiveSubscriptionsView: View {
                     }
                   }
                 }
-              } header: { Text("Groups").liveSectionHeader() }
+              } header: { Text("Groups") }
             }
           } label: {
             Image(systemName: "folder.badge.gearshape")
@@ -81,8 +82,6 @@ struct LiveSubscriptionsView: View {
         .onChange(of: selectedVideo) { _, video in
           guard let video else { return }
           selectedVideo = nil
-          // Videos open in the canonical PiP-aware player cover;
-          // the navigation push slid a second player page in.
           coordinator.dependencies.playbackCoordinator.open(video)
         }
         .navigationDestination(
@@ -169,7 +168,7 @@ struct LiveSubscriptionsView: View {
                 }
               )
             }
-            DemoIncrementalLoadingTrigger(
+            LiveIncrementalLoadingTrigger(
               canLoadMore: viewModel.canLoadMore,
               isLoading: viewModel.isLoadingMore,
               label: "Loading more subscriptions",
@@ -183,7 +182,7 @@ struct LiveSubscriptionsView: View {
         .refreshable { await viewModel.reload() }
       }
     }
-    .background(DemoThemeBackground().ignoresSafeArea())
+    .background(LiveThemeBackground().ignoresSafeArea())
     .accessibilityIdentifier("live.subscriptions.videos")
   }
 
@@ -196,22 +195,39 @@ struct LiveSubscriptionsView: View {
           description: Text("Channels you subscribe to will appear here.")
         ).liveThemedEmptyState()
       } else {
-        List(viewModel.channels) { channel in
-          LiveSubscriptionChannelRow(
-            channel: channel,
-            onOpen: { selectedChannel = channel },
-            onUnsubscribe: {
-              Task { await viewModel.unsubscribe(channel) }
+        List {
+          LiveSection {
+            ForEach(filteredChannels) { channel in
+              LiveSubscriptionChannelRow(
+                channel: channel,
+                groupNames: groupNames(for: channel),
+                onOpen: { selectedChannel = channel },
+                onUnsubscribe: { Task { await viewModel.unsubscribe(channel) } }
+              ) {
+                groupQuickActions(for: channel)
+              }
             }
-          ) { channel in
-            AnyView(groupQuickActions(for: channel))
+          } header: {
+            Text("\(viewModel.channels.count) channels").liveSectionHeader()
           }
         }
-        .listStyle(.plain)
+        .liveGroupedList()
+        .searchable(text: $channelQuery, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search channels")
         .refreshable { await viewModel.reload() }
       }
     }
     .accessibilityIdentifier("live.subscriptions.channels")
+  }
+
+  private var filteredChannels: [LiveSubscription] {
+    let query = channelQuery.trimmingCharacters(in: .whitespaces)
+    guard !query.isEmpty else { return viewModel.channels }
+    return viewModel.channels.filter { $0.name.localizedStandardContains(query) }
+  }
+
+  private func groupNames(for channel: LiveSubscription) -> [String] {
+    let ids = viewModel.groupIDs(for: channel.channelURL)
+    return viewModel.groups.filter { ids.contains($0.id) }.map(\.name)
   }
 
   private var columns: [GridItem] {
@@ -254,6 +270,6 @@ struct LiveSubscriptionsView: View {
           }
         }
       }
-    } header: { Text("Groups").liveSectionHeader() }
+    } header: { Text("Groups") }
   }
 }

@@ -161,15 +161,6 @@ final class LiveHomeUITests: XCTestCase {
       )
     )
     bilibili.tap()
-    let save = app.buttons["live.settings.save"]
-    XCTAssertTrue(save.waitForExistence(timeout: 3))
-    save.tap()
-    let saveDisabled = expectation(
-      for: NSPredicate(format: "enabled == false"),
-      evaluatedWith: save
-    )
-    await fulfillment(of: [saveDisabled], timeout: 5)
-    XCTAssertFalse(save.isEnabled)
     try XCTUnwrap(
       firstElement(
         [

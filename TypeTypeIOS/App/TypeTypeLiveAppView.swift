@@ -2,23 +2,32 @@ import SwiftUI
 
 struct TypeTypeLiveAppView: View {
   @StateObject private var coordinator: RootCoordinator
-  @ObservedObject private var preferences = LiveAppPreferencesStore.shared
+  @ObservedObject private var preferences: LiveAppPreferencesStore
   @Environment(\.scenePhase) private var scenePhase
   @Environment(\.colorScheme) private var colorScheme
 
   @MainActor
-  init() {
-    self.init(dependencies: .live())
+  init(
+    orientationLock: LiveOrientationLock,
+    backgroundRefresh: LiveBackgroundRefreshCoordinator,
+    crashReports: LiveCrashReportArchive
+  ) {
+    self.init(
+      dependencies: .live(
+        orientationLock: orientationLock,
+        backgroundRefresh: backgroundRefresh,
+        crashReports: crashReports
+      )
+    )
   }
 
   @MainActor
   init(dependencies: AppDependencies) {
-    LiveBackgroundRefreshCoordinator.shared.configure(
-      dependencies: dependencies
-    )
+    dependencies.backgroundRefresh.configure(dependencies: dependencies)
     _coordinator = StateObject(
       wrappedValue: RootCoordinator(dependencies: dependencies)
     )
+    _preferences = ObservedObject(wrappedValue: dependencies.appPreferences)
     ThemeChrome.installAppearance()
   }
 
@@ -42,6 +51,10 @@ struct TypeTypeLiveAppView: View {
     }
     .environment(\.themePalette, palette)
     .background(ThemeChromeBridge(chrome: palette.chrome))
+    .environmentObject(coordinator.dependencies.watchProgress)
+    .environment(\.imagePipeline, coordinator.dependencies.imagePipeline)
+    .environment(\.liveToasts, coordinator.dependencies.toasts)
+    .environmentObject(preferences)
     .task {
       if let launchURL = AppConfig.debugIncomingURL {
         coordinator.receiveIncomingURL(launchURL)

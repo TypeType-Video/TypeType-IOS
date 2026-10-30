@@ -1,34 +1,20 @@
 import SwiftUI
 
 extension LivePlayerView {
-  /// YouTube-style: when the player scrolls away (reading comments), float
-  /// it into Picture in Picture automatically. Edge-triggered: one start per
-  /// scroll-away, re-armed when the player is visible again.
   func evaluateAutoPictureInPicture(_ frame: CGRect) {
-    // Pull-down is only allowed while the page is at the top: the player
-    // must sit below the status bar and well above the bottom edge.
-    // Rotating into full screen moves this surface; that is not the reader scrolling away.
-    // The landscape stage owns the layer; everything else may float away.
+    // Rotating into full screen moves this surface: that is not a scroll-away.
     guard !controller.isPresentingFullscreen else { return }
     let screenH = UIScreen.main.bounds.height
     controller.isPlayerSurfaceFullyVisible =
       frame.minY >= 44 && frame.maxY <= screenH - 100
-    // Dev spec: PiP only when the box is FULLY out of view, and back the
-    // moment any part of it re-enters the viewport.
     let isAway = frame.maxY <= 0
     if controller.nativePlayback != nil {
-      // The in-house player docks into an in-app corner card instead of the
-      // system PiP: no scene hand-off (that was the app-wide stall), no
-      // window flying, and the video stays in this window.
       controller.isVideoDocked = isAway
       autoPictureInPictureArmed = !isAway
       return
     }
     if !isAway {
       autoPictureInPictureArmed = true
-      // Only auto-started PiP windows return here; a manual mini player
-      // stays. The return waits until the player is about half re-entered,
-      // so the window flies to a visible rect instead of an off-screen one.
       if autoPictureInPictureActive,
         frame.maxY >= frame.height * 0.5 {
         autoPictureInPictureActive = false
@@ -55,7 +41,7 @@ extension LivePlayerView {
   ) {
     LivePlayerView.logGesture("doubleTap x=\(Int(location.x))")
     guard
-      !preferences.preferences.playerAccessibleControlsEnabled,
+      !accessibleControls,
       preferences.preferences.playerDoubleTapSeekEnabled
     else {
       return
@@ -70,7 +56,7 @@ extension LivePlayerView {
     ) else {
       return
     }
-    // Build on the pending target: the position only moves once the seek has run.
+    // Build on the last target: the reported position lags behind a seek that is still loading.
     let pending = doubleTapSeek.flatMap {
       $0.direction == direction && Date().timeIntervalSince($0.at) < 1.5 ? $0 : nil
     }
@@ -89,12 +75,7 @@ extension LivePlayerView {
       direction: direction,
       seconds: seconds
     )
-    doubleTapSeekTask?.cancel()
-    doubleTapSeekTask = Task { @MainActor in
-      try? await Task.sleep(for: .milliseconds(450))
-      guard !Task.isCancelled else { return }
-      controller.seek(to: target)
-    }
+    controller.seek(to: target)
   }
 
   func handleSwipeAdjustment(
@@ -103,7 +84,7 @@ extension LivePlayerView {
     if case let .began(kind, _) = event {
       LivePlayerView.logGesture("swipe began \(kind)")
     }
-    guard preferences.preferences.playerSwipeBrightnessVolumeEnabled else {
+    guard !accessibleControls, preferences.preferences.playerSwipeBrightnessVolumeEnabled else {
       return
     }
     switch event {
@@ -126,8 +107,6 @@ extension LivePlayerView {
     }
   }
 
-  /// Hold baseline is 2x; dragging up ramps toward 4x, down toward 1x,
-  /// in half-step clicks (200pt = 2x of travel). The HUD shows the rate.
   func applySpeedRamp(translationHeight: CGFloat) {
     let raw = 2.0 + (-translationHeight / 200.0) * 2.0
     let stepped = (raw * 2).rounded() / 2
@@ -141,9 +120,9 @@ extension LivePlayerView {
   ) {
     switch event {
     case let .began(position):
-      horizontalSeekPreview = position
-    case let .updated(position):
-      horizontalSeekPreview = position
+      horizontalSeekPreview = (position, false)
+    case let .updated(position, isFine):
+      horizontalSeekPreview = (position, isFine)
     case let .ended(position):
       horizontalSeekPreview = nil
       controller.seek(to: position)
@@ -158,7 +137,7 @@ extension LivePlayerView {
     case .brightness:
       UIScreen.main.brightness = fraction
     case .volume:
-      controller.setOutputVolume(Float(fraction))
+      systemVolume.set(fraction)
     }
   }
 
@@ -170,7 +149,7 @@ extension LivePlayerView {
   }
 
   func beginSpeedRamp() {
-    guard preferences.preferences.playerLongPressSpeedEnabled,
+    guard !accessibleControls, preferences.preferences.playerLongPressSpeedEnabled,
       longPressBaseRate == nil
     else { return }
     LivePlayerView.logGesture("speedRamp ON")
@@ -185,26 +164,5 @@ extension LivePlayerView {
     controller.setPlaybackRate(baseRate)
     longPressBaseRate = nil
     speedBoostRate = nil
-  }
-
-  func setLongPressBoost(active: Bool) {
-    LivePlayerView.logGesture(active ? "longPress ON" : "longPress OFF")
-    guard preferences.preferences.playerLongPressSpeedEnabled else { return }
-    longPressBoostTask?.cancel()
-    longPressBoostTask = nil
-    if active {
-      // Boost only after the long-press threshold, or every tap changes the rate twice.
-      longPressBoostTask = Task {
-        try? await Task.sleep(nanoseconds: 350_000_000)
-        guard !Task.isCancelled else { return }
-        self.longPressBaseRate = self.controller.playbackRate
-        self.speedBoostRate = 2
-        self.controller.setPlaybackRate(2)
-      }
-    } else if let baseRate = longPressBaseRate {
-      controller.setPlaybackRate(baseRate)
-      longPressBaseRate = nil
-      speedBoostRate = nil
-    }
   }
 }

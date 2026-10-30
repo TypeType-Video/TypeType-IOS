@@ -28,8 +28,6 @@ final class LiveCommentModelsTests: XCTestCase {
   }
 
   func testPublishedDisplayFallsBackToTextWithoutTimestamp() {
-    // Replies carry no timestamp at all: the upstream text is the only
-    // clock on offer and must stay visible.
     XCTAssertEqual(
       comment(publishedAt: nil, text: "hi").publishedDisplay,
       "emahoreni angu-5 edlule"

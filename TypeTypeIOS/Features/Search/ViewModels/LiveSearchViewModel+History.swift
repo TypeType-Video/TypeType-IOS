@@ -15,7 +15,9 @@ extension LiveSearchViewModel {
   }
 
   func loadMoreHistory() async {
-    guard canLoadMoreHistory else { return }
+    guard canLoadMoreHistory, !isLoadingMoreHistory else { return }
+    isLoadingMoreHistory = true
+    defer { isLoadingMoreHistory = false }
     let next = historyPage + 1
     do {
       let items = try await historyService.history(

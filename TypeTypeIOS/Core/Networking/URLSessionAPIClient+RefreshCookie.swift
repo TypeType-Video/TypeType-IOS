@@ -3,8 +3,8 @@ import Foundation
 extension URLSessionAPIClient {
   static let refreshCookieName = "refresh_token"
 
-  // The server rotates this cookie on every refresh, and the shared cookie storage only reaches the disk
-  // later: an app killed in between wakes up with a dead token. The Keychain copy is written right away.
+  // The server rotates this cookie on every refresh and the cookie store reaches disk late: write the Keychain copy
+  // now or a killed app wakes with a dead token.
   func captureRefreshCookie(from response: HTTPURLResponse) {
     guard let refreshCookieObserver, let url = response.url else { return }
     var fields: [String: String] = [:]

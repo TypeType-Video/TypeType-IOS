@@ -35,7 +35,6 @@ struct LivePlaylistResult: Decodable, Hashable, Identifiable {
     self.playlistType = playlistType
   }
 
-  // One hole in a playlist row must not fail the whole page decode.
   init(from decoder: Decoder) throws {
     let container = try decoder.container(keyedBy: CodingKeys.self)
     id = try container.decodeIfPresent(String.self, forKey: .id) ?? ""

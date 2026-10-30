@@ -1,49 +1,49 @@
 import SwiftUI
 
+enum LiveSettingsScope {
+  case account
+  case device
+  case mixed
+}
+
 struct LiveSettingsEditingPage<Content: View>: View {
   @ObservedObject var viewModel: LiveSettingsViewModel
-  let dependencies: AppDependencies
+  var scope = LiveSettingsScope.account
   @ViewBuilder let content: () -> Content
 
   var body: some View {
     List {
-      content()
-
-      if let message = viewModel.message {
+      if viewModel.isOffline, scope != .device {
         LiveSection {
-          Label(message, systemImage: "checkmark.circle.fill")
-            .foregroundStyle(.green)
+          LiveSettingsOfflineNotice()
         }
       }
-    }
-      .liveGroupedList()
-    .toolbar {
-      ToolbarItemGroup(placement: .topBarTrailing) {
-        if viewModel.hasChanges {
-          Button("Reset") { viewModel.resetDraft() }
-        }
-        Button("Save") {
-          Task {
-            guard let settings = await viewModel.save() else { return }
-            dependencies.playbackCoordinator.applySettings(settings)
-          }
-        }
-        .disabled(!viewModel.hasChanges || viewModel.isSaving)
-        .accessibilityIdentifier("live.settings.save")
+      if scope == .account {
+        content().disabled(viewModel.isOffline)
+      } else {
+        content()
       }
     }
-    .alert("Settings", isPresented: errorBinding) {
-      Button("OK") { viewModel.dismissError() }
-    } message: {
-      Text(viewModel.errorMessage ?? "")
-    }
+    .liveGroupedList()
+    .liveSettingsSaveFailureToast(viewModel)
   }
+}
 
-  private var errorBinding: Binding<Bool> {
-    Binding(
-      get: { viewModel.errorMessage != nil },
-      set: { if !$0 { viewModel.dismissError() } }
-    )
+struct LiveSettingsOfflineNotice: View {
+  var body: some View {
+    Label {
+      VStack(alignment: .leading, spacing: 2) {
+        Text("Offline")
+          .font(.headline)
+        Text("Account settings can be changed again once you are connected.")
+          .font(.footnote)
+          .foregroundStyle(.secondary)
+      }
+    } icon: {
+      Image(systemName: "wifi.slash")
+        .foregroundStyle(.orange)
+    }
+    .accessibilityElement(children: .combine)
   }
 }
 
@@ -58,35 +58,53 @@ struct LiveSettingsAccountsView: View {
             Task { await coordinator.selectServer(server) }
           } label: {
             HStack {
-              VStack(alignment: .leading, spacing: 3) {
+              VStack(alignment: .leading, spacing: 4) {
                 Text(server.name)
+                  .font(.title3.weight(.semibold))
                   .foregroundStyle(.primary)
-                Text(server.baseURLString)
-                  .font(.caption)
+                Text(server.baseURL?.host() ?? server.baseURLString)
+                  .font(.body)
                   .foregroundStyle(.secondary)
               }
+              .padding(.vertical, 4)
               Spacer()
               if coordinator.selectedServer?.id == server.id {
                 Image(systemName: "checkmark")
                   .foregroundStyle(.tint)
+                  .accessibilityHidden(true)
               }
             }
           }
+          .tint(Color.primary)
+          .accessibilityAddTraits(coordinator.selectedServer?.id == server.id ? .isSelected : [])
         }
 
         Button("Add instance") {
           coordinator.showServerSetup()
         }
       } header: {
-        Text("Instances").liveSectionHeader()
+        Text("Instances").liveSettingsHeader()
+      }
+
+      if coordinator.currentUser.map({ !$0.id.hasPrefix("guest:") }) == true {
+        LiveSavedAccountsSection(coordinator: coordinator)
+        if coordinator.instance?.youtubeRemoteLoginEnabled == true,
+          let service = coordinator.dependencies.youtubeSessionService {
+          LiveSection {
+            NavigationLink {
+              LiveYouTubeSessionView(coordinator: coordinator, service: service)
+            } label: {
+              LiveSettingText(title: "YouTube sign-in", detail: "For videos that need a signed-in YouTube session.")
+            }
+          }
+        }
       }
 
       if let user = coordinator.currentUser {
         LiveSection {
-          LabeledContent(
-            "Username",
-            value: user.publicUsername ?? "Guest"
-          )
+          LabeledContent("Username") {
+            Text(user.id.hasPrefix("guest:") ? String(localized: "Guest") : user.publicUsername ?? String(localized: "Not set"))
+          }
           if !user.id.hasPrefix("guest:") {
             NavigationLink("Profile") {
               LiveProfileView(coordinator: coordinator, user: user)
@@ -98,7 +116,7 @@ struct LiveSettingsAccountsView: View {
             }
           }
         } header: {
-        Text("Account").liveSectionHeader()
+        Text("Account").liveSettingsHeader()
       }
       }
     }
@@ -108,344 +126,19 @@ struct LiveSettingsAccountsView: View {
   }
 }
 
-struct LiveSettingsAppearanceView: View {
-  @Environment(\.colorScheme) private var colorScheme
-
-  private var isEffectivelyDark: Bool {
-    preferences.preferences.appearanceMode == .dark
-      || (preferences.preferences.appearanceMode == .system
-        && colorScheme == .dark)
-  }
-
-  let dependencies: AppDependencies
-  @ObservedObject var viewModel: LiveSettingsViewModel
-  @ObservedObject var preferences: LiveAppPreferencesStore
-
-  var body: some View {
-    LiveSettingsEditingPage(
-      viewModel: viewModel,
-      dependencies: dependencies
-    ) {
-      LiveSection {
-        LiveAppearanceThemeTiles(
-          selection: preferences.binding(\.appearanceTheme),
-          isDark: isEffectivelyDark
-        )
-        LiveAppearanceAccentDots(
-          selection: preferences.binding(\.accentColor)
-        )
-      } header: {
-        Text("Appearance").liveSectionHeader()
-      }
-
-      LiveSection {
-        LiveOptionMenu(
-          "Color scheme",
-          selection: preferences.binding(\.appearanceMode),
-          options: LiveAppearanceMode.allCases.map { ($0, $0.title) }
-        )
-        // The AMOLED row is visible only when the app is effectively dark
-        // (Dark, or System with a dark system) — in light it does nothing.
-        if isEffectivelyDark {
-          Toggle("AMOLED black", isOn: preferences.binding(\.appearanceAmoled))
-        }
-        LiveOptionMenu(
-          "Font",
-          selection: preferences.binding(\.appearanceFont),
-          options: LiveAppearanceFont.allCases.map { ($0, $0.title) }
-        )
-        LiveOptionMenu(
-          "Motion",
-          selection: preferences.binding(\.appearanceMotion),
-          options: LiveAppearanceMotion.allCases.map { ($0, $0.title) }
-        )
-      }
-    }
-    .navigationTitle("Appearance")
-    .navigationBarTitleDisplayMode(.inline)
-    .accessibilityIdentifier("live.settings.appearance")
-  }
-}
-
-/// Theme picker as live preview tiles: each theme's real surface colours in
-/// a mini feed mock-up (dev feedback, plan 6.1; adapted from beta 9b680fe).
-struct LiveAppearanceThemeTiles: View {
-  @Environment(\.themePalette) private var palette
-  @Binding var selection: LiveAppearanceTheme
-  let isDark: Bool
-
-  var body: some View {
-    ScrollView(.horizontal) {
-      HStack(alignment: .top, spacing: 12) {
-        ForEach(LiveAppearanceTheme.allCases) { theme in
-          Button {
-            selection = theme
-          } label: {
-            VStack(spacing: 6) {
-              LiveAppearanceMiniScreen(theme: theme, isDark: isDark)
-                .frame(width: 66, height: 96)
-                .overlay {
-                  RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .strokeBorder(
-                      palette.accent,
-                      lineWidth: selection == theme ? 2.5 : 0
-                    )
-                }
-              Text(theme.title)
-                .font(
-                  .caption2.weight(selection == theme ? .semibold : .regular)
-                )
-                .foregroundStyle(selection == theme ? palette.accent : .primary)
-            }
-            .contentShape(Rectangle())
-          }
-          .buttonStyle(.plain)
-          .accessibilityLabel(theme.title)
-          .accessibilityAddTraits(selection == theme ? .isSelected : [])
-          .accessibilityIdentifier("live.settings.appearance.theme.\(theme.id)")
-        }
-      }
-      .padding(.vertical, 8)
-    }
-    .scrollIndicators(.hidden)
-    .accessibilityIdentifier("live.settings.appearance.themes")
-  }
-}
-
-/// A tiny feed mock-up drawn in one theme's real surface colours.
-struct LiveAppearanceMiniScreen: View {
-  let theme: LiveAppearanceTheme
-  let isDark: Bool
-  @Environment(\.themePalette) private var palette
-
-  var body: some View {
-    let preview = ThemePalette(theme: theme, accent: palette.accent, amoled: false, isDark: isDark)
-    return RoundedRectangle(cornerRadius: 12, style: .continuous)
-      .fill(preview.background)
-      .overlay(alignment: .topLeading) {
-        VStack(alignment: .leading, spacing: 4) {
-          RoundedRectangle(cornerRadius: 4, style: .continuous)
-            .fill(preview.groupedSurface)
-            .frame(height: 26)
-          Capsule()
-            .fill(preview.textPrimary.opacity(0.75))
-            .frame(width: 40, height: 5)
-          Capsule()
-            .fill(preview.textSecondary.opacity(0.5))
-            .frame(width: 28, height: 4)
-          Capsule()
-            .fill(preview.accent)
-            .frame(width: 22, height: 7)
-        }
-        .padding(7)
-      }
-      .overlay {
-        RoundedRectangle(cornerRadius: 12, style: .continuous)
-          .strokeBorder(preview.elevatedSurface, lineWidth: 1)
-      }
-      .accessibilityHidden(true)
-  }
-}
-
-/// Accent colours as compact circles with a checkmark on the selected one.
-struct LiveAppearanceAccentDots: View {
-  @Environment(\.themePalette) private var palette
-  @Binding var selection: LiveAccentColor
-
-  var body: some View {
-    HStack(spacing: 0) {
-      ForEach(LiveAccentColor.allCases) { accent in
-        if accent == .custom {
-          // The rightmost swatch opens the system colour picker and
-          // applies the picked colour as the custom accent.
-          ColorPicker("", selection: customColorBinding, supportsOpacity: false)
-            .labelsHidden()
-            .frame(maxWidth: .infinity)
-            .accessibilityLabel("Custom accent")
-            .accessibilityIdentifier("live.settings.appearance.accent.custom")
-        } else {
-          Button {
-            selection = accent
-          } label: {
-            Circle()
-              .fill(accent.color)
-              .frame(width: 28, height: 28)
-              .overlay {
-                if accent == selection {
-                  Image(systemName: "checkmark")
-                    .font(.system(size: 12, weight: .bold))
-                    .foregroundStyle(.white)
-                }
-              }
-              .overlay {
-                Circle().strokeBorder(
-                  palette.separator.opacity(0.55),
-                  lineWidth: 0.5
-                )
-              }
-              .frame(maxWidth: .infinity)
-              .contentShape(Rectangle())
-          }
-          .buttonStyle(.plain)
-          .accessibilityLabel(accent.title)
-          .accessibilityAddTraits(accent == selection ? .isSelected : [])
-          .accessibilityIdentifier("live.settings.appearance.accent.\(accent.id)")
-        }
-      }
-    }
-    .padding(.vertical, 8)
-    .accessibilityIdentifier("live.settings.appearance.accent")
-  }
-
-  /// Picking a custom colour stores it (hex) and selects the custom accent.
-  private var customColorBinding: Binding<Color> {
-    let hex = LiveAppPreferencesStore.shared.binding(\.customAccentHex)
-    return Binding(
-      get: { hex.wrappedValue.flatMap(Color.init(hex:)) ?? .accentColor },
-      set: { newValue in
-        hex.wrappedValue = newValue.hexString
-        selection = .custom
-      }
-    )
-  }
-}
-
 struct LiveSettingsContentView: View {
   let dependencies: AppDependencies
   @ObservedObject var viewModel: LiveSettingsViewModel
 
   var body: some View {
-    LiveSettingsEditingPage(
-      viewModel: viewModel,
-      dependencies: dependencies
-    ) {
+    LiveSettingsEditingPage(viewModel: viewModel) {
       LiveSettingsDiscoverySection(
         settings: $viewModel.draft,
         services: dependencies.serviceSelection.services
       )
-      LiveSection {
-        Toggle("Hide Shorts", isOn: $viewModel.draft.hideShorts)
-      } header: {
-        Text("Visible surfaces").liveSectionHeader()
-      }
     }
     .navigationTitle("Content")
     .navigationBarTitleDisplayMode(.inline)
-  }
-}
-
-struct LiveSettingsPlayerView: View {
-  let dependencies: AppDependencies
-  @ObservedObject var viewModel: LiveSettingsViewModel
-  @ObservedObject var preferences: LiveAppPreferencesStore
-
-  var body: some View {
-    LiveSettingsEditingPage(
-      viewModel: viewModel,
-      dependencies: dependencies
-    ) {
-      LiveSettingsPlaybackSection(settings: $viewModel.draft)
-      localPlaybackSection
-      LiveSection {
-        Toggle(
-          "Accessible player controls",
-          isOn: preferences.binding(\.playerAccessibleControlsEnabled)
-        )
-        Toggle(
-          "Double-tap to seek",
-          isOn: preferences.binding(\.playerDoubleTapSeekEnabled)
-        )
-        if preferences.preferences.playerDoubleTapSeekEnabled {
-          LiveOptionMenu(
-            "Double-tap seek time",
-            selection: preferences.binding(\.playerDoubleTapSeekSeconds),
-            options: [5, 10, 15, 20, 30].map { ($0, "\($0)s") }
-          )
-        }
-        Toggle(
-          "Swipe to seek",
-          isOn: preferences.binding(\.playerSwipeSeekEnabled)
-        )
-        Toggle(
-          "Brightness and volume swipe",
-          isOn: preferences.binding(
-            \.playerSwipeBrightnessVolumeEnabled
-          )
-        )
-        Toggle(
-          "Long-press to speed up",
-          isOn: preferences.binding(\.playerLongPressSpeedEnabled)
-        )
-      } header: {
-        Text("Gestures").liveSectionHeader()
-      }
-      LiveSection {
-        LiveOptionMenu(
-          "Preferred codec",
-          selection: preferences.binding(\.playerPreferredCodec),
-          options: [
-            ("recommended", "Smart"),
-            ("av1", "AV1"),
-            ("vp9", "VP9"),
-            ("h264", "H.264"),
-          ]
-        )
-      } header: {
-        Text("Default codec").liveSectionHeader()
-      }
-      LiveSection {
-        Toggle(
-          "Show bullet comments",
-          isOn: preferences.binding(\.danmakuEnabled)
-        )
-        if preferences.preferences.danmakuEnabled {
-          LiveOptionMenu(
-            "Danmaku speed",
-            selection: preferences.binding(\.danmakuSpeed),
-            options: [0.5, 0.75, 1.0, 1.25, 1.5, 2.0].map { ($0, "\($0)x") }
-          )
-          LiveOptionMenu(
-            "Danmaku size",
-            selection: preferences.binding(\.danmakuSize),
-            options: [0.5, 0.75, 1.0, 1.25, 1.5, 2.0]
-              .map { ($0, "\(Int($0 * 100))%") }
-          )
-        }
-      } header: {
-        Text("Bullet comments").liveSectionHeader()
-      }
-      LiveSettingsLanguageSection(settings: $viewModel.draft)
-      LiveSettingsSponsorBlockSection(settings: $viewModel.draft)
-    }
-    .navigationTitle("Player")
-    .navigationBarTitleDisplayMode(.inline)
-  }
-
-  private var localPlaybackSection: some View {
-    LiveSection {
-      Toggle(
-        "Autoplay on this device",
-        isOn: preferences.binding(\.playerAutoplayEnabled)
-      )
-      if preferences.preferences.playerAutoplayEnabled {
-        LiveOptionMenu(
-          "Autoplay countdown",
-          selection: preferences.binding(\.playerAutoplayCountdownSeconds),
-          options: [(0, "Immediate")]
-            + [3, 5, 10, 15, 20, 30].map { ($0, "\($0)s") }
-        )
-      }
-      Toggle(
-        "Audio-only playback",
-        isOn: preferences.binding(\.playerAudioOnlyPlayback)
-      )
-      Toggle(
-        "Pause in background",
-        isOn: preferences.binding(\.playerPauseInBackground)
-      )
-    } header: {
-        Text("Device playback").liveSectionHeader()
-      }
   }
 }
 
@@ -454,21 +147,22 @@ struct LiveSettingsPrivacyView: View {
   @ObservedObject var viewModel: LiveSettingsViewModel
 
   var body: some View {
-    LiveSettingsEditingPage(
-      viewModel: viewModel,
-      dependencies: dependencies
-    ) {
+    LiveSettingsEditingPage(viewModel: viewModel, scope: .mixed) {
       LiveSettingsPrivacySection(settings: $viewModel.draft)
+        .disabled(viewModel.isOffline)
+      LiveSettingsSessionSection(service: dependencies.sessionActivityService)
       LiveSection {
-        NavigationLink("Manage stored data") {
+        NavigationLink {
           LivePrivacyDataView(
             history: dependencies.historyService,
             searchHistory: dependencies.searchHistoryService,
             subscriptions: dependencies.subscriptionsService
           )
+        } label: {
+          LiveSettingText(title: "Manage stored data", detail: "Clear your history, searches or subscriptions.")
         }
       } header: {
-        Text("Stored activity").liveSectionHeader()
+        Text("Stored activity").liveSettingsHeader()
       }
     }
     .navigationTitle("Privacy")

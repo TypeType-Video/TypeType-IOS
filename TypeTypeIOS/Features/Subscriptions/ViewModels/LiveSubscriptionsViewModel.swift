@@ -7,7 +7,12 @@ final class LiveSubscriptionsViewModel: ObservableObject {
     case channels
 
     var id: String { rawValue }
-    var title: String { rawValue.capitalized }
+    var title: String {
+      switch self {
+      case .videos: String(localized: "Videos")
+      case .channels: String(localized: "Channels")
+      }
+    }
   }
 
   enum State: Equatable {

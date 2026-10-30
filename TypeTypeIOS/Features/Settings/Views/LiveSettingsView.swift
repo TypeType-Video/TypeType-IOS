@@ -1,20 +1,29 @@
 import SwiftUI
 
 struct LiveSettingsView: View {
-  @StateObject private var viewModel: LiveSettingsViewModel
-  @ObservedObject private var coordinator: RootCoordinator
-  @ObservedObject private var preferences = LiveAppPreferencesStore.shared
+  @StateObject var viewModel: LiveSettingsViewModel
+  @ObservedObject var coordinator: RootCoordinator
+  @ObservedObject var preferences: LiveAppPreferencesStore
   @ObservedObject private var playbackCoordinator: LivePlaybackCoordinator
 
   init(coordinator: RootCoordinator) {
     self.coordinator = coordinator
-    playbackCoordinator = coordinator.dependencies.playbackCoordinator
-    _viewModel = StateObject(
-      wrappedValue: LiveSettingsViewModel(
-        service: coordinator.dependencies.settingsService,
-        serviceSelection: coordinator.dependencies.serviceSelection,
-        deArrowStore: coordinator.dependencies.deArrowStore
-      )
+    _preferences = ObservedObject(wrappedValue: coordinator.dependencies.appPreferences)
+    let playbackCoordinator = coordinator.dependencies.playbackCoordinator
+    self.playbackCoordinator = playbackCoordinator
+    _viewModel = StateObject(wrappedValue: Self.makeViewModel(for: coordinator))
+  }
+
+  @MainActor
+  static func makeViewModel(for coordinator: RootCoordinator) -> LiveSettingsViewModel {
+    let dependencies = coordinator.dependencies
+    let playbackCoordinator = dependencies.playbackCoordinator
+    return LiveSettingsViewModel(
+      service: dependencies.settingsService,
+      serviceSelection: dependencies.serviceSelection,
+      deArrowStore: dependencies.deArrowStore,
+      connectivity: dependencies.connectivityMonitor,
+      onSaved: { playbackCoordinator.applySettings($0) }
     )
   }
 
@@ -46,163 +55,37 @@ struct LiveSettingsView: View {
     }
   }
 
-  /// The iOS-Settings hub: groups with plain headers, one-line rows with
-  /// coloured icon tiles, no subtitles or duplicated actions. Profile and
-  /// sign out live in the More tab.
   private var settingsList: some View {
     List {
       LiveSection {
-        LiveSettingsLinkRow(
-          title: "Instances and accounts",
-          icon: "person.crop.circle.fill",
-          iconColor: .systemBlue
-        ) {
-          LiveSettingsAccountsView(coordinator: coordinator)
-        }
-        LiveSettingsLinkRow(
-          title: "Push notifications",
-          icon: "bell.fill",
-          iconColor: .systemRed
-        ) {
-          LiveNotificationSettingsView(dependencies: coordinator.dependencies)
-        }
-        if coordinator.dependencies.rssEnabled,
-          let rssFeedService = coordinator.dependencies.rssFeedService {
-          LiveSettingsLinkRow(
-            title: "Private RSS feeds",
-            icon: "dot.radiowaves.left.and.right",
-            iconColor: .systemBlue
-          ) {
-            LiveRssFeedsView(
-              feedService: rssFeedService,
-              subscriptionsService:
-                coordinator.dependencies.subscriptionsService
-            )
-          }
-        }
-      } header: {
-        Text("General")
+        LiveSettingsAccountCard(coordinator: coordinator)
       }
-
-      LiveSection {
-        LiveSettingsLinkRow(
-          title: "Appearance",
-          icon: "paintpalette.fill",
-          iconColor: .systemPurple
-        ) {
-          LiveSettingsAppearanceView(
-            dependencies: coordinator.dependencies,
-            viewModel: viewModel,
-            preferences: LiveAppPreferencesStore.shared
-          )
-        }
-        LiveSettingsLinkRow(
-          title: "Player",
-          icon: "play.circle.fill",
-          iconColor: .systemBlue
-        ) {
-          LiveSettingsPlayerView(
-            dependencies: coordinator.dependencies,
-            viewModel: viewModel,
-            preferences: LiveAppPreferencesStore.shared
-          )
-        }
-      } header: {
-        Text("Display and playback")
-      }
-
-      LiveSection {
-        LiveSettingsLinkRow(
-          title: "Content",
-          icon: "slider.horizontal.3",
-          iconColor: .systemOrange
-        ) {
-          LiveSettingsContentView(
-            dependencies: coordinator.dependencies,
-            viewModel: viewModel
-          )
-        }
-        LiveSettingsLinkRow(
-          title: "Blocked",
-          icon: "slash.circle.fill",
-          iconColor: .systemGray
-        ) {
-          LiveContentControlsView(
-            service: coordinator.dependencies.contentControlsService,
-            canCreateGlobal: coordinator.currentUser?.role != .user
-          )
-        }
-      } header: {
-        Text("Content")
-      }
-
-      LiveSection {
-        LiveSettingsLinkRow(
-          title: "Downloads",
-          icon: "arrow.down.circle",
-          iconColor: .systemTeal,
-          badge: coordinator.dependencies.downloadCenter.activeCount
-        ) {
-          LiveDownloadsView(
-            dependencies: coordinator.dependencies,
-            center: coordinator.dependencies.downloadCenter,
-            onlinePlaybackCoordinator:
-              coordinator.dependencies.playbackCoordinator
-          )
-        }
-        LiveSettingsLinkRow(
-          title: "Data and backups",
-          icon: "square.and.arrow.up.fill",
-          iconColor: .systemGreen
-        ) {
-          LivePortabilityView(
-            service: coordinator.dependencies.portabilityService,
-            importService: coordinator.dependencies.importService
-          )
-        }
-        LiveSettingsLinkRow(
-          title: "Privacy",
-          icon: "lock.fill",
-          iconColor: .systemBlue
-        ) {
-          LiveSettingsPrivacyView(
-            dependencies: coordinator.dependencies,
-            viewModel: viewModel
-          )
-        }
-      } header: {
-        Text("Data and privacy")
-      }
-
-      LiveSection {
-        LiveSettingsLinkRow(
-          title: "Diagnostics",
-          icon: "ladybug.fill",
-          iconColor: .systemGray
-        ) {
-          LiveDiagnosticsView(
-            store: coordinator.dependencies.diagnosticsStore,
-            scopeProvider: {
-              coordinator.dependencies.diagnosticScope()
-            }
-          )
-        }
-        LiveSettingsLinkRow(
-          title: "About",
-          icon: "info.circle.fill",
-          iconColor: .systemGray
-        ) {
-          LiveAboutView(
-            coordinator: coordinator,
-            versionService: coordinator.dependencies.versionService
-          )
-        }
-      } header: {
-        Text("About")
+      ForEach(Array(coordinator.settingsGroups.enumerated()), id: \.offset) { index, pages in
+        group(pages, title: LiveSettingsPage.groupTitles[index])
       }
     }
+    .contentMargins(.top, 8, for: .scrollContent)
     .padding(.bottom, playbackCoordinator.showsMiniPlayer ? 82 : 0)
     .liveGroupedList()
     .tint(preferences.preferences.accent)
+  }
+
+  @ViewBuilder
+  private func group(_ pages: [LiveSettingsPage], title: String?) -> some View {
+    if let title {
+      LiveSection { rows(pages) } header: { Text(LocalizedStringKey(title)).liveSettingsHeader() }
+    } else {
+      LiveSection { rows(pages) }
+    }
+  }
+
+  private func rows(_ pages: [LiveSettingsPage]) -> some View {
+    ForEach(pages) { page in
+      NavigationLink {
+        LiveSettingsDestination(page: page, coordinator: coordinator, viewModel: viewModel, preferences: preferences)
+      } label: {
+        LiveSettingsPageLabel(page: page, downloads: coordinator.dependencies.downloadCenter)
+      }
+    }
   }
 }

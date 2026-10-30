@@ -71,6 +71,39 @@ final class SessionStoreTests: XCTestCase {
   }
 }
 
+extension SessionStoreTests {
+  func testSignedInAccountsAreRememberedWithTheirRefreshToken() throws {
+    let defaults = try XCTUnwrap(UserDefaults(suiteName: UUID().uuidString))
+    let store = SessionStore(defaults: defaults, keychain: MemoryKeychainService())
+    store.setRefreshToken("refresh-a", forServerID: "server")
+    store.saveSession(snapshot: Self.snapshot(user: "a"), accessToken: "access-a")
+
+    store.setRefreshToken("rotated-a", forServerID: "server")
+
+    XCTAssertEqual(store.savedAccounts.accounts(serverID: "server").map(\.userID), ["a"])
+    XCTAssertEqual(store.savedAccounts.refreshToken(serverID: "server", userID: "a"), "rotated-a")
+  }
+
+  func testClearingTheActiveSessionKeepsTheSavedAccount() throws {
+    let defaults = try XCTUnwrap(UserDefaults(suiteName: UUID().uuidString))
+    let store = SessionStore(defaults: defaults, keychain: MemoryKeychainService())
+    store.setRefreshToken("refresh-a", forServerID: "server")
+    store.saveSession(snapshot: Self.snapshot(user: "a"), accessToken: "access-a")
+
+    store.clearSession(forServerID: "server")
+    store.setRefreshToken("refresh-b", forServerID: "server")
+
+    XCTAssertEqual(store.savedAccounts.refreshToken(serverID: "server", userID: "a"), "refresh-a")
+    store.savedAccounts.forget(serverID: "server", userID: "a")
+    XCTAssertTrue(store.savedAccounts.accounts(serverID: "server").isEmpty)
+    XCTAssertNil(store.savedAccounts.refreshToken(serverID: "server", userID: "a"))
+  }
+
+  private static func snapshot(user: String) -> SessionSnapshot {
+    SessionSnapshot(serverID: "server", userID: user, accountIdentifier: "\(user)@test", publicUsername: user, role: "user")
+  }
+}
+
 private final class RefusingKeychainStub: KeychainService {
   func set(_ value: String, for account: String) -> Bool {
     false

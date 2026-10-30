@@ -26,6 +26,10 @@ struct LiveNotificationRow: View {
             RoundedRectangle(cornerRadius: 10, style: .continuous)
           )
         VStack(alignment: .leading, spacing: 5) {
+          Text(kindLabel)
+            .font(.caption.weight(.semibold))
+            .foregroundStyle(.tint)
+            .lineLimit(1)
           Text(branding.title)
             .font(.subheadline.weight(.semibold))
             .foregroundStyle(.primary)
@@ -41,7 +45,7 @@ struct LiveNotificationRow: View {
           }
           .font(.caption)
           .foregroundStyle(.secondary)
-          Text(date.formatted(.relative(presentation: .named)))
+          Text(dateLine)
             .font(.caption2)
             .foregroundStyle(.tertiary)
         }
@@ -52,7 +56,7 @@ struct LiveNotificationRow: View {
     .buttonStyle(.plain)
     .accessibilityIdentifier("live.notifications.row")
     .opacity(notification.read ? 0.68 : 1)
-    .accessibilityValue(notification.read ? "Read" : "Unread")
+    .accessibilityValue(notification.read ? Text("Read") : Text("Unread"))
     .task { await deArrowStore.prepare(notification.video) }
   }
 
@@ -61,6 +65,17 @@ struct LiveNotificationRow: View {
       ? TimeInterval(notification.publishedAt) / 1_000
       : TimeInterval(notification.publishedAt)
     return Date(timeIntervalSince1970: value)
+  }
+
+  private var kindLabel: String {
+    notification.type == "subscription_new_video" ? String(localized: "New video") : notification.title
+  }
+
+  private var dateLine: String {
+    guard date > Date().addingTimeInterval(60) else {
+      return date.formatted(.relative(presentation: .named))
+    }
+    return String(localized: "Scheduled \(date.formatted(date: .abbreviated, time: .shortened))")
   }
 
   private var branding: LiveVideoBranding {

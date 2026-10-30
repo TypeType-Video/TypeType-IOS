@@ -72,14 +72,14 @@ struct LiveAuthCard: View {
   private var fields: some View {
     VStack(spacing: 12) {
       if viewModel.mode == .register {
-        DemoAuthField(
+        AuthField(
           placeholder: "Name",
           kind: .name,
           palette: palette,
           text: $viewModel.name
         )
       }
-      DemoAuthField(
+      AuthField(
         placeholder: viewModel.mode == .signIn
           ? LocalizedStringKey("Email or username")
           : LocalizedStringKey("Email"),
@@ -87,7 +87,7 @@ struct LiveAuthCard: View {
         palette: palette,
         text: $viewModel.identifier
       )
-      DemoAuthField(
+      AuthField(
         placeholder: "Password",
         kind: .password,
         palette: palette,
@@ -152,7 +152,7 @@ struct LiveAuthCard: View {
     .accessibilityIdentifier("live.auth.guest")
   }
 
-  var palette: DemoAuthPalette {
-    DemoAuthPalette(isLight: isLight)
+  var palette: AuthPalette {
+    AuthPalette(isLight: isLight)
   }
 }

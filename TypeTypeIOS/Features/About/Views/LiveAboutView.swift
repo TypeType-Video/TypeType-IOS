@@ -55,15 +55,15 @@ struct LiveAboutView: View {
   }
 
   private var applicationSection: some View {
-    Section {
+    LiveSection {
       LabeledContent("Name", value: "TypeType")
       LabeledContent("Version", value: appVersion)
       LabeledContent("License", value: "MPL 2.0")
-    } header: { Text("Application").liveSectionHeader() }
+    } header: { Text("Application").liveSettingsHeader() }
   }
 
   private var licensesSection: some View {
-    Section {
+    LiveSection {
       externalLink(
         "TypeType on GitHub",
         symbol: "chevron.left.forwardslash.chevron.right",
@@ -79,12 +79,12 @@ struct LiveAboutView: View {
         symbol: "heart.fill",
         urlString: "https://github.com/sponsors/Priveetee"
       )
-    } header: { Text("Open source").liveSectionHeader() }
+    } header: { Text("Open source").liveSettingsHeader() }
   }
 
   @ViewBuilder
   private var versionsSection: some View {
-    Section {
+    LiveSection {
       if let versions {
         versionRow("Frontend", versions.frontend)
         versionRow("Server", versions.server)
@@ -100,7 +100,7 @@ struct LiveAboutView: View {
         Text("Component versions are unavailable.")
           .foregroundStyle(.secondary)
       }
-    } header: { Text("Versions").liveSectionHeader() } footer: {
+    } header: { Text("Versions").liveSettingsHeader() } footer: {
       Button("Refresh versions") {
         Task { await refreshVersions() }
       }
@@ -109,9 +109,9 @@ struct LiveAboutView: View {
 
   @ViewBuilder
   private var serverSection: some View {
-    Section {
+    LiveSection {
       LabeledContent(
-        "URL",
+        "Address",
         value: coordinator.selectedServer?.baseURLString
           .removingSuffix("/")
           .removingSuffix("/api") ?? ""
@@ -121,26 +121,22 @@ struct LiveAboutView: View {
           "Signed in as",
           value: user.publicUsername ?? user.id
         )
-        LabeledContent(
-          "Role",
-          value: user.role.rawValue.capitalized
-        )
+        LabeledContent("Role", value: user.role.title)
       }
-    } header: { Text("Server").liveSectionHeader() }
+    } header: { Text("Server").liveSettingsHeader() }
   }
 
   private func versionRow(
-    _ title: String,
+    _ title: LocalizedStringKey,
     _ version: LiveComponentVersion?
   ) -> some View {
-    LabeledContent(
-      title,
-      value: version?.version ?? "Unavailable"
-    )
+    LabeledContent(title) {
+      Text(version?.version ?? String(localized: "Unavailable"))
+    }
   }
 
   private func externalLink(
-    _ title: String,
+    _ title: LocalizedStringKey,
     symbol: String,
     urlString: String
   ) -> some View {
@@ -165,11 +161,5 @@ struct LiveAboutView: View {
     isLoadingVersions = true
     defer { isLoadingVersions = false }
     versions = try? await versionService.fetchVersions()
-  }
-}
-
-private extension String {
-  func removingSuffix(_ suffix: String) -> String {
-    hasSuffix(suffix) ? String(dropLast(suffix.count)) : self
   }
 }

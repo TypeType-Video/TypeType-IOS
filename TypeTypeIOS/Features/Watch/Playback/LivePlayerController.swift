@@ -1,4 +1,5 @@
 import AVFoundation
+import Combine
 import Foundation
 
 @MainActor
@@ -17,8 +18,6 @@ final class LivePlayerController: ObservableObject {
   @Published var state: State = .idle {
     didSet { releaseExtrasIfStarted() }
   }
-  /// False until the video starts (or its start ends another way); the rest
-  /// of the watch page waits for it so the network goes to the video first.
   @Published var extrasReleased = false
   var firstFrameJobs: [() -> Void] = []
   @Published var stream: LivePlaybackStream?
@@ -26,26 +25,19 @@ final class LivePlayerController: ObservableObject {
   @Published var nativeSubtitleCues: [LiveSubtitleCue] = []
   var nativeSubtitlesTask: Task<Void, Never>?
   var nativeFallbackUsed = false
-  // Tracks the presented native full screen host so gestures stay away from it.
   @Published var isPresentingFullscreen = false
   lazy var fullscreen = LiveNativeFullscreenPresenter(controller: self)
-  /// True while the in-house video sits in the docked corner card (the
-  /// scroll-away state) instead of the inline player position.
   @Published var isVideoDocked = false
-  /// Playing a downloaded file: no server exists to fill comments,
-  /// related videos or subscriptions — the page must not wait on them.
   @Published var isOfflineContent = false
   @Published var preparation: LivePlaybackPreparation?
-  /// Milliseconds from loading to the first playing frame of the last start.
   @Published var lastStartupMilliseconds: Int?
   var startupTrace = LivePlaybackStartupTrace()
   var metadataTask: Task<Void, Never>?
-  /// Bumped by each load or restart; a slower, older load never installs.
+  // Bumped by each load or restart; an older, slower load never installs.
   var loadGeneration = 0
   var startupWatchdog: Task<Void, Never>?
   var startupRetryUsed = false
   var sabrOfflineRetries = 0
-  /// True while full metadata (related videos, chapters) is still loading.
   @Published var isLoadingFullMetadata = false
   @Published var position: TimeInterval = 0
   @Published var duration: TimeInterval = 0
@@ -70,6 +62,7 @@ final class LivePlayerController: ObservableObject {
   @Published var sponsorBlockShowFullVideoLabels = true
   @Published var sponsorBlockManualSkipOnFullVideo = true
   @Published var sponsorBlockSkipNonMusicOnlyOnMusicVideos = false
+  @Published var sponsorBlockNotice: LiveSponsorBlockNotice?
   @Published var muted = false
   @Published var bulletCommentsEnabled = false
   @Published var bulletCommentSpeed = 1.0
@@ -83,16 +76,15 @@ final class LivePlayerController: ObservableObject {
   let video: LiveVideoItem
   let initialAutoplay: Bool
   let pictureInPicture = LivePictureInPictureDriver()
-  /// Whether the player surface sits at the top of the page (page not
-  /// scrolled). Gates the pull-down-to-mini gesture.
   var isPlayerSurfaceFullyVisible = true
-  /// Set on stop/close: pending async work (item-ready observers, delayed
-  /// resumes, provider recovery) must never start playback afterwards —
-  /// that produced audio with no player UI at all.
+  // Set on stop or close: pending async work must never start playback afterwards.
   var isTornDown = false
   let service: LivePlaybackServiceProtocol?
   let settingsService: LiveSettingsServiceProtocol
   let historyService: LiveHistoryServiceProtocol
+  let watchProgress: LiveWatchProgressStore
+  let appPreferences: LiveAppPreferencesStore
+  let orientationLock: LiveOrientationLock
   let playbackSessionReporter: LivePlaybackSessionReporter
   let bulletCommentStore = LiveBulletCommentStore()
   @Published var settings = LiveSettings()
@@ -100,6 +92,7 @@ final class LivePlayerController: ObservableObject {
   var seekTask: Task<Void, Never>?
   var playbackServer: LivePlaybackHTTPServer?
   var itemObservation: NSKeyValueObservation?
+  var bulletCommentPreferencesObservation: AnyCancellable?
   var playbackObservation: NSKeyValueObservation?
   var endObservation: NSObjectProtocol?
   var timeObserver: Any?
@@ -134,27 +127,17 @@ final class LivePlayerController: ObservableObject {
     service = dependencies.playbackService
     settingsService = dependencies.settingsService
     historyService = dependencies.historyService
+    watchProgress = dependencies.watchProgress
+    appPreferences = dependencies.appPreferences
+    orientationLock = dependencies.orientationLock
     playbackSessionReporter = LivePlaybackSessionReporter(
       service: dependencies.sessionActivityService
     )
     let defaults = UserDefaults.standard
-    let appPreferences = LiveAppPreferencesStore.shared.preferences
-    audioOnly = appPreferences.playerAudioOnlyPlayback
-    autoplayEnabled = appPreferences.playerAutoplayEnabled
-    let defaultDanmakuEnabled = appPreferences.danmakuEnabled
-    bulletCommentsEnabled = defaults.object(
-      forKey: Self.bulletCommentsEnabledKey
-    ) == nil
-      ? defaultDanmakuEnabled
-      : defaults.bool(forKey: Self.bulletCommentsEnabledKey)
-    let storedSpeed = defaults.object(
-      forKey: Self.bulletCommentSpeedKey
-    ) == nil ? 1 : defaults.double(forKey: Self.bulletCommentSpeedKey)
-    bulletCommentSpeed = min(max(storedSpeed, 0.5), 2)
-    let storedSize = defaults.object(
-      forKey: Self.bulletCommentSizeKey
-    ) == nil ? 1 : defaults.double(forKey: Self.bulletCommentSizeKey)
-    bulletCommentSize = min(max(storedSize, 0.5), 2)
+    let initialPreferences = appPreferences.preferences
+    audioOnly = initialPreferences.playerAudioOnlyPlayback
+    Self.moveLegacyBulletCommentChoices(into: appPreferences, from: defaults)
+    observeBulletCommentPreferences()
     player.automaticallyWaitsToMinimizeStalling = true
     installPeriodicObserver()
   }
@@ -240,7 +223,6 @@ final class LivePlayerController: ObservableObject {
   }
 
   static func message(for error: Error) -> String {
-    // The instance words refusals itself ("only available in Japan").
     if case let NetworkError.statusCode(code, message)? = error as? NetworkError,
       (400..<500).contains(code), code != 401,
       let message = message?.trimmingCharacters(in: .whitespacesAndNewlines),

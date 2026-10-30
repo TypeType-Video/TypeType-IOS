@@ -1,9 +1,5 @@
 import Foundation
 
-/// Debug-only simulated outage for recovery tests on the simulator, whose
-/// network cannot be cut from a test. `TT_DEBUG_OUTAGE=start:duration`
-/// (seconds after launch) makes every instance request fail as offline
-/// during that window. Compiled out of release builds.
 enum DebugNetworkOutage {
   #if DEBUG
   private static let launchedAt = Date()

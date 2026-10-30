@@ -3,7 +3,6 @@ import Foundation
 
 @MainActor
 final class LiveBackgroundRefreshCoordinator {
-  static let shared = LiveBackgroundRefreshCoordinator()
   static let taskIdentifier = "dev.typetype.ios.notifications-refresh"
 
   private let scheduler: BGTaskScheduler
@@ -42,7 +41,11 @@ final class LiveBackgroundRefreshCoordinator {
       identifier: Self.taskIdentifier
     )
     request.earliestBeginDate = Date().addingTimeInterval(seconds)
-    try? scheduler.submit(request)
+    do {
+      try scheduler.submit(request)
+    } catch {
+      AppLogger.app.failure("Scheduling the notifications refresh", error)
+    }
   }
 
   func handle(_ task: BGAppRefreshTask) async {

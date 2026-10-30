@@ -1,11 +1,12 @@
 import SwiftUI
 
 struct LiveDownloadsView: View {
-  @Environment(\.themePalette) private var palette
   let dependencies: AppDependencies
   @ObservedObject var center: LiveDownloadCenter
   let onlinePlaybackCoordinator: LivePlaybackCoordinator?
   @State private var playbackItem: LiveOfflinePlaybackItem?
+  @State private var confirmsRemoveAll = false
+  @Environment(\.liveToasts) private var toasts
 
   init(
     dependencies: AppDependencies,
@@ -23,90 +24,19 @@ struct LiveDownloadsView: View {
         ContentUnavailableView(
           "No downloads",
           systemImage: "arrow.down.circle",
-          description: Text(
-            "Downloads started from a video will remain available here."
-          )
-        ).liveThemedEmptyState()
+          description: Text("Download a video from its page to watch it without a connection.")
+        )
+        .liveThemedEmptyState()
       } else {
-        List {
-          ForEach(center.visibleRecords) { record in
-            LiveManagedDownloadRow(
-              record: record,
-              artifactURL: center.artifactURL(for: record),
-              onCancel: {
-                Task {
-                  do {
-                    try await center.cancel(id: record.id)
-                  } catch {
-                    center.message = Self.message(for: error)
-                  }
-                }
-              },
-              onRetry: {
-                Task {
-                  do {
-                    try await center.retry(id: record.id)
-                  } catch {
-                    center.message = Self.message(for: error)
-                  }
-                }
-              },
-              onRemove: {
-                Task {
-                  do {
-                    try await center.remove(id: record.id)
-                  } catch {
-                    center.message = Self.message(for: error)
-                  }
-                }
-              },
-              onPlay: {
-                guard let artifactURL = center.artifactURL(
-                  for: record
-                ) else {
-                  center.message =
-                    "The downloaded file is no longer available."
-                  return
-                }
-                onlinePlaybackCoordinator?.controller?.pause()
-                playbackItem = LiveOfflinePlaybackItem(
-                  record: record,
-                  fileURL: artifactURL
-                )
-              }
-            )
-          }
-        }
-          .liveThemedList()
-        .refreshable {
-          await center.refresh()
-        }
-        .safeAreaInset(edge: .bottom) {
-          Text("Storage used: \(ByteCountFormatter.string(fromByteCount: center.storageUsage, countStyle: .file))")
-            .font(.footnote.monospacedDigit())
-            .foregroundStyle(.secondary)
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 6)
-            .background(palette.background)
-        }
+        list
       }
     }
     .navigationTitle("Downloads")
-        .task {
-      await center.activate()
-    }
-    .alert(
-      "Downloads",
-      isPresented: Binding(
-        get: { center.message != nil },
-        set: {
-          if !$0 { center.message = nil }
-        }
-      )
-    ) {
-      Button("OK") { center.message = nil }
-    } message: {
-      Text(center.message ?? "The download action failed.")
+    .task { await center.activate() }
+    .onChange(of: center.message) { _, message in
+      guard let message else { return }
+      toasts?.show(message, tone: .failure)
+      center.message = nil
     }
     .fullScreenCover(item: $playbackItem) { item in
       LiveOfflinePlaybackView(item: item, dependencies: dependencies)
@@ -114,8 +44,97 @@ struct LiveDownloadsView: View {
     .accessibilityIdentifier("live.downloads.screen")
   }
 
-  private static func message(for error: Error) -> String {
-    (error as? LocalizedError)?.errorDescription
-      ?? error.localizedDescription
+  private var list: some View {
+    List {
+      LiveSection {
+        HStack(spacing: 12) {
+          LiveSettingsIconTile(icon: "internaldrive")
+          VStack(alignment: .leading, spacing: 2) {
+            Text(LiveDownloadTexts.size(center.storageUsage))
+              .font(.headline.monospacedDigit())
+            Text("On this device")
+              .font(.footnote)
+              .foregroundStyle(.secondary)
+          }
+          Spacer()
+          if !finished.isEmpty {
+            Button("Delete all", role: .destructive) { confirmsRemoveAll = true }
+              .font(.subheadline.weight(.semibold))
+              .buttonStyle(.borderless)
+              .alert("Delete all finished downloads?", isPresented: $confirmsRemoveAll) {
+                Button("Cancel", role: .cancel) {}
+                Button("Delete all", role: .destructive) { Task { await removeAll() } }
+              } message: {
+                Text("Downloads in progress are kept.")
+              }
+          }
+        }
+        .accessibilityElement(children: .combine)
+      }
+      section("In progress", records: inProgress)
+      section("Available offline", records: ready)
+      section("Not finished", records: stopped)
+    }
+    .liveGroupedList()
+    .refreshable { await center.refresh() }
+  }
+
+  @ViewBuilder
+  private func section(_ title: LocalizedStringKey, records: [LiveManagedDownload]) -> some View {
+    if !records.isEmpty {
+      LiveSection {
+        ForEach(records) { record in
+          LiveDownloadRow(
+            record: record,
+            artifactURL: center.artifactURL(for: record),
+            onPlay: { play(record) },
+            onCancel: { run { try await center.cancel(id: record.id) } },
+            onRetry: { run { try await center.retry(id: record.id) } },
+            onRemove: { run { try await center.remove(id: record.id) } }
+          )
+          .liveBareRow()
+        }
+      } header: {
+        Text(title).liveSectionHeader()
+      }
+    }
+  }
+
+  private var inProgress: [LiveManagedDownload] { center.visibleRecords.filter(\.state.isActive) }
+  private var ready: [LiveManagedDownload] { center.visibleRecords.filter { $0.state == .ready } }
+  private var stopped: [LiveManagedDownload] {
+    center.visibleRecords.filter { $0.state == .failed || $0.state == .cancelled }
+  }
+  private var finished: [LiveManagedDownload] { center.visibleRecords.filter { !$0.state.isActive } }
+
+  private func play(_ record: LiveManagedDownload) {
+    guard let url = center.artifactURL(for: record) else {
+      center.message = String(localized: "The downloaded file is no longer available.")
+      return
+    }
+    onlinePlaybackCoordinator?.controller?.pause()
+    playbackItem = LiveOfflinePlaybackItem(record: record, fileURL: url)
+  }
+
+  private func run(_ action: @escaping () async throws -> Void) {
+    Task {
+      do {
+        try await action()
+      } catch {
+        center.message = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+      }
+    }
+  }
+
+  private func removeAll() async {
+    for record in finished {
+      do {
+        try await center.remove(id: record.id)
+      } catch {
+        center.message = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+        return
+      }
+    }
+    toasts?.show(String(localized: "Downloads deleted"))
   }
 }

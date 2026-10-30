@@ -14,7 +14,7 @@ struct LiveContentControlEditor: View {
     NavigationStack {
       List {
         Section {
-          TextField("URL", text: $url)
+          TextField("Link", text: $url)
             .keyboardType(.URL)
             .textInputAutocapitalization(.never)
           if kind != .blockedVideos {
@@ -24,11 +24,11 @@ struct LiveContentControlEditor: View {
             Toggle("Apply globally", isOn: $global).liveRowFill()
           }
         } footer: {
-          Text("The server validates and normalizes supported URLs.")
+          Text("Paste the link of a channel, video or playlist.")
         }
       }
         .liveGroupedList()
-      .navigationTitle("Add \(kind.title.lowercased())")
+      .navigationTitle(kind.addTitle)
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {
         ToolbarItem(placement: .cancellationAction) {

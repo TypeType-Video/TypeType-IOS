@@ -1,6 +1,5 @@
 import UIKit
 
-/// The surface set of one theme in one scheme (Android `themeSurfaceColors`).
 struct ThemeSurfaces {
   private(set) var background: UIColor
   let groupedBackground: UIColor
@@ -15,19 +14,17 @@ struct ThemeSurfaces {
       groupedSurface = UIColor(hex24: set.variant)
       elevatedSurface = UIColor(hex24: set.outline)
     } else {
-      // The TypeType theme keeps the system surfaces: grey page, lighter cards.
       let traits = UITraitCollection(userInterfaceStyle: isDark ? .dark : .light)
       background = UIColor.secondarySystemBackground.resolvedColor(with: traits)
       surface = UIColor.tertiarySystemBackground.resolvedColor(with: traits)
       groupedSurface = UIColor.systemGray5.resolvedColor(with: traits)
       elevatedSurface = UIColor.systemGray4.resolvedColor(with: traits)
     }
-    // AMOLED blacks the page only: the cards keep the theme's surface, or the theme vanishes.
+    // AMOLED blacks the page only: the cards keep the theme surface, or the theme vanishes.
     if amoled { background = .black }
     groupedBackground = background
   }
 
-  /// Android `themeSurfaceColors`: background, surface, variant, outline. Nil for TypeType.
   static func palette(
     _ theme: LiveAppearanceTheme,
     isDark: Bool

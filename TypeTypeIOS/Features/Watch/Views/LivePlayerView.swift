@@ -4,14 +4,14 @@ struct LivePlayerView: View {
   @ObservedObject var controller: LivePlayerController
   @ObservedObject var coordinator: LivePlaybackCoordinator
   let dependencies: AppDependencies
-  @ObservedObject var preferences = LiveAppPreferencesStore.shared
+  @EnvironmentObject var preferences: LiveAppPreferencesStore
   let posterURL: URL?
   @Binding var cinemaMode: Bool
   @State var showsOptions = false
+  @State var showsChapters = false
 
   @State var seekFeedback: PlayerDoubleTapSeekFeedback?
   @State var doubleTapSeek: (target: TimeInterval, seconds: Int, direction: PlayerDoubleTapSeekDirection, at: Date)?
-  @State var doubleTapSeekTask: Task<Void, Never>?
   @State var swipeAdjustment: PlayerSwipeAdjustmentState?
   @State var speedBoostRate: Float?
   nonisolated(unsafe) static var gestureLog: [String] = []
@@ -25,31 +25,37 @@ struct LivePlayerView: View {
   }
   @State var systemBrightnessBeforeSwipe: CGFloat?
   @State var longPressBaseRate: Float?
-  @State var longPressBoostTask: Task<Void, Never>?
-  @State var horizontalSeekPreview: TimeInterval?
+  @GestureState var isSpeedRamping = false
+  @State var horizontalSeekPreview: (position: TimeInterval, isFine: Bool)?
+  @StateObject var systemVolume = LiveSystemVolume()
   @State var autoPictureInPictureArmed = true
   @State var autoPictureInPictureActive = false
   @StateObject var nativeControls = LiveNativeControlsState()
   @Environment(\.verticalSizeClass) private var verticalSizeClass
-  /// Drives the rounded lower corners: the "content slides under the
-  /// pinned player" hint while the watch page is scrolled.
+  @Environment(\.accessibilityVoiceOverEnabled) var voiceOverEnabled
   var isScrolled = false
 
+  var accessibleControls: Bool {
+    preferences.preferences.usesAccessiblePlayerControls(voiceOver: voiceOverEnabled)
+  }
 
   var body: some View {
     GeometryReader { proxy in
       ZStack {
+        LiveSystemVolumeView(volume: systemVolume)
+          .frame(width: 1, height: 1)
+          .allowsHitTesting(false)
+          .accessibilityHidden(true)
         Color.black
 
         videoSurface(width: proxy.size.width)
+          .onChange(of: accessibleControls, initial: true) { _, value in
+            nativeControls.staysVisible = value
+          }
 
         if controller.audioOnly {
           ZStack {
-            // Never wrap LiveRemoteImage in .scaledToFill: it is
-            // GeometryReader-based (ideal 10x10), so the fill wrapper
-            // reports a giant square and inflates the stage — that pushed
-            // the controls row out of the visible frame. The image fills
-            // through its own contentMode (.fill by default).
+            // No .scaledToFill: LiveRemoteImage is GeometryReader-based and the wrapper inflates the stage.
             LiveRemoteImage(url: posterURL)
               .blur(radius: 28)
               .opacity(0.48)
@@ -74,19 +80,20 @@ struct LivePlayerView: View {
             onFullscreen: {
               AppLogger.playback.info("fullscreen: toggle pressed flag=\(controller.isPresentingFullscreen, privacy: .public)")
               if controller.isPresentingFullscreen {
-                controller.exitNativeFullscreen("player-toggle")
+                controller.exitNativeFullscreen("player-toggle", byUser: true)
               } else {
                 controller.enterNativeFullscreen("player-toggle")
               }
             },
-            onOptions: { showsOptions = true }
+            onOptions: { showsOptions = true },
+            onChapters: { showsChapters = true }
           )
+          .opacity(horizontalSeekPreview == nil ? 1 : 0)
+          .allowsHitTesting(horizontalSeekPreview == nil)
         }
-        // The seek preview draws above the controls: the pause button used
-        // to cover the mm:ss target and the seek icon.
         seekFeedbackOverlay
         horizontalSeekOverlay
-        // Above the transport controls: the UIKit overlay below never received taps.
+        // Above the transport controls: below them the UIKit overlay never gets taps.
         LiveSponsorBlockOverlay(
           controller: controller,
           fillsAvailableSpace: false
@@ -139,6 +146,11 @@ struct LivePlayerView: View {
       controller.fullscreen.isPageActive = false
     }
 
+    .sheet(isPresented: $showsChapters) {
+      LivePlayerChaptersView(controller: controller) { showsChapters = false }
+        .presentationDetents([.medium, .large])
+        .presentationDragIndicator(.visible)
+    }
     .sheet(isPresented: $showsOptions) {
       LivePlayerOptionsSheet(
         controller: controller,
@@ -156,47 +168,5 @@ struct LivePlayerView: View {
   private var followsDeviceRotation: Bool {
     coordinator.presentation == .expanded
       && (controller.nativePlayback != nil || controller.isOfflineContent)
-  }
-}
-
-/// Inline the player is a 16:9 card; full screen it fills the window and
-/// rides the system rotation animation instead of fading over it. The
-/// layout priority wins the page's VStack so the pinned metadata below
-/// collapses to nothing while fullscreen.
-struct LivePlayerSizing: ViewModifier {
-  let isFullscreen: Bool
-  let cinemaMode: Bool
-  var isScrolled = false
-
-  @ViewBuilder
-  func body(content: Content) -> some View {
-    if isFullscreen {
-      content
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .ignoresSafeArea()
-        // Outermost: a priority buried inside another modifier never
-        // reaches the parent VStack, and the metadata then splits the
-        // height with the player instead of collapsing.
-        .layoutPriority(1)
-    } else {
-      content
-        .aspectRatio(16 / 9, contentMode: .fit)
-        .clipShape(
-          UnevenRoundedRectangle(
-            topLeadingRadius: cinemaMode ? 0 : 16,
-            bottomLeadingRadius: lowerRadius,
-            bottomTrailingRadius: lowerRadius,
-            topTrailingRadius: cinemaMode ? 0 : 16,
-            style: .continuous
-          )
-        )
-    }
-  }
-
-  /// Lower corners round only while the page is scrolled — the "content
-  /// slides under the pinned player" hint.
-  private var lowerRadius: CGFloat {
-    guard isScrolled else { return cinemaMode ? 0 : 16 }
-    return 24
   }
 }

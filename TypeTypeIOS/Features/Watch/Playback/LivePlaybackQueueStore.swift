@@ -60,8 +60,11 @@ final class LivePlaybackQueueStore {
       defaults.removeObject(forKey: key)
       return
     }
-    guard let data = try? encoder.encode(records) else { return }
-    defaults.set(data, forKey: key)
+    do {
+      defaults.set(try encoder.encode(records), forKey: key)
+    } catch {
+      AppLogger.app.failure("Saving the playback queue", error)
+    }
   }
 
   private static func isValid(

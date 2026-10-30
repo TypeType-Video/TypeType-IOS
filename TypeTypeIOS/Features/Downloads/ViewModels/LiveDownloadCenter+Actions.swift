@@ -52,8 +52,6 @@ extension LiveDownloadCenter {
     return self.record(id: record.id) ?? record
   }
 
-  /// The channel avatar is tiny — fetch it with the download so the
-  /// offline watch page renders without a server.
   private func saveAvatar(video: LiveVideoItem) async -> String? {
     let source = video.uploaderAvatarURL.trimmingCharacters(in: .whitespaces)
     guard !source.isEmpty, let url = URL(string: source),
@@ -171,5 +169,6 @@ extension LiveDownloadCenter {
     }
     records.removeAll { $0.id == id }
     persist()
+    await refreshStorageUsage()
   }
 }

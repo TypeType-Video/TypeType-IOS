@@ -1,60 +1,74 @@
 import SwiftUI
 
-struct LiveSubscriptionChannelRow: View {
+struct LiveSubscriptionChannelRow<GroupActions: View>: View {
   let channel: LiveSubscription
+  let groupNames: [String]
   let onOpen: () -> Void
   let onUnsubscribe: () -> Void
-  var groupActions: ((LiveSubscription) -> AnyView)? = nil
+  @ViewBuilder let groupActions: () -> GroupActions
 
   var body: some View {
-    Button(action: onOpen) {
-      HStack(spacing: 14) {
-        LiveRemoteImage(url: URL(string: channel.avatarURL))
-          .frame(width: 54, height: 54)
-          .clipShape(Circle())
-
-        VStack(alignment: .leading, spacing: 4) {
-          Text(channel.name)
-            .font(.headline)
-            .foregroundStyle(.primary)
-            .lineLimit(1)
-          Text(subscribedText)
-            .font(.caption)
+    HStack(spacing: 12) {
+      Button(action: onOpen) {
+        HStack(spacing: 12) {
+          LiveRemoteImage(url: URL(string: channel.avatarURL))
+            .frame(width: 44, height: 44)
+            .clipShape(Circle())
+            .accessibilityHidden(true)
+          VStack(alignment: .leading, spacing: 3) {
+            Text(channel.name)
+              .font(.body.weight(.semibold))
+              .foregroundStyle(.primary)
+              .lineLimit(1)
+            HStack(spacing: 5) {
+              if let service {
+                LiveServiceLogo(service: service, size: 13)
+              }
+              Text(subtitle)
+                .lineLimit(1)
+            }
+            .font(.footnote)
             .foregroundStyle(.secondary)
+          }
+          Spacer(minLength: 0)
         }
+        .contentShape(Rectangle())
+      }
+      .buttonStyle(.plain)
+      .accessibilityHint(Text("Opens the channel"))
 
-        Spacer()
-        Image(systemName: "chevron.right")
-          .font(.caption.weight(.semibold))
-          .foregroundStyle(.tertiary)
+      Menu {
+        actions
+      } label: {
+        Image(systemName: "ellipsis")
+          .font(.body.weight(.semibold))
+          .foregroundStyle(.secondary)
+          .frame(width: 32, height: 44)
+          .contentShape(Rectangle())
       }
-      .contentShape(Rectangle())
+      .accessibilityLabel(Text("More actions for \(channel.name)"))
     }
-    .buttonStyle(.plain)
-    .contextMenu {
-      if let groupActions {
-        groupActions(channel)
-      }
-      Divider()
-      Button(
-        "Unsubscribe",
-        systemImage: "bell.slash",
-        role: .destructive,
-        action: onUnsubscribe
-      )
+    .swipeActions(edge: .trailing) {
+      Button("Unsubscribe", systemImage: "person.badge.minus", role: .destructive, action: onUnsubscribe)
     }
+    .contextMenu { actions }
     .accessibilityIdentifier("live.subscriptions.channel")
   }
 
-  private var subscribedText: String {
-    guard channel.subscribedAt > 0 else { return "Subscribed" }
-    let interval = channel.subscribedAt > 10_000_000_000
-      ? TimeInterval(channel.subscribedAt) / 1_000
-      : TimeInterval(channel.subscribedAt)
-    let date = Date(timeIntervalSince1970: interval).formatted(
-      date: .abbreviated,
-      time: .omitted
-    )
-    return "Subscribed \(date)"
+  @ViewBuilder private var actions: some View {
+    groupActions()
+    Divider()
+    Button("Unsubscribe", systemImage: "person.badge.minus", role: .destructive, action: onUnsubscribe)
+  }
+
+  private var service: VideoService? {
+    VideoService.hosting(channel.channelURL)
+  }
+
+  private var subtitle: String {
+    if !groupNames.isEmpty {
+      return groupNames.joined(separator: ", ")
+    }
+    return service?.name ?? String(localized: "Subscribed")
   }
 }

@@ -7,7 +7,7 @@ final class LiveHistoryViewModelTests: XCTestCase {
     let first = history(id: "one", url: "https://video.test/one")
     let duplicate = history(id: "two", url: first.url)
     let service = HistoryStub(pages: [[first, duplicate]])
-    let viewModel = LiveHistoryViewModel(service: service)
+    let viewModel = LiveHistoryViewModel(service: service, watchProgress: LiveWatchProgressStore())
 
     await viewModel.reload()
     await viewModel.remove(first)
@@ -23,7 +23,7 @@ final class LiveHistoryViewModelTests: XCTestCase {
     }
     let extra = history(id: "extra", url: "https://video.test/extra")
     let service = HistoryStub(pages: [firstPage, [firstPage[0], extra]])
-    let viewModel = LiveHistoryViewModel(service: service)
+    let viewModel = LiveHistoryViewModel(service: service, watchProgress: LiveWatchProgressStore())
 
     await viewModel.reload()
     await viewModel.loadMore()

@@ -7,8 +7,8 @@ struct LiveNativePlayerControls: View {
   var isFullscreen = false
   var onFullscreen: () -> Void
   var onOptions: () -> Void
+  var onChapters: () -> Void
   @State private var scrubPosition: TimeInterval?
-  @State private var presentsChapters = false
 
   var body: some View {
     ZStack {
@@ -98,8 +98,7 @@ struct LiveNativePlayerControls: View {
       .tint(.white)
       .accessibilityLabel("Playback position")
       .accessibilityIdentifier("live.player.timeline")
-      // Bands ride the slider as an overlay: a GeometryReader in the row
-      // layout would inflate the whole controls bar (and misplace it).
+      // An overlay, not a GeometryReader in the row: that inflates the controls bar.
       .overlay(alignment: .center) {
         sponsorSegmentBands
       }
@@ -109,7 +108,7 @@ struct LiveNativePlayerControls: View {
         .contentShape(Rectangle())
       if !controller.displayedChapters.isEmpty {
         Button {
-          presentsChapters = true
+          onChapters()
         } label: {
           Image(systemName: "list.bullet.rectangle")
             .font(.system(size: 15, weight: .semibold))
@@ -119,27 +118,6 @@ struct LiveNativePlayerControls: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .popover(
-          isPresented: $presentsChapters,
-          // Full screen puts the bar by the bottom edge: the popover opens
-          // upward there, downward everywhere else.
-          attachmentAnchor: .point(.init(x: 0.5, y: isFullscreen ? 0.0 : 1.0)),
-          arrowEdge: isFullscreen ? .bottom : .top
-        ) {
-          LivePlayerChaptersView(controller: controller) {
-            presentsChapters = false
-          }
-          .frame(width: 320, height: 380)
-          .presentationCompactAdaptation(.popover)
-        }
-        // The controls must stay up while the chapter list is open.
-        .onChange(of: presentsChapters) {
-          if presentsChapters {
-            controls.keepVisible()
-          } else {
-            controls.scheduleHide()
-          }
-        }
         .accessibilityLabel("Chapters")
         .accessibilityIdentifier("live.player.chapters.open")
       }
@@ -164,59 +142,24 @@ struct LiveNativePlayerControls: View {
     .padding(.bottom, isFullscreen ? 24 : 6)
   }
 
-  /// SponsorBlock segments over the track — shown for the mark/skip
-  /// categories (the policy filters disabled ones out), one colour per
-  /// category, display-only (plan task 2.1).
   private var sponsorSegmentBands: some View {
     GeometryReader { proxy in
       ForEach(controller.visibleSponsorBlockWindows) { window in
-        let span = max(controller.duration, 1)
-        let start = min(max(window.start / span, 0), 1)
-        let end = min(max(window.end / span, 0), 1)
+        let band = bandSpan(window, width: proxy.size.width)
         Capsule()
-          .fill(sponsorBandColor(window.segment.category).opacity(0.55))
-          .frame(
-            width: max(proxy.size.width * (end - start), 3),
-            height: 5
-          )
-          .position(
-            x: proxy.size.width * (start + end) / 2,
-            y: proxy.size.height / 2
-          )
+          .fill(LiveSponsorBlockPalette.color(for: window.segment.category).opacity(0.55))
+          .frame(width: band.width, height: 5)
+          .position(x: band.center, y: proxy.size.height / 2)
       }
     }
     .allowsHitTesting(false)
     .accessibilityHidden(true)
   }
 
-  /// Native iOS route picker. Unlike a custom button, this opens the real
-/// AirPlay device sheet and routes AVPlayer audio/video through the system.
-private struct AirPlayRouteButton: UIViewRepresentable {
-  func makeUIView(context: Context) -> AVRoutePickerView {
-    let view = AVRoutePickerView()
-    view.tintColor = .white
-    view.activeTintColor = .white
-    view.prioritizesVideoDevices = true
-    view.setContentHuggingPriority(.required, for: .horizontal)
-    view.setContentHuggingPriority(.required, for: .vertical)
-    view.setContentCompressionResistancePriority(.required, for: .horizontal)
-    view.setContentCompressionResistancePriority(.required, for: .vertical)
-    view.accessibilityLabel = "AirPlay"
-    view.accessibilityIdentifier = "live.player.airplay"
-    return view
-  }
-
-  func updateUIView(_ view: AVRoutePickerView, context: Context) {}
-}
-
-private func sponsorBandColor(_ category: String) -> Color {
-    switch category {
-    case "sponsor": return .systemOrange
-    case "selfpromo": return .systemBlue
-    case "interaction": return .systemPurple
-    case "intro", "outro": return .systemGreen
-    case "music", "music_offtopic": return .systemRed
-    default: return .systemGray
-    }
+  private func bandSpan(_ window: LiveSponsorBlockWindow, width: CGFloat) -> (width: CGFloat, center: CGFloat) {
+    let span: Double = max(controller.duration, 1)
+    let start: Double = min(max(window.start / span, 0), 1)
+    let end: Double = min(max(window.end / span, 0), 1)
+    return (max(width * CGFloat(end - start), 3), width * CGFloat(start + end) / 2)
   }
 }

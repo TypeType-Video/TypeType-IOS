@@ -2,10 +2,12 @@ import Foundation
 
 extension AppDependencies {
   @MainActor
-  static func live() -> AppDependencies {
+  static func live(
+    orientationLock: LiveOrientationLock,
+    backgroundRefresh: LiveBackgroundRefreshCoordinator,
+    crashReports: LiveCrashReportArchive
+  ) -> AppDependencies {
     let serverStore = ServerStore()
-    // Relative server image references (avatars) resolve against the active
-    // instance, mirroring the Android client.
     LiveImageURLResolver.baseURLProvider = {
       serverStore.selectedServer()?.baseURL
     }
@@ -165,12 +167,16 @@ extension AppDependencies {
       importService: LiveImportService(apiClient: client),
       portabilityService: LivePortabilityService(apiClient: client),
       versionService: LiveVersionService(apiClient: client),
+      youtubeSessionService: LiveYouTubeSessionService(apiClient: client),
       playbackService: LivePlaybackService(
         apiClient: client,
         serverURLProvider: {
           serverStore.selectedServer()?.baseURL
         }
-      )
+      ),
+      orientationLock: orientationLock,
+      backgroundRefresh: backgroundRefresh,
+      crashReports: crashReports
     )
   }
 }

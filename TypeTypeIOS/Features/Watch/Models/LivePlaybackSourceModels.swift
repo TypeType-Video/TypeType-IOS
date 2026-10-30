@@ -53,8 +53,6 @@ struct LivePlaybackVideoSource: Decodable, Hashable, Identifiable {
       || isHLSPlaylist {
       return true
     }
-    // HEVC tagged hvc1 is hardware-decoded on every iOS 17 device and is
-    // about half the size of H.264 at the same resolution (BiliBili).
     let codec = codec?.lowercased() ?? ""
     return codec.hasPrefix("avc1") || codec.hasPrefix("hvc1")
   }

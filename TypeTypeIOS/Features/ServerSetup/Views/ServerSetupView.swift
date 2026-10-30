@@ -10,7 +10,7 @@ struct ServerSetupView: View {
 
   var body: some View {
     ZStack {
-      DemoAuthBackdrop(isLight: colorScheme == .light)
+      AuthBackdrop(isLight: colorScheme == .light)
 
       ScrollView {
         VStack(spacing: 22) {
@@ -106,7 +106,7 @@ struct ServerSetupView: View {
         .frame(maxWidth: .infinity)
         .frame(minHeight: 46)
       }
-      .buttonStyle(.borderedProminent)
+      .liveProminentButton()
       .disabled(!viewModel.canConnect)
       .accessibilityIdentifier("live.server.connect")
     }

@@ -1,7 +1,5 @@
 import SwiftUI
 
-/// Pulsing placeholder fill for loading layouts: rounded rect in the theme's
-/// grouped surface, gentle opacity pulse, honours Reduce Motion.
 struct TypeTypeSkeleton: View {
   @Environment(\.themePalette) private var palette
   var cornerRadius: CGFloat = 0

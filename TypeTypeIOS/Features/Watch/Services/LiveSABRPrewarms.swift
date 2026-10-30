@@ -1,10 +1,5 @@
 import Foundation
 
-/// Client side of the server's prewarm handoff: the server keeps a prewarmed
-/// session for 60 s and hands it to a create with the same user, video,
-/// formats, and start. A create waits for a prewarm of the same request still
-/// in flight, and a prewarm arriving after the create is dropped, so one start
-/// never opens two sessions at the provider.
 actor LiveSABRPrewarms {
   struct Key: Hashable {
     let videoID: String
@@ -26,7 +21,7 @@ actor LiveSABRPrewarms {
     }
   }
 
-  /// Under the server's 60 s so a handoff is never assumed after it expired.
+  // Under the server's 60 s so a handoff is never assumed after it expired.
   static let lifetime: Duration = .seconds(50)
   private var inFlight: [Key: Task<Void, Never>] = [:]
   private var settled: [Key: ContinuousClock.Instant] = [:]
@@ -41,7 +36,6 @@ actor LiveSABRPrewarms {
     settled[key] = .now
   }
 
-  /// Runs right before a real create of `key`.
   func settle(_ key: Key) async {
     if let task = inFlight[key] {
       await task.value

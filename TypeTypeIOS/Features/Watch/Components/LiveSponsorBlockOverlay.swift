@@ -17,9 +17,7 @@ struct LiveSponsorBlockOverlay: View {
         timeline
       }
     }
-    // Keep the hosting view alive while no segment is active. Without a
-    // minimal intrinsic size Auto Layout collapses it to 0 × 0 before the
-    // timeline can reveal the next SponsorBlock banner.
+    // Keep a minimal size: Auto Layout collapses the host to 0 x 0 and the next banner cannot appear.
     .padding(1)
   }
 
@@ -30,13 +28,47 @@ struct LiveSponsorBlockOverlay: View {
         paused: controller.state != .playing && controller.state != .paused
       )
     ) { _ in
-      if controller.sponsorBlockShowCurrentSegment,
-        let window = controller.activeSponsorBlockWindow(
-          at: controller.precisePosition
-        ) {
-        banner(for: window)
+      VStack(alignment: .trailing, spacing: 8) {
+        if controller.sponsorBlockShowCurrentSegment,
+          let window = controller.activeSponsorBlockWindow(
+            at: controller.precisePosition
+          ) {
+          banner(for: window)
+        }
+        if let notice = controller.sponsorBlockNotice {
+          automaticNotice(notice)
+        }
+      }
+      .animation(.easeOut(duration: 0.2), value: controller.sponsorBlockNotice)
+    }
+  }
+
+  // Same notice as the Android player: shown for 2.6 s after every automatic skip or mute.
+  private func automaticNotice(_ notice: LiveSponsorBlockNotice) -> some View {
+    HStack(spacing: 8) {
+      Circle()
+        .fill(LiveSponsorBlockPalette.color(for: notice.category))
+        .frame(width: 8, height: 8)
+      VStack(alignment: .leading, spacing: 1) {
+        Text(notice.muted ? "Muted automatically" : "Skipped automatically")
+          .font(.subheadline.weight(.medium))
+        Text(LiveSponsorBlockPolicy.title(for: notice.category))
+          .font(.caption2)
+          .foregroundStyle(.white.opacity(0.68))
       }
     }
+    .foregroundStyle(.white)
+    .padding(.horizontal, 12)
+    .padding(.vertical, 9)
+    .background(.black.opacity(0.82), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+    .fixedSize()
+    .transition(.opacity)
+    .task(id: notice.id) {
+      try? await Task.sleep(for: .milliseconds(2_600))
+      guard !Task.isCancelled, controller.sponsorBlockNotice?.id == notice.id else { return }
+      controller.sponsorBlockNotice = nil
+    }
+    .accessibilityElement(children: .combine)
   }
 
   private func banner(

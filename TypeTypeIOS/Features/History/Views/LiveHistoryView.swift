@@ -18,11 +18,6 @@ struct LiveHistoryView: View {
     self.isActive = isActive
   }
 
-  // No own NavigationStack: as a library section the pager hosts this view
-  // inside the library's stack, whose bar collects the title, search field
-  // and the Clear button. A nested stack drew its own covered bar.
-  /// The library pager shares one navigation bar: `.searchable` attaches to
-  /// it, so the field must only attach while the history tab is on screen.
   var isActive = true
 
   var body: some View {
@@ -40,8 +35,6 @@ struct LiveHistoryView: View {
       .onChange(of: selectedVideo) { _, video in
         guard let video else { return }
         selectedVideo = nil
-        // Videos open in the canonical PiP-aware player cover;
-        // the navigation push slid a second player page in.
         coordinator.dependencies.playbackCoordinator.open(video)
       }
       .navigationDestination(item: $selectedChannelURL) { channelURL in
@@ -69,9 +62,7 @@ struct LiveHistoryView: View {
 }
 
 private extension View {
-  /// `.searchable` attaches to the enclosing navigation bar — inside the
-  /// library pager that bar is shared, so the field is attached only while
-  /// the owning section is the active one.
+  // .searchable attaches to the library's shared bar: attach it only while this section is active.
   @ViewBuilder
   func searchableWhenActive(
     _ active: Bool,

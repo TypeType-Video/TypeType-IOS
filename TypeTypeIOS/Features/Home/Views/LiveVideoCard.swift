@@ -1,10 +1,11 @@
 import SwiftUI
 
 struct LiveVideoCard: View {
-  /// Opens the video's session while the finger is still on the card, so
-  /// the start hides behind the press.
   @Environment(\.livePrewarm) private var prewarm
   @State private var didPrewarm = false
+  @State private var showsActions = false
+  @State private var pressTask: Task<Void, Never>?
+  @State private var actionsPending = false
   @Environment(\.liveQuickActionsMenu) private var quickActionsMenu
   @Environment(\.themePalette) private var palette
 
@@ -27,13 +28,32 @@ struct LiveVideoCard: View {
 
   var body: some View {
     VStack(alignment: .leading, spacing: 10) {
-      Button(action: action) {
-        thumbnail
-      }
-      .buttonStyle(LivePrewarmButtonStyle(onPrewarm: triggerPrewarm))
-      .accessibilityLabel("Open video \(branding.title)")
-      .accessibilityHint("Opens video details")
-      .accessibilityIdentifier("live.home.video.card.\(video.id)")
+      // Gestures on the view, not a Button: a long press added to a Button inside a ScrollView never fires.
+      thumbnail
+        .contentShape(Rectangle())
+        .onTapGesture(perform: action)
+        .onLongPressGesture(minimumDuration: 0.45, perform: openActions) { pressing in
+          pressTask?.cancel()
+          guard pressing else {
+            if actionsPending {
+              actionsPending = false
+              showsActions = true
+            }
+            return
+          }
+          // A scroll also starts with a press: only a finger that stays put prewarms.
+          pressTask = Task {
+            try? await Task.sleep(for: .milliseconds(120))
+            if !Task.isCancelled { triggerPrewarm() }
+          }
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityAddTraits(.isButton)
+        .accessibilityAction(.default, action)
+        .accessibilityAction(named: Text("More actions")) { showsActions = true }
+        .accessibilityLabel("Open video \(branding.title)")
+        .accessibilityHint("Opens video details")
+        .accessibilityIdentifier("live.home.video.card.\(video.id)")
 
       HStack(alignment: .top, spacing: 10) {
         channelAvatar
@@ -41,34 +61,23 @@ struct LiveVideoCard: View {
           .frame(maxWidth: .infinity, alignment: .leading)
       }
     }
-    // On the whole card, thumbnail included: that is where most taps land.
     .task { await deArrowStore.prepare(video) }
     .contentShape(Rectangle())
   }
 
-  /// Prewarm on press-down. Triggered from the button style's `isPressed` —
-  /// a zero-distance DragGesture on the card fought the ScrollView's pan
-  /// and made scrolling stop dead mid-swipe.
+  private func openActions() {
+    guard quickActionsMenu != nil else { return }
+    actionsPending = true
+    UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+  }
+
   private func triggerPrewarm() {
     guard !didPrewarm else { return }
     didPrewarm = true
     prewarm?(video)
   }
 
-  private struct LivePrewarmButtonStyle: ButtonStyle {
-    let onPrewarm: () -> Void
-
-    func makeBody(configuration: Configuration) -> some View {
-      configuration.label
-        .onChange(of: configuration.isPressed) { _, pressed in
-          if pressed {
-            onPrewarm()
-          }
-        }
-    }
-  }
-
-  @ObservedObject private var watchProgress = LiveWatchProgressStore.shared
+  @EnvironmentObject private var watchProgress: LiveWatchProgressStore
 
   private var thumbnail: some View {
     LiveRemoteImage(url: branding.thumbnailURL)
@@ -141,11 +150,10 @@ struct LiveVideoCard: View {
         .lineLimit(1)
     }
     .frame(maxWidth: .infinity, alignment: .leading)
-    // Anchored to the column corner — independent of how the title wraps
-    // (DeArrow swaps titles after load and used to make the button jump).
+    // Anchored to the corner, not the title: DeArrow swaps titles after load.
     .overlay(alignment: .topTrailing) {
       if let quickActionsMenu {
-        LiveDotMenu {
+        LiveDotMenu(isPresented: $showsActions) {
           quickActionsMenu
         }
         .accessibilityLabel("More actions for \(branding.title)")

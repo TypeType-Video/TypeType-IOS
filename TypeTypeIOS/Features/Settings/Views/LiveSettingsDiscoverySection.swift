@@ -5,59 +5,77 @@ struct LiveSettingsDiscoverySection: View {
   let services: [VideoService]
 
   var body: some View {
-    Section {
+    LiveSection {
       LiveOptionMenu(
         "Default landing page",
         selection: $settings.defaultLandingPage,
         options: [
-          ("home", "Home"),
-          ("subscriptions", "Subscriptions"),
-          ("history", "History"),
-          ("playlists", "Playlists"),
-          ("watch-later", "Watch later"),
-          ("favorites", "Favorites"),
-        ]
+          ("home", "Home", .system("house")),
+          ("subscriptions", "Subscriptions", .system("play.square.stack")),
+          ("history", "History", .system("clock.arrow.circlepath")),
+          ("playlists", "Playlists", .system("music.note.list")),
+          ("watch-later", "Watch later", .system("clock")),
+          ("favorites", "Favorites", .system("heart")),
+        ],
+        help: "The page TypeType opens on after sign-in."
       )
-      LiveOptionMenu(
-        "Default service",
-        selection: $settings.defaultService,
-        options: services.map { ($0.id, $0.name) }
-      )
-      Toggle(
+      if services.count > 1 {
+        LiveOptionMenu(
+          "Default service",
+          selection: $settings.defaultService,
+          options: services.map { ($0.id, $0.name, .service($0)) },
+          help: "Where Home, Search and links open first."
+        )
+      }
+    } header: {
+      Text("Opening").liveSettingsHeader()
+    }
+    LiveSection {
+      LiveSettingToggle(
         "Hide Continue watching",
+        help: "Removes videos in progress from the home page.",
         isOn: $settings.hideContinueWatching
-      ).liveRowFill()
-      Toggle(
+      )
+      LiveSettingToggle(
         "Hide home recommendations",
+        help: "Removes personalized recommendations from the home page.",
         isOn: $settings.hideHomeRecommendations
-      ).liveRowFill()
-      Toggle(
+      )
+      LiveSettingToggle(
         "Hide related videos",
+        help: "Removes suggestions from the watch page.",
         isOn: $settings.hideRelatedVideos
-      ).liveRowFill()
-      Toggle("Hide comments and danmaku", isOn: $settings.hideComments).liveRowFill()
-    } header: { Text("Interface and discovery").liveSectionHeader() }
-
-    if settings.hideSubscriptionLiveStreams != nil {
-      Section {
-        Toggle(
+      )
+      LiveSettingToggle(
+        "Hide comments and danmaku",
+        help: "Stops loading comments and bullet comments.",
+        isOn: $settings.hideComments
+      )
+      if settings.hideSubscriptionLiveStreams != nil {
+        LiveSettingToggle(
           "Hide subscription live streams",
+          help: "Removes live and upcoming streams from your subscriptions.",
           isOn: Binding(
             get: { settings.hideSubscriptionLiveStreams ?? false },
             set: { settings.hideSubscriptionLiveStreams = $0 }
           )
-        ).liveRowFill()
-      } footer: {
-        Text("Hide live streams from your subscription feed.")
+        )
       }
+    } header: {
+      Text("Hidden sections").liveSettingsHeader()
     }
-
-    Section {
-      Toggle("Enable DeArrow", isOn: $settings.deArrowEnabled).liveRowFill()
+    LiveSection {
+      LiveSettingToggle(
+        "Enable DeArrow",
+        help: "Community-written titles and representative thumbnails for YouTube videos.",
+        isOn: $settings.deArrowEnabled
+      )
       LiveOptionMenu(
         "Titles",
         selection: $settings.deArrowTitleMode,
-        options: [("dearrow", "DeArrow"), ("original", "Original")]
+        options: [("dearrow", "DeArrow"), ("original", "Original")],
+        help: "The title shown for YouTube videos.",
+        disabledReason: deArrowReason
       )
       LiveOptionMenu(
         "Thumbnails",
@@ -67,13 +85,23 @@ struct LiveSettingsDiscoverySection: View {
           ("dearrow", "DeArrow"),
           ("random", "Random"),
           ("original", "Original"),
-        ]
+        ],
+        help: "The image shown for YouTube videos.",
+        disabledReason: deArrowReason
       )
       LiveOptionMenu(
         "Trust",
         selection: $settings.deArrowTrustMode,
-        options: [("accepted", "Accepted"), ("locked", "Locked entries only")]
+        options: [("accepted", "Accepted"), ("locked", "Locked entries only")],
+        help: "Which community entries are used.",
+        disabledReason: deArrowReason
       )
-    } header: { Text("DeArrow").liveSectionHeader() }
+    } header: {
+      Text("DeArrow").liveSettingsHeader()
+    }
+  }
+
+  private var deArrowReason: LocalizedStringKey? {
+    settings.deArrowEnabled ? nil : "Turn on DeArrow to use this."
   }
 }

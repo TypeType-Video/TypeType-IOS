@@ -3,84 +3,70 @@ import SwiftUI
 struct LivePlayerChaptersView: View {
   @Environment(\.themePalette) private var palette
   @ObservedObject var controller: LivePlayerController
-  var onSelect: (() -> Void)? = nil
+  var onSelect: () -> Void
 
-  @ViewBuilder
   var body: some View {
-    if controller.displayedChapters.isEmpty {
-      ContentUnavailableView(
-        "No chapters",
-        systemImage: "list.bullet.rectangle",
-        description: Text("This video has no chapters.")
-      )
-      .liveThemedEmptyState()
-    } else {
-      List(controller.displayedChapters) { chapter in
-        chapterRow(chapter)
+    NavigationStack {
+      ScrollViewReader { proxy in
+        List {
+          LiveSection {
+            ForEach(controller.displayedChapters) { chapter in
+              row(chapter)
+                .id(chapter.id)
+            }
+          }
+        }
+        .liveGroupedList()
+        .contentMargins(.top, 4, for: .scrollContent)
+        .onAppear {
+          if let current = currentChapter { proxy.scrollTo(current.id, anchor: .center) }
+        }
       }
-      .liveThemedList()
       .navigationTitle("Chapters")
       .navigationBarTitleDisplayMode(.inline)
-      .accessibilityIdentifier("live.player.chapters")
+      .toolbar {
+        ToolbarItem(placement: .confirmationAction) {
+          Button("Done", action: onSelect)
+        }
+      }
     }
+    .accessibilityIdentifier("live.player.chapters")
   }
 
-  private func currentChapter() -> LivePlaybackChapter? {
-    let index = LivePlaybackChapterNavigator.currentIndex(
-      in: controller.displayedChapters,
-      at: controller.position
-    )
-    guard let index else { return nil }
-    return controller.displayedChapters[index]
+  private var currentChapter: LivePlaybackChapter? {
+    LivePlaybackChapterNavigator.currentIndex(in: controller.displayedChapters, at: controller.position)
+      .map { controller.displayedChapters[$0] }
   }
 
-  @ViewBuilder
-  private func chapterRow(
-    _ chapter: LivePlaybackChapter
-  ) -> some View {
-    let isCurrent = currentChapter()?.id == chapter.id
-
-    Button {
-      controller.seek(
-        to: LivePlaybackChapterNavigator.seekTarget(for: chapter)
-      )
-      onSelect?()
+  private func row(_ chapter: LivePlaybackChapter) -> some View {
+    let isCurrent = currentChapter?.id == chapter.id
+    return Button {
+      controller.seek(to: LivePlaybackChapterNavigator.seekTarget(for: chapter))
+      onSelect()
     } label: {
       HStack(spacing: 12) {
-        Text(LivePlaybackChapterNavigator.timeText(for: chapter))
-          .font(.caption.weight(.medium))
-          .foregroundStyle(.secondary)
-          .monospacedDigit()
-
+        if let preview = chapter.previewURL.flatMap(URL.init(string:)) {
+          LiveRemoteImage(url: preview)
+            .frame(width: 96, height: 54)
+            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+            .accessibilityHidden(true)
+        }
         VStack(alignment: .leading, spacing: 2) {
+          Text(LivePlaybackChapterNavigator.timeText(for: chapter))
+            .font(.caption2.monospacedDigit())
+            .foregroundStyle(.secondary)
           Text(chapter.title)
             .font(.subheadline.weight(isCurrent ? .semibold : .regular))
             .foregroundStyle(isCurrent ? palette.accent : .primary)
             .lineLimit(2)
             .multilineTextAlignment(.leading)
-
-          if let channelName = chapter.channelName {
-            Text(channelName)
-              .font(.caption)
-              .foregroundStyle(.secondary)
-              .lineLimit(1)
-          }
         }
-
         Spacer(minLength: 0)
-
-        if isCurrent {
-          Image(systemName: "speaker.wave.2.fill")
-            .foregroundStyle(palette.accent)
-            .accessibilityLabel("Current chapter")
-        }
       }
-      .padding(.vertical, 2)
+      .contentShape(Rectangle())
     }
     .buttonStyle(.plain)
-    .accessibilityLabel(
-      "Chapter \(LivePlaybackChapterNavigator.timeText(for: chapter)), \(chapter.title)"
-    )
+    .accessibilityLabel("Chapter \(LivePlaybackChapterNavigator.timeText(for: chapter)), \(chapter.title)")
     .accessibilityHint("Seeks to this chapter")
     .accessibilityAddTraits(isCurrent ? .isSelected : [])
   }

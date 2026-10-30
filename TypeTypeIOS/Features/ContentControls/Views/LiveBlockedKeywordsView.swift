@@ -42,7 +42,7 @@ struct LiveBlockedKeywordsView: View {
 
   private var list: some View {
     List {
-      Section {
+      LiveSection {
         HStack {
           TextField("Add keyword", text: $viewModel.keyword)
             .textInputAutocapitalization(.never)
@@ -66,12 +66,12 @@ struct LiveBlockedKeywordsView: View {
       }
 
       if viewModel.keywords.isEmpty {
-        Section {
+        LiveSection {
           Text("No blocked keywords")
             .foregroundStyle(.secondary)
         }
       } else {
-        Section {
+        LiveSection {
           ForEach(viewModel.keywords) { item in
             HStack {
               VStack(alignment: .leading, spacing: 2) {
@@ -89,7 +89,7 @@ struct LiveBlockedKeywordsView: View {
               .disabled(viewModel.isBusy)
             }
           }
-        } header: { Text("Keywords").liveSectionHeader() }
+        } header: { Text("Keywords").liveSettingsHeader() }
       }
     }
       .liveGroupedList()

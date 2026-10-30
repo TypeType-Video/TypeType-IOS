@@ -1,7 +1,6 @@
 import SwiftUI
 
-/// A grouped-list section whose rows take the theme's row colour. The colour sits on the rows
-/// only: on the whole `Section` it would paint a band behind the header too.
+// The row colour goes on the rows only: on the Section it also paints a band behind the header.
 struct LiveSection<Content: View, Header: View, Footer: View>: View {
   private let content: Content
   private let header: Header
@@ -27,8 +26,8 @@ struct LiveSection<Content: View, Header: View, Footer: View>: View {
     }
   }
 
-  /// iOS 26 paints a system colour behind grouped section headers and footers. The slot drops the
-  /// system insets so the page colour can cover the whole of it.
+  // iOS 26 paints a system colour behind grouped headers and footers: dropping the insets lets the page colour cover
+  // it.
   @ViewBuilder
   private func slot<Slot: View>(_ view: Slot, top: CGFloat, bottom: CGFloat) -> some View {
     if Slot.self == EmptyView.self {
@@ -40,7 +39,7 @@ struct LiveSection<Content: View, Header: View, Footer: View>: View {
         .padding(.top, top)
         .padding(.bottom, bottom)
         .listRowInsets(EdgeInsets())
-        .background(DemoThemeBackground())
+        .background(LiveThemeBackground())
     }
   }
 }
@@ -64,14 +63,18 @@ extension LiveSection where Header == EmptyView, Footer == EmptyView {
 }
 
 extension View {
-  /// Paints a row's cell in the theme's row colour. iOS 26 grouped cells ignore the UIKit cell
-  /// colour.
+  // iOS 26 grouped cells ignore the UIKit cell colour.
   func liveRowBackground() -> some View {
     listRowBackground(ThemeRowFill())
   }
+
+  func liveBareRow() -> some View {
+    listRowBackground(Color.clear)
+      .listRowInsets(EdgeInsets(top: 6, leading: 0, bottom: 6, trailing: 0))
+      .listRowSeparator(.hidden)
+  }
 }
 
-/// The theme's row colour as a view, for row backgrounds and fills.
 struct ThemeRowFill: View {
   @Environment(\.themePalette) private var palette
 

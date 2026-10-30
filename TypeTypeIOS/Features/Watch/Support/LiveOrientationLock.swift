@@ -8,8 +8,6 @@ final class LiveOrientationLock {
     case landscape
   }
 
-  static let shared = LiveOrientationLock()
-
   private weak var owner: LiveNativeFullscreenPresenter?
 
   var mask: UIInterfaceOrientationMask {

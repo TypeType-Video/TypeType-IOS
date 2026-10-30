@@ -72,7 +72,7 @@ struct LiveRelatedVideosSection: View {
 private struct LiveRelatedVideoRow: View {
   let video: LiveVideoItem
   @ObservedObject var deArrowStore: LiveDeArrowStore
-  @ObservedObject private var watchProgress = LiveWatchProgressStore.shared
+  @EnvironmentObject private var watchProgress: LiveWatchProgressStore
 
   var body: some View {
     HStack(alignment: .top, spacing: 12) {

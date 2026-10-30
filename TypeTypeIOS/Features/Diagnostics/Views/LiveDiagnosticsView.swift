@@ -3,14 +3,17 @@ import UIKit
 
 struct LiveDiagnosticsView: View {
   let store: LiveDiagnosticsStore
+  let crashReports: LiveCrashReportArchive
   let scopeProvider: () -> LiveDiagnosticScope?
   @State private var entries: [LiveDiagnosticEntry] = []
   @State private var isLoading = true
   @State private var confirmsClear = false
   @State private var copiedRequestID: String?
+  @Environment(\.liveToasts) private var toasts
 
   var body: some View {
     List {
+      LiveCrashReportsSection(archive: crashReports)
       Section {
         Text(
           "Recent requests are stored only on this device. Routes are sanitized and never include query values, media URLs, tokens, or passwords."
@@ -20,7 +23,7 @@ struct LiveDiagnosticsView: View {
       }
 
       if isLoading {
-        Section {
+        LiveSection {
           HStack {
             Spacer()
             TypeTypeSkeletonList(layout: .settings, count: 6, scrolls: false)
@@ -28,7 +31,7 @@ struct LiveDiagnosticsView: View {
           }
         }
       } else if entries.isEmpty {
-        Section {
+        LiveSection {
           ContentUnavailableView(
             "No diagnostics yet",
             systemImage: "checkmark.shield",
@@ -38,14 +41,14 @@ struct LiveDiagnosticsView: View {
           ).liveThemedEmptyState()
         }
       } else {
-        Section {
+        LiveSection {
           ForEach(entries) { entry in
             LiveDiagnosticRow(
               entry: entry,
               copiedRequestID: $copiedRequestID
             )
           }
-        } header: { Text("Recent requests").liveSectionHeader() }
+        } header: { Text("Recent requests").liveSettingsHeader() }
       }
     }
       .liveGroupedList()
@@ -77,16 +80,8 @@ struct LiveDiagnosticsView: View {
     }
     .refreshable { await reload() }
     .task { await reload() }
-    .overlay(alignment: .bottom) {
-      if copiedRequestID != nil {
-        Text("Request ID copied")
-          .font(.footnote.weight(.semibold))
-          .padding(.horizontal, 14)
-          .padding(.vertical, 9)
-          .background(.regularMaterial, in: Capsule())
-          .padding(.bottom, 16)
-          .transition(.move(edge: .bottom).combined(with: .opacity))
-      }
+    .onChange(of: copiedRequestID) { _, id in
+      if id != nil { toasts?.show(String(localized: "Request ID copied")) }
     }
     .accessibilityIdentifier("live.diagnostics.screen")
   }

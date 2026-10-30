@@ -177,7 +177,7 @@ final class NetworkInterruptionLiveUITests: XCTestCase {
     query: String
   ) -> String {
     app.searchTabButton.tap()
-    let field = app.searchFields["Search videos, channels..."]
+    let field = app.textFields["live.search.field"]
     XCTAssertTrue(field.waitForExistence(timeout: 5))
     field.tap()
     field.typeText(query)
@@ -204,7 +204,7 @@ final class NetworkInterruptionLiveUITests: XCTestCase {
     query: String
   ) -> (identifier: String, duration: Int) {
     app.searchTabButton.tap()
-    let field = app.searchFields["Search videos, channels..."]
+    let field = app.textFields["live.search.field"]
     XCTAssertTrue(field.waitForExistence(timeout: 5))
     field.tap()
     field.typeText(query)

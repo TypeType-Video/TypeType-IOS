@@ -27,8 +27,6 @@ struct LiveChannelView: View {
 
   var body: some View {
     content
-      // The in-page search bar is gone (dev feedback, plan task 5):
-      // searching belongs to the search tab.
       .navigationTitle(viewModel.channel?.name ?? "Channel")
       .navigationBarTitleDisplayMode(.inline)
       .task {
@@ -37,8 +35,6 @@ struct LiveChannelView: View {
       .onChange(of: selectedVideo) { _, video in
         guard let video else { return }
         selectedVideo = nil
-        // Videos open in the canonical PiP-aware player cover;
-        // the navigation push slid a second player page in.
         dependencies.playbackCoordinator.open(video)
       }
       .navigationDestination(item: $selectedPlaylist) { playlist in

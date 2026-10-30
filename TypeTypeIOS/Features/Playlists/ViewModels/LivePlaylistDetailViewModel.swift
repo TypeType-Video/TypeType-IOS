@@ -64,9 +64,6 @@ final class LivePlaylistDetailViewModel: ObservableObject {
 
   func prepare() async {
     guard state == .idle else { return }
-    // The list already carries the playlist (videos included): render it at
-    // once and revalidate in the background. The detail request is the slow
-    // one, and the page used to sit on skeletons until it landed.
     if playlist != nil {
       state = .loaded
     }
@@ -74,8 +71,6 @@ final class LivePlaylistDetailViewModel: ObservableObject {
   }
 
   func reload() async {
-    // Keep already visible content on screen while revalidating — only a
-    // page with nothing to show falls back to the skeleton.
     let hadContent = playlist != nil
     if !hadContent {
       state = .loading

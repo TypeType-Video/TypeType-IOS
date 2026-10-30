@@ -9,8 +9,6 @@ struct LivePlaylistsView: View {
   @State var selectedCollection: LiveLibraryCollectionKind?
   @State var pendingPlaylistDeletion: LivePlaylist?
   @State var pendingSavedDeletion: LiveSavedPlaylist?
-  /// Shared with the library's bar: its New playlist button drives the
-  /// sheet that lives here, on the list the creation refreshes.
   @Binding var createsPlaylist: Bool
 
   init(
@@ -29,8 +27,6 @@ struct LivePlaylistsView: View {
     )
   }
 
-  // No nested stack: the library pager hosts this section inside the
-  // library's stack, whose bar carries the New playlist button.
   var body: some View {
     content
       .navigationTitle("Playlists")

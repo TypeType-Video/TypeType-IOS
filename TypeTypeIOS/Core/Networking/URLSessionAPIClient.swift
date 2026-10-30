@@ -7,6 +7,7 @@ final class URLSessionAPIClient: APIClient {
   let accessTokenProvider: () -> String?
   let session: URLSession
   let mediaSession: URLSession
+  let mediaTaskPriority = MediaTaskPriority()
   let downloadSession: URLSession
   let decoder: JSONDecoder
   let diagnosticsStore: LiveDiagnosticsStore?

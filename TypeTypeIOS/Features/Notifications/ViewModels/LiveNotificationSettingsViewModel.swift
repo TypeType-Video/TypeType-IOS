@@ -2,20 +2,10 @@ import Foundation
 
 @MainActor
 final class LiveNotificationSettingsViewModel: ObservableObject {
-  /// Transient feedback card (the favourites-toast pattern): one message
-  /// with its symbol, auto-dismissed by the view.
-  struct Toast: Equatable {
-    let message: String
-    let systemImage: String
+  enum Toast: Equatable {
+    case turnedOn(Int)
+    case turnedOff(Int)
   }
-
-  /// Polling budget the instance allows per user. Every channel with
-  /// notifications enabled is polled server-side for new uploads, so each
-  /// enabled feed spends `pollingQueriesPerEnabledFeed` queries per poll
-  /// cycle. The guard keeps the total at or below the cap so enabling one
-  /// channel too many never turns into a server 429.
-  static let pollingQueryBudget = 120
-  static let pollingQueriesPerEnabledFeed = 1
 
   enum State: Equatable {
     case idle
@@ -52,38 +42,12 @@ final class LiveNotificationSettingsViewModel: ObservableObject {
     }
   }
 
-  // MARK: Polling budget
-
-  /// Number of enabled channel feeds — the server's polling workload.
-  var enabledFeedCount: Int {
-    preferences.filter { $0.enabled }.count
-  }
-
-  var usedPollingQueries: Int {
-    enabledFeedCount * Self.pollingQueriesPerEnabledFeed
-  }
-
-  var remainingPollingQueries: Int {
-    max(0, Self.pollingQueryBudget - usedPollingQueries)
-  }
-
-  /// True while one more enabled feed still fits under the cap.
-  var canEnableMore: Bool {
-    remainingPollingQueries >= Self.pollingQueriesPerEnabledFeed
-  }
-
   var canEnableAll: Bool {
-    canEnableMore
-      && preferences.contains(where: { !$0.enabled })
-      && !isBulkUpdating
+    preferences.contains(where: { !$0.enabled }) && !isBulkUpdating
   }
 
   var canDisableAll: Bool {
     preferences.contains(where: { $0.enabled }) && !isBulkUpdating
-  }
-
-  var budgetFooterText: String {
-    "\(usedPollingQueries) of \(Self.pollingQueryBudget) polling queries used · \(remainingPollingQueries) remaining. Each enabled channel is polled for new uploads."
   }
 
   func prepare() async {
@@ -112,7 +76,7 @@ final class LiveNotificationSettingsViewModel: ObservableObject {
     do {
       permissionStatus = try await permissionManager.requestAuthorization()
     } catch {
-      errorMessage = "iOS notification permission could not be requested."
+      errorMessage = String(localized: "iOS notification permission could not be requested.")
     }
   }
 
@@ -133,13 +97,6 @@ final class LiveNotificationSettingsViewModel: ObservableObject {
     guard !isBulkUpdating,
       !updatingURLs.contains(preference.channelURL)
     else {
-      return
-    }
-    // Budget guard: never let the enabled feeds exceed the polling cap.
-    // The enable is blocked here with a toast, before the request — one
-    // more feed would only earn a server 429.
-    if enabled, !isCurrentlyEnabled(preference), !canEnableMore {
-      toast = Self.budgetBlockedToast
       return
     }
     updatingURLs.insert(preference.channelURL)
@@ -167,34 +124,15 @@ final class LiveNotificationSettingsViewModel: ObservableObject {
     }
   }
 
-  /// Sweeps every channel on ("Enable all") or off ("Disable all").
-  /// Enabling only fills the remaining polling budget: channels that do
-  /// not fit stay off and the toast says how many were skipped.
   func setAllEnabled(_ enabled: Bool) async {
     guard !isBulkUpdating else { return }
     let targets = sortedPreferences.filter { $0.enabled != enabled }
     guard !targets.isEmpty else { return }
 
-    var appliedTargets = targets
-    let blocked: Int
-    if enabled {
-      let room = remainingPollingQueries / Self.pollingQueriesPerEnabledFeed
-      appliedTargets = Array(targets.prefix(room))
-      blocked = targets.count - appliedTargets.count
-    } else {
-      blocked = 0
-    }
-
-    guard !appliedTargets.isEmpty else {
-      toast = Self.budgetBlockedToast
-      return
-    }
-
+    let appliedTargets = targets
     isBulkUpdating = true
     defer { isBulkUpdating = false }
 
-    // Optimistic: the toggles flip at once, the batch is reconciled from
-    // the server's response (or a quiet resync) below.
     for preference in appliedTargets {
       if let index = indexOf(preference) {
         preferences[index].enabled = enabled
@@ -212,26 +150,12 @@ final class LiveNotificationSettingsViewModel: ObservableObject {
         }
       }
     } catch {
-      // A failed batch can leave some rows applied and some not; resync
-      // quietly so the list never disagrees with the server.
       await resync()
       errorMessage = Self.message(for: error)
       return
     }
 
-    if enabled, blocked > 0 {
-      toast = Toast(
-        message: "Enabled \(appliedTargets.count) channels. \(blocked) stayed off — the \(Self.pollingQueryBudget)-query notification budget is full.",
-        systemImage: "exclamationmark.triangle.fill"
-      )
-    } else {
-      toast = Toast(
-        message: enabled
-          ? "Notifications enabled for \(appliedTargets.count) channels."
-          : "Notifications disabled for \(appliedTargets.count) channels.",
-        systemImage: "checkmark.circle.fill"
-      )
-    }
+    toast = enabled ? .turnedOn(appliedTargets.count) : .turnedOff(appliedTargets.count)
   }
 
   func dismissError() {
@@ -240,13 +164,6 @@ final class LiveNotificationSettingsViewModel: ObservableObject {
 
   func dismissToast() {
     toast = nil
-  }
-
-  private static var budgetBlockedToast: Toast {
-    Toast(
-      message: "The notification budget is full: \(pollingQueryBudget) of \(pollingQueryBudget) polling queries are committed. Disable a channel before enabling another.",
-      systemImage: "exclamationmark.triangle.fill"
-    )
   }
 
   private func isCurrentlyEnabled(
@@ -258,8 +175,7 @@ final class LiveNotificationSettingsViewModel: ObservableObject {
     return preferences[index].enabled
   }
 
-  /// Replaces the local rows with the server's without touching `state` —
-  /// a resync after a failed bulk batch must not flash the skeleton.
+  // Resync without touching `state`: no skeleton flash after a failed batch.
   private func resync() async {
     if let fresh = try? await service.channelPreferences() {
       preferences = fresh
@@ -274,6 +190,6 @@ final class LiveNotificationSettingsViewModel: ObservableObject {
 
   private static func message(for error: Error) -> String {
     (error as? LocalizedError)?.errorDescription
-      ?? "Notification settings could not be updated."
+      ?? String(localized: "Notification settings could not be updated.")
   }
 }

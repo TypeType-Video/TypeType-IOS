@@ -181,15 +181,13 @@ final class LivePlaybackUITests: XCTestCase {
         XCTAssertTrue(fallback.waitForExistence(timeout: 3))
         fallback.tap()
       }
-      // Service selection refreshes the home feed asynchronously. Let that
-      // navigation-bar update settle before presenting the search surface.
       RunLoop.current.run(
         until: Date().addingTimeInterval(2)
       )
     }
 
     app.searchTabButton.tap()
-    let field = app.searchFields["Search videos, channels..."]
+    let field = app.textFields["live.search.field"]
     XCTAssertTrue(field.waitForExistence(timeout: 5))
     field.tap()
     field.typeText(searchQuery)

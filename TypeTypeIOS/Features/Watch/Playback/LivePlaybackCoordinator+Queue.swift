@@ -63,7 +63,13 @@ extension LivePlaybackCoordinator {
   }
 
   func advanceAfterPlaybackEnd() {
-    guard queue.isActive else { return }
+    guard queue.isActive else {
+      // Like Android: outside a queue, autoplay plays the first related video after the countdown.
+      guard let next = controller?.stream?.relatedStreams.first(where: { isPlayable($0) && $0.url != currentVideo?.url })
+      else { return }
+      startAutoplayCountdown(.related(next), seconds: appPreferences.preferences.playerAutoplayCountdownSeconds)
+      return
+    }
     if queue.repeatMode == .one {
       controller?.replay()
       return
@@ -74,17 +80,17 @@ extension LivePlaybackCoordinator {
       }
       return
     }
-    let skipDelay =
-      controller?.settings.skipPlaylistAutoplayScreen == true
-    let seconds = skipDelay
-      ? 0
-      : LiveAppPreferencesStore.shared.preferences
-        .playerAutoplayCountdownSeconds
+    let skipDelay = controller?.settings.skipPlaylistAutoplayScreen == true
+    let seconds = skipDelay ? 0 : appPreferences.preferences.playerAutoplayCountdownSeconds
+    startAutoplayCountdown(.queue(nextIndex), seconds: seconds)
+  }
+
+  private func startAutoplayCountdown(_ target: LivePendingAutoplay, seconds: Int) {
     guard seconds > 0 else {
-      commitAutoplayAdvance(to: nextIndex)
+      commitAutoplay(target)
       return
     }
-    pendingAutoplayIndex = nextIndex
+    pendingAutoplay = target
     autoplayCountdownRemaining = seconds
     autoplayCountdownTask?.cancel()
     autoplayCountdownTask = Task { @MainActor [weak self] in
@@ -97,7 +103,7 @@ extension LivePlaybackCoordinator {
         remaining -= 1
       }
       guard let self, !Task.isCancelled else { return }
-      self.commitAutoplayAdvance(to: nextIndex)
+      self.commitAutoplay(target)
     }
   }
 
@@ -105,34 +111,37 @@ extension LivePlaybackCoordinator {
     if sleepTimer.mode == .stoppedForTheNight {
       sleepTimer = LivePlaybackSleepTimerState()
     }
-    guard let index = pendingAutoplayIndex else { return }
-    commitAutoplayAdvance(to: index)
+    guard let pendingAutoplay else { return }
+    commitAutoplay(pendingAutoplay)
   }
 
   func cancelAutoplayCountdown() {
     autoplayCountdownTask?.cancel()
     autoplayCountdownTask = nil
-    pendingAutoplayIndex = nil
+    pendingAutoplay = nil
     autoplayCountdownRemaining = nil
   }
 
-  private func commitAutoplayAdvance(to index: Int) {
-    autoplayCountdownTask?.cancel()
-    autoplayCountdownTask = nil
-    pendingAutoplayIndex = nil
-    autoplayCountdownRemaining = nil
-    guard queue.isActive, queue.videos.indices.contains(index) else {
-      return
+  private func commitAutoplay(_ target: LivePendingAutoplay) {
+    cancelAutoplayCountdown()
+    switch target {
+    case let .queue(index):
+      guard queue.isActive, queue.videos.indices.contains(index) else { return }
+      queue.currentIndex = index
+      touchAndPersist()
+      replacePlayback(with: queue.videos[index], autoplay: true)
+    case let .related(video):
+      replacePlayback(with: video, autoplay: true)
     }
-    queue.currentIndex = index
-    touchAndPersist()
-    replacePlayback(with: queue.videos[index], autoplay: true)
   }
 }
 
+enum LivePendingAutoplay: Equatable {
+  case queue(Int)
+  case related(LiveVideoItem)
+}
+
 extension LivePlaybackCoordinator {
-  /// Warms the next queue entry's stream metadata so advancing (autoplay or
-  /// manual) starts without the fetch round trip.
   func prewarmNextQueueEntry() {
     guard queue.isActive,
       let nextIndex = queue.nextIndex,
@@ -147,8 +156,6 @@ extension LivePlaybackCoordinator {
     }
   }
 
-  /// Near the end of the current video: opens the next one's session so
-  /// autoplay or a skip starts on a session the server already prepared.
   func prewarmNextQueueSession() {
     guard queue.isActive,
       queue.repeatMode != .one,

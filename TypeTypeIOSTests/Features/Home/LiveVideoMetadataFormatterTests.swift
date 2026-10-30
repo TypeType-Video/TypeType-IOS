@@ -2,6 +2,11 @@ import XCTest
 @testable import TypeTypeIOS
 
 final class LiveVideoMetadataFormatterTests: XCTestCase {
+  func testUnknownViewCountShowsNothing() {
+    XCTAssertEqual(LiveVideoMetadataFormatter.views(-1), "")
+    XCTAssertEqual(LiveVideoMetadataFormatter.views(0), "0 views")
+  }
+
   func testPublicationDerivesFromEpochNotUpstreamText() throws {
     let video = try LiveVideoItem.fixture(
       uploaded: 1_609_459_200_000,

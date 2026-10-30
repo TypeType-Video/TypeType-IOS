@@ -31,6 +31,7 @@ final class LiveSearchViewModel: ObservableObject {
 
   let services: [VideoService]
   let searchService: LiveSearchServiceProtocol
+  private let imagePipeline: TypeTypeImagePipeline
   let historyService: LiveSearchHistoryServiceProtocol
   private let serviceSelection: LiveServiceSelection
   private var cancellables = Set<AnyCancellable>()
@@ -41,11 +42,14 @@ final class LiveSearchViewModel: ObservableObject {
   var suggestionTask: Task<[String], Error>?
   var historyPage = 1
   var canLoadMoreHistory = false
+  var isLoadingMoreHistory = false
   init(
     searchService: LiveSearchServiceProtocol,
     historyService: LiveSearchHistoryServiceProtocol,
-    serviceSelection: LiveServiceSelection
+    serviceSelection: LiveServiceSelection,
+    imagePipeline: TypeTypeImagePipeline = TypeTypeImagePipeline()
   ) {
+    self.imagePipeline = imagePipeline
     self.searchService = searchService
     self.historyService = historyService
     self.serviceSelection = serviceSelection
@@ -175,15 +179,13 @@ final class LiveSearchViewModel: ObservableObject {
       await submit(submittedQuery)
     }
   }
-  /// Warm the results' thumbnails in the background at utility priority:
-  /// the user sees cache hits, media keeps the resources.
   private func prefetchThumbnails() {
     for result in results.prefix(10) {
       guard case let .video(item) = result,
         let url = LiveImageURLResolver.resolve(item.thumbnail)
       else { continue }
-      Task.detached(priority: .utility) {
-        _ = await TypeTypeImagePipeline.shared.image(for: url, maxPixelSize: 640)
+      Task.detached(priority: .utility) { [imagePipeline] in
+        _ = await imagePipeline.image(for: url, maxPixelSize: 640)
       }
     }
   }

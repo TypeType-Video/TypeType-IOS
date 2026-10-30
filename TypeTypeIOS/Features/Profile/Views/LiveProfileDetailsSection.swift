@@ -38,7 +38,7 @@ struct LiveProfileDetailsSection: View {
             .frame(maxWidth: .infinity)
         }
       }
-      .buttonStyle(.borderedProminent)
+      .liveProminentButton()
       .disabled(
         viewModel.isSaving
           || viewModel.publicUsername.count > 64

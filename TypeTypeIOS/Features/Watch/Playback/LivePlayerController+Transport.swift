@@ -17,7 +17,6 @@ extension LivePlayerController {
     }
   }
 
-  /// Starts playback unless the controller was stopped/closed.
   func playIfActive(rate: Float) {
     guard !isTornDown else { return }
     player.playImmediately(atRate: rate)
@@ -44,8 +43,6 @@ extension LivePlayerController {
     if player.timeControlStatus == .playing {
       providerRecoveryDesiredAutoplay = false
       player.pause()
-      // Optimistic feedback: controls update instantly, the player state
-      // observer confirms or corrects afterwards.
       if state == .playing {
         state = .paused
       }
@@ -74,18 +71,13 @@ extension LivePlayerController {
     }
     providerRecoveryDesiredAutoplay = true
     playIfActive()
+    let player = player
     presentationResumeTask = Task { @MainActor [weak self] in
-      for delay in [100, 250, 500, 900] {
-        do {
-          try await Task.sleep(for: .milliseconds(delay))
-        } catch {
-          return
-        }
+      await player.resumeEachPause(for: .milliseconds(1_750)) { [weak self] in
         guard let self, player.currentItem != nil else { return }
-        if player.timeControlStatus == .paused {
-          playIfActive()
-        }
+        playIfActive()
       }
+      guard !Task.isCancelled else { return }
       self?.presentationResumeTask = nil
     }
   }
@@ -134,7 +126,6 @@ extension LivePlayerController {
     sabrRecoveryBudgetResetTask?.cancel()
     sabrRecoveryBudgetResetTask = nil
     loadTask?.cancel()
-    // A closed player must not retry or install a start still in flight.
     loadGeneration += 1
     startupWatchdog?.cancel()
     startupWatchdog = nil
@@ -174,8 +165,6 @@ extension LivePlayerController {
       position = bounded
       nativePlayback.seek(to: bounded)
       if wasPlaying {
-        // A seek can leave the in-house player reporting paused; the user
-        // never asked to stop, so playback is asserted back on.
         nativePlayback.player.play()
         state = .playing
       }
@@ -259,7 +248,7 @@ extension LivePlayerController {
   func setAudioOnly(_ enabled: Bool) {
     guard audioOnly != enabled else { return }
     audioOnly = enabled
-    LiveAppPreferencesStore.shared.update {
+    appPreferences.update {
       $0.playerAudioOnlyPlayback = enabled
     }
     restartAtCurrentPosition()

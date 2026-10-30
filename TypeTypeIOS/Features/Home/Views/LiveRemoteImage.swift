@@ -1,7 +1,5 @@
 import SwiftUI
 
-/// Remote image through the shared pipeline: cached, deduplicated, downsampled
-/// to the displayed size, with a skeleton while it loads.
 struct LiveRemoteImage: View {
   @Environment(\.themePalette) private var palette
   let url: URL?
@@ -9,6 +7,7 @@ struct LiveRemoteImage: View {
   @State private var image: UIImage?
   @State private var failed = false
   @Environment(\.displayScale) private var displayScale
+  @Environment(\.imagePipeline) private var pipeline
 
   init(url: URL?, contentMode: ContentMode = .fill) {
     self.url = url
@@ -45,7 +44,7 @@ struct LiveRemoteImage: View {
 
   private func cached(_ pixels: CGFloat) -> UIImage? {
     guard let url = LiveImageURLResolver.resolve(url), pixels > 0 else { return nil }
-    return TypeTypeImagePipeline.shared.cachedImage(for: url, maxPixelSize: pixels)
+    return pipeline.cachedImage(for: url, maxPixelSize: pixels)
   }
 
   private func load(_ pixels: CGFloat) async {
@@ -54,7 +53,7 @@ struct LiveRemoteImage: View {
       return
     }
     if cached(pixels) != nil { return }
-    let loaded = await TypeTypeImagePipeline.shared.image(for: url, maxPixelSize: pixels)
+    let loaded = await pipeline.image(for: url, maxPixelSize: pixels)
     withAnimation(.easeOut(duration: 0.15)) {
       image = loaded
       failed = loaded == nil

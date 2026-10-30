@@ -1,7 +1,6 @@
 import Foundation
 import TypeTypePlayerKit
 
-// Immutable; the playback service already serves concurrent loads.
 final class LiveProviderSegmentSource: MediaSegmentSource, @unchecked Sendable {
   struct Track: Sendable {
     let url: URL

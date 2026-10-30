@@ -50,8 +50,6 @@ extension LivePlayerController {
       } catch {
         return
       }
-      // After repeated segment failures AVPlayer stops waiting and pauses
-      // itself: that still is a stall the user did not ask for.
       guard let self, let item,
         player.currentItem === item,
         player.timeControlStatus != .playing,
@@ -61,9 +59,7 @@ extension LivePlayerController {
         return
       }
       sabrStallRecoveryTask = nil
-      // Offline: the player retries its segments and resumes on its own as
-      // soon as the network is back; a new session would only add a slow
-      // server round trip. Check again later instead.
+      // Offline: the player resumes on its own when the network is back; a new session only adds a slow round trip.
       if playbackServer?.isWaitingForNetwork() == true {
         scheduleSABRStallRecovery(for: item)
         return
@@ -109,8 +105,6 @@ extension LivePlayerController {
         return
       } catch {
         Self.logPreparationFailure(error)
-        // Offline or instance briefly down: keep the player waiting and try
-        // again, so playback resumes by itself when the network returns.
         if Self.isTransientStartupFailure(error),
           providerRecoveryDesiredAutoplay,
           sabrOfflineRetries < Self.maximumSABROfflineRetries {
@@ -171,7 +165,6 @@ extension LivePlayerController {
   }
 
   private static let sabrStallRecoveryDelay: TimeInterval = 8
-  /// Retries while offline: every 5 s for up to two minutes.
   static let sabrOfflineRetryDelay: TimeInterval = 5
   static let maximumSABROfflineRetries = 24
   private static let sabrRecoveryBudgetResetDelay: TimeInterval = 30

@@ -45,11 +45,6 @@ extension LivePlayerController {
     nativePlayback?.player.isMuted = value
   }
 
-  func setOutputVolume(_ value: Float) {
-    player.volume = value
-    nativePlayback?.player.volume = value
-  }
-
   static func timelinePosition(
     playbackSeconds: TimeInterval,
     offset: TimeInterval,
@@ -83,6 +78,10 @@ extension LivePlayerController {
       return
     }
     handledSponsorSegments.insert(window.id)
+    sponsorBlockNotice = LiveSponsorBlockNotice(
+      category: window.segment.category,
+      muted: settings.sponsorBlockMuteInsteadOfSkip
+    )
     if settings.sponsorBlockMuteInsteadOfSkip {
       setOutputMuted(true)
       sponsorMutedRange = window.start..<window.end

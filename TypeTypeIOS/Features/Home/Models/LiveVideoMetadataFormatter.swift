@@ -22,6 +22,8 @@ enum LiveVideoMetadataFormatter {
   }
 
   static func views(_ count: Int64) -> String {
+    // The server sends -1 when the service does not report a view count.
+    guard count >= 0 else { return "" }
     let value = count.formatted(
       .number.notation(.compactName)
     )
@@ -36,10 +38,7 @@ enum LiveVideoMetadataFormatter {
     count.formatted(.number.notation(.compactName))
   }
 
-  /// Publication display derived from the epoch timestamp only. The
-  /// extractor's textual date arrives in whatever locale upstream chose to
-  /// answer with (isiZulu, in the field), so it is never shown: without a
-  /// timestamp the date line is simply omitted.
+  // From the timestamp only: the upstream text can be in any locale.
   static func publication(_ video: LiveVideoItem) -> String {
     guard let date = video.publicationDate else {
       return ""

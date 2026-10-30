@@ -33,7 +33,7 @@ struct DemoChannelVideosSection: View {
             }
           }
 
-          DemoIncrementalLoadingTrigger(
+          LiveIncrementalLoadingTrigger(
             canLoadMore: canLoadMore,
             isLoading: isLoadingMore,
             label: "Loading more channel videos",

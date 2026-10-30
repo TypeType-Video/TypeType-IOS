@@ -1,12 +1,6 @@
 import Foundation
 
-/// Shared watch-progress cache so every thumbnail can draw the same resume
-/// bar the history page draws. Seeded from history loads and kept fresh by
-/// the playback session's 15s progress loop — cards never fetch per-video
-/// progress themselves.
 final class LiveWatchProgressStore: ObservableObject {
-  static let shared = LiveWatchProgressStore()
-
   @Published private(set) var fractions: [String: Double] = [:]
 
   func fraction(forVideoID videoID: String) -> Double? {
@@ -40,7 +34,6 @@ final class LiveWatchProgressStore: ObservableObject {
       max(Double(positionMilliseconds) / Double(duration), 0),
       1
     )
-    // A watched-through video loses the bar again, like the history page.
     guard fraction > 0 else {
       fractions.removeValue(forKey: videoID)
       return

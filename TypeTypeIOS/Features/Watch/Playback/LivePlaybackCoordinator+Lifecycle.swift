@@ -8,36 +8,25 @@ extension LivePlaybackCoordinator {
 
   func minimize() {
     guard hasActivePlayback else { return }
-    // Closing before playback ever started means "drop it": no PiP, no
-    // audio, no card. The mini player only carries playback that ran.
     guard controller?.state == .playing || controller?.state == .paused
     else {
       close()
       return
     }
     controller?.flushHistory()
-    // Twitch-style: float the real system PiP window over the app. When PiP
-    // is unavailable or fails, isEngaged stays false and the in-app card
-    // shows instead.
     startSystemPictureInPicture()
     presentation = .mini
   }
 
-  /// Starts the system PiP window for the current playback. The content
-  /// layer was installed into the live player view by LivePlayerLayerView.
   func startSystemPictureInPicture() {
     guard let controller else { return }
-    // Audio-only has no video layer: the system PiP window comes up empty
-    // and without its close affordance. Audio keeps playing on its own; the
-    // in-app card (which is closeable) covers the control-surface case.
+    // Audio-only has no video layer: the PiP window would come up empty and without its close button.
     guard !controller.audioOnly else { return }
     let posterURL = currentVideo?.thumbnail
     controller.pictureInPicture.onChange = { [weak self] in
       self?.objectWillChange.send()
     }
-    // The placeholder must be in the layer BEFORE the start: the system
-    // refuses a PiP window backed by an empty layer (that is what made the
-    // window only appear once the video rendered).
+    // The placeholder goes in the layer before the start: the system refuses PiP on an empty layer.
     Task { [weak self] in
       guard let self else { return }
       await controller.pictureInPicture.loadPoster(url: posterURL)
@@ -87,8 +76,6 @@ extension LivePlaybackCoordinator {
   ) {
     playbackGeneration += 1
     let generation = playbackGeneration
-    // A new video must not stack on a running PiP window (two scenes and
-    // two streams): close the old window silently, playback is replaced.
     controller?.pictureInPicture.bringInline()
     controller?.stop()
     prewarmNextQueueEntry()

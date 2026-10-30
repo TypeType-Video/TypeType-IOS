@@ -102,9 +102,7 @@ final class LivePublicPlaylistViewModel: ObservableObject {
     do {
       var seenTokens: Set<String> = []
       while let pageToken = nextPage, !pageToken.isEmpty {
-        // A cursor cycle (A -> B -> A) must not spin forever; tracking every
-        // token already used breaks any repeating chain, not just an
-        // immediate echo.
+        // Track every token used: a cursor cycle (A, B, A) must not spin forever.
         guard seenTokens.insert(pageToken).inserted else { break }
         let page = try await service.publicPlaylist(
           url: playlist.url,

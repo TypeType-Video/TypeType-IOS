@@ -1,8 +1,7 @@
 import Foundation
 import TypeTypePlayerKit
 
-// Keeps each track's sidx once loaded. A failed load is forgotten, not cached: a network blip while
-// opening a video used to fail every later segment request until the engine gave up.
+// A failed load is forgotten, not cached: one network blip would fail every later segment.
 actor LiveProviderSegmentIndexes {
   typealias Loader = @Sendable (MP4TrackKind) async throws -> [MP4IndexEntry]
 

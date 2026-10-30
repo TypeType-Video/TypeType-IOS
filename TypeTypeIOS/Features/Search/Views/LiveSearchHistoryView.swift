@@ -1,77 +1,87 @@
 import SwiftUI
 
-/// Discovery state of the search screen: recent searches only. Search is
-/// search — the trending shelf was removed (dev feedback, plan task 4.1).
 struct LiveSearchHistoryView: View {
   @ObservedObject var viewModel: LiveSearchViewModel
   @State private var confirmsClear = false
 
   var body: some View {
-    ScrollView {
-      LazyVStack(alignment: .leading, spacing: 24) {
-        if viewModel.history.isEmpty {
-          ContentUnavailableView(
-            "Search TypeType",
-            systemImage: "magnifyingglass",
-            description: Text(
-              "Find videos, channels, and playlists on any service."
-            )
-          )
-          .liveThemedEmptyState()
-        } else {
-          historySection
+    Group {
+      if viewModel.history.isEmpty {
+        ContentUnavailableView(
+          "Search TypeType",
+          systemImage: "magnifyingglass",
+          description: Text("Find videos, channels, and playlists on any service.")
+        )
+        .liveThemedEmptyState()
+      } else {
+        List {
+          LiveSection {
+            ForEach(Array(viewModel.history.enumerated()), id: \.element.id) { index, item in
+              row(item.term)
+                .onAppear {
+                  guard viewModel.canLoadMoreHistory, index >= viewModel.history.count - 3 else { return }
+                  Task { await viewModel.loadMoreHistory() }
+                }
+            }
+          } header: {
+            header
+          }
         }
+        .liveGroupedList()
+        .contentMargins(.top, 0, for: .scrollContent)
       }
-      .padding(16)
     }
-    .background(DemoThemeBackground().ignoresSafeArea())
-    .refreshable {
-      await viewModel.loadHistory()
-    }
+    .scrollDismissesKeyboard(.immediately)
+    .refreshable { await viewModel.loadHistory() }
     .accessibilityIdentifier("live.search.history")
   }
 
-  private var historySection: some View {
-    VStack(alignment: .leading, spacing: 12) {
-      HStack {
-        Text("Recent searches")
-          .font(.headline)
-        Spacer()
-        Button("Clear") {
-          confirmsClear = true
-        }
-        .font(.subheadline)
-        .popover(
-          isPresented: $confirmsClear,
-          attachmentAnchor: .point(.init(x: 0.5, y: 1.0)),
-          arrowEdge: .top
-        ) {
-          LiveConfirmCard(
-            title: "Clear search history?",
-            message: "This removes all saved searches from your account.",
-            confirmTitle: "Clear all"
-          ) {
+  private var header: some View {
+    HStack(alignment: .firstTextBaseline) {
+      Text("Recent searches").liveSettingsHeader()
+      Button("Clear") { confirmsClear = true }
+        .font(.subheadline.weight(.semibold))
+        .accessibilityHint(Text("Removes all saved searches"))
+        .alert("Clear search history?", isPresented: $confirmsClear) {
+          Button("Cancel", role: .cancel) {}
+          Button("Clear all", role: .destructive) {
             Task { await viewModel.clearHistory() }
           }
+        } message: {
+          Text("This removes all saved searches from your account.")
         }
-      }
-      ForEach(viewModel.history) { item in
-        Button {
-          Task { await viewModel.submit(item.term) }
-        } label: {
-          Label(item.term, systemImage: "clock.arrow.circlepath")
-            .frame(maxWidth: .infinity, alignment: .leading)
+    }
+  }
+
+  private func row(_ term: String) -> some View {
+    HStack(spacing: 12) {
+      Button {
+        Task { await viewModel.submit(term) }
+      } label: {
+        Label {
+          Text(term)
+            .foregroundStyle(.primary)
+            .lineLimit(1)
+        } icon: {
+          Image(systemName: "clock.arrow.circlepath")
+            .foregroundStyle(.secondary)
         }
-        .foregroundStyle(.primary)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .contentShape(Rectangle())
       }
-      DemoIncrementalLoadingTrigger(
-        canLoadMore: viewModel.canLoadMoreHistory,
-        isLoading: false,
-        label: "Loading more search history",
-        identifier: "live.search.history-more"
-      ) {
-        Task { await viewModel.loadMoreHistory() }
+      .buttonStyle(.plain)
+      .accessibilityHint(Text("Searches again"))
+      Button {
+        viewModel.query = term
+        viewModel.queryDidChange()
+      } label: {
+        Image(systemName: "arrow.up.left")
+          .font(.footnote.weight(.semibold))
+          .foregroundStyle(.secondary)
+          .frame(width: 32, height: 32)
       }
+      .buttonStyle(.plain)
+      .accessibilityLabel(Text("Edit \(term)"))
     }
   }
 }

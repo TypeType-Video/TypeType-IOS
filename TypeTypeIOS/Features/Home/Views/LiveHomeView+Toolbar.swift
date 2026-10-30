@@ -47,9 +47,6 @@ extension LiveHomeView {
     }
   }
 
-  /// The Apple-settings entry row: notifications with an unread badge, the
-  /// settings gear, and the account avatar — the old More tab lives in
-  /// these buttons now.
   @ToolbarContentBuilder
   var accountsToolbar: some ToolbarContent {
     ToolbarItemGroup(placement: .topBarTrailing) {
@@ -69,9 +66,7 @@ extension LiveHomeView {
         )
         .accessibilityIdentifier("live.home.notifications")
       }
-      NavigationLink {
-        LiveSettingsView(coordinator: coordinator)
-      } label: {
+      LiveSettingsEntry(coordinator: coordinator) {
         Image(systemName: "gearshape")
       }
       .accessibilityLabel("Settings")
@@ -106,23 +101,11 @@ extension LiveHomeView {
     } ?? viewModel.services[0]
   }
 
-  @ViewBuilder
   private var serviceLabel: some View {
-    if let assetName = selectedService.assetName {
-      Image(assetName)
-        .resizable()
-        .scaledToFit()
-        .frame(width: 25, height: 25)
-    } else {
-      Image(systemName: selectedService.systemImage)
-        .frame(width: 25, height: 25)
-    }
+    LiveServiceLogo(service: selectedService, size: 25)
   }
 }
 
-/// A small account avatar for the toolbar: emoji avatars render as their
-/// glyph, photo avatars as the resolved image, everything else falls back
-/// to the person symbol.
 struct LiveToolbarAvatar: View {
   @Environment(\.themePalette) private var palette
   let user: AuthUser?

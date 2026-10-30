@@ -19,8 +19,7 @@ enum LiveSABRPlaylistBuilder {
       let video = activeVideo,
       let audio = activeAudio
     else {
-      // HLS CODECS wants a full codec string ("mp4a.40.2"); a bare name
-      // ("mp4a", "aac") makes AVPlayer reject the playlist.
+      // HLS CODECS needs a full codec string ("mp4a.40.2"): a bare name makes AVPlayer reject the playlist.
       let rawCodec = activeAudio?.codec ?? ""
       let codec = rawCodec.contains(".") ? rawCodec : "mp4a.40.2"
       return data(

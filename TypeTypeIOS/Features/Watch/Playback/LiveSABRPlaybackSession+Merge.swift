@@ -83,9 +83,8 @@ extension LiveSABRPlaybackSession {
 
   private static let maximumLiveLeadMS: Int64 = 60_000
 
-  /// Server segment times are rounded per segment, so consecutive segments
-  /// can overlap by a few milliseconds (seen: 3-4 ms on resumed videos). A
-  /// small overlap is the same timeline; a real gap backwards is not.
+  // Server segment times are rounded, so neighbours can overlap by a few ms (3 to 4 seen): a small overlap is the
+  // same timeline.
   static let segmentOverlapToleranceMS: Int64 = 50
 
   static func segmentFollows(startMS: Int64, previousEndMS: Int64) -> Bool {
@@ -132,8 +131,8 @@ extension LiveSABRPlaybackSession {
       else {
         throw LivePlaybackFailure.invalidSABRContract
       }
-      // After a seek the server can append a leftover segment that starts
-      // before the previous one ends; drop it instead of the whole window.
+      // After a seek the server can append a leftover segment that starts before the previous one ends: drop it, not
+      // the window.
       guard Self.segmentFollows(startMS: item.startMS, previousEndMS: previousEndMS) else {
         continue
       }

@@ -62,7 +62,7 @@ struct LiveAdminUsersView: View {
             }
             .buttonStyle(.plain)
           }
-          DemoIncrementalLoadingTrigger(
+          LiveIncrementalLoadingTrigger(
             canLoadMore: viewModel.canLoadMore,
             isLoading: viewModel.isLoadingMore,
             label: "Loading more users",

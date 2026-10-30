@@ -1,22 +1,22 @@
 import Foundation
 
-/// Opens a YouTube session before the tap with the exact request the real
-/// start will send (same formats and start time), so the server hands the
-/// prewarmed session over instead of opening another one.
 @MainActor
 final class LivePlaybackPrewarmer {
   private let service: LivePlaybackServiceProtocol
   private let settingsService: LiveSettingsServiceProtocol
   private let historyService: LiveHistoryServiceProtocol
+  private let appPreferences: LiveAppPreferencesStore
 
   init(
     service: LivePlaybackServiceProtocol,
     settingsService: LiveSettingsServiceProtocol,
-    historyService: LiveHistoryServiceProtocol
+    historyService: LiveHistoryServiceProtocol,
+    appPreferences: LiveAppPreferencesStore
   ) {
     self.service = service
     self.settingsService = settingsService
     self.historyService = historyService
+    self.appPreferences = appPreferences
   }
 
   func prewarm(_ video: LiveVideoItem) {
@@ -25,7 +25,7 @@ final class LivePlaybackPrewarmer {
     let service = service
     let settingsService = settingsService
     let historyService = historyService
-    let appPreferences = LiveAppPreferencesStore.shared.preferences
+    let appPreferences = appPreferences.preferences
     service.preconnectMedia()
     Task(priority: .userInitiated) {
       async let streamRequest = service.playbackStream(for: url)

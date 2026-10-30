@@ -39,7 +39,13 @@ final class AppDependencies {
   let importService: LiveImportServiceProtocol
   let portabilityService: LivePortabilityServiceProtocol
   let versionService: LiveVersionServiceProtocol
+  let youtubeSessionService: LiveYouTubeSessionServiceProtocol?
   let playbackService: LivePlaybackServiceProtocol?
+  let watchProgress: LiveWatchProgressStore
+  let imagePipeline: TypeTypeImagePipeline
+  let orientationLock: LiveOrientationLock
+  let crashReports: LiveCrashReportArchive
+  let backgroundRefresh: LiveBackgroundRefreshCoordinator
   lazy var connectivityMonitor = LiveConnectivityMonitor()
   @MainActor
   lazy var downloadCenter: LiveDownloadCenter = {
@@ -60,17 +66,22 @@ final class AppDependencies {
     )
   }()
   @MainActor
+  lazy var appPreferences = LiveAppPreferencesStore()
+  @MainActor lazy var toasts = LiveToastCenter()
+  @MainActor
   lazy var playbackPrewarmer: LivePlaybackPrewarmer? = playbackService.map {
     LivePlaybackPrewarmer(
       service: $0,
       settingsService: settingsService,
-      historyService: historyService
+      historyService: historyService,
+      appPreferences: appPreferences
     )
   }
   @MainActor
   lazy var playbackCoordinator: LivePlaybackCoordinator = {
     let coordinator = LivePlaybackCoordinator(
       settingsService: settingsService,
+      appPreferences: appPreferences,
       scopeProvider: { [weak self] in
         guard let self,
           let serverID = serverStore.selectedServerID(),
@@ -95,6 +106,7 @@ final class AppDependencies {
     return coordinator
   }()
 
+  @MainActor
   init(
     serverStore: ServerStore,
     sessionStore: SessionStore,
@@ -130,7 +142,13 @@ final class AppDependencies {
     importService: LiveImportServiceProtocol,
     portabilityService: LivePortabilityServiceProtocol = LivePortabilityNoopService(),
     versionService: LiveVersionServiceProtocol = LiveVersionUnavailableService(),
-    playbackService: LivePlaybackServiceProtocol? = nil
+    youtubeSessionService: LiveYouTubeSessionServiceProtocol? = nil,
+    playbackService: LivePlaybackServiceProtocol? = nil,
+    watchProgress: LiveWatchProgressStore = LiveWatchProgressStore(),
+    imagePipeline: TypeTypeImagePipeline = TypeTypeImagePipeline(),
+    orientationLock: LiveOrientationLock,
+    backgroundRefresh: LiveBackgroundRefreshCoordinator,
+    crashReports: LiveCrashReportArchive = LiveCrashReportArchive()
   ) {
     self.serverStore = serverStore
     self.sessionStore = sessionStore
@@ -166,7 +184,13 @@ final class AppDependencies {
     self.importService = importService
     self.portabilityService = portabilityService
     self.versionService = versionService
+    self.youtubeSessionService = youtubeSessionService
     self.playbackService = playbackService
+    self.watchProgress = watchProgress
+    self.imagePipeline = imagePipeline
+    self.orientationLock = orientationLock
+    self.crashReports = crashReports
+    self.backgroundRefresh = backgroundRefresh
   }
 
   func diagnosticScope() -> LiveDiagnosticScope? {

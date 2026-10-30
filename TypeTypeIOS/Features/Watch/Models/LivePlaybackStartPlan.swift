@@ -1,21 +1,18 @@
 import Foundation
 
 extension LivePlaybackPreferences {
-  /// What a fresh start plays: the account's quality and audio language, the
-  /// app's codec and audio-only choice, and no manual selection. The prewarm
-  /// and the real start must agree on it, or the server cannot hand over.
+  // The prewarm and the real start must send the same plan, or the server opens a second session.
   static func initial(
     for stream: LivePlaybackStream,
     settings: LiveSettings,
     audioOnly: Bool,
     preferredCodec: String
   ) -> LivePlaybackPreferences {
-    let language = settings.defaultAudioLanguage.lowercased()
-    let preferredAudio = language.isEmpty
-      ? nil
-      : stream.audioStreams.first {
-        $0.audioLocale?.lowercased().hasPrefix(language) == true
-      }
+    let preferredAudio = initialAudio(
+      in: stream,
+      language: settings.defaultAudioLanguage,
+      preferOriginal: settings.preferOriginalLanguage
+    )
     return LivePlaybackPreferences(
       quality: settings.defaultQuality,
       preferredCodec: preferredCodec,
@@ -28,8 +25,24 @@ extension LivePlaybackPreferences {
   }
 }
 
+extension LivePlaybackPreferences {
+  static func initialAudio(
+    in stream: LivePlaybackStream,
+    language: String,
+    preferOriginal: Bool
+  ) -> LivePlaybackAudioSource? {
+    let tracks = stream.audioStreams
+    if preferOriginal {
+      return tracks.first { $0.audioTrackID != nil && $0.audioTrackID == stream.originalAudioTrackID }
+        ?? tracks.first { $0.isOriginal && $0.audioTrackID != nil }
+    }
+    let code = language.lowercased()
+    guard !code.isEmpty else { return nil }
+    return tracks.first { $0.audioLocale?.lowercased().hasPrefix(code) == true }
+  }
+}
+
 extension LivePlaybackPreparation {
-  /// Where a start begins: the requested time, or 0 inside the last 5 s.
   static func startTime(
     requested: TimeInterval,
     duration: TimeInterval

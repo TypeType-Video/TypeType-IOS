@@ -6,7 +6,6 @@ enum LivePortabilityDirection: String, Codable, CaseIterable, Identifiable {
 
   var id: String { rawValue }
 
-  /// Tolerant: an unknown wire value must not fail the whole job payload.
   init(from decoder: Decoder) throws {
     let raw = (try? decoder.singleValueContainer().decode(String.self)) ?? ""
     self = LivePortabilityDirection(rawValue: raw) ?? .export
@@ -37,8 +36,6 @@ enum LivePortabilityJobState: String, Codable {
   case failed
   case cancelled
 
-  /// Tolerant: unknown states keep the poll running (non-terminal) instead
-  /// of failing the decode.
   init(from decoder: Decoder) throws {
     let raw = (try? decoder.singleValueContainer().decode(String.self)) ?? ""
     self = LivePortabilityJobState(rawValue: raw) ?? .queued
@@ -95,7 +92,6 @@ struct LivePortabilityPreview: Codable, Equatable {
   let duplicates: Int
   let issues: [LivePortabilityIssue]
 
-  /// Tolerant: the server marks these nullable with Kotlin defaults.
   init(from decoder: Decoder) throws {
     let values = try decoder.container(keyedBy: CodingKeys.self)
     detection = try values.decodeIfPresent(
@@ -117,7 +113,6 @@ struct LivePortabilityProgress: Codable, Equatable {
   let processed: Int
   let total: Int?
 
-  /// Tolerant: `processed` is defaulted on the server side.
   init(from decoder: Decoder) throws {
     let values = try decoder.container(keyedBy: CodingKeys.self)
     phase = try values.decodeIfPresent(String.self, forKey: .phase)
@@ -140,9 +135,7 @@ struct LivePortabilityJob: Codable, Equatable, Identifiable {
   let errorCode: String?
   let errorMessage: String?
 
-  /// Tolerant: `result` is nullable in `PortabilityJobDto` and the enums
-  /// may carry wire values this build doesn't know — required decoding
-  /// failed every export response ("communication with the server").
+  // Tolerant: `result` is nullable and the enums may carry values this build does not know.
   init(from decoder: Decoder) throws {
     let values = try decoder.container(keyedBy: CodingKeys.self)
     id = try values.decode(String.self, forKey: .id)

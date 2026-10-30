@@ -43,7 +43,7 @@ extension LiveChannelView {
       }
       .padding(16)
     }
-    .background(DemoThemeBackground().ignoresSafeArea())
+    .background(LiveThemeBackground().ignoresSafeArea())
     .refreshable {
       if viewModel.selectedTab == .playlists {
         await viewModel.loadPlaylists()
@@ -140,7 +140,7 @@ extension LiveChannelView {
           )
         }
       }
-      DemoIncrementalLoadingTrigger(
+      LiveIncrementalLoadingTrigger(
         canLoadMore: viewModel.canLoadMore,
         isLoading: viewModel.isLoadingMore,
         label: "Loading more channel content",
@@ -155,19 +155,4 @@ extension LiveChannelView {
     selectedPodcast = podcast
   }
 
-  private var emptyTitle: String {
-    viewModel.selectedTab == .playlists
-      ? "No playlists"
-      : "No videos"
-  }
-
-  private var emptySystemImage: String {
-    viewModel.selectedTab == .playlists
-      ? "rectangle.stack"
-      : "play.rectangle"
-  }
-
-  private var emptyDescription: String {
-    "This channel has no content in the selected section."
-  }
 }

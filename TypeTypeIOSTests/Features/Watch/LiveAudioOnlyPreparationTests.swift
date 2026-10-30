@@ -3,9 +3,6 @@ import XCTest
 
 final class LiveAudioOnlyPreparationTests: XCTestCase {
   func testAudioOnlyAcceptsNonH264Video() throws {
-    // The video track is never decoded in audio-only mode: its itag only
-    // echoes through the SABR session contract. A VP9-only video must not
-    // fail preparation when audio-only is requested.
     let preparation = try service.prepare(
       stream: stream(
         id: "vp9-only",
@@ -22,9 +19,6 @@ final class LiveAudioOnlyPreparationTests: XCTestCase {
   }
 
   func testAudioOnlyFallsBackToNonAACAudio() throws {
-    // AAC is what the platform decodes reliably, but a video with only
-    // Opus SABR audio should still play in audio-only instead of failing
-    // with noPlayableSource.
     let preparation = try service.prepare(
       stream: stream(
         id: "opus-only",
@@ -41,8 +35,6 @@ final class LiveAudioOnlyPreparationTests: XCTestCase {
   }
 
   func testVideoPlaybackStillRejectsNonH264Video() {
-    // The codec relaxation is scoped to audio-only: regular playback still
-    // needs the H.264 track it actually decodes.
     XCTAssertThrowsError(
       try service.prepare(
         stream: stream(
@@ -57,8 +49,6 @@ final class LiveAudioOnlyPreparationTests: XCTestCase {
   }
 
   func testProviderPreparationHonorsAudioOnly() throws {
-    // The provider path used to hardcode audioOnly to false, so the toggle
-    // was silently ignored outside the SABR path.
     let preparation = try service.prepare(
       stream: muxedProviderStream(id: "provider-muxed"),
       sourceURL: "https://www.bilibili.com/video/BV1cN411d74Q",

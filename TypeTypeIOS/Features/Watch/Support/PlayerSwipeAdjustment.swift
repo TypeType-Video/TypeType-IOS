@@ -30,7 +30,7 @@ struct PlayerSwipeAdjustmentState: Equatable, Identifiable {
 
 enum PlayerHorizontalSeekEvent: Equatable {
   case began(position: TimeInterval)
-  case updated(position: TimeInterval)
+  case updated(position: TimeInterval, isFine: Bool)
   case ended(position: TimeInterval)
 }
 
@@ -47,13 +47,11 @@ enum PlayerSwipeAdjustmentRules {
     guard startLocation.y > size.height * 0.10,
       startLocation.y < size.height * 0.66
     else { return nil }
-    // Direction only: the recognizer decides to begin after ~10 pt of
-    // travel, so a distance gate here fails every swipe before it starts.
+    // Direction only: the recognizer begins after about 10 pt, so a distance gate fails every swipe.
     guard abs(translation.height) >= abs(translation.width) * verticalBias
     else { return nil }
 
-    // Outer thirds only — the centre third belongs to the gestures that
-    // leave (swipe down), so they never fight the adjustment swipes.
+    // Outer thirds only: the centre belongs to the swipe-down gestures.
     guard startLocation.x < size.width / 3
       || startLocation.x > size.width * 2 / 3
     else { return nil }

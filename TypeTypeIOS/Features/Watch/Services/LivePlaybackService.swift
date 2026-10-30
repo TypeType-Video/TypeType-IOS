@@ -71,19 +71,19 @@ extension LivePlaybackServiceProtocol {
 final class LivePlaybackService: LivePlaybackServiceProtocol {
   let apiClient: APIClient
   let serverURLProvider: () -> URL?
+  let pacing: LivePacing
 
   init(
     apiClient: APIClient,
-    serverURLProvider: @escaping () -> URL?
+    serverURLProvider: @escaping () -> URL?,
+    pacing: LivePacing = .realTime
   ) {
     self.apiClient = apiClient
     self.serverURLProvider = serverURLProvider
+    self.pacing = pacing
   }
 
-  /// Stream metadata is stable for minutes: reopening a video or advancing
-  /// the queue re-uses the last response instead of re-fetching.
   let streamCache = LiveStreamMetadataCache()
-  /// Playback-only bootstrap responses, kept apart from full metadata.
   let playbackCache = LiveStreamMetadataCache()
   static let streamCacheTTL: TimeInterval = 600
   let requests = LiveStreamRequests()
@@ -100,7 +100,7 @@ final class LivePlaybackService: LivePlaybackServiceProtocol {
     let loaded = try await requests.value(for: "full|" + videoURL) { [self] in
       try await loadStream(for: videoURL)
     }
-    // Live manifests are short-lived and the live edge moves: never reuse them.
+    // Live manifests are short-lived and the edge moves: never reuse them.
     if !loaded.isLive {
       streamCache.store(loaded, for: videoURL)
     }
@@ -162,7 +162,7 @@ final class LivePlaybackService: LivePlaybackServiceProtocol {
     attempt: Int
   ) async throws -> LivePlaybackStream {
     do {
-      // This loop owns the retries: client retries inside it multiplied 4 attempts into 12 requests.
+      // This loop owns the retries: client retries inside it multiply the requests.
       return try await requestStream(
         path: path,
         videoURL: videoURL,
@@ -174,7 +174,7 @@ final class LivePlaybackService: LivePlaybackServiceProtocol {
         throw error
       }
       let delays = [350, 750, 1_500]
-      try await Task.sleep(for: .milliseconds(delays[attempt]))
+      try await pacing.sleep(for: .milliseconds(delays[attempt]))
       return try await youtubeSABRStream(
         path: path,
         videoURL: videoURL,

@@ -16,9 +16,6 @@ extension LivePlayerController {
     }
   }
 
-  /// The chapter list shown in the player: real stream chapters plus the
-  /// SponsorBlock-derived ones — the same union the page used before the
-  /// page's chapter section went away.
   var displayedChapters: [LivePlaybackChapter] {
     (availableChapters + sponsorBlockChapters).sorted {
       $0.startTimeSeconds < $1.startTimeSeconds

@@ -59,7 +59,7 @@ struct LiveReportIssueView: View {
               Text("Submit report").frame(maxWidth: .infinity)
             }
           }
-          .buttonStyle(.borderedProminent)
+          .liveProminentButton()
           .disabled(
             viewModel.description
               .trimmingCharacters(in: .whitespacesAndNewlines)

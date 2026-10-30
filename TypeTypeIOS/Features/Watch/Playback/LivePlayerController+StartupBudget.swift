@@ -1,7 +1,6 @@
 import Foundation
 
 extension LivePlayerController {
-  /// Longest a start may take before it is retried, then reported.
   static let startupBudget: Duration = .seconds(20)
 
   func armStartupWatchdog() {
@@ -16,9 +15,6 @@ extension LivePlayerController {
     }
   }
 
-  /// Restarts loading once per video after a failed or stalled start, so a
-  /// transient server hiccup never needs a manual retry. False when the one
-  /// automatic retry was already used.
   func retryStartupOnce(reason: String) -> Bool {
     guard !startupRetryUsed else { return false }
     startupRetryUsed = true
@@ -32,8 +28,6 @@ extension LivePlayerController {
     return true
   }
 
-  /// Errors worth one fresh attempt: inconsistent or stalled sessions and
-  /// network failures, not unplayable content.
   static func isTransientStartupFailure(_ error: Error) -> Bool {
     if let failure = error as? LivePlaybackFailure {
       switch failure {

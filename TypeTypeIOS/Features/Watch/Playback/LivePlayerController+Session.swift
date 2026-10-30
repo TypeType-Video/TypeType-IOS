@@ -14,9 +14,7 @@ extension LivePlayerController {
       playbackSessionReporter.startIfNeeded(snapshot)
     }
     playbackSessionReporter.progress(snapshot)
-    // Feeds the resume bar on every thumbnail — same data the history page
-    // draws, kept in the shared cache.
-    LiveWatchProgressStore.shared.update(
+    watchProgress.update(
       videoID: snapshot.videoURL,
       positionMilliseconds: snapshot.positionMilliseconds,
       durationMilliseconds: snapshot.durationMilliseconds

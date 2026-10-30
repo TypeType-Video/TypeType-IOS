@@ -27,8 +27,6 @@ struct LivePublicPlaylistView: View {
       .onChange(of: selectedVideo) { _, video in
         guard let video else { return }
         selectedVideo = nil
-        // Videos open in the canonical PiP-aware player cover;
-        // the navigation push slid a second player page in.
         dependencies.playbackCoordinator.open(video)
       }
       .navigationDestination(item: $selectedChannelURL) { channelURL in
@@ -112,7 +110,7 @@ struct LivePublicPlaylistView: View {
                 }
               )
             }
-            DemoIncrementalLoadingTrigger(
+            LiveIncrementalLoadingTrigger(
               canLoadMore: viewModel.canLoadMore,
               isLoading: viewModel.isLoadingMore,
               label: "Loading more playlist videos",
@@ -126,7 +124,7 @@ struct LivePublicPlaylistView: View {
       .padding(16)
     }
     .refreshable { await viewModel.reload() }
-    .background(DemoThemeBackground().ignoresSafeArea())
+    .background(LiveThemeBackground().ignoresSafeArea())
   }
 
   private var columns: [GridItem] {

@@ -20,10 +20,6 @@ struct LiveCommentItem: Decodable, Equatable, Hashable, Identifiable {
     URL(string: authorAvatarURL)
   }
 
-  /// Publication display: the epoch timestamp wins (formatted in the
-  /// device's locale); the extractor's textual date is only a fallback for
-  /// replies, where no timestamp arrives at all — a visible, if
-  /// foreign-language, time beats none.
   var publishedDisplay: String {
     if let publishedAt, publishedAt > 0 {
       let seconds = publishedAt > 10_000_000_000
@@ -39,9 +35,6 @@ struct LiveCommentItem: Decodable, Equatable, Hashable, Identifiable {
     return publishedTime
   }
 
-  /// Comment text with upstream markup made readable: line breaks become
-  /// newlines and entities are decoded, so no literal `<br>` or `&quot;`
-  /// ever reaches the screen.
   var displayText: String {
     Self.readable(text)
   }

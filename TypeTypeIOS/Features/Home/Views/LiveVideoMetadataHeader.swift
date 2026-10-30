@@ -1,7 +1,5 @@
 import SwiftUI
 
-/// Android's description section: title and date are one tap target that unfolds the description.
-/// Counts stay in the engagement stats row.
 struct LiveVideoMetadataHeader: View {
   let video: LiveVideoItem
   let title: String
@@ -32,10 +30,8 @@ struct LiveVideoMetadataHeader: View {
 
       if isExpanded {
         expandedDetails
-          .padding(14)
           .frame(maxWidth: .infinity, alignment: .leading)
-          .liveGlassCard(cornerRadius: 16)
-          .padding(.top, 10)
+          .padding(.top, 14)
           .transition(.opacity)
       }
     }

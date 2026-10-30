@@ -353,7 +353,6 @@ final class URLSessionAPIClientTests: XCTestCase {
       )
       XCTFail("Expected HTTP 422.")
     } catch {
-      // The request failure is the event under test.
     }
 
     let entries = await store.entries(for: scope)

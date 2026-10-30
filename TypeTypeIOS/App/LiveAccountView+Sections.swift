@@ -13,7 +13,7 @@ extension LiveAccountView {
               Text(user.publicUsername ?? "TypeType user")
                 .font(.headline)
                 .foregroundStyle(.primary)
-              Text(user.role.rawValue.capitalized)
+              Text(user.role.title)
                 .font(.caption)
                 .foregroundStyle(.secondary)
             }
@@ -61,29 +61,20 @@ extension LiveAccountView {
   }
   var preferencesSection: some View {
     Section {
-      LiveSettingsLinkRow(
-        title: "Settings",
-        icon: "gearshape.fill",
-        iconColor: .systemGray
-      ) {
-        LiveSettingsView(coordinator: coordinator)
+      LiveSettingsEntry(coordinator: coordinator) {
+        LiveSettingsRowLabel(title: "Settings", icon: "gearshape.fill")
       }
       downloadsLink
       NavigationLink {
         LiveNotificationsView(dependencies: coordinator.dependencies)
       } label: {
         HStack(spacing: 14) {
-          LiveSettingsIconTile(
-            icon: "bell.fill",
-            color: .systemRed
-          )
+          LiveSettingsIconTile(icon: "bell.fill")
           Text("Notifications")
           Spacer(minLength: 0)
           if notificationCenter.unreadCount > 0 {
-            countBadge(
-              notificationCenter.unreadCount,
-              label: "unread"
-            )
+            LiveCountBadge(count: notificationCenter.unreadCount)
+              .accessibilityLabel(Text("^[\(notificationCenter.unreadCount) unread notification](inflect: true)"))
           }
         }
       }
@@ -95,7 +86,6 @@ extension LiveAccountView {
     LiveSettingsLinkRow(
       title: "Downloads",
       icon: "arrow.down.circle",
-      iconColor: .systemTeal,
       badge: downloadCenter.activeCount
     ) {
       LiveDownloadsView(
@@ -112,8 +102,7 @@ extension LiveAccountView {
       Section {
         LiveSettingsLinkRow(
           title: "Report a problem",
-          icon: "ladybug.fill",
-          iconColor: .systemRed
+          icon: "ladybug.fill"
         ) {
           LiveReportIssueView(
             service: coordinator.dependencies.bugReportsService
@@ -122,8 +111,7 @@ extension LiveAccountView {
         if user.role == .admin || user.role == .moderator {
           LiveSettingsLinkRow(
             title: "Manage bug reports",
-            icon: "ladybug.fill",
-            iconColor: .systemGray
+            icon: "ladybug.fill"
           ) {
             LiveAdminBugReportsView(
               service: coordinator.dependencies.bugReportsService,
@@ -142,8 +130,7 @@ extension LiveAccountView {
       Section {
         LiveSettingsLinkRow(
           title: "Admin console",
-          icon: "person.3.fill",
-          iconColor: .systemRed
+          icon: "person.3.fill"
         ) {
           LiveAdminConsoleView(
             dependencies: coordinator.dependencies,
@@ -199,18 +186,5 @@ extension LiveAccountView {
         .foregroundStyle(.secondary)
         .frame(width: 46, height: 46)
     }
-  }
-
-  private func countBadge(
-    _ count: Int,
-    label: String
-  ) -> some View {
-    Text(String(count))
-      .font(.caption.weight(.bold))
-      .foregroundStyle(.white)
-      .padding(.horizontal, 7)
-      .padding(.vertical, 3)
-      .background(palette.accent, in: Capsule())
-      .accessibilityLabel("\(count) \(label)")
   }
 }

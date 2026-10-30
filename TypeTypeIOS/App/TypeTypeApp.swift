@@ -5,25 +5,35 @@ struct TypeTypeApp: App {
   @UIApplicationDelegateAdaptor(TypeTypeAppDelegate.self) private var appDelegate
 
   init() {
-    // AsyncImage loads through URLSession.shared; the default cache is too
-    // small to keep a feed's thumbnails, so scrolling refetched them.
+    // The default URLCache is too small for a feed's thumbnails: scrolling would refetch them.
     URLCache.shared = URLCache(
       memoryCapacity: 64 * 1_024 * 1_024,
       diskCapacity: 512 * 1_024 * 1_024
     )
-    LiveBackgroundRefreshCoordinator.shared.registerIfNeeded()
   }
 
   var body: some Scene {
     WindowGroup {
+      #if DEBUG
       if MockAppConfiguration.isEnabled {
         TypeTypeDemoAppView(
           initialAuthMode: MockAppConfiguration.initialAuthMode,
           launchDestination: MockAppConfiguration.launchDestination
         )
       } else {
-        TypeTypeLiveAppView()
+        liveApp
       }
+      #else
+      liveApp
+      #endif
     }
+  }
+
+  private var liveApp: some View {
+    TypeTypeLiveAppView(
+      orientationLock: appDelegate.orientationLock,
+      backgroundRefresh: appDelegate.backgroundRefresh,
+      crashReports: appDelegate.crashReports
+    )
   }
 }

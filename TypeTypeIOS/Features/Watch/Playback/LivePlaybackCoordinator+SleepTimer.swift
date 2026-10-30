@@ -12,7 +12,6 @@ extension LivePlaybackCoordinator {
     guard hasActivePlayback else { return }
     sleepTimerTask?.cancel()
     sleepTimerTask = nil
-    // The countdown must not start the next video after this video ends.
     cancelAutoplayCountdown()
     sleepTimer = LivePlaybackSleepTimerState(mode: .endOfVideo)
   }
@@ -29,7 +28,6 @@ extension LivePlaybackCoordinator {
       controller?.pause()
       return
     }
-    // Quiet night state: nothing advances until the user interacts again.
     guard sleepTimer.mode != .stoppedForTheNight else { return }
     guard controller?.autoplayEnabled == true else { return }
     advanceAfterPlaybackEnd()

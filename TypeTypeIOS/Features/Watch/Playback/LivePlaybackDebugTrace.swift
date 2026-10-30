@@ -1,8 +1,6 @@
 import Foundation
 import OSLog
 
-/// Debug-only timing of playback network steps, read from the simulator log
-/// when measuring startup. Compiled out of release builds.
 enum LivePlaybackDebugTrace {
   #if DEBUG
   private static let origin = ContinuousClock.now

@@ -2,28 +2,16 @@ import AVFoundation
 
 extension LivePlayerLayerCoordinator {
   func settlePlaybackPreservationWindow(
-    checks: Int = 4
+    for window: Duration = .milliseconds(800)
   ) {
     settleTransitionTask?.cancel()
+    let player = controller.player
     settleTransitionTask = Task { @MainActor [weak self] in
-      for _ in 0..<checks {
-        do {
-          try await Task.sleep(for: .milliseconds(200))
-        } catch {
-          return
-        }
-        guard let self else { return }
-        guard playbackWasIntended,
-          controller.player.currentItem != nil
-        else {
-          presentationTransitionInProgress = false
-          return
-        }
-        if controller.player.timeControlStatus == .paused {
-          controller.playIfActive(rate: controller.playbackRate)
-        }
+      await player.resumeEachPause(for: window) { [weak self] in
+        guard let self, playbackWasIntended, player.currentItem != nil else { return }
+        controller.playIfActive(rate: controller.playbackRate)
       }
-      guard let self else { return }
+      guard let self, !Task.isCancelled else { return }
       presentationTransitionInProgress = false
       isEndingFullScreen = false
       settleTransitionTask = nil

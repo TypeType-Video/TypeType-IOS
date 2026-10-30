@@ -37,8 +37,7 @@ final class LiveDeArrowService: LiveDeArrowServiceProtocol {
     if let url = URL(string: value), url.scheme != nil {
       return url
     }
-    // The instance answers "/dearrow/thumbnail?videoId=…&time=…": the query
-    // must stay a query, or "?" is escaped into the path and the image 404s.
+    // The query must stay a query: an escaped "?" lands in the path and the image answers 404.
     let relative = URLComponents(string: value)
     return endpointURL(
       path: relative?.path ?? value,

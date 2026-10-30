@@ -4,7 +4,6 @@ public protocol MediaSegmentSource: AnyObject, Sendable {
   var trackKinds: [MP4TrackKind] { get }
   func initSegment(for kind: MP4TrackKind) async throws -> Data
   func firstSequence(for kind: MP4TrackKind, at time: TimeInterval) async throws -> Int
-  /// Nil once the track has no further segment.
   func segment(for kind: MP4TrackKind, sequence: Int) async throws -> Data?
 }
 

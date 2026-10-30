@@ -6,7 +6,7 @@ extension URLSessionAPIClient {
     do {
       try DebugNetworkOutage.check()
       let (data, response) = media
-        ? try await mediaSession.data(for: request, delegate: MediaTaskPriority.shared)
+        ? try await mediaSession.data(for: request, delegate: mediaTaskPriority)
         : try await session.data(for: request)
       guard let http = response as? HTTPURLResponse else {
         await recordDiagnostic(
@@ -36,7 +36,7 @@ extension URLSessionAPIClient {
     } catch is CancellationError {
       throw CancellationError()
     } catch let error as URLError where error.code == .cancelled {
-      // A cancelled task is not a network failure: no retry, no fallback, no diagnostic entry.
+      // A cancelled task is not a network failure: no retry, no fallback, no diagnostic.
       throw CancellationError()
     } catch {
       await recordDiagnostic(
@@ -148,8 +148,7 @@ extension URLSessionAPIClient {
 }
 
 extension URLSessionAPIClient {
-  // Same configuration as the API session, minus its 120 s resource timeout that cut large
-  // artifacts mid-transfer. `configuration` hands back a copy, so the API session is untouched.
+  // No 120 s resource timeout here: it cuts large artifacts mid-transfer. `configuration` returns a copy.
   static func makeDownloadSession(like session: URLSession) -> URLSession {
     let configuration = session.configuration
     configuration.timeoutIntervalForRequest = 600
@@ -163,10 +162,7 @@ extension URLSessionAPIClient {
   }
 }
 
-/// Artifact endpoints redirect to presigned object-storage URLs on the SAME
-/// host, so URLSession keeps the API's Authorization header and cookies on
-/// the redirect — signed URLs reject extra credentials and the transfer
-/// stalls or fails. Strip them at the redirect.
+// Artifacts redirect to presigned URLs on the same host: drop the API credentials, signed URLs reject them.
 final class DownloadRedirectCleaner: NSObject, URLSessionTaskDelegate {
   func urlSession(
     _ session: URLSession,

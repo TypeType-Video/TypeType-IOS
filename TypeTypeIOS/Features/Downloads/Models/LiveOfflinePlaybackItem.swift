@@ -12,11 +12,8 @@ struct LiveOfflinePlaybackItem: Identifiable {
     record.options.mode.caseInsensitiveCompare("audio") == .orderedSame
   }
 
-  /// The watch page's video, built from the thin download record (title and
-  /// URL are all a managed download keeps).
   var watchVideo: LiveVideoItem {
     let meta = record.metadata
-    // The avatar lives next to the artifact; the page renders it offline.
     let avatar: String = meta?.localAvatarFileName.map {
       fileURL.deletingLastPathComponent().appendingPathComponent($0)
         .absoluteString
@@ -45,7 +42,6 @@ struct LiveOfflinePlaybackItem: Identifiable {
     )
   }
 
-  /// Synthetic stream metadata so the watch page renders without a server.
   var watchStream: LivePlaybackStream {
     let meta = record.metadata
     return LivePlaybackStream(
@@ -83,13 +79,11 @@ struct LiveOfflinePlaybackItem: Identifiable {
 }
 
 extension LivePlayerController {
-  /// Offline playback: a local file through the full player stage — no
-  /// server loading path, no full-metadata fetch.
   func installOffline(stream: LivePlaybackStream, fileURL: URL) async {
     isOfflineContent = true
     state = .loading
     do {
-      try await DemoAudioSessionConfigurator.configure(backgroundAudio: true)
+      try await AudioSessionConfigurator.configure(backgroundAudio: true)
       guard !Task.isCancelled else { return }
       self.stream = stream
       installPlayerItem(at: fileURL, autoplay: true)

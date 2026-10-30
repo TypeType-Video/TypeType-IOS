@@ -15,7 +15,6 @@ extension LivePlayerController {
     startupTrace.begin()
     armStartupWatchdog()
     service.preconnectMedia()
-    // The audio session is set up while the stream loads, not before it.
     async let audioSession: Void = configureAudioSession()
     sabrStallRecoveryTask?.cancel()
     sabrStallRecoveryTask = nil
@@ -26,7 +25,6 @@ extension LivePlayerController {
     sponsorMutedRange = nil
     do {
       async let settingsRequest = settingsService.settings()
-      // Lives have no fast bootstrap contract; ask for the full stream at once.
       async let streamRequest = video.isLive
         ? service.stream(for: video.url)
         : service.playbackStream(for: video.url)
@@ -59,7 +57,7 @@ extension LivePlayerController {
         for: loadedStream,
         settings: settings,
         audioOnly: audioOnly,
-        preferredCodec: LiveAppPreferencesStore.shared.preferences.playerPreferredCodec
+        preferredCodec: appPreferences.preferences.playerPreferredCodec
       )
       if selectedAudioTrackID != initial.audioTrackID {
         selectedAudioTrackID = initial.audioTrackID
@@ -139,7 +137,7 @@ extension LivePlayerController {
   var preferences: LivePlaybackPreferences {
     LivePlaybackPreferences(
       quality: settings.defaultQuality,
-      preferredCodec: LiveAppPreferencesStore.shared.preferences
+      preferredCodec: appPreferences.preferences
         .playerPreferredCodec,
       videoItag: selectedVideoItag,
       videoSourceID: selectedVideoSourceID,
@@ -223,7 +221,6 @@ extension LivePlayerController {
         server.stop()
         throw error
       }
-      // A newer load or restart began while this session was opening.
       guard generation == loadGeneration else {
         server.stop()
         throw CancellationError()
@@ -271,8 +268,6 @@ extension LivePlayerController {
     guard !isTornDown else { return }
     player.replaceCurrentItem(with: item)
     player.defaultRate = playbackRate
-    // The audio session is configured and awaited in load() before any
-    // playback; reconfiguring it here ran on the main thread and tripped
-    // the system's unresponsiveness warnings.
+  // Do not reconfigure the audio session here: on the main thread it trips the unresponsiveness warnings.
   }
 }

@@ -20,12 +20,14 @@ final class LiveHistoryViewModel: ObservableObject {
   private let service: LiveHistoryServiceProtocol
   private let pageSize = 20
   private var queryTask: Task<Void, Never>?
-  /// Raw items fetched from the server. The display collapses duplicates,
-  /// so pagination must never advance by the visible count.
+  // Raw count: the display collapses duplicates, so pagination must never advance by the visible count.
   private var fetchedCount = 0
 
-  init(service: LiveHistoryServiceProtocol) {
+  private let watchProgress: LiveWatchProgressStore
+
+  init(service: LiveHistoryServiceProtocol, watchProgress: LiveWatchProgressStore) {
     self.service = service
+    self.watchProgress = watchProgress
   }
 
   deinit {
@@ -60,10 +62,8 @@ final class LiveHistoryViewModel: ObservableObject {
     do {
       let page = try await request(offset: 0)
       try Task.checkCancellation()
-      LiveWatchProgressStore.shared.seed(fromHistory: page)
+      watchProgress.seed(fromHistory: page)
       fetchedCount = page.count
-      // One row per video, stamped with the LAST watch (like the web). The
-      // raw offset above keeps pagination correct regardless of collapsing.
       items = collapsedToLatest(page)
       canLoadMore = page.count >= pageSize
       state = .loaded
@@ -80,7 +80,7 @@ final class LiveHistoryViewModel: ObservableObject {
     defer { isLoadingMore = false }
     do {
       let page = try await request(offset: fetchedCount)
-      LiveWatchProgressStore.shared.seed(fromHistory: page)
+      watchProgress.seed(fromHistory: page)
       fetchedCount += page.count
       items = collapsedToLatest(items + page)
       canLoadMore = page.count >= pageSize
@@ -127,7 +127,6 @@ final class LiveHistoryViewModel: ObservableObject {
     )
   }
 
-  /// Keeps one entry per video: the most recent watch wins.
   private func collapsedToLatest(
     _ candidates: [LiveHistoryItem]
   ) -> [LiveHistoryItem] {

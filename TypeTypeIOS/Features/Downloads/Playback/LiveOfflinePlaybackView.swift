@@ -1,10 +1,6 @@
 import AVKit
 import SwiftUI
 
-/// Downloaded videos play on the SAME watch page as online ones: the full
-/// player stage (HUD, gestures, fullscreen) over the metadata page. The
-/// download record keeps only title and URL, so the page renders with thin
-/// metadata (no channel box data, no counts) but the whole player works.
 struct LiveOfflinePlaybackView: View {
   let item: LiveOfflinePlaybackItem
   let dependencies: AppDependencies
@@ -30,11 +26,7 @@ struct LiveOfflinePlaybackView: View {
         dependencies: dependencies,
         playerController: controller
       )
-      .background(DemoThemeBackground().ignoresSafeArea())
-      // Pull down on the video area closes the page, like the online
-      // player minimises: from the top region only, so the page scroll is
-      // never fought. This is a cover — dismiss returns to Downloads and
-      // the audio keeps playing.
+      .background(LiveThemeBackground().ignoresSafeArea())
       .simultaneousGesture(
         DragGesture(minimumDistance: 30)
           .onEnded { value in
@@ -60,9 +52,8 @@ struct LiveOfflinePlaybackView: View {
       )
     }
     .onDisappear {
-      // Offline playback uses the regular AVPlayer path, not nativePlayback;
-      // stop the controller itself so closing the cover cannot leave a local
-      // player running behind Downloads.
+      // Offline playback runs on AVPlayer, not the native engine: stop the controller so closing never leaves a
+      // player running.
       controller.stop()
     }
     .accessibilityIdentifier("live.offline-player")

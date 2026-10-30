@@ -69,7 +69,7 @@ final class LivePlaybackHTTPServer: @unchecked Sendable {
   var providerProgressiveMaster: String?
   var providerProgressiveVideo: String?
   var providerProgressiveAudio: String?
-  /// When an upstream load last failed for lack of network; read under `lock`.
+  // Read under `lock`.
   var lastTransportFailureAt: Date?
 
   init(
@@ -253,37 +253,4 @@ final class LivePlaybackHTTPServer: @unchecked Sendable {
 
   static let playlistMIME = "application/vnd.apple.mpegurl"
   static let maximumUpstreamMediaRoutes = 1_024
-}
-
-private final class ContinuationGate: @unchecked Sendable {
-  private let lock = NSLock()
-  private var didResume = false
-
-  func resume<T>(
-    _ continuation: CheckedContinuation<T, Error>,
-    returning value: T
-  ) {
-    guard lock.withLock({
-      guard !didResume else { return false }
-      didResume = true
-      return true
-    }) else {
-      return
-    }
-    continuation.resume(returning: value)
-  }
-
-  func resume<T>(
-    _ continuation: CheckedContinuation<T, Error>,
-    throwing error: Error
-  ) {
-    guard lock.withLock({
-      guard !didResume else { return false }
-      didResume = true
-      return true
-    }) else {
-      return
-    }
-    continuation.resume(throwing: error)
-  }
 }

@@ -9,7 +9,7 @@ struct LiveAuthView: View {
 
   var body: some View {
     ZStack {
-      DemoAuthBackdrop(isLight: isLight)
+      AuthBackdrop(isLight: isLight)
 
       GeometryReader { proxy in
         ScrollView {

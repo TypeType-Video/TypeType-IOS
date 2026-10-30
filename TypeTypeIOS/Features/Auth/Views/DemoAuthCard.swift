@@ -2,7 +2,7 @@ import SwiftUI
 
 struct DemoAuthCard: View {
   @EnvironmentObject var session: DemoSessionStore
-  @Binding var mode: DemoAuthMode
+  @Binding var mode: AuthMode
   @Binding var name: String
   @Binding var email: String
   @Binding var password: String
@@ -20,20 +20,20 @@ struct DemoAuthCard: View {
       if localLoginEnabled {
         VStack(spacing: 12) {
           if mode == .register {
-            DemoAuthField(
+            AuthField(
               placeholder: "Name",
               kind: .name,
               palette: palette,
               text: $name
             )
           }
-          DemoAuthField(
+          AuthField(
             placeholder: "Email or username",
             kind: .email,
             palette: palette,
             text: $email
           )
-          DemoAuthField(
+          AuthField(
             placeholder: "Password",
             kind: .password,
             palette: palette,
@@ -162,7 +162,7 @@ struct DemoAuthCard: View {
     }
   }
 
-  var palette: DemoAuthPalette {
-    DemoAuthPalette(isLight: isLight)
+  var palette: AuthPalette {
+    AuthPalette(isLight: isLight)
   }
 }
