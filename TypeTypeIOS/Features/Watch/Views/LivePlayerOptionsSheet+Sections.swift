@@ -2,7 +2,7 @@ import SwiftUI
 
 extension LivePlayerOptionsSheet {
   var playbackSection: some View {
-    Section {
+    LiveSection {
       Picker(selection: binding(\.playbackRate, setter: controller.setPlaybackRate)) {
         ForEach(Self.playbackRates, id: \.value) { rate in
           Text(LocalizedStringKey(rate.title)).tag(rate.value)
@@ -31,27 +31,38 @@ extension LivePlayerOptionsSheet {
 
   @ViewBuilder var qualitySection: some View {
     if !controller.availableVideoSources.isEmpty {
-      Section {
-        Picker(
-          selection: Binding(
-            get: { controller.selectedVideoResolution },
-            set: controller.selectVideoResolution
-          )
-        ) {
-          Text("Automatic").tag(Int?.none)
-          ForEach(LivePlaybackVideoCatalog.resolutionOptions(from: controller.availableVideoSources)) { source in
-            Text(LivePlaybackVideoCatalog.detailLabel(for: source))
-              .tag(Optional(source.height))
-          }
-        } label: {
+      LiveSection {
+        HStack {
           LivePlayerOptionLabel("Video quality", icon: "sparkles.tv")
+          Spacer(minLength: 8)
+          Menu {
+            Picker("Video quality", selection: Binding(
+              get: { controller.selectedVideoResolution },
+              set: controller.selectVideoResolution
+            )) {
+              Text("Automatic").tag(Int?.none)
+              ForEach(LivePlaybackVideoCatalog.resolutionOptions(from: controller.availableVideoSources)) { source in
+                Text(LivePlaybackVideoCatalog.detailLabel(for: source))
+                  .tag(Optional(source.height))
+              }
+            }
+            .pickerStyle(.inline)
+          } label: {
+            HStack(spacing: 4) {
+              Text(controller.selectedVideoResolution.map { "\($0)p" } ?? String(localized: "Automatic"))
+              Image(systemName: "chevron.up.chevron.down")
+                .font(.footnote.weight(.semibold))
+            }
+            .fixedSize()
+          }
+          .accessibilityLabel(Text("Video quality"))
         }
       } header: { Text("Quality").liveSectionHeader() }
     }
   }
 
   var tracksSection: some View {
-    Section {
+    LiveSection {
       if controller.availableAudioSources.count > 1 {
         Picker(selection: binding(\.selectedAudioSourceID, setter: controller.selectAudioSource)) {
           Text("Default").tag(String?.none)
@@ -79,7 +90,7 @@ extension LivePlayerOptionsSheet {
   }
 
   var communitySection: some View {
-    Section {
+    LiveSection {
       NavigationLink {
         LivePlayerSponsorBlockOptionsView(controller: controller)
       } label: {
@@ -93,7 +104,7 @@ extension LivePlayerOptionsSheet {
   }
 
   var streamInformationSection: some View {
-    Section {
+    LiveSection {
       LabeledContent {
         Text(controller.transportLabel)
       } label: {
@@ -117,7 +128,7 @@ extension LivePlayerOptionsSheet {
   }
 
   var reportSection: some View {
-    Section {
+    LiveSection {
       Button {
         presentsReport = true
       } label: {

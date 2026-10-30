@@ -2,7 +2,7 @@ import SwiftUI
 
 extension LivePlayerOptionsSheet {
   var presentationSection: some View {
-    Section {
+    LiveSection {
       Picker(selection: binding(\.imageMode, setter: controller.setImageMode)) {
         ForEach(LivePlayerImageMode.allCases) { mode in
           Text(LocalizedStringKey(mode.title)).tag(mode)
@@ -18,7 +18,7 @@ extension LivePlayerOptionsSheet {
 
   @ViewBuilder var danmakuSection: some View {
     if controller.supportsBulletComments {
-      Section {
+      LiveSection {
         Toggle(isOn: binding(\.bulletCommentsEnabled, setter: controller.setBulletCommentsEnabled)) {
           LivePlayerOptionLabel("Danmaku", icon: "text.bubble")
         }
