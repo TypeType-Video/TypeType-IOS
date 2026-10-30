@@ -29,11 +29,12 @@ struct LivePlayerOptionsSheet: View {
         qualitySection
         tracksSection
         presentationSection
+        danmakuSection
         communitySection
         streamInformationSection
         reportSection
       }
-        .liveGroupedList()
+      .liveGroupedList()
       .accessibilityIdentifier("live.player.options-sheet")
       .navigationTitle("Player options")
       .navigationBarTitleDisplayMode(.inline)
