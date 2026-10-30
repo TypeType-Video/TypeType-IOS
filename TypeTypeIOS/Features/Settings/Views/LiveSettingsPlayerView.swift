@@ -5,108 +5,29 @@ struct LiveSettingsPlayerView: View {
   @ObservedObject var preferences: LiveAppPreferencesStore
 
   var body: some View {
-    LiveSettingsEditingPage(viewModel: viewModel) {
-      LiveSettingsPlaybackSection(settings: $viewModel.draft)
-      localPlaybackSection
+    List {
       LiveSection {
-        Toggle(
-          "Accessible player controls",
-          isOn: preferences.binding(\.playerAccessibleControlsEnabled)
-        )
-        Toggle(
-          "Double-tap to seek",
-          isOn: preferences.binding(\.playerDoubleTapSeekEnabled)
-        )
-        if preferences.preferences.playerDoubleTapSeekEnabled {
-          LiveOptionMenu(
-            "Double-tap seek time",
-            selection: preferences.binding(\.playerDoubleTapSeekSeconds),
-            options: [5, 10, 15, 20, 30].map { ($0, "\($0)s") }
-          )
+        LiveSettingsLinkRow(title: "Playback", icon: "play.fill", iconColor: .systemBlue) {
+          LiveSettingsPlaybackPage(viewModel: viewModel, preferences: preferences)
         }
-        Toggle(
-          "Swipe to seek",
-          isOn: preferences.binding(\.playerSwipeSeekEnabled)
-        )
-        Toggle(
-          "Brightness and volume swipe",
-          isOn: preferences.binding(
-            \.playerSwipeBrightnessVolumeEnabled
-          )
-        )
-        Toggle(
-          "Long-press to speed up",
-          isOn: preferences.binding(\.playerLongPressSpeedEnabled)
-        )
-      } header: {
-        Text("Gestures").liveSettingsHeader()
-      }
-      LiveSection {
-        LiveOptionMenu(
-          "Preferred codec",
-          selection: preferences.binding(\.playerPreferredCodec),
-          options: [
-            ("recommended", "Smart"),
-            ("av1", "AV1"),
-            ("vp9", "VP9"),
-            ("h264", "H.264"),
-          ]
-        )
-      } header: {
-        Text("Default codec").liveSettingsHeader()
-      }
-      LiveSection {
-        Toggle(
-          "Show bullet comments",
-          isOn: preferences.binding(\.danmakuEnabled)
-        )
-        if preferences.preferences.danmakuEnabled {
-          LiveOptionMenu(
-            "Danmaku speed",
-            selection: preferences.binding(\.danmakuSpeed),
-            options: [0.5, 0.75, 1.0, 1.25, 1.5, 2.0].map { ($0, "\($0)x") }
-          )
-          LiveOptionMenu(
-            "Danmaku size",
-            selection: preferences.binding(\.danmakuSize),
-            options: [0.5, 0.75, 1.0, 1.25, 1.5, 2.0]
-              .map { ($0, "\(Int($0 * 100))%") }
-          )
+        LiveSettingsLinkRow(title: "Gestures", icon: "hand.tap.fill", iconColor: .systemOrange) {
+          LiveSettingsGesturesPage(preferences: preferences)
         }
-      } header: {
-        Text("Bullet comments").liveSettingsHeader()
+        LiveSettingsLinkRow(title: "Language and captions", icon: "captions.bubble.fill", iconColor: .systemIndigo) {
+          LiveSettingsLanguagePage(viewModel: viewModel)
+        }
       }
-      LiveSettingsLanguageSection(settings: $viewModel.draft)
-      LiveSettingsSponsorBlockSection(settings: $viewModel.draft)
+      LiveSection {
+        LiveSettingsLinkRow(title: "SponsorBlock", icon: "forward.end.fill", iconColor: .systemGreen) {
+          LiveSettingsSponsorBlockPage(viewModel: viewModel)
+        }
+        LiveSettingsLinkRow(title: "Bullet comments", icon: "text.bubble.fill", iconColor: .systemPink) {
+          LiveSettingsDanmakuPage(preferences: preferences)
+        }
+      }
     }
+    .liveGroupedList()
     .navigationTitle("Player")
     .navigationBarTitleDisplayMode(.inline)
-  }
-
-  private var localPlaybackSection: some View {
-    LiveSection {
-      Toggle(
-        "Autoplay on this device",
-        isOn: preferences.binding(\.playerAutoplayEnabled)
-      )
-      if preferences.preferences.playerAutoplayEnabled {
-        LiveOptionMenu(
-          "Autoplay countdown",
-          selection: preferences.binding(\.playerAutoplayCountdownSeconds),
-          options: [(0, "Immediate")]
-            + [3, 5, 10, 15, 20, 30].map { ($0, "\($0)s") }
-        )
-      }
-      Toggle(
-        "Audio-only playback",
-        isOn: preferences.binding(\.playerAudioOnlyPlayback)
-      )
-      Toggle(
-        "Pause in background",
-        isOn: preferences.binding(\.playerPauseInBackground)
-      )
-    } header: {
-        Text("Device playback").liveSettingsHeader()
-      }
   }
 }
