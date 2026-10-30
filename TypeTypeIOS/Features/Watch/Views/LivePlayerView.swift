@@ -72,7 +72,7 @@ struct LivePlayerView: View {
         swipeAdjustmentOverlay
         statusOverlay
         if controller.nativePlayback != nil || controller.isOfflineContent {
-          LiveNativeSubtitleOverlay(controller: controller)
+          LiveNativeSubtitleOverlay(controller: controller, subtitles: controller.nativeSubtitles)
           LiveNativePlayerControls(
             controller: controller,
             controls: nativeControls,
