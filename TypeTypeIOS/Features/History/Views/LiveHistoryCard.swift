@@ -8,6 +8,8 @@ struct LiveHistoryCard: View {
   let onSelect: () -> Void
   let onChannel: () -> Void
   let onRemove: () -> Void
+  @State private var showsActions = false
+  @State private var actionsPending = false
 
   init(
     item: LiveHistoryItem,
@@ -26,21 +28,32 @@ struct LiveHistoryCard: View {
 
   var body: some View {
     VStack(alignment: .leading, spacing: 9) {
-      Button(action: onSelect) {
-        ZStack(alignment: .bottomLeading) {
-          LiveRemoteImage(url: branding.thumbnailURL)
-            .aspectRatio(16 / 9, contentMode: .fill)
-            .frame(maxWidth: .infinity)
-            .clipped()
-          ProgressView(value: item.progressFraction)
-            .tint(palette.accent)
-            .background(.black.opacity(0.4))
-        }
-        .clipShape(
-          RoundedRectangle(cornerRadius: 14, style: .continuous)
-        )
+      ZStack(alignment: .bottomLeading) {
+        LiveRemoteImage(url: branding.thumbnailURL)
+          .aspectRatio(16 / 9, contentMode: .fill)
+          .frame(maxWidth: .infinity)
+          .clipped()
+        ProgressView(value: item.progressFraction)
+          .tint(palette.accent)
+          .background(.black.opacity(0.4))
       }
-      .buttonStyle(.plain)
+      .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+      .contentShape(Rectangle())
+      .onTapGesture(perform: onSelect)
+      .onLongPressGesture(minimumDuration: 0.45) {
+        actionsPending = true
+        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+      } onPressingChanged: { pressing in
+        if !pressing, actionsPending {
+          actionsPending = false
+          showsActions = true
+        }
+      }
+      .accessibilityElement(children: .ignore)
+      .accessibilityAddTraits(.isButton)
+      .accessibilityLabel(Text(branding.title))
+      .accessibilityAction(.default, onSelect)
+      .accessibilityAction(named: Text("More actions")) { showsActions = true }
 
       HStack(alignment: .top, spacing: 10) {
         Button(action: onChannel) {
@@ -77,15 +90,8 @@ struct LiveHistoryCard: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         Spacer(minLength: 4)
-        LiveDotMenu {
-          Button(
-            "Remove from history",
-            systemImage: "trash",
-            role: .destructive,
-            action: onRemove
-          )
-        }
-        .accessibilityLabel("History options")
+        LiveQuickActionsDotMenu(isPresented: $showsActions)
+          .accessibilityLabel("More actions for \(branding.title)")
       }
     }
     .liveVideoQuickActions(

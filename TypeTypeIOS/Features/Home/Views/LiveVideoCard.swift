@@ -4,7 +4,8 @@ struct LiveVideoCard: View {
   @Environment(\.livePrewarm) private var prewarm
   @State private var didPrewarm = false
   @State private var showsActions = false
-  @State private var openedByLongPress = false
+  @State private var pressTask: Task<Void, Never>?
+  @State private var actionsPending = false
   @Environment(\.liveQuickActionsMenu) private var quickActionsMenu
   @Environment(\.themePalette) private var palette
 
@@ -27,24 +28,32 @@ struct LiveVideoCard: View {
 
   var body: some View {
     VStack(alignment: .leading, spacing: 10) {
-      Button {
-        if openedByLongPress {
-          openedByLongPress = false
-        } else {
-          action()
+      // Gestures on the view, not a Button: a long press added to a Button inside a ScrollView never fires.
+      thumbnail
+        .contentShape(Rectangle())
+        .onTapGesture(perform: action)
+        .onLongPressGesture(minimumDuration: 0.45, perform: openActions) { pressing in
+          pressTask?.cancel()
+          guard pressing else {
+            if actionsPending {
+              actionsPending = false
+              showsActions = true
+            }
+            return
+          }
+          // A scroll also starts with a press: only a finger that stays put prewarms.
+          pressTask = Task {
+            try? await Task.sleep(for: .milliseconds(120))
+            if !Task.isCancelled { triggerPrewarm() }
+          }
         }
-      } label: {
-        thumbnail
-      }
-      .buttonStyle(LivePrewarmButtonStyle(onPrewarm: triggerPrewarm))
-      .simultaneousGesture(LongPressGesture(minimumDuration: 0.45).onEnded { _ in openActions() })
-      .accessibilityAction(named: Text("More actions")) { showsActions = true }
-      .onChange(of: showsActions) { _, shown in
-        if !shown { openedByLongPress = false }
-      }
-      .accessibilityLabel("Open video \(branding.title)")
-      .accessibilityHint("Opens video details")
-      .accessibilityIdentifier("live.home.video.card.\(video.id)")
+        .accessibilityElement(children: .ignore)
+        .accessibilityAddTraits(.isButton)
+        .accessibilityAction(.default, action)
+        .accessibilityAction(named: Text("More actions")) { showsActions = true }
+        .accessibilityLabel("Open video \(branding.title)")
+        .accessibilityHint("Opens video details")
+        .accessibilityIdentifier("live.home.video.card.\(video.id)")
 
       HStack(alignment: .top, spacing: 10) {
         channelAvatar
@@ -56,12 +65,9 @@ struct LiveVideoCard: View {
     .contentShape(Rectangle())
   }
 
-  // Prewarm from the button style's isPressed: a zero-distance DragGesture fights the ScrollView pan and stops
-  // scrolling.
   private func openActions() {
     guard quickActionsMenu != nil else { return }
-    openedByLongPress = true
-    showsActions = true
+    actionsPending = true
     UIImpactFeedbackGenerator(style: .medium).impactOccurred()
   }
 
@@ -69,19 +75,6 @@ struct LiveVideoCard: View {
     guard !didPrewarm else { return }
     didPrewarm = true
     prewarm?(video)
-  }
-
-  private struct LivePrewarmButtonStyle: ButtonStyle {
-    let onPrewarm: () -> Void
-
-    func makeBody(configuration: Configuration) -> some View {
-      configuration.label
-        .onChange(of: configuration.isPressed) { _, pressed in
-          if pressed {
-            onPrewarm()
-          }
-        }
-    }
   }
 
   @EnvironmentObject private var watchProgress: LiveWatchProgressStore

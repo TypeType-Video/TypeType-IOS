@@ -79,6 +79,17 @@ struct LiveDotMenu<Content: View>: View {
   }
 }
 
+struct LiveQuickActionsDotMenu: View {
+  @Environment(\.liveQuickActionsMenu) private var menu
+  @Binding var isPresented: Bool
+
+  var body: some View {
+    if let menu {
+      LiveDotMenu(isPresented: $isPresented) { menu }
+    }
+  }
+}
+
 struct LiveQuickActionsMenuKey: EnvironmentKey {
   static let defaultValue: AnyView? = nil
 }
