@@ -15,7 +15,6 @@ struct LiveSettingsIconTile: View {
 }
 
 struct LiveSettingsLinkRow<Destination: View>: View {
-  @Environment(\.themePalette) private var palette
   let title: String
   var subtitle: String? = nil
   let icon: String
@@ -27,26 +26,31 @@ struct LiveSettingsLinkRow<Destination: View>: View {
     NavigationLink {
       destination()
     } label: {
-      HStack(spacing: 12) {
-        LiveSettingsIconTile(icon: icon)
-        VStack(alignment: .leading, spacing: 2) {
-          Text(LocalizedStringKey(title))
-            .foregroundStyle(.primary)
-          if let subtitle {
-            Text(LocalizedStringKey(subtitle))
-              .font(.footnote)
-              .foregroundStyle(.secondary)
-          }
-        }
-        Spacer(minLength: 0)
-        if let value {
-          Text(value)
-            .foregroundStyle(.secondary)
-            .lineLimit(1)
-        }
-        if badge > 0 {
-          LiveCountBadge(count: badge)
-        }
+      LiveSettingsRowLabel(title: title, subtitle: subtitle, icon: icon, value: value, badge: badge)
+    }
+  }
+}
+
+struct LiveSettingsRowLabel: View {
+  let title: String
+  var subtitle: String?
+  let icon: String
+  var value: String?
+  var badge = 0
+
+  var body: some View {
+    HStack(spacing: 12) {
+      LiveSettingsIconTile(icon: icon)
+      LiveSettingText(title: LocalizedStringKey(title), detail: subtitle.map { LocalizedStringKey($0) })
+        .foregroundStyle(.primary)
+      Spacer(minLength: 0)
+      if let value {
+        Text(value)
+          .foregroundStyle(.secondary)
+          .lineLimit(1)
+      }
+      if badge > 0 {
+        LiveCountBadge(count: badge)
       }
     }
   }
