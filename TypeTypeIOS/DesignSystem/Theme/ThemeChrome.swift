@@ -20,11 +20,14 @@ extension ThemeChrome {
   static func installAppearance() {
     let background = UIColor { $0[ThemeChromeTrait.self].background }
     let row = UIColor { $0[ThemeChromeTrait.self].row }
-    UITableViewHeaderFooterView.appearance().backgroundColor = .clear
-    UITableViewCell.appearance().backgroundColor = row
-    UICollectionViewCell.appearance().backgroundColor = row
-    UITableView.appearance().backgroundColor = background
-    UICollectionView.appearance().backgroundColor = background
+    // Scoped to navigation stacks: system menus are lists too, and unscoped colours paint dark bands above and below
+    // their options. Every app list sits in a NavigationStack, sheets included.
+    let inApp = [UINavigationController.self]
+    UITableViewHeaderFooterView.appearance(whenContainedInInstancesOf: inApp).backgroundColor = .clear
+    UITableViewCell.appearance(whenContainedInInstancesOf: inApp).backgroundColor = row
+    UICollectionViewCell.appearance(whenContainedInInstancesOf: inApp).backgroundColor = row
+    UITableView.appearance(whenContainedInInstancesOf: inApp).backgroundColor = background
+    UICollectionView.appearance(whenContainedInInstancesOf: inApp).backgroundColor = background
     let navigation = UINavigationBarAppearance()
     navigation.configureWithOpaqueBackground()
     navigation.backgroundColor = background
