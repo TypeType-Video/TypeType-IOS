@@ -95,6 +95,7 @@ extension LiveSettingsView {
     ) {
       LiveDiagnosticsView(
         store: coordinator.dependencies.diagnosticsStore,
+        crashReports: coordinator.dependencies.crashReports,
         scopeProvider: { coordinator.dependencies.diagnosticScope() }
       )
     }

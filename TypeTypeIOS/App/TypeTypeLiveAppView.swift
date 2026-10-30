@@ -7,8 +7,18 @@ struct TypeTypeLiveAppView: View {
   @Environment(\.colorScheme) private var colorScheme
 
   @MainActor
-  init(orientationLock: LiveOrientationLock, backgroundRefresh: LiveBackgroundRefreshCoordinator) {
-    self.init(dependencies: .live(orientationLock: orientationLock, backgroundRefresh: backgroundRefresh))
+  init(
+    orientationLock: LiveOrientationLock,
+    backgroundRefresh: LiveBackgroundRefreshCoordinator,
+    crashReports: LiveCrashReportArchive
+  ) {
+    self.init(
+      dependencies: .live(
+        orientationLock: orientationLock,
+        backgroundRefresh: backgroundRefresh,
+        crashReports: crashReports
+      )
+    )
   }
 
   @MainActor

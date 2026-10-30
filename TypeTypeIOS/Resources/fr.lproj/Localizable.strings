@@ -626,3 +626,13 @@
 "Loading more notifications" = "Chargement d’autres notifications";
 "Read" = "Lue";
 "Unread" = "Non lue";
+"No crash or freeze recorded." = "Aucun plantage ni blocage enregistré.";
+"TypeType stopped unexpectedly" = "TypeType s’est arrêté de façon inattendue";
+"TypeType stopped responding" = "TypeType ne répondait plus";
+"Clear crash reports" = "Effacer les rapports de plantage";
+"Crashes and freezes" = "Plantages et blocages";
+"Kept only on this device. Nothing is sent automatically: read a report, then copy it if you want to share it. Reports never contain messages, links, video IDs, account data or tokens." = "Conservés seulement sur cet appareil. Rien n’est envoyé tout seul : lisez un rapport, puis copiez-le si vous voulez le partager. Les rapports ne contiennent jamais de messages, de liens, d’identifiants de vidéo, de données de compte ni de jetons.";
+"Report copied" = "Rapport copié";
+"Copy report" = "Copier le rapport";
+"Crash report" = "Rapport de plantage";
+"Freeze report" = "Rapport de blocage";

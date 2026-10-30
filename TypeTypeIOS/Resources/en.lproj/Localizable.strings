@@ -626,3 +626,13 @@
 "Loading more notifications" = "Loading more notifications";
 "Read" = "Read";
 "Unread" = "Unread";
+"No crash or freeze recorded." = "No crash or freeze recorded.";
+"TypeType stopped unexpectedly" = "TypeType stopped unexpectedly";
+"TypeType stopped responding" = "TypeType stopped responding";
+"Clear crash reports" = "Clear crash reports";
+"Crashes and freezes" = "Crashes and freezes";
+"Kept only on this device. Nothing is sent automatically: read a report, then copy it if you want to share it. Reports never contain messages, links, video IDs, account data or tokens." = "Kept only on this device. Nothing is sent automatically: read a report, then copy it if you want to share it. Reports never contain messages, links, video IDs, account data or tokens.";
+"Report copied" = "Report copied";
+"Copy report" = "Copy report";
+"Crash report" = "Crash report";
+"Freeze report" = "Freeze report";

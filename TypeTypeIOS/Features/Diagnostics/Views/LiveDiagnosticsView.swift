@@ -3,6 +3,7 @@ import UIKit
 
 struct LiveDiagnosticsView: View {
   let store: LiveDiagnosticsStore
+  let crashReports: LiveCrashReportArchive
   let scopeProvider: () -> LiveDiagnosticScope?
   @State private var entries: [LiveDiagnosticEntry] = []
   @State private var isLoading = true
@@ -11,6 +12,7 @@ struct LiveDiagnosticsView: View {
 
   var body: some View {
     List {
+      LiveCrashReportsSection(archive: crashReports)
       Section {
         Text(
           "Recent requests are stored only on this device. Routes are sanitized and never include query values, media URLs, tokens, or passwords."

@@ -32,7 +32,8 @@ struct TypeTypeApp: App {
   private var liveApp: some View {
     TypeTypeLiveAppView(
       orientationLock: appDelegate.orientationLock,
-      backgroundRefresh: appDelegate.backgroundRefresh
+      backgroundRefresh: appDelegate.backgroundRefresh,
+      crashReports: appDelegate.crashReports
     )
   }
 }

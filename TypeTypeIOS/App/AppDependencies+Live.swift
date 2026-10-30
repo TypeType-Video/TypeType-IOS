@@ -4,7 +4,8 @@ extension AppDependencies {
   @MainActor
   static func live(
     orientationLock: LiveOrientationLock,
-    backgroundRefresh: LiveBackgroundRefreshCoordinator
+    backgroundRefresh: LiveBackgroundRefreshCoordinator,
+    crashReports: LiveCrashReportArchive
   ) -> AppDependencies {
     let serverStore = ServerStore()
     LiveImageURLResolver.baseURLProvider = {
@@ -173,7 +174,8 @@ extension AppDependencies {
         }
       ),
       orientationLock: orientationLock,
-      backgroundRefresh: backgroundRefresh
+      backgroundRefresh: backgroundRefresh,
+      crashReports: crashReports
     )
   }
 }

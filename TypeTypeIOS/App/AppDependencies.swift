@@ -43,6 +43,7 @@ final class AppDependencies {
   let watchProgress: LiveWatchProgressStore
   let imagePipeline: TypeTypeImagePipeline
   let orientationLock: LiveOrientationLock
+  let crashReports: LiveCrashReportArchive
   let backgroundRefresh: LiveBackgroundRefreshCoordinator
   lazy var connectivityMonitor = LiveConnectivityMonitor()
   @MainActor
@@ -143,7 +144,8 @@ final class AppDependencies {
     watchProgress: LiveWatchProgressStore = LiveWatchProgressStore(),
     imagePipeline: TypeTypeImagePipeline = TypeTypeImagePipeline(),
     orientationLock: LiveOrientationLock,
-    backgroundRefresh: LiveBackgroundRefreshCoordinator
+    backgroundRefresh: LiveBackgroundRefreshCoordinator,
+    crashReports: LiveCrashReportArchive = LiveCrashReportArchive()
   ) {
     self.serverStore = serverStore
     self.sessionStore = sessionStore
@@ -183,6 +185,7 @@ final class AppDependencies {
     self.watchProgress = watchProgress
     self.imagePipeline = imagePipeline
     self.orientationLock = orientationLock
+    self.crashReports = crashReports
     self.backgroundRefresh = backgroundRefresh
   }
 
