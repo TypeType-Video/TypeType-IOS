@@ -48,7 +48,7 @@ struct LiveProfileAvatarSection: View {
   ]
 
   var body: some View {
-    Section {
+    LiveSection {
       HStack(spacing: 16) {
         profileAvatar
         VStack(alignment: .leading, spacing: 8) {
