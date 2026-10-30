@@ -52,13 +52,18 @@ extension LivePlayerController {
       }
       guard let self, let item,
         player.currentItem === item,
-        player.timeControlStatus == .waitingToPlayAtSpecifiedRate,
+        player.timeControlStatus != .playing,
         preparation?.isSABR == true,
         providerRecoveryDesiredAutoplay
       else {
         return
       }
       sabrStallRecoveryTask = nil
+      // Offline: the player resumes on its own when the network is back; a new session only adds a slow round trip.
+      if playbackServer?.isWaitingForNetwork() == true {
+        scheduleSABRStallRecovery(for: item)
+        return
+      }
       recoverSABRFromStall()
     }
   }
@@ -95,10 +100,23 @@ extension LivePlayerController {
           autoplay: true,
           seekOverride: restartTime
         )
+        sabrOfflineRetries = 0
       } catch is CancellationError {
         return
       } catch {
         Self.logPreparationFailure(error)
+        if Self.isTransientStartupFailure(error),
+          providerRecoveryDesiredAutoplay,
+          sabrOfflineRetries < Self.maximumSABROfflineRetries {
+          sabrOfflineRetries += 1
+          sabrStallRecoveryCount = max(sabrStallRecoveryCount - 1, 0)
+          state = .loading
+          try? await Task.sleep(for: .seconds(Self.sabrOfflineRetryDelay))
+          guard !Task.isCancelled else { return }
+          recoverSABRFromStall()
+          return
+        }
+        sabrOfflineRetries = 0
         state = .failed(Self.message(for: error))
         stopPlaybackSession()
       }
@@ -118,12 +136,16 @@ extension LivePlayerController {
           || state == .playing
       )
     state = .loading
+    LivePlaybackDebugTrace.note("seek requested to=\(Int(seconds)) from=\(Int(position))")
     seekTask = Task { @MainActor [weak self] in
       guard let self else { return }
       do {
-        let assetURL = try await playbackServer.seekSABR(to: seconds)
+        let assetURL = try await LivePlaybackDebugTrace.measure("sabr seek") {
+          try await playbackServer.seekSABR(to: seconds)
+        }
         try Task.checkCancellation()
         playbackTimeOffset = playbackServer.sabrPlaybackStartTime
+        LivePlaybackDebugTrace.note("seek installed offset=\(Int(playbackTimeOffset))")
         position = seconds
         pendingSeek = playbackTimeOffset == 0 ? seconds : nil
         installPlayerItem(
@@ -134,6 +156,7 @@ extension LivePlayerController {
       } catch is CancellationError {
         return
       } catch {
+        LivePlaybackDebugTrace.note("seek failed \(error)")
         state = player.timeControlStatus == .playing
           ? .playing
           : .paused
@@ -141,7 +164,9 @@ extension LivePlayerController {
     }
   }
 
-  private static let sabrStallRecoveryDelay: TimeInterval = 12
+  private static let sabrStallRecoveryDelay: TimeInterval = 8
+  static let sabrOfflineRetryDelay: TimeInterval = 5
+  static let maximumSABROfflineRetries = 24
   private static let sabrRecoveryBudgetResetDelay: TimeInterval = 30
   private static let maximumSABRStallRecoveries = 2
 }

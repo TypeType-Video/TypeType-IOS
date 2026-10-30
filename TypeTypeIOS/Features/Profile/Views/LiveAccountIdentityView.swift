@@ -26,14 +26,13 @@ struct LiveAccountIdentityView: View {
   private var content: some View {
     switch viewModel.state {
     case .idle, .loading:
-      ProgressView("Loading account")
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+      TypeTypeSkeletonList(layout: .settings, count: 8)
     case let .failed(message):
       ContentUnavailableView(
         "Account unavailable",
         systemImage: "person.crop.circle.badge.exclamationmark",
         description: Text(message)
-      )
+      ).liveThemedEmptyState()
     case .loaded:
       Form {
         if viewModel.managedByOIDC {
@@ -44,7 +43,7 @@ struct LiveAccountIdentityView: View {
             )
           }
         }
-        Section("Identity") {
+        Section {
           TextField("Name", text: $viewModel.name)
             .textContentType(.name)
           TextField("Email", text: $viewModel.email)
@@ -56,7 +55,7 @@ struct LiveAccountIdentityView: View {
             text: $viewModel.currentPassword
           )
           .textContentType(.password)
-        }
+        } header: { Text("Identity").liveSectionHeader() }
         Section {
           Button {
             Task { await viewModel.save() }
@@ -67,7 +66,7 @@ struct LiveAccountIdentityView: View {
               Text("Save identity").frame(maxWidth: .infinity)
             }
           }
-          .buttonStyle(.borderedProminent)
+          .liveProminentButton()
           .disabled(
             viewModel.managedByOIDC
               || viewModel.isSaving
@@ -83,6 +82,7 @@ struct LiveAccountIdentityView: View {
           }
         }
       }
+        .liveGroupedList()
     }
   }
 

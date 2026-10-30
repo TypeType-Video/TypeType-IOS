@@ -8,15 +8,39 @@ final class RootCoordinator: ObservableObject {
   @Published var selectedServer: ServerProfile?
   @Published var instance: InstanceMetadata?
   @Published var currentUser: AuthUser?
+  @Published var presentsSettings = false
+  @Published var selectedTab: LiveAuthenticatedTab = .home
+  @Published var searchTabRetaps = 0
+
+  func handleTabReselection(_ tab: LiveAuthenticatedTab) {
+    if tab == .search {
+      searchTabRetaps += 1
+    }
+  }
   @Published var pendingIncomingURL: URL?
   @Published var isUsingOfflineSession = false
   @Published var connectionError: String?
 
+  var identityScopeID: String {
+    [
+      selectedServer?.id ?? "no-server",
+      currentUser?.id ?? "no-user",
+    ].joined(separator: ":")
+  }
+
   let dependencies: AppDependencies
   private var didBootstrap = false
+  private var sessionExpiryObservation: AnyCancellable?
 
   init(dependencies: AppDependencies) {
     self.dependencies = dependencies
+    sessionExpiryObservation = NotificationCenter.default
+      .publisher(for: .liveSessionExpired)
+      .compactMap { $0.userInfo?[LiveSessionExpiry.serverIDKey] as? String }
+      .receive(on: DispatchQueue.main)
+      .sink { [weak self] serverID in
+        self?.sessionDidExpire(serverID: serverID)
+      }
   }
 
   func bootstrap() async {
@@ -49,6 +73,9 @@ final class RootCoordinator: ObservableObject {
     dependencies.serviceSelection.configure(
       supportedServiceIDs: metadata.supportedServices
     )
+    dependencies.pushNotificationsEnabled =
+      metadata.pushNotifications?.enabled == true
+    dependencies.rssEnabled = metadata.rss?.enabled == true
     connectionError = nil
     state = .authentication
   }
@@ -67,6 +94,7 @@ final class RootCoordinator: ObservableObject {
       instance = nil
       currentUser = nil
       isUsingOfflineSession = false
+      dependencies.invalidateIdentityScopedRuntimeState()
     }
     state = .serverSetup
   }
@@ -77,9 +105,24 @@ final class RootCoordinator: ObservableObject {
   }
 
   func signOut() async {
-    try? await dependencies.authService.logout()
-    dependencies.playbackCoordinator.endSession()
-    dependencies.notificationCenter.clear()
+    do {
+      try await dependencies.authService.logout()
+    } catch {
+      AppLogger.auth.failure("Signing out on the server", error)
+    }
+    if let serverID = selectedServer?.id, let userID = currentUser?.id {
+      dependencies.sessionStore.savedAccounts.forget(serverID: serverID, userID: userID)
+    }
+    endSession()
+  }
+
+  private func sessionDidExpire(serverID: String) {
+    guard serverID == selectedServer?.id, state == .authenticated, !isUsingOfflineSession else { return }
+    endSession()
+  }
+
+  private func endSession() {
+    dependencies.invalidateIdentityScopedRuntimeState()
     if let serverID = selectedServer?.id {
       dependencies.sessionStore.clearSession(forServerID: serverID)
     }

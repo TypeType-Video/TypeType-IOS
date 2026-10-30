@@ -3,129 +3,96 @@ import Foundation
 @MainActor
 final class LiveYouTubeSessionViewModel: ObservableObject {
   enum State: Equatable {
-    case idle
     case loading
-    case loaded
+    case loaded(LiveYouTubeSessionStatus)
     case failed(String)
   }
 
-  @Published private(set) var state = State.idle
-  @Published private(set) var status: LiveYouTubeSessionStatus?
-  @Published private(set) var browserSession:
-    LiveYouTubeRemoteBrowserSession?
-  @Published private(set) var isBusy = false
-  @Published private(set) var message: String?
+  @Published private(set) var state = State.loading
+  @Published private(set) var browser: LiveYouTubeRemoteBrowser?
+  @Published private(set) var isWorking = false
+  @Published var errorMessage: String?
 
   private let service: LiveYouTubeSessionServiceProtocol
+  private let instanceURL: () -> URL?
+  private let accessToken: () -> String?
+  private var browserSessionID: String?
 
-  init(service: LiveYouTubeSessionServiceProtocol) {
+  init(
+    service: LiveYouTubeSessionServiceProtocol,
+    instanceURL: @escaping () -> URL?,
+    accessToken: @escaping () -> String?
+  ) {
     self.service = service
+    self.instanceURL = instanceURL
+    self.accessToken = accessToken
   }
 
-  func prepare() async {
-    guard state == .idle else { return }
-    await refresh()
+  var isConnected: Bool {
+    if case let .loaded(status) = state { return status.isConnected }
+    return false
   }
 
   func refresh() async {
-    state = .loading
     do {
-      status = try await service.status()
-      state = .loaded
+      state = .loaded(try await service.status())
     } catch {
-      state = .failed(text(for: error))
+      state = .failed(Self.text(for: error))
     }
   }
 
-  func start(baseURL: URL?) async -> URL? {
-    guard !isBusy else { return nil }
-    isBusy = true
-    defer { isBusy = false }
+  func connect() async {
+    guard browser == nil, !isWorking else { return }
+    isWorking = true
+    defer { isWorking = false }
     do {
-      let session = try await service.startRemoteBrowser(
-        returnTo: nil
-      )
-      browserSession = session
-      state = .loaded
-      return resolvedURL(session.webSocketURL, baseURL: baseURL)
+      let session = try await service.startBrowser()
+      guard let base = instanceURL(),
+        let url = LiveYouTubeSessionService.socketURL(for: session.wsUrl, instance: base)
+      else {
+        errorMessage = String(localized: "The sign-in browser address does not match this instance.")
+        return
+      }
+      let next = LiveYouTubeRemoteBrowser()
+      next.connect(url: url, accessToken: accessToken())
+      browserSessionID = session.sessionId
+      browser = next
     } catch {
-      state = .failed(text(for: error))
-      return nil
+      errorMessage = Self.text(for: error)
     }
   }
 
-  func cancelBrowser() async {
-    guard let browserSession else { return }
-    try? await service.cancelRemoteBrowser(
-      sessionID: browserSession.sessionID
-    )
-    self.browserSession = nil
-  }
-
-  func completeBrowser() async {
-    browserSession = nil
-    message = "YouTube session connected."
+  func browserFinished() async {
+    browser?.close()
+    browser = nil
+    browserSessionID = nil
     await refresh()
   }
 
+  func cancel() async {
+    browser?.send(.cancel)
+    if let browserSessionID {
+      do {
+        try await service.cancelBrowser(sessionID: browserSessionID)
+      } catch {
+        AppLogger.app.failure("Cancelling the YouTube sign-in browser", error)
+      }
+    }
+    await browserFinished()
+  }
+
   func disconnect() async {
-    guard !isBusy else { return }
-    isBusy = true
-    defer { isBusy = false }
+    isWorking = true
+    defer { isWorking = false }
     do {
       try await service.disconnect()
-      message = "YouTube session disconnected."
       await refresh()
     } catch {
-      state = .failed(text(for: error))
+      errorMessage = Self.text(for: error)
     }
   }
 
-  private func resolvedURL(
-    _ rawValue: String,
-    baseURL: URL?
-  ) -> URL? {
-    if let absolute = URL(string: rawValue),
-      let scheme = absolute.scheme,
-      ["ws", "wss"].contains(scheme) {
-      return absolute
-    }
-    guard let baseURL,
-      var components = URLComponents(
-        url: baseURL,
-        resolvingAgainstBaseURL: false
-      )
-    else {
-      return nil
-    }
-    if let absolute = URL(string: rawValue),
-      let scheme = absolute.scheme,
-      ["http", "https"].contains(scheme) {
-      components = URLComponents(
-        url: absolute,
-        resolvingAgainstBaseURL: false
-      ) ?? components
-    } else {
-      let basePath = components.path.hasSuffix("/")
-        ? String(components.path.dropLast())
-        : components.path
-      let parts = rawValue.split(
-        separator: "?",
-        maxSplits: 1,
-        omittingEmptySubsequences: false
-      )
-      components.path = basePath + "/" + parts[0]
-        .trimmingCharacters(in: CharacterSet(charactersIn: "/"))
-      components.percentEncodedQuery = parts.count > 1
-        ? String(parts[1])
-        : nil
-    }
-    components.scheme = components.scheme == "https" ? "wss" : "ws"
-    return components.url
-  }
-
-  private func text(for error: Error) -> String {
-    (error as? LocalizedError)?.errorDescription
-      ?? "YouTube session is unavailable."
+  private static func text(for error: Error) -> String {
+    (error as? LocalizedError)?.errorDescription ?? String(localized: "YouTube sign-in is unavailable right now.")
   }
 }

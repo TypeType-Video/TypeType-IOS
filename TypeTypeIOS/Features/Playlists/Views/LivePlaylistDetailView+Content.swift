@@ -5,7 +5,7 @@ extension LivePlaylistDetailView {
   var content: some View {
     switch viewModel.state {
     case .idle, .loading:
-      ProgressView("Loading playlist")
+      TypeTypeSkeletonList(layout: .rows, count: 8)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     case let .failed(message):
       ContentUnavailableView {
@@ -32,7 +32,7 @@ extension LivePlaylistDetailView {
           description: Text(
             "Add videos from their details page using Save to playlist."
           )
-        )
+        ).liveThemedEmptyState()
       } else {
         List {
           if !playlist.description.isEmpty {
@@ -53,7 +53,7 @@ extension LivePlaylistDetailView {
                 Label("Play all", systemImage: "play.fill")
                   .frame(maxWidth: .infinity)
               }
-              .buttonStyle(.borderedProminent)
+              .liveProminentButton()
 
               Button {
                 startPlayback(
@@ -68,7 +68,7 @@ extension LivePlaylistDetailView {
               .buttonStyle(.bordered)
             }
           }
-          Section("\(playlist.videoCount) videos") {
+          Section {
             ForEach(viewModel.videos) { video in
               LivePlaylistVideoRow(
                 video: video,
@@ -80,6 +80,17 @@ extension LivePlaylistDetailView {
                 },
                 onRemove: { pendingRemoval = video }
               )
+              .liveConfirmPopover(
+                isPresented: Binding(
+                  get: { pendingRemoval?.id == video.id },
+                  set: { if !$0 { pendingRemoval = nil } }
+                ),
+                title: "Remove video?",
+                confirmTitle: "Remove"
+              ) {
+                Task { await viewModel.remove(video) }
+                pendingRemoval = nil
+              }
             }
             .onMove { source, destination in
               Task {
@@ -89,49 +100,12 @@ extension LivePlaylistDetailView {
                 )
               }
             }
-          }
+          } header: { Text("\(playlist.videoCount) videos").liveSectionHeader() }
         }
-        .listStyle(.plain)
+          .liveThemedList()
         .refreshable { await viewModel.reload() }
       }
     }
-  }
-
-  @ToolbarContentBuilder
-  var toolbarContent: some ToolbarContent {
-    ToolbarItemGroup(placement: .topBarTrailing) {
-      Menu {
-        Picker("Sort", selection: $viewModel.sort) {
-          ForEach(LivePlaylistDetailViewModel.Sort.allCases) {
-            Text($0.title).tag($0)
-          }
-        }
-        Divider()
-        Button("Rename", systemImage: "pencil") {
-          renamesPlaylist = true
-        }
-        Button(
-          "Delete playlist",
-          systemImage: "trash",
-          role: .destructive
-        ) {
-          confirmsDeletion = true
-        }
-      } label: {
-        Label("Playlist options", systemImage: "ellipsis.circle")
-      }
-      if viewModel.sort == .manual,
-        viewModel.playlist?.videos.isEmpty == false {
-        EditButton()
-      }
-    }
-  }
-
-  var removalBinding: Binding<Bool> {
-    Binding(
-      get: { pendingRemoval != nil },
-      set: { if !$0 { pendingRemoval = nil } }
-    )
   }
 
   var errorBinding: Binding<Bool> {

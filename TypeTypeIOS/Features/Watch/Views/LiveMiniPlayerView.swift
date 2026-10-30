@@ -1,89 +1,109 @@
+import AVFoundation
 import SwiftUI
 
 struct LiveMiniPlayerView: View {
   @ObservedObject var coordinator: LivePlaybackCoordinator
   let onExpand: () -> Void
+  let containerSize: CGSize
+  let tabBarBand: CGFloat
+  let topBand: CGFloat
+
+  @State private var dragOffset: CGSize = .zero
+  @State private var dragStart: CGSize = .zero
+  @State private var isDragging = false
+
+  private static let cardWidth: CGFloat = 260
+  private static let cardHeight: CGFloat = 146
+  private static let margin: CGFloat = 12
 
   var body: some View {
     if let video = coordinator.currentVideo,
       let controller = coordinator.controller {
-      VStack(spacing: 0) {
-        ProgressView(
-          value: min(max(controller.position, 0), max(controller.duration, 1)),
-          total: max(controller.duration, 1)
-        )
-        .progressViewStyle(.linear)
-        .tint(DemoTheme.accent)
-        .frame(height: 2)
+      ZStack {
+        videoLayer(video, controller: controller)
 
-        HStack(spacing: 11) {
-          Button(action: onExpand) {
-            LiveRemoteImage(url: video.thumbnail)
-              .frame(width: 80, height: 45)
-              .aspectRatio(16 / 9, contentMode: .fill)
-              .clipped()
-              .clipShape(
-                RoundedRectangle(cornerRadius: 6, style: .continuous)
-              )
-          }
-          .buttonStyle(.plain)
-          .accessibilityLabel("Open \(video.title)")
+        Color.clear
+          .contentShape(Rectangle())
+          .onTapGesture { onExpand() }
           .accessibilityIdentifier("live.miniplayer.open")
 
-          Button(action: onExpand) {
-            VStack(alignment: .leading, spacing: 3) {
-              Text(video.title)
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(.primary)
-                .lineLimit(1)
-              Text(video.uploaderName)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .lineLimit(1)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-          }
-          .buttonStyle(.plain)
-
-          if coordinator.sleepTimer.isActive {
-            Image(systemName: "moon.zzz.fill")
-              .font(.caption)
-              .foregroundStyle(.tint)
-              .accessibilityLabel(
-                "Sleep timer \(coordinator.sleepTimer.summary)"
-              )
-          }
-
-          Button(action: controller.togglePlayback) {
-            Image(
-              systemName: controller.state == .playing
-                ? "pause.fill"
-                : "play.fill"
-            )
-            .frame(width: 34, height: 40)
-          }
-          .accessibilityLabel(
-            controller.state == .playing ? "Pause" : "Play"
-          )
-          .accessibilityIdentifier("live.miniplayer.playback")
-
-          Button(action: coordinator.close) {
-            Image(systemName: "xmark")
-              .frame(width: 30, height: 40)
-          }
-          .accessibilityLabel("Close player")
-          .accessibilityIdentifier("live.miniplayer.close")
-        }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 8)
+        controls(controller)
+        .padding(12)
+        // One rasterized layer: re-compositing glass on every drag frame stutters.
+        .compositingGroup()
       }
-      .frame(maxWidth: .infinity)
-      .background(.regularMaterial)
-      .overlay(alignment: .top) {
-        Divider()
+      .frame(width: Self.cardWidth, height: Self.cardHeight)
+      .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+      .overlay {
+        RoundedRectangle(cornerRadius: 16, style: .continuous)
+          .strokeBorder(.white.opacity(0.14), lineWidth: 1)
       }
+      .shadow(color: .black.opacity(0.3), radius: 12, y: 5)
+      // Offset placement keeps the card and its buttons one piece while dragging.
+      .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
+      .offset(clampedOffset)
+      // simultaneousGesture: the drag works whatever child is under the finger.
+      .simultaneousGesture(freeDrag)
       .accessibilityElement(children: .contain)
+      .accessibilityAction(named: "Expand player") {
+        onExpand()
+      }
+      .accessibilityAction(named: "Close player") {
+        coordinator.close()
+      }
       .accessibilityIdentifier("live.miniplayer")
+    }
+  }
+
+  private var restingOffset: CGSize {
+    CGSize(width: -Self.margin, height: -(tabBarBand + Self.margin))
+  }
+
+  private var minOffsetX: CGFloat {
+    -(containerSize.width - Self.cardWidth - 2 * Self.margin)
+  }
+
+  private var clampedOffset: CGSize {
+    let minOffsetY = -(containerSize.height - Self.cardHeight - topBand - Self.margin)
+    let maxOffsetY = -(tabBarBand + Self.margin)
+    return CGSize(
+      width: min(max(restingOffset.width + dragOffset.width, minOffsetX), 0),
+      height: min(max(restingOffset.height + dragOffset.height, minOffsetY), maxOffsetY)
+    )
+  }
+
+  private var freeDrag: some Gesture {
+    DragGesture(minimumDistance: 8)
+      .onChanged { value in
+        if !isDragging {
+          dragStart = dragOffset
+          isDragging = true
+        }
+        dragOffset = CGSize(
+          width: dragStart.width + value.translation.width,
+          height: dragStart.height + value.translation.height
+        )
+      }
+      .onEnded { _ in
+        isDragging = false
+        withAnimation(.snappy(duration: 0.22)) {
+          let totalX = restingOffset.width + dragOffset.width
+          let midX = minOffsetX / 2
+          let snappedTotalX = totalX > midX ? 0 : minOffsetX
+          dragOffset.width = snappedTotalX - restingOffset.width
+          dragStart = dragOffset
+        }
+      }
+  }
+}
+
+extension View {
+  @ViewBuilder
+  func pipGlassBackground() -> some View {
+    if #available(iOS 26.0, *) {
+      self.glassEffect(.clear, in: Circle())
+    } else {
+      self.background(.ultraThinMaterial, in: Circle())
     }
   }
 }

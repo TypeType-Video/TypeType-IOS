@@ -6,7 +6,7 @@ final class MoreUITests: XCTestCase {
     app.launchArguments = ["--typetype-demo-home"]
     app.launch()
 
-    app.tabBars.buttons["More"].tap()
+    app.tapTab("More")
     XCTAssertTrue(
       app.descendants(matching: .any)["demo.more.screen"]
         .waitForExistence(timeout: 5)
@@ -45,17 +45,17 @@ final class MoreUITests: XCTestCase {
     ).tap()
     XCTAssertEqual(deArrow.value as? String, "1")
 
-    app.tabBars.buttons["Home"].tap()
+    app.tapTab("Home")
     XCTAssertTrue(
       app.staticTexts["TypeType finally feels at home on iOS"]
         .waitForExistence(timeout: 3)
     )
 
-    app.tabBars.buttons["More"].tap()
+    app.tapTab("More")
     app.switches["DeArrow titles and thumbnails"].coordinate(
       withNormalizedOffset: CGVector(dx: 0.9, dy: 0.5)
     ).tap()
-    app.tabBars.buttons["Home"].tap()
+    app.tapTab("Home")
     XCTAssertTrue(
       app.staticTexts["A truly native TypeType for iPhone and iPad"]
         .waitForExistence(timeout: 3)

@@ -6,6 +6,8 @@
   <p>A native TypeType experience for iPhone and iPad.</p>
 </div>
 
+You want to know the current position of TypeType about AI ? Go check [this](https://github.com/TypeType-Video/TypeType/blob/dev/AI_TRANSPARENCY.md).
+
 <div align="center">
 
 [![iOS](https://github.com/TypeType-Video/TypeType-IOS/actions/workflows/ios.yml/badge.svg?branch=main)](https://github.com/TypeType-Video/TypeType-IOS/actions/workflows/ios.yml)
@@ -48,12 +50,17 @@ from changing public feeds.
 - One adaptive SwiftUI interface for iPhone and iPad
 - Instance setup, guest access, local accounts, OIDC, password reset, and
   Keychain-backed persistent sessions
+- Account profiles with isolated server-side sessions
+- Channel notification preferences when the instance enables push delivery
+- Subscription groups with creation, management, filtering, and per-channel
+  quick actions
 - Home, multi-service search, channels, podcasts, subscriptions, history,
   playlists, favorites, and Watch Later
 - YouTube, BiliBili, and NicoNico discovery with provider-aware playback and
   native NicoNico danmaku
 - Queue, captions, chapters, SponsorBlock, DeArrow, comments, related videos,
   sleep timer, and playback-speed controls
+- Player double-tap seek zones with native AVKit controls
 - Server-backed audio and video downloads with persistent tracking and native
   offline playback
 - Profile, imports, notifications, content controls, diagnostics, settings,

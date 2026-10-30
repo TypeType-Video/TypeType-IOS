@@ -4,16 +4,27 @@ extension LiveDownloadCenter {
   @discardableResult
   func start(
     video: LiveVideoItem,
-    options: LiveDownloadOptions
+    options: LiveDownloadOptions,
+    likeCount: Int64 = -1,
+    dislikeCount: Int64 = -1
   ) async throws -> LiveManagedDownload {
     guard let scope = scopeProvider() else {
       throw LiveDownloadCenterError.missingScope
+    }
+    if let active = activeRecord(
+      videoURL: video.url,
+      mode: options.mode
+    ) {
+      throw LiveDownloadCenterError.duplicateActiveDownload(
+        mode: active.options.mode
+      )
     }
     let job = try await service.create(
       videoURL: video.url,
       options: options
     )
     let now = Date()
+    let avatarName = await saveAvatar(video: video)
     let record = LiveManagedDownload(
       id: UUID().uuidString,
       scope: scope,
@@ -25,7 +36,13 @@ extension LiveDownloadCenter {
       job: job,
       state: state(for: job),
       localFileName: nil,
-      failureMessage: job.error
+      failureMessage: job.error,
+      metadata: LiveOfflineVideoMetadata(
+        video: video,
+        likeCount: likeCount,
+        dislikeCount: dislikeCount,
+        localAvatarFileName: avatarName
+      )
     )
     records.append(record)
     persist()
@@ -33,6 +50,40 @@ extension LiveDownloadCenter {
       track(record.id)
     }
     return self.record(id: record.id) ?? record
+  }
+
+  private func saveAvatar(video: LiveVideoItem) async -> String? {
+    let source = video.uploaderAvatarURL.trimmingCharacters(in: .whitespaces)
+    guard !source.isEmpty, let url = URL(string: source),
+      let (data, _) = try? await URLSession.shared.data(from: url),
+      !data.isEmpty
+    else { return nil }
+    let name = "avatar-\(video.id.hashValue).img"
+    let destination = artifactsURL.appendingPathComponent(name)
+    try? data.write(to: destination, options: .atomic)
+    return name
+  }
+
+  func existingRecord(
+    forVideoURL videoURL: String,
+    mode: String
+  ) -> LiveManagedDownload? {
+    let matches = visibleRecords.filter {
+      $0.videoURL == videoURL
+        && $0.options.mode.caseInsensitiveCompare(mode) == .orderedSame
+    }
+    return matches.first(where: \.state.isActive) ?? matches.first
+  }
+
+  func activeRecord(
+    videoURL: String,
+    mode: String
+  ) -> LiveManagedDownload? {
+    visibleRecords.first {
+      $0.videoURL == videoURL
+        && $0.options.mode.caseInsensitiveCompare(mode) == .orderedSame
+        && $0.state.isActive
+    }
   }
 
   func refresh() async {
@@ -111,8 +162,13 @@ extension LiveDownloadCenter {
     if let localURL = artifactURL(for: record) {
       try? fileManager.removeItem(at: localURL)
     }
-    try? await service.delete(id: record.job.id)
+    do {
+      try await service.delete(id: record.job.id)
+    } catch {
+      AppLogger.network.failure("Deleting the server copy of a download", error)
+    }
     records.removeAll { $0.id == id }
     persist()
+    await refreshStorageUsage()
   }
 }

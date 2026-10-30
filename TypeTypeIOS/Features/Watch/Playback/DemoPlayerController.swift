@@ -58,11 +58,6 @@ final class DemoPlayerController: ObservableObject {
     player.seek(to: time, toleranceBefore: .zero, toleranceAfter: .zero)
   }
 
-  func seekRelative(by seconds: Double) {
-    let current = player.currentTime().seconds
-    seek(to: (current.isFinite ? current : 0) + seconds)
-  }
-
   func setPlaybackRate(_ rate: Float) {
     player.defaultRate = rate
     if player.timeControlStatus == .playing {
@@ -103,10 +98,12 @@ final class DemoPlayerController: ObservableObject {
   }
 
   func setBackgroundAudioEnabled(_ enabled: Bool) {
-    do {
-      try DemoAudioSessionConfigurator.configure(backgroundAudio: enabled)
-    } catch {
-      state = .failed("The audio session could not be configured.")
+    Task { [weak self] in
+      do {
+        try await AudioSessionConfigurator.configure(backgroundAudio: enabled)
+      } catch {
+        self?.state = .failed("The audio session could not be configured.")
+      }
     }
   }
 
@@ -132,7 +129,7 @@ final class DemoPlayerController: ObservableObject {
         case .readyToPlay:
           state = player.timeControlStatus == .playing ? .playing : .ready
         case .failed:
-          state = .failed(DemoPlaybackErrorFormatter.message(for: item.error))
+          state = .failed(PlaybackErrorFormatter.message(for: item.error))
         @unknown default:
           state = .failed("The player reported an unknown state.")
         }

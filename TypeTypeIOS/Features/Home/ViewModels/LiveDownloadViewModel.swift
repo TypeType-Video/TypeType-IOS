@@ -12,11 +12,13 @@ final class LiveDownloadViewModel: ObservableObject {
   }
 
   @Published var mode = LiveDownloadMode.video {
-    didSet { applyModeDefaults() }
+    didSet {
+      applyModeDefaults()
+      adoptExistingRecord()
+    }
   }
   @Published var quality = "1080p"
   @Published var format = "mp4"
-  @Published var sponsorBlock = false
   @Published var includesSubtitles = false
   @Published var subtitleLanguage = "en"
   @Published private(set) var state = State.idle
@@ -26,15 +28,29 @@ final class LiveDownloadViewModel: ObservableObject {
 
   let video: LiveVideoItem
   private let center: LiveDownloadCenter
+
+  var isFinishing: Bool {
+    guard let job else { return false }
+    let status = job.status.lowercased()
+    return status == "done" || status == "completed"
+      || job.progressPercent == 100
+  }
+  private let likeCount: Int64
+  private let dislikeCount: Int64
   private var recordID: String?
   private var recordsObservation: AnyCancellable?
 
   init(
     video: LiveVideoItem,
-    center: LiveDownloadCenter
+    center: LiveDownloadCenter,
+    likeCount: Int64 = -1,
+    dislikeCount: Int64 = -1
   ) {
     self.video = video
+    self.likeCount = likeCount
+    self.dislikeCount = dislikeCount
     self.center = center
+    adoptExistingRecord()
     recordsObservation = center.$records.sink { [weak self] _ in
       Task { @MainActor [weak self] in
         self?.synchronize()
@@ -77,7 +93,9 @@ final class LiveDownloadViewModel: ObservableObject {
       } else {
         let record = try await center.start(
           video: video,
-          options: options
+          options: options,
+          likeCount: likeCount,
+          dislikeCount: dislikeCount
         )
         recordID = record.id
       }
@@ -143,6 +161,19 @@ final class LiveDownloadViewModel: ObservableObject {
     }
   }
 
+  private func adoptExistingRecord() {
+    recordID = center.existingRecord(
+      forVideoURL: video.url,
+      mode: mode.rawValue
+    ).map(\.id)
+
+    if recordID != nil {
+      synchronize()
+    } else {
+      reset()
+    }
+  }
+
   private func reset() {
     recordID = nil
     job = nil
@@ -161,7 +192,6 @@ final class LiveDownloadViewModel: ObservableObject {
       format = "jpg"
       quality = "best"
       includesSubtitles = false
-      sponsorBlock = false
     }
   }
 

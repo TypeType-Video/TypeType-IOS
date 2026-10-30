@@ -6,7 +6,7 @@ struct DemoSponsorBlockSettingsView: View {
 
   var body: some View {
     Form {
-      Section("Global behavior") {
+      Section {
         Picker("SponsorBlock behavior", selection: binding(\.sponsorBlockMode)) {
           ForEach(["Skip", "Mark", "Off"], id: \.self) { Text($0).tag($0) }
         }
@@ -14,9 +14,9 @@ struct DemoSponsorBlockSettingsView: View {
         .onChange(of: session.preferences.sponsorBlockMode) {
           applyGlobalMode()
         }
-      }
+      } header: { Text("Global behavior").liveSectionHeader() }
 
-      Section("SponsorBlock categories") {
+      Section {
         ForEach(DemoSponsorBlockCatalog.categories) { category in
           NavigationLink {
             DemoSponsorBlockCategoryView(category: category)
@@ -39,7 +39,7 @@ struct DemoSponsorBlockSettingsView: View {
             }
           }
         }
-      }
+      } header: { Text("SponsorBlock categories").liveSectionHeader() }
 
       DemoSponsorBlockAdvancedSection()
     }

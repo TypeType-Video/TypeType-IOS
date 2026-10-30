@@ -7,6 +7,8 @@ protocol LiveNotificationsServiceProtocol {
     limit: Int
   ) async throws -> LiveNotificationsPage
   func markAllRead() async throws -> LiveNotificationsReadResult
+  func markRead(notificationID: String) async throws ->
+    LiveNotificationsReadResult
 }
 
 final class LiveNotificationsService: LiveNotificationsServiceProtocol {
@@ -45,6 +47,18 @@ final class LiveNotificationsService: LiveNotificationsServiceProtocol {
   func markAllRead() async throws -> LiveNotificationsReadResult {
     try await apiClient.request(
       endpoint("/notifications/read-all", .post),
+      as: LiveNotificationsReadResult.self
+    )
+  }
+
+  func markRead(
+    notificationID: String
+  ) async throws -> LiveNotificationsReadResult {
+    try await apiClient.request(
+      endpoint(
+        "/notifications/\(notificationID)/read",
+        .post
+      ),
       as: LiveNotificationsReadResult.self
     )
   }

@@ -19,10 +19,10 @@ final class LivePlaylistDetailViewModel: ObservableObject {
 
     var title: String {
       switch self {
-      case .manual: return "Manual"
-      case .addedNewest: return "Recently added"
-      case .addedOldest: return "Oldest added"
-      case .title: return "Title"
+      case .manual: return String(localized: "Manual")
+      case .addedNewest: return String(localized: "Recently added")
+      case .addedOldest: return String(localized: "Oldest added")
+      case .title: return String(localized: "Title")
       }
     }
   }
@@ -35,8 +35,13 @@ final class LivePlaylistDetailViewModel: ObservableObject {
   private let id: String
   private let service: LivePlaylistsServiceProtocol
 
-  init(id: String, service: LivePlaylistsServiceProtocol) {
+  init(
+    id: String,
+    seed: LivePlaylist? = nil,
+    service: LivePlaylistsServiceProtocol
+  ) {
     self.id = id
+    _playlist = Published(initialValue: seed)
     self.service = service
   }
 
@@ -59,18 +64,26 @@ final class LivePlaylistDetailViewModel: ObservableObject {
 
   func prepare() async {
     guard state == .idle else { return }
+    if playlist != nil {
+      state = .loaded
+    }
     await reload()
   }
 
   func reload() async {
-    state = .loading
+    let hadContent = playlist != nil
+    if !hadContent {
+      state = .loading
+    }
     do {
       playlist = try await service.playlist(id: id)
       state = .loaded
     } catch is CancellationError {
       return
     } catch {
-      state = .failed(message(for: error))
+      if !hadContent {
+        state = .failed(message(for: error))
+      }
     }
   }
 

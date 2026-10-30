@@ -107,17 +107,35 @@ final class LiveHomeUITests: XCTestCase {
       app.buttons["live.player.sleep-timer.open"]
         .waitForExistence(timeout: 3)
     )
-    app.buttons["Done"].tap()
-    app.navigationBars["Video"].buttons.firstMatch.tap()
+    try XCTUnwrap(
+      firstElement(
+        [
+          app.buttons["Done"],
+          element(in: app, labelled: "Terminé"),
+        ],
+        timeout: 3
+      )
+    )
+    .tap()
+    app.navigationBars.buttons.firstMatch.tap()
 
-    app.tabBars.buttons["More"].tap()
-    let settings = element(in: app, labelled: "Settings")
-    XCTAssertTrue(settings.waitForExistence(timeout: 3))
-    settings.tap()
+    try XCTUnwrap(
+      firstElement(
+        [
+          app.buttons["live.home.settings"],
+        ],
+        timeout: 3
+      )
+    )
+    .tap()
     let settingsScreen = app.collectionViews[
       "live.settings.screen"
     ]
     XCTAssertTrue(settingsScreen.waitForExistence(timeout: 5))
+    capture(app, named: "Live settings · Android parity")
+    let content = element(in: app, labelled: "Content")
+    XCTAssertTrue(content.waitForExistence(timeout: 3))
+    content.tap()
     let servicePicker = app.buttons.matching(
       NSPredicate(
         format: "label CONTAINS[c] %@",
@@ -143,16 +161,16 @@ final class LiveHomeUITests: XCTestCase {
       )
     )
     bilibili.tap()
-    let save = app.buttons["live.settings.save"]
-    XCTAssertTrue(save.waitForExistence(timeout: 3))
-    save.tap()
-    let saveDisabled = expectation(
-      for: NSPredicate(format: "enabled == false"),
-      evaluatedWith: save
+    try XCTUnwrap(
+      firstElement(
+        [
+          app.tabBars.buttons["Home"],
+          app.tabBars.buttons["Accueil"],
+        ],
+        timeout: 3
+      )
     )
-    await fulfillment(of: [saveDisabled], timeout: 5)
-    XCTAssertFalse(save.isEnabled)
-    app.tabBars.buttons["Home"].tap()
+    .tap()
     XCTAssertTrue(
       element(in: app, labelled: "BiliBili recommendation")
         .waitForExistence(timeout: 10)
@@ -303,9 +321,7 @@ final class LiveHomeUITests: XCTestCase {
     let more = try XCTUnwrap(
       firstElement(
         [
-          app.tabBars.buttons["More"],
-          app.buttons["More"].firstMatch,
-          element(in: app, labelled: "More"),
+          app.buttons["live.home.settings"],
         ],
         timeout: 15
       )
@@ -388,9 +404,7 @@ final class LiveHomeUITests: XCTestCase {
     let more = try XCTUnwrap(
       firstElement(
         [
-          app.tabBars.buttons["More"],
-          app.buttons["More"].firstMatch,
-          element(in: app, labelled: "More"),
+          app.buttons["live.home.settings"],
         ],
         timeout: 5
       )
@@ -488,9 +502,7 @@ final class LiveHomeUITests: XCTestCase {
     let more = try XCTUnwrap(
       firstElement(
         [
-          app.tabBars.buttons["More"],
-          app.buttons["More"].firstMatch,
-          element(in: app, labelled: "More"),
+          app.buttons["live.home.settings"],
         ],
         timeout: 5
       )
@@ -557,9 +569,7 @@ final class LiveHomeUITests: XCTestCase {
     let more = try XCTUnwrap(
       firstElement(
         [
-          app.tabBars.buttons["More"],
-          app.buttons["More"].firstMatch,
-          element(in: app, labelled: "More"),
+          app.buttons["live.home.settings"],
         ],
         timeout: 5
       )
@@ -607,7 +617,7 @@ final class LiveHomeUITests: XCTestCase {
     app.launch()
     connect(app, address: serverURL.absoluteString)
     app.buttons["live.auth.guest"].tap()
-    let more = app.tabBars.buttons["More"]
+    let more = app.buttons["live.home.settings"]
     XCTAssertTrue(more.waitForExistence(timeout: 15))
     more.tap()
     let settings = element(in: app, labelled: "Settings")
@@ -615,6 +625,9 @@ final class LiveHomeUITests: XCTestCase {
     settings.tap()
     let settingsScreen = app.collectionViews["live.settings.screen"]
     XCTAssertTrue(settingsScreen.waitForExistence(timeout: 5))
+    let player = element(in: app, labelled: "Player")
+    XCTAssertTrue(player.waitForExistence(timeout: 3))
+    player.tap()
     let appearance = element(in: app, labelled: "Caption appearance")
     for _ in 0..<2 where !appearance.isHittable {
       settingsScreen.swipeUp()

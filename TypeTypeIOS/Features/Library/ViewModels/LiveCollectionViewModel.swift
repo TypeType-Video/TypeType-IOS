@@ -19,10 +19,10 @@ final class LiveCollectionViewModel: ObservableObject {
 
     var title: String {
       switch self {
-      case .addedNewest: return "Recently added"
-      case .addedOldest: return "Oldest added"
-      case .title: return "Title"
-      case .duration: return "Duration"
+      case .addedNewest: return String(localized: "Recently added")
+      case .addedOldest: return String(localized: "Oldest added")
+      case .title: return String(localized: "Title")
+      case .duration: return String(localized: "Duration")
       }
     }
   }
@@ -34,12 +34,15 @@ final class LiveCollectionViewModel: ObservableObject {
   @Published private(set) var errorMessage: String?
 
   private let service: LiveLibraryServiceProtocol
+  private var loadGeneration = 0
 
   init(
     kind: LiveLibraryCollectionKind,
+    seed: [LiveLibraryVideo] = [],
     service: LiveLibraryServiceProtocol
   ) {
     self.kind = kind
+    _videos = Published(initialValue: seed)
     self.service = service
   }
 
@@ -61,23 +64,50 @@ final class LiveCollectionViewModel: ObservableObject {
 
   func prepare() async {
     guard state == .idle else { return }
+    if !videos.isEmpty {
+      state = .loaded
+    }
     await reload()
   }
 
   func reload() async {
-    state = .loading
+    loadGeneration += 1
+    let generation = loadGeneration
+    let startedAt = DispatchTime.now().uptimeNanoseconds
+    let hadContent = !videos.isEmpty
+    if !hadContent {
+      state = .loading
+    }
     do {
+      let loaded: [LiveLibraryVideo]
       switch kind {
       case .favorites:
-        videos = try await service.favorites().map(\.libraryVideo)
+        loaded = try await service.favorites().map(\.libraryVideo)
       case .watchLater:
-        videos = try await service.watchLater().map(\.libraryVideo)
+        loaded = try await service.watchLater().map(\.libraryVideo)
       }
+      guard generation == loadGeneration else { return }
+      videos = loaded
       state = .loaded
+      let kindLabel = String(describing: kind)
+      let loadedCount = videos.count
+      let ms = Int(
+        Double(DispatchTime.now().uptimeNanoseconds - startedAt) / 1e6
+      )
+      AppLogger.playback.info(
+        "collection: \(kindLabel, privacy: .public) loaded count=\(loadedCount, privacy: .public) in \(ms, privacy: .public)ms"
+      )
     } catch is CancellationError {
       return
     } catch {
-      state = .failed(message(for: error))
+      guard generation == loadGeneration else { return }
+      let kindLabel = String(describing: kind)
+      AppLogger.playback.error(
+        "collection: \(kindLabel, privacy: .public) failed \(error.localizedDescription, privacy: .public)"
+      )
+      if !hadContent {
+        state = .failed(message(for: error))
+      }
     }
   }
 

@@ -14,7 +14,7 @@ struct DemoWatchRelatedView: View {
         Text("Up next")
           .font(.title3.weight(.semibold))
         Spacer()
-        Toggle("Autoplay", isOn: $autoplay)
+        Toggle("Autoplay", isOn: $autoplay).liveRowFill()
           .labelsHidden()
         Text("Autoplay")
           .font(.caption)
@@ -31,7 +31,7 @@ struct DemoWatchRelatedView: View {
           }
         }
 
-        DemoIncrementalLoadingTrigger(
+        LiveIncrementalLoadingTrigger(
           canLoadMore: visibleLimit < visibleVideos.count,
           isLoading: isLoadingMore,
           label: "Loading more videos",

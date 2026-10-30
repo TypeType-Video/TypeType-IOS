@@ -1,9 +1,11 @@
 import SwiftUI
 
 struct LiveAccountView: View {
+  @Environment(\.themePalette) var palette
   @ObservedObject var coordinator: RootCoordinator
   @ObservedObject var notificationCenter: LiveNotificationCenter
   @ObservedObject var downloadCenter: LiveDownloadCenter
+  @State var confirmsSignOut = false
 
   init(coordinator: RootCoordinator) {
     self.coordinator = coordinator
@@ -21,7 +23,9 @@ struct LiveAccountView: View {
         administrationSection
         signOutSection
       }
+      .liveGroupedList()
       .navigationTitle("More")
+      .navigationBarTitleDisplayMode(.inline)
     }
     .accessibilityIdentifier("live.account.screen")
   }

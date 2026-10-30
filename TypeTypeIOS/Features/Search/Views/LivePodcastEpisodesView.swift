@@ -23,11 +23,10 @@ struct LivePodcastEpisodesView: View {
     content
       .navigationTitle("Podcast")
       .navigationBarTitleDisplayMode(.inline)
-      .navigationDestination(item: $selectedVideo) { video in
-        LiveVideoMetadataView(
-          video: video,
-          dependencies: dependencies
-        )
+      .onChange(of: selectedVideo) { _, video in
+        guard let video else { return }
+        selectedVideo = nil
+        dependencies.playbackCoordinator.open(video)
       }
       .navigationDestination(item: $selectedChannelURL) { channelURL in
         LiveChannelView(
@@ -43,7 +42,7 @@ struct LivePodcastEpisodesView: View {
   private var content: some View {
     switch viewModel.state {
     case .idle, .loading:
-      ProgressView("Loading podcast episodes")
+      TypeTypeSkeletonList(layout: .rows, count: 8)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     case let .failed(message):
       ContentUnavailableView {
@@ -60,7 +59,7 @@ struct LivePodcastEpisodesView: View {
         "No episodes",
         systemImage: "mic",
         description: Text("This podcast has no published episodes.")
-      )
+      ).liveThemedEmptyState()
     case .loaded:
       loadedContent
     }
@@ -90,7 +89,7 @@ struct LivePodcastEpisodesView: View {
               }
             )
           }
-          DemoIncrementalLoadingTrigger(
+          LiveIncrementalLoadingTrigger(
             canLoadMore: viewModel.canLoadMore,
             isLoading: viewModel.isLoadingMore,
             label: "Loading more podcast episodes",
@@ -103,7 +102,7 @@ struct LivePodcastEpisodesView: View {
       .padding(16)
     }
     .refreshable { await viewModel.reload() }
-    .background(DemoTheme.background)
+    .background(LiveThemeBackground().ignoresSafeArea())
   }
 
   private var header: some View {

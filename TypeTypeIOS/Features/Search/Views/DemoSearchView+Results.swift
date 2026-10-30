@@ -103,7 +103,7 @@ extension DemoSearchView {
             selectedVideo = $0
           }
         }
-        DemoIncrementalLoadingTrigger(
+        LiveIncrementalLoadingTrigger(
           canLoadMore: canLoadMoreVideos,
           isLoading: isLoadingMore,
           label: "Loading more videos",

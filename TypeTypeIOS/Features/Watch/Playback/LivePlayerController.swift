@@ -1,4 +1,5 @@
 import AVFoundation
+import Combine
 import Foundation
 
 @MainActor
@@ -14,9 +15,30 @@ final class LivePlayerController: ObservableObject {
 
   let player = AVPlayer()
 
-  @Published var state: State = .idle
+  @Published var state: State = .idle {
+    didSet { releaseExtrasIfStarted() }
+  }
+  @Published var extrasReleased = false
+  var firstFrameJobs: [() -> Void] = []
   @Published var stream: LivePlaybackStream?
+  @Published var nativePlayback: LiveNativePlayback?
+  @Published var nativeSubtitleCues: [LiveSubtitleCue] = []
+  var nativeSubtitlesTask: Task<Void, Never>?
+  var nativeFallbackUsed = false
+  @Published var isPresentingFullscreen = false
+  lazy var fullscreen = LiveNativeFullscreenPresenter(controller: self)
+  @Published var isVideoDocked = false
+  @Published var isOfflineContent = false
   @Published var preparation: LivePlaybackPreparation?
+  @Published var lastStartupMilliseconds: Int?
+  var startupTrace = LivePlaybackStartupTrace()
+  var metadataTask: Task<Void, Never>?
+  // Bumped by each load or restart; an older, slower load never installs.
+  var loadGeneration = 0
+  var startupWatchdog: Task<Void, Never>?
+  var startupRetryUsed = false
+  var sabrOfflineRetries = 0
+  @Published var isLoadingFullMetadata = false
   @Published var position: TimeInterval = 0
   @Published var duration: TimeInterval = 0
   @Published var audioOnly = false
@@ -25,6 +47,7 @@ final class LivePlayerController: ObservableObject {
   @Published var selectedAudioTrackID: String?
   @Published var selectedAudioSourceID: String?
   @Published var playbackRate: Float = 1
+  @Published var imageMode = LivePlayerImageMode.fit
   @Published var autoplayEnabled = true
   @Published var loopsPlayback = false
   @Published var subtitlesEnabled = false
@@ -39,6 +62,7 @@ final class LivePlayerController: ObservableObject {
   @Published var sponsorBlockShowFullVideoLabels = true
   @Published var sponsorBlockManualSkipOnFullVideo = true
   @Published var sponsorBlockSkipNonMusicOnlyOnMusicVideos = false
+  @Published var sponsorBlockNotice: LiveSponsorBlockNotice?
   @Published var muted = false
   @Published var bulletCommentsEnabled = false
   @Published var bulletCommentSpeed = 1.0
@@ -46,19 +70,29 @@ final class LivePlayerController: ObservableObject {
 
   var onPlaybackEnded: (() -> Void)?
   var onMetadataResolved: ((LiveVideoItem) -> Void)?
+  var onNearEnd: (() -> Void)?
+  var didNotifyNearEnd = false
 
   let video: LiveVideoItem
   let initialAutoplay: Bool
+  let pictureInPicture = LivePictureInPictureDriver()
+  var isPlayerSurfaceFullyVisible = true
+  // Set on stop or close: pending async work must never start playback afterwards.
+  var isTornDown = false
   let service: LivePlaybackServiceProtocol?
   let settingsService: LiveSettingsServiceProtocol
   let historyService: LiveHistoryServiceProtocol
+  let watchProgress: LiveWatchProgressStore
+  let appPreferences: LiveAppPreferencesStore
+  let orientationLock: LiveOrientationLock
   let playbackSessionReporter: LivePlaybackSessionReporter
   let bulletCommentStore = LiveBulletCommentStore()
-  var settings = LiveSettings()
+  @Published var settings = LiveSettings()
   var loadTask: Task<Void, Never>?
   var seekTask: Task<Void, Never>?
   var playbackServer: LivePlaybackHTTPServer?
   var itemObservation: NSKeyValueObservation?
+  var bulletCommentPreferencesObservation: AnyCancellable?
   var playbackObservation: NSKeyValueObservation?
   var endObservation: NSObjectProtocol?
   var timeObserver: Any?
@@ -93,23 +127,17 @@ final class LivePlayerController: ObservableObject {
     service = dependencies.playbackService
     settingsService = dependencies.settingsService
     historyService = dependencies.historyService
+    watchProgress = dependencies.watchProgress
+    appPreferences = dependencies.appPreferences
+    orientationLock = dependencies.orientationLock
     playbackSessionReporter = LivePlaybackSessionReporter(
       service: dependencies.sessionActivityService
     )
     let defaults = UserDefaults.standard
-    bulletCommentsEnabled = defaults.object(
-      forKey: Self.bulletCommentsEnabledKey
-    ) == nil
-      ? true
-      : defaults.bool(forKey: Self.bulletCommentsEnabledKey)
-    let storedSpeed = defaults.object(
-      forKey: Self.bulletCommentSpeedKey
-    ) == nil ? 1 : defaults.double(forKey: Self.bulletCommentSpeedKey)
-    bulletCommentSpeed = min(max(storedSpeed, 0.5), 2)
-    let storedSize = defaults.object(
-      forKey: Self.bulletCommentSizeKey
-    ) == nil ? 1 : defaults.double(forKey: Self.bulletCommentSizeKey)
-    bulletCommentSize = min(max(storedSize, 0.5), 2)
+    let initialPreferences = appPreferences.preferences
+    audioOnly = initialPreferences.playerAudioOnlyPlayback
+    Self.moveLegacyBulletCommentChoices(into: appPreferences, from: defaults)
+    observeBulletCommentPreferences()
     player.automaticallyWaitsToMinimizeStalling = true
     installPeriodicObserver()
   }
@@ -195,6 +223,12 @@ final class LivePlayerController: ObservableObject {
   }
 
   static func message(for error: Error) -> String {
+    if case let NetworkError.statusCode(code, message)? = error as? NetworkError,
+      (400..<500).contains(code), code != 401,
+      let message = message?.trimmingCharacters(in: .whitespacesAndNewlines),
+      !message.isEmpty {
+      return message
+    }
     if let description = (error as? LocalizedError)?.errorDescription,
       !description.isEmpty {
       return description

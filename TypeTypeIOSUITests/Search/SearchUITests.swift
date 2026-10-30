@@ -16,22 +16,23 @@ final class SearchUITests: XCTestCase {
     search.tap()
     search.typeText("video")
 
-    XCTAssertTrue(
-      app.descendants(matching: .any)["demo.search.channel.typetype"]
-        .waitForExistence(timeout: 3)
-    )
-    XCTAssertTrue(
-      app.descendants(matching: .any)["demo.search.playlist.calm-design"]
-        .waitForExistence(timeout: 3)
-    )
-    XCTAssertTrue(
-      app.buttons["demo.home.video.pipepipe-sabr"]
-        .waitForExistence(timeout: 3)
-    )
+    app.buttons["demo.search.scope.channels"].tap()
+    let channelRow = app.descendants(matching: .any).matching(
+      NSPredicate(format: "identifier BEGINSWITH 'demo.search.channel.'")
+    ).firstMatch
+    XCTAssertTrue(channelRow.waitForExistence(timeout: 3))
+
+    app.buttons["demo.search.scope.playlists"].tap()
+    let playlistRow = app.descendants(matching: .any).matching(
+      NSPredicate(format: "identifier BEGINSWITH 'demo.search.playlist.'")
+    ).firstMatch
+    XCTAssertTrue(playlistRow.waitForExistence(timeout: 3))
 
     app.buttons["demo.search.scope.videos"].tap()
     XCTAssertFalse(
-      app.descendants(matching: .any)["demo.search.channel.typetype"].exists
+      app.descendants(matching: .any).matching(
+        NSPredicate(format: "identifier BEGINSWITH 'demo.search.channel.'")
+      ).firstMatch.exists
     )
     XCTAssertTrue(app.buttons["demo.home.video.pipepipe-sabr"].exists)
   }

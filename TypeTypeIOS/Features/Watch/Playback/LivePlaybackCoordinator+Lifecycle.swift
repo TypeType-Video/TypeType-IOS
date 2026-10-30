@@ -8,8 +8,33 @@ extension LivePlaybackCoordinator {
 
   func minimize() {
     guard hasActivePlayback else { return }
+    guard controller?.state == .playing || controller?.state == .paused
+    else {
+      close()
+      return
+    }
     controller?.flushHistory()
+    startSystemPictureInPicture()
     presentation = .mini
+  }
+
+  func startSystemPictureInPicture() {
+    guard let controller else { return }
+    // Audio-only has no video layer: the PiP window would come up empty and without its close button.
+    guard !controller.audioOnly else { return }
+    let posterURL = currentVideo?.thumbnail
+    controller.pictureInPicture.onChange = { [weak self] in
+      self?.objectWillChange.send()
+    }
+    // The placeholder goes in the layer before the start: the system refuses PiP on an empty layer.
+    Task { [weak self] in
+      guard let self else { return }
+      await controller.pictureInPicture.loadPoster(url: posterURL)
+      controller.pictureInPicture.start(
+        onRestore: { [weak self] in self?.expand() },
+        onClose: { [weak self] in self?.close() }
+      )
+    }
   }
 
   func close() {
@@ -51,7 +76,9 @@ extension LivePlaybackCoordinator {
   ) {
     playbackGeneration += 1
     let generation = playbackGeneration
+    controller?.pictureInPicture.bringInline()
     controller?.stop()
+    prewarmNextQueueEntry()
     let next = playerFactory(video, autoplay)
     next.onPlaybackEnded = { [weak self, weak next] in
       guard let self, self.controller === next,
@@ -60,6 +87,14 @@ extension LivePlaybackCoordinator {
         return
       }
       self.handlePlaybackEnded()
+    }
+    next.onNearEnd = { [weak self, weak next] in
+      guard let self, self.controller === next,
+        self.playbackGeneration == generation
+      else {
+        return
+      }
+      self.prewarmNextQueueSession()
     }
     next.onMetadataResolved = { [weak self, weak next] resolved in
       guard let self, self.controller === next,

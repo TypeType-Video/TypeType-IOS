@@ -11,31 +11,31 @@ struct DemoAdminUserDetailView: View {
   var body: some View {
     Form {
       if user != nil {
-        Section("Identity") {
+        Section {
           TextField("Display name", text: $name)
           TextField("Email address", text: $email)
             .textInputAutocapitalization(.never)
           Button("Save identity", action: saveIdentity)
             .disabled(name.isEmpty || !email.contains("@"))
-        }
+        } header: { Text("Identity").liveSectionHeader() }
 
-        Section("Role and status") {
+        Section {
           Picker("Role", selection: roleBinding) {
             Text("User").tag("user")
             Text("Moderator").tag("moderator")
             Text("Admin").tag("admin")
           }
-          Toggle("Suspended", isOn: suspendedBinding)
-          Toggle("Verified", isOn: verifiedBinding)
-        }
+          Toggle("Suspended", isOn: suspendedBinding).liveRowFill()
+          Toggle("Verified", isOn: verifiedBinding).liveRowFill()
+        } header: { Text("Role and status").liveSectionHeader() }
 
-        Section("Access") {
+        Section {
           NavigationLink("Configure user allow list") {
             DemoAdminUserAllowListView(userID: userID)
           }
-        }
+        } header: { Text("Access").liveSectionHeader() }
 
-        Section("Actions") {
+        Section {
           Button("Reset token") {
             resetToken = "mock-\(UUID().uuidString.prefix(12))"
           }
@@ -46,9 +46,9 @@ struct DemoAdminUserDetailView: View {
               UIPasteboard.general.string = resetToken
             }
           }
-        }
+        } header: { Text("Actions").liveSectionHeader() }
       } else {
-        ContentUnavailableView("User not found", systemImage: "person.slash")
+        ContentUnavailableView("User not found", systemImage: "person.slash").liveThemedEmptyState()
       }
     }
     .navigationTitle(user?.name ?? "User")

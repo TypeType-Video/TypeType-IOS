@@ -8,29 +8,41 @@ extension LivePlayerController {
       queue: .main
     ) { [weak self] time in
       Task { @MainActor [weak self] in
-        try? await Task.sleep(for: .milliseconds(100))
         guard let self else { return }
         let seconds = time.seconds
         guard seconds.isFinite else { return }
-        let currentPosition = Self.timelinePosition(
-          playbackSeconds: seconds,
-          offset: playbackTimeOffset,
-          duration: duration
-        )
-        if abs(position - currentPosition) >= 0.05 {
-          position = currentPosition
-        }
-        if preparation?.providerPlayback != nil {
-          providerRecoveryResumeTime = max(
-            providerRecoveryResumeTime,
-            currentPosition
+        guard nativePlayback == nil else { return }
+        handleTimeTick(
+          Self.timelinePosition(
+            playbackSeconds: seconds,
+            offset: playbackTimeOffset,
+            duration: duration
           )
-        }
-        playbackServer?.updatePlayerTime(currentPosition)
-        updateSponsorBlock(at: currentPosition)
-        recordHistoryIfNeeded(force: false)
+        )
       }
     }
+  }
+
+  func handleTimeTick(_ currentPosition: TimeInterval) {
+    if abs(position - currentPosition) >= 0.05 {
+      position = currentPosition
+    }
+    if preparation?.providerPlayback != nil {
+      providerRecoveryResumeTime = max(
+        providerRecoveryResumeTime,
+        currentPosition
+      )
+    }
+    playbackServer?.updatePlayerTime(currentPosition)
+    nativePlayback?.report(currentPosition)
+    updateSponsorBlock(at: currentPosition)
+    notifyNearEndIfNeeded(at: currentPosition)
+    recordHistoryIfNeeded(force: false)
+  }
+
+  func setOutputMuted(_ value: Bool) {
+    player.isMuted = value
+    nativePlayback?.player.isMuted = value
   }
 
   static func timelinePosition(
@@ -48,7 +60,7 @@ extension LivePlayerController {
   private func updateSponsorBlock(at seconds: TimeInterval) {
     if let sponsorMutedRange {
       if !sponsorMutedRange.contains(seconds) {
-        player.isMuted = settings.muted
+        setOutputMuted(settings.muted)
         self.sponsorMutedRange = nil
       } else {
         return
@@ -66,8 +78,12 @@ extension LivePlayerController {
       return
     }
     handledSponsorSegments.insert(window.id)
+    sponsorBlockNotice = LiveSponsorBlockNotice(
+      category: window.segment.category,
+      muted: settings.sponsorBlockMuteInsteadOfSkip
+    )
     if settings.sponsorBlockMuteInsteadOfSkip {
-      player.isMuted = true
+      setOutputMuted(true)
       sponsorMutedRange = window.start..<window.end
     } else {
       seek(to: window.end)
@@ -110,16 +126,20 @@ extension LivePlayerController {
     let recordsEvent = !didRecordHistoryEvent
     didRecordHistoryEvent = true
     Task { [historyService, historyVideo] in
-      if recordsEvent {
-        _ = try? await historyService.add(
-          video: historyVideo,
-          progress: progress
+      do {
+        if recordsEvent {
+          _ = try await historyService.add(
+            video: historyVideo,
+            progress: progress
+          )
+        }
+        try await historyService.updateProgress(
+          videoURL: historyVideo.url,
+          positionMS: progressMS
         )
+      } catch {
+        AppLogger.network.failure("Saving watch history", error)
       }
-      try? await historyService.updateProgress(
-        videoURL: historyVideo.url,
-        positionMS: progressMS
-      )
     }
   }
 }

@@ -21,8 +21,7 @@ struct LiveAdminSessionsView: View {
   private var content: some View {
     switch viewModel.state {
     case .idle, .loading:
-      ProgressView("Loading active sessions")
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+      TypeTypeSkeletonList(layout: .settings, count: 8)
     case let .failed(message):
       ContentUnavailableView {
         Label("Sessions unavailable", systemImage: "network.slash")
@@ -38,7 +37,7 @@ struct LiveAdminSessionsView: View {
         ContentUnavailableView(
           "No active sessions",
           systemImage: "dot.radiowaves.left.and.right"
-        )
+        ).liveThemedEmptyState()
       } else {
         List(viewModel.sessions) { session in
           LiveAdminSessionRow(session: session)

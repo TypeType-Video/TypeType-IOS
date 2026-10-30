@@ -17,7 +17,7 @@ struct LiveAdminUserAccessView: View {
     Group {
       switch viewModel.state {
       case .idle, .loading:
-        ProgressView("Loading user access")
+        TypeTypeSkeletonList(layout: .settings, count: 6, scrolls: false)
       case let .failed(message):
         ContentUnavailableView {
           Label("Access unavailable", systemImage: "person.crop.circle.badge.exclamationmark")
@@ -46,7 +46,7 @@ struct LiveAdminUserAccessView: View {
 
   private var list: some View {
     List {
-      Section("User") {
+      Section {
         LabeledContent("Name", value: viewModel.list?.user.name ?? "")
         Toggle(
           "Use a personal allow list",
@@ -56,9 +56,9 @@ struct LiveAdminUserAccessView: View {
               Task { await viewModel.setRestricted(value) }
             }
           )
-        )
+        ).liveRowFill()
         .disabled(viewModel.isBusy)
-      }
+      } header: { Text("User").liveSectionHeader() }
 
       channels(
         "Inherited global channels",
@@ -81,6 +81,7 @@ struct LiveAdminUserAccessView: View {
         removable: true
       )
     }
+      .liveGroupedList()
     .toolbar {
       ToolbarItem(placement: .topBarTrailing) {
         Menu("Add", systemImage: "plus") {

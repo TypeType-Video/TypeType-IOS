@@ -1,10 +1,19 @@
 import SwiftUI
 
 struct LiveVideoLibraryActionsView: View {
+  @Environment(\.themePalette) private var palette
   @StateObject private var viewModel: LiveVideoLibraryActionsViewModel
+  let video: LiveVideoItem
+  let dependencies: AppDependencies
   @State private var createsPlaylist = false
+  @Environment(\.liveWatchExtrasEnabled) private var extrasEnabled
+  @State private var presentsDownload = false
+  @ObservedObject private var playbackCoordinator: LivePlaybackCoordinator
 
   init(video: LiveVideoItem, dependencies: AppDependencies) {
+    self.video = video
+    self.dependencies = dependencies
+    playbackCoordinator = dependencies.playbackCoordinator
     _viewModel = StateObject(
       wrappedValue: LiveVideoLibraryActionsViewModel(
         video: video,
@@ -15,65 +24,14 @@ struct LiveVideoLibraryActionsView: View {
   }
 
   var body: some View {
-    VStack(alignment: .leading, spacing: 12) {
-      if viewModel.isLoading {
-        ProgressView("Loading library actions")
-          .frame(maxWidth: .infinity, alignment: .leading)
-      } else {
-        HStack(spacing: 10) {
-          actionButton(
-            title: viewModel.isFavorite ? "Favorited" : "Favorite",
-            symbol: viewModel.isFavorite ? "heart.fill" : "heart"
-          ) {
-            Task { await viewModel.toggleFavorite() }
-          }
-          actionButton(
-            title: viewModel.isInWatchLater ? "Saved for later" : "Watch later",
-            symbol: viewModel.isInWatchLater
-              ? "clock.badge.checkmark"
-              : "clock"
-          ) {
-            Task { await viewModel.toggleWatchLater() }
-          }
-        }
-
-        Menu {
-          if viewModel.playlists.isEmpty {
-            Text("No custom playlists")
-          } else {
-            ForEach(viewModel.playlists) { playlist in
-              Button {
-                Task { await viewModel.toggle(playlist) }
-              } label: {
-                Label(
-                  playlist.name,
-                  systemImage: viewModel.contains(playlist)
-                    ? "checkmark.circle.fill"
-                    : "circle"
-                )
-              }
-            }
-          }
-          Divider()
-          Button("New playlist...", systemImage: "plus") {
-            createsPlaylist = true
-          }
-        } label: {
-          Label("Save to playlist", systemImage: "rectangle.stack.badge.plus")
-            .frame(maxWidth: .infinity)
-        }
-        .buttonStyle(.bordered)
-        .disabled(viewModel.isBusy)
-        .accessibilityIdentifier("live.video.save-playlist")
-      }
-
-      if let message = viewModel.message {
-        Text(message)
-          .font(.caption)
-          .foregroundStyle(.secondary)
-          .transition(.opacity)
-      }
+    // Fixed 44 pt buttons: wider gaps overflow a 375 pt screen.
+    ViewThatFits(in: .horizontal) {
+      actionsRow(spacing: 18)
+      actionsRow(spacing: 10)
+      actionsRow(spacing: 4)
     }
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .disabled(viewModel.isBusy)
     .sheet(isPresented: $createsPlaylist) {
       LivePlaylistEditorSheet(
         title: "New playlist",
@@ -89,26 +47,164 @@ struct LiveVideoLibraryActionsView: View {
         }
       }
     }
+    .sheet(isPresented: $presentsDownload) {
+      LiveDownloadSheet(video: video, dependencies: dependencies)
+    }
     .alert("Library", isPresented: errorBinding) {
       Button("OK") { viewModel.dismissError() }
     } message: {
       Text(viewModel.errorMessage ?? "")
     }
-    .task { await viewModel.prepare() }
+    .task(id: extrasEnabled) {
+      guard extrasEnabled else { return }
+      await viewModel.prepare()
+    }
     .accessibilityIdentifier("live.video.library-actions")
   }
 
-  private func actionButton(
-    title: String,
-    symbol: String,
+  private var playlistMenu: some View {
+    Menu {
+      if viewModel.playlists.isEmpty {
+        Text("No custom playlists")
+      } else {
+        ForEach(viewModel.playlists) { playlist in
+          Button {
+            Task { await viewModel.toggle(playlist) }
+          } label: {
+            Label(
+              playlist.name,
+              systemImage: viewModel.contains(playlist)
+                ? "checkmark.circle.fill"
+                : "circle"
+            )
+          }
+        }
+      }
+      Divider()
+      Button("New playlist...", systemImage: "plus") {
+        createsPlaylist = true
+      }
+    } label: {
+      iconLabel("rectangle.stack.badge.plus", isActive: false)
+    }
+    .buttonStyle(.plain)
+    .accessibilityLabel("Save to playlist")
+    .accessibilityIdentifier("live.video.save-playlist")
+  }
+
+  private func actionsRow(spacing: CGFloat) -> some View {
+    HStack(spacing: spacing) {
+      iconButton(
+        systemImage: viewModel.isFavorite ? "heart.fill" : "heart",
+        label: viewModel.isFavorite ? "Favorited" : "Favorite",
+        isActive: viewModel.isFavorite
+      ) {
+        Task { await viewModel.toggleFavorite() }
+      }
+      .accessibilityIdentifier("live.video.favorite")
+
+      iconButton(
+        systemImage: viewModel.isInWatchLater
+          ? "clock.badge.checkmark"
+          : "clock",
+        label: viewModel.isInWatchLater ? "Saved for later" : "Watch later",
+        isActive: viewModel.isInWatchLater
+      ) {
+        Task { await viewModel.toggleWatchLater() }
+      }
+      .accessibilityIdentifier("live.video.watch-later")
+
+      playlistMenu
+
+      if let shareURL {
+        LiveShareAsLinkButton(
+          typeTypeURL: shareURL,
+          originalURL: LiveShareURLBuilder.original(
+            sourceURL: video.url
+          )
+        ) {
+          iconLabel("square.and.arrow.up", isActive: false)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Share")
+        .accessibilityIdentifier("live.video.share")
+      }
+
+      iconButton(
+        systemImage: "arrow.down.circle",
+        label: "Download",
+        isActive: false
+      ) {
+        presentsDownload = true
+      }
+      .accessibilityIdentifier("live.video.download")
+
+      LivePlaybackSleepTimerMenu(coordinator: playbackCoordinator) {
+        iconLabel("timer", isActive: playbackCoordinator.sleepTimer.isActive)
+      }
+      .accessibilityLabel("Sleep timer")
+      .accessibilityIdentifier("live.video.sleep-timer")
+    }
+  }
+
+  private func iconButton(
+    systemImage: String,
+    label: String,
+    isActive: Bool,
     action: @escaping () -> Void
   ) -> some View {
     Button(action: action) {
-      Label(title, systemImage: symbol)
-        .frame(maxWidth: .infinity)
+      iconLabel(systemImage, isActive: isActive)
     }
-    .buttonStyle(.bordered)
-    .disabled(viewModel.isBusy)
+    .buttonStyle(.plain)
+    .accessibilityLabel(label)
+  }
+
+  private func iconLabel(
+    _ systemImage: String,
+    isActive: Bool
+  ) -> some View {
+    Image(systemName: systemImage)
+      .font(.title3.weight(.regular))
+      .foregroundStyle(isActive ? Color.white : .primary)
+      .frame(width: 44, height: 44)
+      .background {
+        if #available(iOS 26.0, *) {
+          Circle()
+            .fill(
+              (isActive ? palette.accent : palette.rowBackground)
+                .opacity(isActive ? 0.32 : 0.55)
+            )
+            .brightness(0.12)
+            .glassEffect(
+              .regular.tint(
+                isActive ? palette.accent : palette.rowBackground
+              ),
+              in: .circle
+            )
+        } else {
+          Circle().fill(
+            isActive
+              ? palette.accent.opacity(0.16)
+              : palette.elevatedSurface
+          )
+          .overlay(
+            Circle().strokeBorder(
+              isActive
+                ? palette.accent.opacity(0.35)
+                : Color.primary.opacity(0.14),
+              lineWidth: 1
+            )
+          )
+        }
+      }
+  }
+
+  private var shareURL: URL? {
+    LiveShareURLBuilder.video(
+      serverURL: dependencies.serverStore.selectedServer()?.baseURL,
+      sourceURL: video.url
+    )
   }
 
   private var errorBinding: Binding<Bool> {

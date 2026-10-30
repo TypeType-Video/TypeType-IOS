@@ -77,7 +77,7 @@ final class ParityMutationsUITests: XCTestCase {
     )
     app.buttons["Done"].tap()
 
-    app.tabBars.buttons["Playlists"].tap()
+    app.tapTab("Playlists")
     let imported = app.staticTexts["Imported from PipePipe"]
     reveal(imported)
     XCTAssertTrue(imported.exists)
@@ -89,18 +89,18 @@ final class ParityMutationsUITests: XCTestCase {
 
     app.staticTexts["Downloads"].tap()
     XCTAssertTrue(
-      app.staticTexts["2 ready offline"].waitForExistence(timeout: 3)
+      app.staticTexts["2 READY OFFLINE"].waitForExistence(timeout: 3)
     )
     app.buttons["Download actions"].tap()
     app.buttons["Resume all"].tap()
     XCTAssertTrue(
-      app.staticTexts["4 ready offline"].waitForExistence(timeout: 3)
+      app.staticTexts["4 READY OFFLINE"].waitForExistence(timeout: 3)
     )
 
     app.buttons["Download actions"].tap()
     app.buttons["Clear completed"].tap()
     XCTAssertTrue(
-      app.staticTexts["0 ready offline"].waitForExistence(timeout: 3)
+      app.staticTexts["0 READY OFFLINE"].waitForExistence(timeout: 3)
     )
   }
 
@@ -125,7 +125,7 @@ final class ParityMutationsUITests: XCTestCase {
         .waitForExistence(timeout: 3)
     )
     app.buttons["Leave zen scene"].tap()
-    app.tabBars.buttons["Home"].tap()
+    app.tapTab("Home")
     XCTAssertTrue(app.staticTexts["Home is quiet"].waitForExistence(timeout: 3))
     XCTAssertFalse(app.staticTexts["Continue watching"].exists)
     XCTAssertFalse(app.staticTexts["Recommended"].exists)
@@ -177,7 +177,7 @@ final class ParityMutationsUITests: XCTestCase {
     clear.tap()
     app.sheets.buttons["Clear"].tap()
 
-    app.tabBars.buttons["Home"].tap()
+    app.tapTab("Home")
     XCTAssertFalse(app.staticTexts["Continue watching"].exists)
     XCTAssertTrue(app.staticTexts["Recommended"].waitForExistence(timeout: 3))
   }
@@ -186,7 +186,7 @@ final class ParityMutationsUITests: XCTestCase {
     app.launchArguments = ["--typetype-demo-auth"]
     app.launch()
     signIn()
-    let more = app.tabBars.buttons["More"]
+    let more = app.tabItem("More")
     XCTAssertTrue(more.waitForExistence(timeout: 3))
     more.tap()
     let moreScreen = app.descendants(matching: .any)["demo.more.screen"]
@@ -231,7 +231,7 @@ final class ParityMutationsUITests: XCTestCase {
     password.typeText("typetype")
     app.buttons["demo.auth.submit"].tap()
     dismissCredentialSavePromptIfNeeded()
-    XCTAssertTrue(app.tabBars.buttons["Home"].waitForExistence(timeout: 4))
+    XCTAssertTrue(app.tabItem("Home").waitForExistence(timeout: 4))
   }
 
   private func dismissCredentialSavePromptIfNeeded() {

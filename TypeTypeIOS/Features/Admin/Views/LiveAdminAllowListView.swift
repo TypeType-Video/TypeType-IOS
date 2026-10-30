@@ -25,7 +25,7 @@ struct LiveAdminAllowListView: View {
     Group {
       switch viewModel.state {
       case .idle, .loading:
-        ProgressView("Loading access rules")
+        TypeTypeSkeletonList(layout: .settings, count: 6, scrolls: false)
       case let .failed(message):
         ContentUnavailableView {
           Label("Access rules unavailable", systemImage: "lock.trianglebadge.exclamationmark")
@@ -68,7 +68,7 @@ struct LiveAdminAllowListView: View {
 
   private var list: some View {
     List {
-      Section("Entire instance") {
+      Section {
         Toggle(
           "Restrict to allow list",
           isOn: Binding(
@@ -77,13 +77,13 @@ struct LiveAdminAllowListView: View {
               Task { await viewModel.setRestricted(value) }
             }
           )
-        )
+        ).liveRowFill()
         .disabled(viewModel.isBusy)
-      }
+      } header: { Text("Entire instance").liveSectionHeader() }
 
       usersSection
 
-      Section("Global channels") {
+      Section {
         ForEach(viewModel.channels) { item in
           LiveAdminAllowedChannelRow(item: item)
             .swipeActions {
@@ -95,9 +95,9 @@ struct LiveAdminAllowListView: View {
         Button("Add channel", systemImage: "plus") {
           editor = .channel
         }
-      }
+      } header: { Text("Global channels").liveSectionHeader() }
 
-      Section("Global playlists") {
+      Section {
         ForEach(viewModel.playlists) { item in
           LiveAdminAllowedPlaylistRow(item: item)
             .swipeActions {
@@ -109,8 +109,9 @@ struct LiveAdminAllowListView: View {
         Button("Add playlist", systemImage: "plus") {
           editor = .playlist
         }
-      }
+      } header: { Text("Global playlists").liveSectionHeader() }
     }
+      .liveGroupedList()
     .refreshable { await viewModel.reload() }
   }
 
@@ -148,7 +149,7 @@ struct LiveAdminAllowListView: View {
           }
         }
         if query.isEmpty {
-          DemoIncrementalLoadingTrigger(
+          LiveIncrementalLoadingTrigger(
             canLoadMore: viewModel.canLoadMoreManagedUsers,
             isLoading: viewModel.isLoadingMoreUsers,
             label: "Loading more managed users",
@@ -164,34 +165,5 @@ struct LiveAdminAllowListView: View {
   private enum Editor: String, Identifiable {
     case channel, playlist
     var id: String { rawValue }
-  }
-}
-
-private struct LiveAdminAccessUserRow: View {
-  let user: LiveAdminAllowListUser
-
-  var body: some View {
-    HStack(spacing: 12) {
-      Image(systemName: "person.crop.circle")
-        .font(.title2)
-        .foregroundStyle(DemoTheme.accent)
-      VStack(alignment: .leading, spacing: 2) {
-        Text(user.name)
-          .font(.body.weight(.semibold))
-          .foregroundStyle(.primary)
-        Text(user.email)
-          .font(.caption)
-          .foregroundStyle(.secondary)
-      }
-      Spacer()
-      Text(
-        user.accessMode == "allow_list"
-          ? "Restricted"
-          : "Unrestricted"
-      )
-      .font(.caption.weight(.semibold))
-      .foregroundStyle(.secondary)
-    }
-    .contentShape(Rectangle())
   }
 }

@@ -11,7 +11,7 @@ extension LivePlayerController {
   }
 
   var precisePosition: TimeInterval {
-    let current = player.currentTime().seconds
+    let current = nativePlayback?.player.currentTime ?? player.currentTime().seconds
     guard current.isFinite else { return position }
     return Self.timelinePosition(
       playbackSeconds: current,
@@ -96,34 +96,49 @@ extension LivePlayerController {
   }
 
   func setBulletCommentsEnabled(_ enabled: Bool) {
-    bulletCommentsEnabled = enabled
-    UserDefaults.standard.set(
-      enabled,
-      forKey: Self.bulletCommentsEnabledKey
-    )
-    loadBulletCommentsIfNeeded()
+    appPreferences.update { $0.danmakuEnabled = enabled }
   }
 
   func setBulletCommentSpeed(_ value: Double) {
-    bulletCommentSpeed = min(max(value, 0.5), 2)
-    UserDefaults.standard.set(
-      bulletCommentSpeed,
-      forKey: Self.bulletCommentSpeedKey
-    )
+    appPreferences.update { $0.danmakuSpeed = min(max(value, 0.5), 2) }
   }
 
   func setBulletCommentSize(_ value: Double) {
-    bulletCommentSize = min(max(value, 0.5), 2)
-    UserDefaults.standard.set(
-      bulletCommentSize,
-      forKey: Self.bulletCommentSizeKey
-    )
+    appPreferences.update { $0.danmakuSize = min(max(value, 0.5), 2) }
   }
 
-  static let bulletCommentsEnabledKey =
-    "typetype.player.danmaku.enabled"
-  static let bulletCommentSpeedKey =
-    "typetype.player.danmaku.speed"
-  static let bulletCommentSizeKey =
-    "typetype.player.danmaku.size"
+  func observeBulletCommentPreferences() {
+    bulletCommentPreferencesObservation = appPreferences.$preferences
+      .sink { [weak self] preferences in
+        self?.applyBulletCommentPreferences(preferences)
+      }
+  }
+
+  private func applyBulletCommentPreferences(_ preferences: LiveAppPreferences) {
+    bulletCommentSpeed = min(max(preferences.danmakuSpeed, 0.5), 2)
+    bulletCommentSize = min(max(preferences.danmakuSize, 0.5), 2)
+    guard bulletCommentsEnabled != preferences.danmakuEnabled else { return }
+    bulletCommentsEnabled = preferences.danmakuEnabled
+    loadBulletCommentsIfNeeded()
+  }
+
+  static func moveLegacyBulletCommentChoices(
+    into store: LiveAppPreferencesStore,
+    from defaults: UserDefaults
+  ) {
+    let keys = ["typetype.player.danmaku.enabled", "typetype.player.danmaku.speed", "typetype.player.danmaku.size"]
+    guard keys.contains(where: { defaults.object(forKey: $0) != nil }) else { return }
+    store.update { preferences in
+      if defaults.object(forKey: keys[0]) != nil {
+        preferences.danmakuEnabled = defaults.bool(forKey: keys[0])
+      }
+      if defaults.object(forKey: keys[1]) != nil {
+        preferences.danmakuSpeed = defaults.double(forKey: keys[1])
+      }
+      if defaults.object(forKey: keys[2]) != nil {
+        preferences.danmakuSize = defaults.double(forKey: keys[2])
+      }
+    }
+    keys.forEach(defaults.removeObject(forKey:))
+  }
 }

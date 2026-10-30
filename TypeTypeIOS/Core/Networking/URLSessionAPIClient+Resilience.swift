@@ -3,9 +3,10 @@ import Foundation
 extension URLSessionAPIClient {
   func executeRead<T>(
     _ request: URLRequest,
+    retries: Bool = true,
     operation: () async throws -> T
   ) async throws -> T {
-    let maximumAttempts = request.httpMethod == HTTPMethod.get.rawValue
+    let maximumAttempts = retries && request.httpMethod == HTTPMethod.get.rawValue
       ? 3
       : 1
     var attempt = 0

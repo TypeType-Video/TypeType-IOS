@@ -57,7 +57,7 @@ extension DemoHomeFeedView {
             }
           }
 
-          DemoIncrementalLoadingTrigger(
+          LiveIncrementalLoadingTrigger(
             canLoadMore: recommendationLimit < visibleRecommendations.count,
             isLoading: isLoadingMore,
             label: "Loading more recommendations",

@@ -25,10 +25,10 @@ struct LiveReportIssueView: View {
             description: Text(
               "Reference \(created.id) · \(created.status)"
             )
-          )
+          ).liveThemedEmptyState()
         }
       } else {
-        Section("Issue") {
+        Section {
           Picker("Category", selection: $viewModel.category) {
             Text("Player").tag("player")
             Text("Audio language").tag("audio_language")
@@ -48,7 +48,7 @@ struct LiveReportIssueView: View {
           )
           .keyboardType(.URL)
           .textInputAutocapitalization(.never)
-        }
+        } header: { Text("Issue").liveSectionHeader() }
         Section {
           Button {
             Task { await viewModel.submit() }
@@ -59,7 +59,7 @@ struct LiveReportIssueView: View {
               Text("Submit report").frame(maxWidth: .infinity)
             }
           }
-          .buttonStyle(.borderedProminent)
+          .liveProminentButton()
           .disabled(
             viewModel.description
               .trimmingCharacters(in: .whitespacesAndNewlines)
@@ -69,6 +69,7 @@ struct LiveReportIssueView: View {
         }
       }
     }
+      .liveGroupedList()
     .navigationTitle("Report a problem")
     .navigationBarTitleDisplayMode(.inline)
     .alert("Bug report", isPresented: errorBinding) {

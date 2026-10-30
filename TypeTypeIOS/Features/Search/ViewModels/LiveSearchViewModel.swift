@@ -28,13 +28,10 @@ final class LiveSearchViewModel: ObservableObject {
   @Published private(set) var isCorrectedSearch = false
   @Published var suggestions: [String] = []
   @Published var history: [LiveSearchHistoryItem] = []
-  @Published var trending: [LiveVideoItem] = []
-  @Published var isLoadingTrending = false
-  @Published var trendingError: String?
-  @Published var trendingLimit = 8
 
   let services: [VideoService]
   let searchService: LiveSearchServiceProtocol
+  private let imagePipeline: TypeTypeImagePipeline
   let historyService: LiveSearchHistoryServiceProtocol
   private let serviceSelection: LiveServiceSelection
   private var cancellables = Set<AnyCancellable>()
@@ -43,14 +40,16 @@ final class LiveSearchViewModel: ObservableObject {
   var searchTask: Task<LiveSearchPage, Error>?
   var paginationTask: Task<LiveSearchPage, Error>?
   var suggestionTask: Task<[String], Error>?
-  var trendingRequestID = UUID()
   var historyPage = 1
   var canLoadMoreHistory = false
+  var isLoadingMoreHistory = false
   init(
     searchService: LiveSearchServiceProtocol,
     historyService: LiveSearchHistoryServiceProtocol,
-    serviceSelection: LiveServiceSelection
+    serviceSelection: LiveServiceSelection,
+    imagePipeline: TypeTypeImagePipeline = TypeTypeImagePipeline()
   ) {
+    self.imagePipeline = imagePipeline
     self.searchService = searchService
     self.historyService = historyService
     self.serviceSelection = serviceSelection
@@ -154,15 +153,12 @@ final class LiveSearchViewModel: ObservableObject {
   private func applyGlobalService(_ serviceID: Int) async {
     guard selectedServiceID != serviceID else { return }
     requestID = UUID()
-    trendingRequestID = UUID()
     searchTask?.cancel()
     paginationTask?.cancel()
     selectedServiceID = serviceID
     selectedContentFilter = nil
     selectedSortFilter = nil
-    async let filters: Void = loadFilters()
-    async let trending: Void = loadTrending()
-    _ = await (filters, trending)
+    await loadFilters()
     if !submittedQuery.isEmpty {
       await submit(submittedQuery)
     }
@@ -183,8 +179,20 @@ final class LiveSearchViewModel: ObservableObject {
       await submit(submittedQuery)
     }
   }
+  private func prefetchThumbnails() {
+    for result in results.prefix(10) {
+      guard case let .video(item) = result,
+        let url = LiveImageURLResolver.resolve(item.thumbnail)
+      else { continue }
+      Task.detached(priority: .utility) { [imagePipeline] in
+        _ = await imagePipeline.image(for: url, maxPixelSize: 640)
+      }
+    }
+  }
+
   private func applyInitial(_ page: LiveSearchPage) {
     results = LiveSearchResultMapper.uniqueVisibleResults(from: page)
+    prefetchThumbnails()
     updatePageMetadata(page)
     state = results.isEmpty ? .empty : .loaded
   }
@@ -193,6 +201,7 @@ final class LiveSearchViewModel: ObservableObject {
     results = LiveSearchResultMapper.unique(
       results + LiveSearchResultMapper.results(from: page)
     )
+    prefetchThumbnails()
     updatePageMetadata(page)
     state = results.isEmpty ? .empty : .loaded
   }
@@ -213,17 +222,5 @@ final class LiveSearchViewModel: ObservableObject {
     nextPage = nil
     canLoadMore = false
     state = .idle
-  }
-
-  var visibleTrending: [LiveVideoItem] {
-    Array(trending.prefix(trendingLimit))
-  }
-
-  var canLoadMoreTrending: Bool {
-    trendingLimit < trending.count
-  }
-
-  func revealMoreTrending() {
-    trendingLimit = min(trendingLimit + 8, trending.count)
   }
 }

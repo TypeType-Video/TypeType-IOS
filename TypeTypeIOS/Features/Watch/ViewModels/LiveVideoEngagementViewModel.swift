@@ -35,7 +35,8 @@ final class LiveVideoEngagementViewModel: ObservableObject {
     do {
       let subscriptions = try await service.subscriptions()
       isSubscribed = subscriptions.contains {
-        normalized($0.channelURL) == normalized(video.uploaderURL)
+        LiveChannelURLCanonicalizer.identity($0.channelURL)
+          == LiveChannelURLCanonicalizer.identity(video.uploaderURL)
       }
     } catch {
       didPrepare = false
@@ -49,12 +50,14 @@ final class LiveVideoEngagementViewModel: ObservableObject {
     defer { isChanging = false }
     do {
       if isSubscribed {
-        try await service.unsubscribe(channelURL: video.uploaderURL)
+        try await service.unsubscribe(
+          channelURL: LiveChannelURLCanonicalizer.canonicalize(video.uploaderURL)
+        )
         isSubscribed = false
         message = "Unsubscribed from \(video.uploaderName)."
       } else {
         _ = try await service.subscribe(
-          channelURL: video.uploaderURL,
+          channelURL: LiveChannelURLCanonicalizer.canonicalize(video.uploaderURL),
           name: video.uploaderName,
           avatarURL: video.uploaderAvatarURL
         )
@@ -68,8 +71,6 @@ final class LiveVideoEngagementViewModel: ObservableObject {
   }
 
   private func normalized(_ value: String) -> String {
-    value.trimmingCharacters(
-      in: CharacterSet(charactersIn: "/")
-    ).lowercased()
+    LiveChannelURLCanonicalizer.identity(value)
   }
 }

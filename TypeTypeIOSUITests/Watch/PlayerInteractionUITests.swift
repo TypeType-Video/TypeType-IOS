@@ -3,7 +3,11 @@ import XCTest
 final class PlayerInteractionUITests: XCTestCase {
   func testCommentsLoadIncrementallyWhileScrolling() {
     let app = XCUIApplication()
-    app.launchArguments = ["--typetype-demo-player"]
+    app.launchArguments = [
+      "-AppleLanguages", "(en)",
+      "-AppleLocale", "en_US",
+      "--typetype-demo-player",
+    ]
     app.launch()
 
     let firstDeferredComment = app.staticTexts["@captionnerd"]
@@ -24,7 +28,11 @@ final class PlayerInteractionUITests: XCTestCase {
 
   func testPlaybackQueueUsesANativeSheet() {
     let app = XCUIApplication()
-    app.launchArguments = ["--typetype-demo-player"]
+    app.launchArguments = [
+      "-AppleLanguages", "(en)",
+      "-AppleLocale", "en_US",
+      "--typetype-demo-player",
+    ]
     app.launch()
 
     let queue = app.descendants(matching: .any)["demo.watch.queue"]
@@ -49,7 +57,11 @@ final class PlayerInteractionUITests: XCTestCase {
 
   func testMoreActionUsesAnAnchoredNativeMenu() {
     let app = XCUIApplication()
-    app.launchArguments = ["--typetype-demo-player"]
+    app.launchArguments = [
+      "-AppleLanguages", "(en)",
+      "-AppleLocale", "en_US",
+      "--typetype-demo-player",
+    ]
     app.launch()
 
     let actions = app.descendants(matching: .any)["demo.watch.actions"]
@@ -60,16 +72,33 @@ final class PlayerInteractionUITests: XCTestCase {
     }
     XCTAssertTrue(more.isHittable)
     more.tap()
+    let watchLater = app.descendants(matching: .any).matching(
+      NSPredicate(format: "label CONTAINS 'Watch later'")
+    ).firstMatch
+    let blockVideo = app.descendants(matching: .any).matching(
+      NSPredicate(format: "label CONTAINS 'Block video' OR label CONTAINS 'Unblock video'")
+    ).firstMatch
+    let blockChannel = app.descendants(matching: .any).matching(
+      NSPredicate(format: "label CONTAINS 'Block channel' OR label CONTAINS 'Unblock channel'")
+    ).firstMatch
+    let diagnostic =
+      "menuItems=\(app.menuItems.count) buttons=\(app.buttons.count) "
+        + "menuLabels=\(app.menuItems.allElementsBoundByIndex.prefix(5).map(\.label))"
     XCTAssertTrue(
-      app.buttons["Add to Watch later"].waitForExistence(timeout: 3)
+      watchLater.waitForExistence(timeout: 3),
+      diagnostic
     )
-    XCTAssertTrue(app.buttons["Block video"].exists)
-    XCTAssertTrue(app.buttons["Block channel"].exists)
+    XCTAssertTrue(blockVideo.exists, diagnostic)
+    XCTAssertTrue(blockChannel.exists, diagnostic)
   }
 
   func testPlaylistEndUsesTheConfiguredAutoplayCountdown() {
     let app = XCUIApplication()
-    app.launchArguments = ["--typetype-demo-player"]
+    app.launchArguments = [
+      "-AppleLanguages", "(en)",
+      "-AppleLocale", "en_US",
+      "--typetype-demo-player",
+    ]
     app.launchEnvironment["TYPETYPE_UI_TEST_PLAYER_ENDED"] = "1"
     app.launch()
 
@@ -87,7 +116,11 @@ final class PlayerInteractionUITests: XCTestCase {
 
   func testPlayerReturnsToTopAfterRotation() {
     let app = XCUIApplication()
-    app.launchArguments = ["--typetype-demo-player"]
+    app.launchArguments = [
+      "-AppleLanguages", "(en)",
+      "-AppleLocale", "en_US",
+      "--typetype-demo-player",
+    ]
     app.launch()
 
     let player = app.descendants(matching: .any)["demo.player.surface"]

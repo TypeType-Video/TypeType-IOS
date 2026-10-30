@@ -1,17 +1,38 @@
 import SwiftUI
 
 struct LiveRelatedVideosSection: View {
+  let playerController: LivePlayerController
   let videos: [LiveVideoItem]
   let deArrowStore: LiveDeArrowStore
   let dependencies: AppDependencies
   let onSelect: (LiveVideoItem) -> Void
   @State private var visibleCount = 6
 
+  private var autoplayBinding: Binding<Bool> {
+    Binding(
+      get: { playerController.autoplayEnabled },
+      set: { playerController.setAutoplay($0) }
+    )
+  }
+
   var body: some View {
     if !videos.isEmpty {
       VStack(alignment: .leading, spacing: 14) {
-        Text("Up next")
-          .font(.title3.weight(.bold))
+        HStack(alignment: .center) {
+          Text("Up next")
+            .font(.title3.weight(.bold))
+          Spacer()
+          HStack(spacing: 8) {
+            Text("Autoplay")
+              .font(.subheadline)
+              .foregroundStyle(.secondary)
+            Toggle("Autoplay", isOn: autoplayBinding)
+              .toggleStyle(.switch)
+              .controlSize(.small)
+              .labelsHidden()
+          }
+          .accessibilityIdentifier("live.video.upnext.autoplay")
+        }
 
         LazyVStack(spacing: 14) {
           ForEach(Array(videos.prefix(visibleCount))) { video in
@@ -24,10 +45,7 @@ struct LiveRelatedVideosSection: View {
               )
             }
             .buttonStyle(.plain)
-            .liveVideoQuickActions(
-              video: video,
-              dependencies: dependencies
-            )
+            .liveVideoQuickActions(video: video, dependencies: dependencies)
             .task(id: video.canonicalID) {
               await Task.yield()
               guard !Task.isCancelled else { return }
@@ -54,12 +72,12 @@ struct LiveRelatedVideosSection: View {
 private struct LiveRelatedVideoRow: View {
   let video: LiveVideoItem
   @ObservedObject var deArrowStore: LiveDeArrowStore
+  @EnvironmentObject private var watchProgress: LiveWatchProgressStore
 
   var body: some View {
     HStack(alignment: .top, spacing: 12) {
       LiveRemoteImage(url: branding.thumbnailURL)
-        .frame(width: 148)
-        .aspectRatio(16 / 9, contentMode: .fit)
+        .frame(width: 148, height: 148 * 9 / 16)
         .clipped()
         .overlay(alignment: .bottomTrailing) {
           if !video.isLive {
@@ -75,6 +93,9 @@ private struct LiveRelatedVideoRow: View {
             .padding(5)
           }
         }
+        .liveThumbnailProgress(
+          watchProgress.fraction(forVideoID: video.canonicalID)
+        )
         .clipShape(
           RoundedRectangle(cornerRadius: 10, style: .continuous)
         )

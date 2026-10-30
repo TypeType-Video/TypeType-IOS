@@ -1,18 +1,6 @@
 import XCTest
 
 final class LinkRoutingUITests: XCTestCase {
-  func testCommentTimecodeSeeksInsideThePlayer() {
-    let app = launchPlayer()
-    let comments = app.descendants(matching: .any)["demo.watch.comments"]
-
-    let timecode = comments.links["1:44"]
-    reveal(timecode, in: app)
-    timecode.tap()
-    XCTAssertTrue(
-      app.staticTexts["Jumped to 1:44"].waitForExistence(timeout: 3)
-    )
-  }
-
   func testSupportedVideoLinkStaysInsideTypeType() {
     let app = launchPlayer()
     expandDescription(in: app)

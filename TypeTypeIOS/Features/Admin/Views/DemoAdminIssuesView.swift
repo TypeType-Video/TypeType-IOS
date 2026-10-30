@@ -23,7 +23,7 @@ struct DemoAdminIssuesView: View {
         }
       }
 
-      Section("\(filteredIssues.count) issues") {
+      Section {
         ForEach(pagedIssues) { issue in
           NavigationLink {
             DemoAdminIssueDetailView(issueID: issue.id)
@@ -48,8 +48,9 @@ struct DemoAdminIssuesView: View {
         if filteredIssues.count > pageSize {
           pagination
         }
-      }
+      } header: { Text("\(filteredIssues.count) issues").liveSectionHeader() }
     }
+      .listStyle(.insetGrouped)
     .searchable(text: $query, prompt: "Search issues")
     .onChange(of: query) { page = 0 }
     .onChange(of: status) { page = 0 }

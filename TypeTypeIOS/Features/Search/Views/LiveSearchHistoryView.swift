@@ -2,149 +2,86 @@ import SwiftUI
 
 struct LiveSearchHistoryView: View {
   @ObservedObject var viewModel: LiveSearchViewModel
-  let dependencies: AppDependencies
-  let onVideo: (LiveVideoItem) -> Void
-  let onChannel: (String) -> Void
   @State private var confirmsClear = false
 
   var body: some View {
-    ScrollView {
-      LazyVStack(alignment: .leading, spacing: 24) {
-        if !viewModel.history.isEmpty {
-          historySection
-        }
-        trendingSection
-      }
-      .padding(16)
-    }
-    .background(DemoTheme.background)
-    .refreshable {
-      async let history: Void = viewModel.loadHistory()
-      async let trending: Void = viewModel.loadTrending()
-      _ = await (history, trending)
-    }
-    .confirmationDialog(
-      "Clear search history?",
-      isPresented: $confirmsClear,
-      titleVisibility: .visible
-    ) {
-      Button("Clear all", role: .destructive) {
-        Task { await viewModel.clearHistory() }
-      }
-      Button("Cancel", role: .cancel) {}
-    } message: {
-      Text("This removes all saved searches from your account.")
-    }
-    .accessibilityIdentifier("live.search.history")
-  }
-
-  private var historySection: some View {
-    VStack(alignment: .leading, spacing: 12) {
-      HStack {
-        Text("Recent searches")
-          .font(.headline)
-        Spacer()
-        Button("Clear") {
-          confirmsClear = true
-        }
-        .font(.subheadline)
-      }
-      ForEach(viewModel.history) { item in
-        Button {
-          Task { await viewModel.submit(item.term) }
-        } label: {
-          Label(item.term, systemImage: "clock.arrow.circlepath")
-            .frame(maxWidth: .infinity, alignment: .leading)
-        }
-        .foregroundStyle(.primary)
-      }
-      if viewModel.canLoadMoreHistory {
-        Button("Load more") {
-          Task { await viewModel.loadMoreHistory() }
-        }
-      }
-    }
-  }
-
-  @ViewBuilder
-  private var trendingSection: some View {
-    VStack(alignment: .leading, spacing: 14) {
-      Text("Trending on \(selectedServiceName)")
-        .font(.headline)
-
-      if viewModel.isLoadingTrending, viewModel.trending.isEmpty {
-        ProgressView("Loading trending videos")
-          .frame(maxWidth: .infinity)
-          .padding(.vertical, 40)
-      } else if let error = viewModel.trendingError,
-        viewModel.trending.isEmpty {
-        ContentUnavailableView {
-          Label(
-            "Trending unavailable",
-            systemImage: "chart.line.downtrend.xyaxis"
-          )
-        } description: {
-          Text(error)
-        } actions: {
-          Button("Try again") {
-            Task { await viewModel.loadTrending() }
-          }
-        }
-      } else if viewModel.trending.isEmpty {
+    Group {
+      if viewModel.history.isEmpty {
         ContentUnavailableView(
           "Search TypeType",
           systemImage: "magnifyingglass",
-          description: Text(
-            "Find videos, channels, and playlists on any service."
-          )
+          description: Text("Find videos, channels, and playlists on any service.")
         )
+        .liveThemedEmptyState()
       } else {
-        LazyVGrid(columns: columns, alignment: .leading, spacing: 24) {
-          ForEach(viewModel.visibleTrending) { video in
-            LiveVideoCard(
-              video: video,
-              deArrowStore: dependencies.deArrowStore,
-              onChannel: {
-                guard !video.uploaderURL.isEmpty else { return }
-                onChannel(video.uploaderURL)
-              },
-              action: { onVideo(video) }
-            )
-            .liveVideoQuickActions(
-              video: video,
-              dependencies: dependencies,
-              onOpenChannel: {
-                guard !video.uploaderURL.isEmpty else { return }
-                onChannel(video.uploaderURL)
-              }
-            )
-          }
-          DemoIncrementalLoadingTrigger(
-            canLoadMore: viewModel.canLoadMoreTrending,
-            isLoading: false,
-            label: "Show more trending videos",
-            identifier: "live.search.trending-more"
-          ) {
-            viewModel.revealMoreTrending()
+        List {
+          LiveSection {
+            ForEach(Array(viewModel.history.enumerated()), id: \.element.id) { index, item in
+              row(item.term)
+                .onAppear {
+                  guard viewModel.canLoadMoreHistory, index >= viewModel.history.count - 3 else { return }
+                  Task { await viewModel.loadMoreHistory() }
+                }
+            }
+          } header: {
+            header
           }
         }
+        .liveGroupedList()
+        .contentMargins(.top, 0, for: .scrollContent)
       }
+    }
+    .scrollDismissesKeyboard(.immediately)
+    .refreshable { await viewModel.loadHistory() }
+    .accessibilityIdentifier("live.search.history")
+  }
+
+  private var header: some View {
+    HStack(alignment: .firstTextBaseline) {
+      Text("Recent searches").liveSettingsHeader()
+      Button("Clear") { confirmsClear = true }
+        .font(.subheadline.weight(.semibold))
+        .accessibilityHint(Text("Removes all saved searches"))
+        .alert("Clear search history?", isPresented: $confirmsClear) {
+          Button("Cancel", role: .cancel) {}
+          Button("Clear all", role: .destructive) {
+            Task { await viewModel.clearHistory() }
+          }
+        } message: {
+          Text("This removes all saved searches from your account.")
+        }
     }
   }
 
-  private var selectedServiceName: String {
-    viewModel.services.first {
-      $0.id == viewModel.selectedServiceID
-    }?.name ?? "TypeType"
-  }
-
-  private var columns: [GridItem] {
-    [
-      GridItem(
-        .adaptive(minimum: 300, maximum: 520),
-        spacing: 20,
-        alignment: .top
-      ),
-    ]
+  private func row(_ term: String) -> some View {
+    HStack(spacing: 12) {
+      Button {
+        Task { await viewModel.submit(term) }
+      } label: {
+        Label {
+          Text(term)
+            .foregroundStyle(.primary)
+            .lineLimit(1)
+        } icon: {
+          Image(systemName: "clock.arrow.circlepath")
+            .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .contentShape(Rectangle())
+      }
+      .buttonStyle(.plain)
+      .accessibilityHint(Text("Searches again"))
+      Button {
+        viewModel.query = term
+        viewModel.queryDidChange()
+      } label: {
+        Image(systemName: "arrow.up.left")
+          .font(.footnote.weight(.semibold))
+          .foregroundStyle(.secondary)
+          .frame(width: 32, height: 32)
+      }
+      .buttonStyle(.plain)
+      .accessibilityLabel(Text("Edit \(term)"))
+    }
   }
 }

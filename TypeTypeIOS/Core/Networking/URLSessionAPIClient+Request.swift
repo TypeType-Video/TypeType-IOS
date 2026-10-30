@@ -31,6 +31,7 @@ extension URLSessionAPIClient {
     var request = URLRequest(url: url)
     request.httpMethod = endpoint.method.rawValue
     request.httpBody = endpoint.body
+    request.httpShouldHandleCookies = endpoint.handlesCookies
     if let timeoutInterval = endpoint.timeoutInterval {
       request.timeoutInterval = timeoutInterval
     }
@@ -87,5 +88,25 @@ extension URLSessionAPIClient {
     configuration.timeoutIntervalForResource = 120
     configuration.waitsForConnectivity = true
     return URLSession(configuration: configuration)
+  }
+
+  // Segments are read once: no disk cache. A separate session so API bursts never queue ahead of video.
+  static func makeMediaSession() -> URLSession {
+    let configuration = URLSessionConfiguration.default
+    configuration.httpCookieAcceptPolicy = .always
+    configuration.httpCookieStorage = .shared
+    configuration.httpShouldSetCookies = true
+    configuration.urlCache = nil
+    configuration.requestCachePolicy = .reloadIgnoringLocalCacheData
+    configuration.timeoutIntervalForRequest = 30
+    configuration.timeoutIntervalForResource = 180
+    configuration.waitsForConnectivity = true
+    return URLSession(configuration: configuration)
+  }
+}
+
+final class MediaTaskPriority: NSObject, URLSessionTaskDelegate, Sendable {
+  func urlSession(_ session: URLSession, didCreateTask task: URLSessionTask) {
+    task.priority = URLSessionTask.highPriority
   }
 }

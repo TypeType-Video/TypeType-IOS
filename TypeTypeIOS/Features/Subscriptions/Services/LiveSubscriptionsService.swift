@@ -2,13 +2,67 @@ import Foundation
 
 protocol LiveSubscriptionsServiceProtocol {
   func subscriptions() async throws -> [LiveSubscription]
-  func feed(nextPage: String?) async throws -> LiveSubscriptionFeedPage
+  func feed(
+    nextPage: String?,
+    filter: LiveSubscriptionFilter
+  ) async throws -> LiveSubscriptionFeedPage
   func subscribe(
     channelURL: String,
     name: String,
-    avatarURL: String
+  avatarURL: String
   ) async throws -> LiveSubscription
   func unsubscribe(channelURL: String) async throws
+  func groups() async throws -> [LiveSubscriptionGroup]
+  func memberships() async throws -> [LiveSubscriptionGroupMembership]
+  func createGroup(name: String) async throws -> LiveSubscriptionGroup
+  func renameGroup(id: String, name: String) async throws
+  func deleteGroup(id: String) async throws
+  func addChannels(_ channelURLs: [String], toGroup id: String) async throws
+  func removeChannel(_ channelURL: String, fromGroup id: String) async throws
+}
+
+extension LiveSubscriptionsServiceProtocol {
+  func feed(
+    nextPage: String?,
+    filter: LiveSubscriptionFilter
+  ) async throws -> LiveSubscriptionFeedPage {
+    LiveSubscriptionFeedPage(
+      videos: [],
+      nextPage: nil,
+      generation: nil,
+      generatedAt: nil,
+      refreshing: false
+    )
+  }
+
+  func groups() async throws -> [LiveSubscriptionGroup] { [] }
+
+  func memberships() async throws -> [
+    LiveSubscriptionGroupMembership
+  ] { [] }
+
+  func createGroup(name: String) async throws -> LiveSubscriptionGroup {
+    LiveSubscriptionGroup(
+      id: UUID().uuidString,
+      name: name,
+      channelCount: 0,
+      createdAt: 0,
+      updatedAt: 0
+    )
+  }
+
+  func renameGroup(id: String, name: String) async throws {}
+  func deleteGroup(id: String) async throws {}
+
+  func addChannels(
+    _ channelURLs: [String],
+    toGroup id: String
+  ) async throws {}
+
+  func removeChannel(
+    _ channelURL: String,
+    fromGroup id: String
+  ) async throws {}
 }
 
 final class LiveSubscriptionsService:
@@ -32,7 +86,8 @@ final class LiveSubscriptionsService:
   }
 
   func feed(
-    nextPage: String? = nil
+    nextPage: String? = nil,
+    filter: LiveSubscriptionFilter = .all
   ) async throws -> LiveSubscriptionFeedPage {
     var queryItems = [
       URLQueryItem(name: "limit", value: "30"),
@@ -40,6 +95,18 @@ final class LiveSubscriptionsService:
     if let nextPage, !nextPage.isEmpty {
       queryItems.append(
         URLQueryItem(name: "cursor", value: nextPage)
+      )
+    }
+    switch filter {
+    case .all:
+      break
+    case .ungrouped:
+      queryItems.append(
+        URLQueryItem(name: "ungrouped", value: "true")
+      )
+    case let .group(id, _):
+      queryItems.append(
+        URLQueryItem(name: "groupId", value: id)
       )
     }
     let endpoint = APIEndpoint(
@@ -114,5 +181,96 @@ final class LiveSubscriptionsService:
     } catch let error as NetworkError {
       guard case .statusCode(404, _) = error else { throw error }
     }
+  }
+
+  func groups() async throws -> [LiveSubscriptionGroup] {
+    try await apiClient.request(
+      APIEndpoint(
+        path: "/subscriptions/groups",
+        method: .get,
+        requiresAuth: true
+      ),
+      as: [LiveSubscriptionGroup].self
+    )
+  }
+
+  func memberships() async throws -> [LiveSubscriptionGroupMembership] {
+    try await apiClient.request(
+      APIEndpoint(
+        path: "/subscriptions/group-memberships",
+        method: .get,
+        requiresAuth: true
+      ),
+      as: [LiveSubscriptionGroupMembership].self
+    )
+  }
+
+  func createGroup(name: String) async throws -> LiveSubscriptionGroup {
+    try await apiClient.request(
+      APIEndpoint(
+        path: "/subscriptions/groups",
+        method: .post,
+        body: try APIEndpoint.jsonBody(
+          LiveSubscriptionGroupNamePayload(name: name)
+        ),
+        requiresAuth: true
+      ),
+      as: LiveSubscriptionGroup.self
+    )
+  }
+
+  func renameGroup(id: String, name: String) async throws {
+    try await apiClient.request(
+      APIEndpoint(
+        path: "/subscriptions/groups/\(id)",
+        method: .put,
+        body: try APIEndpoint.jsonBody(
+          LiveSubscriptionGroupNamePayload(name: name)
+        ),
+        requiresAuth: true
+      )
+    )
+  }
+
+  func deleteGroup(id: String) async throws {
+    try await apiClient.request(
+      APIEndpoint(
+        path: "/subscriptions/groups/\(id)",
+        method: .delete,
+        requiresAuth: true
+      )
+    )
+  }
+
+  func addChannels(
+    _ channelURLs: [String],
+    toGroup id: String
+  ) async throws {
+    try await apiClient.request(
+      APIEndpoint(
+        path: "/subscriptions/groups/\(id)/channels",
+        method: .put,
+        body: try APIEndpoint.jsonBody(
+          LiveSubscriptionGroupChannelsPayload(channelURLs: channelURLs)
+        ),
+        requiresAuth: true
+      )
+    )
+  }
+
+  func removeChannel(
+    _ channelURL: String,
+    fromGroup id: String
+  ) async throws {
+    try await apiClient.request(
+      APIEndpoint(
+        path: "/subscriptions/groups/\(id)/channels",
+        method: .delete,
+        queryItems: [
+          URLQueryItem(name: "url", value: channelURL),
+        ],
+        requiresAuth: true
+      )
+    )
   }
 }

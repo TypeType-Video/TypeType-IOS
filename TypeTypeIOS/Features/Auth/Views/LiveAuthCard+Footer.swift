@@ -1,7 +1,7 @@
 import SwiftUI
 
 extension LiveAuthCard {
-  var subtitle: String {
+  var subtitle: LocalizedStringKey {
     if viewModel.mode == .signIn {
       return "Use your TypeType account for this instance."
     }
@@ -33,19 +33,23 @@ extension LiveAuthCard {
     }
   }
 
-  func loadingLabel(_ title: String) -> some View {
+  func loadingLabel(_ title: LocalizedStringKey) -> some View {
     HStack(spacing: 9) {
       if viewModel.isLoading {
         ProgressView()
           .controlSize(.small)
       }
-      Text(viewModel.isLoading ? "Please wait…" : title)
+      Text(
+        viewModel.isLoading
+          ? LocalizedStringKey("Please wait…")
+          : title
+      )
         .font(.subheadline.weight(.semibold))
     }
   }
 
   private func footerButton(
-    _ title: String,
+    _ title: LocalizedStringKey,
     action: @escaping () -> Void
   ) -> some View {
     Button(title, action: action)

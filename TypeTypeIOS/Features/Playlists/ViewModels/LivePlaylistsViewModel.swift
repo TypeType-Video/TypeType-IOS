@@ -18,6 +18,8 @@ final class LivePlaylistsViewModel: ObservableObject {
 
   private let playlistsService: LivePlaylistsServiceProtocol
   private let libraryService: LiveLibraryServiceProtocol
+  private var reloadGeneration = 0
+  private var lastFailure: String?
 
   init(
     playlistsService: LivePlaylistsServiceProtocol,
@@ -33,27 +35,48 @@ final class LivePlaylistsViewModel: ObservableObject {
   }
 
   func reload() async {
+    reloadGeneration += 1
+    let generation = reloadGeneration
+    lastFailure = nil
     state = .loading
-    do {
-      async let playlistsRequest = playlistsService.playlists()
-      async let savedRequest = playlistsService.savedPlaylists()
-      async let favoritesRequest = libraryService.favorites()
-      async let watchLaterRequest = libraryService.watchLater()
-      let result = try await (
-        playlistsRequest,
-        savedRequest,
-        favoritesRequest,
-        watchLaterRequest
-      )
-      playlists = result.0
-      saved = result.1
-      favorites = result.2.map(\.libraryVideo)
-      watchLater = result.3.map(\.libraryVideo)
+    async let playlistsLoad: Void = load(generation, { try await self.playlistsService.playlists() }) {
+      self.playlists = $0
+    }
+    async let savedLoad: Void = load(generation, { try await self.playlistsService.savedPlaylists() }) {
+      self.saved = $0
+    }
+    async let favoritesLoad: Void = load(generation, { try await self.libraryService.favorites() }) {
+      self.favorites = $0.map(\.libraryVideo)
+    }
+    async let watchLaterLoad: Void = load(generation, { try await self.libraryService.watchLater() }) {
+      self.watchLater = $0.map(\.libraryVideo)
+    }
+    _ = await (playlistsLoad, savedLoad, favoritesLoad, watchLaterLoad)
+    guard generation == reloadGeneration else { return }
+    if let lastFailure, playlists.isEmpty, saved.isEmpty, favorites.isEmpty, watchLater.isEmpty {
+      state = .failed(lastFailure)
+    } else {
       state = .loaded
+    }
+  }
+
+  private func load<Value>(
+    _ generation: Int,
+    _ request: () async throws -> Value,
+    apply: @MainActor (Value) -> Void
+  ) async {
+    do {
+      let value = try await request()
+      guard generation == reloadGeneration else { return }
+      apply(value)
+      if state == .loading {
+        state = .loaded
+      }
     } catch is CancellationError {
       return
     } catch {
-      state = .failed(message(for: error))
+      guard generation == reloadGeneration else { return }
+      lastFailure = lastFailure ?? message(for: error)
     }
   }
 

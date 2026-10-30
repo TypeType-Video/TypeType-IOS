@@ -11,12 +11,15 @@ protocol LiveSessionActivityServiceProtocol {
     _ snapshot: LivePlaybackActivitySnapshot
   ) async throws
   func reportPlaybackStop() async throws
+  var deviceName: String { get }
+  func setDeviceName(_ name: String)
 }
 
 final class LiveSessionActivityService:
   LiveSessionActivityServiceProtocol {
   private enum Storage {
     static let deviceID = "live.session-device-id"
+    static let deviceName = "live.session-device-name"
   }
 
   private let apiClient: APIClient
@@ -108,11 +111,25 @@ final class LiveSessionActivityService:
         forInfoDictionaryKey: "CFBundleShortVersionString"
       ) as? String,
       deviceID: stableDeviceID,
-      deviceName: UIDevice.current.name,
+      deviceName: deviceName,
       deviceType: UIDevice.current.userInterfaceIdiom == .pad
         ? "tablet"
         : "mobile"
     )
+  }
+
+  var deviceName: String {
+    let stored = defaults.string(forKey: Storage.deviceName) ?? ""
+    return stored.isEmpty ? UIDevice.current.name : stored
+  }
+
+  func setDeviceName(_ name: String) {
+    let trimmed = String(name.trimmingCharacters(in: .whitespacesAndNewlines).prefix(40))
+    if trimmed.isEmpty {
+      defaults.removeObject(forKey: Storage.deviceName)
+    } else {
+      defaults.set(trimmed, forKey: Storage.deviceName)
+    }
   }
 
   private var stableDeviceID: String {

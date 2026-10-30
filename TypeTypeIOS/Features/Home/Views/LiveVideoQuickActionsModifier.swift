@@ -1,8 +1,11 @@
 import SwiftUI
 
 struct LiveVideoQuickActionsModifier: ViewModifier {
+  @Environment(\.liveToasts) private var toasts
   @StateObject var viewModel: LiveVideoQuickActionsViewModel
   @State var presentsDownload = false
+  @State var presentsShareChoice = false
+  @State var shareSheetURL: URL?
   @ObservedObject var deArrowStore: LiveDeArrowStore
   @ObservedObject var playbackCoordinator: LivePlaybackCoordinator
   let dependencies: AppDependencies
@@ -33,32 +36,23 @@ struct LiveVideoQuickActionsModifier: ViewModifier {
 
   func body(content: Content) -> some View {
     content
-      .contextMenu {
-        quickActions
-          .task {
-            async let actions: Void = viewModel.prepare()
-            async let branding: Void = deArrowStore.prepare(
-              viewModel.video
-            )
-            _ = await (actions, branding)
-          }
-      } preview: {
-        preview
-      }
-      .alert(
-        "Video",
-        isPresented: Binding(
-          get: { viewModel.message != nil },
-          set: {
-            if !$0 {
-              viewModel.dismissMessage()
+      .environment(
+        \.liveQuickActionsMenu,
+        AnyView(
+          quickActions
+            .task {
+              async let actions: Void = viewModel.prepare()
+              async let branding: Void = deArrowStore.prepare(
+                viewModel.video
+              )
+              _ = await (actions, branding)
             }
-          }
         )
-      ) {
-        Button("OK") { viewModel.dismissMessage() }
-      } message: {
-        Text(viewModel.message ?? "")
+      )
+      .onChange(of: viewModel.message) { _, message in
+        guard let message else { return }
+        toasts?.show(message)
+        viewModel.dismissMessage()
       }
       .sheet(isPresented: $presentsDownload) {
         LiveDownloadSheet(
@@ -66,6 +60,48 @@ struct LiveVideoQuickActionsModifier: ViewModifier {
           dependencies: dependencies
         )
       }
+      .popover(
+        isPresented: $presentsShareChoice,
+        attachmentAnchor: .point(.init(x: 0.5, y: 1.0)),
+        arrowEdge: .top
+      ) {
+        LiveShareChoiceCard(
+          hasOriginal: LiveShareURLBuilder.original(
+            sourceURL: viewModel.video.url
+          ) != nil,
+          onTypeType: {
+            shareSheetURL = LiveShareURLBuilder.video(
+              serverURL: dependencies.serverStore.selectedServer()?.baseURL,
+              sourceURL: viewModel.video.url
+            )
+          },
+          onOriginal: {
+            shareSheetURL = LiveShareURLBuilder.original(
+              sourceURL: viewModel.video.url
+            )
+          },
+          onCancel: { presentsShareChoice = false }
+        )
+      }
+      .sheet(isPresented: shareSheetBinding) {
+        if let shareSheetURL {
+          LiveShareActivityView(url: shareSheetURL)
+        }
+      }
+  }
+
+  private var shareSheetBinding: Binding<Bool> {
+    Binding(
+      get: { shareSheetURL != nil },
+      set: { if !$0 { shareSheetURL = nil } }
+    )
+  }
+}
+
+extension EnvironmentValues {
+  var liveQuickActionsMenu: AnyView? {
+    get { self[LiveQuickActionsMenuKey.self] }
+    set { self[LiveQuickActionsMenuKey.self] = newValue }
   }
 }
 

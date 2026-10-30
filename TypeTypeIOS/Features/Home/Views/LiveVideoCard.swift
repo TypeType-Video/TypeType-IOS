@@ -1,6 +1,14 @@
 import SwiftUI
 
 struct LiveVideoCard: View {
+  @Environment(\.livePrewarm) private var prewarm
+  @State private var didPrewarm = false
+  @State private var showsActions = false
+  @State private var pressTask: Task<Void, Never>?
+  @State private var actionsPending = false
+  @Environment(\.liveQuickActionsMenu) private var quickActionsMenu
+  @Environment(\.themePalette) private var palette
+
   let video: LiveVideoItem
   @ObservedObject private var deArrowStore: LiveDeArrowStore
   let onChannel: (() -> Void)?
@@ -20,20 +28,56 @@ struct LiveVideoCard: View {
 
   var body: some View {
     VStack(alignment: .leading, spacing: 10) {
-      Button(action: action) {
-        thumbnail
-      }
-      .buttonStyle(.plain)
-      .accessibilityIdentifier("live.home.video.card.\(video.id)")
+      // Gestures on the view, not a Button: a long press added to a Button inside a ScrollView never fires.
+      thumbnail
+        .contentShape(Rectangle())
+        .onTapGesture(perform: action)
+        .onLongPressGesture(minimumDuration: 0.45, perform: openActions) { pressing in
+          pressTask?.cancel()
+          guard pressing else {
+            if actionsPending {
+              actionsPending = false
+              showsActions = true
+            }
+            return
+          }
+          // A scroll also starts with a press: only a finger that stays put prewarms.
+          pressTask = Task {
+            try? await Task.sleep(for: .milliseconds(120))
+            if !Task.isCancelled { triggerPrewarm() }
+          }
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityAddTraits(.isButton)
+        .accessibilityAction(.default, action)
+        .accessibilityAction(named: Text("More actions")) { showsActions = true }
+        .accessibilityLabel("Open video \(branding.title)")
+        .accessibilityHint("Opens video details")
+        .accessibilityIdentifier("live.home.video.card.\(video.id)")
 
       HStack(alignment: .top, spacing: 10) {
         channelAvatar
         metadata
+          .frame(maxWidth: .infinity, alignment: .leading)
       }
     }
     .task { await deArrowStore.prepare(video) }
     .contentShape(Rectangle())
   }
+
+  private func openActions() {
+    guard quickActionsMenu != nil else { return }
+    actionsPending = true
+    UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+  }
+
+  private func triggerPrewarm() {
+    guard !didPrewarm else { return }
+    didPrewarm = true
+    prewarm?(video)
+  }
+
+  @EnvironmentObject private var watchProgress: LiveWatchProgressStore
 
   private var thumbnail: some View {
     LiveRemoteImage(url: branding.thumbnailURL)
@@ -46,6 +90,9 @@ struct LiveVideoCard: View {
       .overlay(alignment: .topLeading) {
         stateBadges
       }
+      .liveThumbnailProgress(
+        watchProgress.fraction(forVideoID: video.canonicalID)
+      )
       .clipShape(
         RoundedRectangle(cornerRadius: 14, style: .continuous)
       )
@@ -58,7 +105,7 @@ struct LiveVideoCard: View {
         avatar
       }
       .buttonStyle(.plain)
-      .accessibilityLabel("Open \(video.uploaderName)")
+      .accessibilityLabel("Open channel \(video.uploaderName)")
     } else {
       avatar
         .accessibilityHidden(true)
@@ -70,7 +117,7 @@ struct LiveVideoCard: View {
       .frame(width: 36, height: 36)
       .clipShape(Circle())
       .overlay {
-        Circle().stroke(DemoTheme.separator.opacity(0.35))
+        Circle().stroke(palette.separator.opacity(0.35))
       }
   }
 
@@ -84,23 +131,34 @@ struct LiveVideoCard: View {
           .multilineTextAlignment(.leading)
       }
       .buttonStyle(.plain)
+      .frame(maxWidth: .infinity, alignment: .leading)
+      .padding(.trailing, quickActionsMenu == nil ? 0 : 36)
 
       if let onChannel {
-        Button(action: onChannel) {
-          channelName
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel("Open \(video.uploaderName)")
+      Button(action: onChannel) {
+        channelName
+      }
+      .buttonStyle(.plain)
+      .accessibilityLabel("Open channel \(video.uploaderName)")
       } else {
         channelName
       }
 
       Text(detailText)
-        .font(.caption2)
-        .foregroundStyle(.secondary)
+        .font(.caption2.weight(.medium))
+        .foregroundStyle(Color.primary.opacity(0.65))
         .lineLimit(1)
     }
     .frame(maxWidth: .infinity, alignment: .leading)
+    // Anchored to the corner, not the title: DeArrow swaps titles after load.
+    .overlay(alignment: .topTrailing) {
+      if let quickActionsMenu {
+        LiveDotMenu(isPresented: $showsActions) {
+          quickActionsMenu
+        }
+        .accessibilityLabel("More actions for \(branding.title)")
+      }
+    }
   }
 
   private var channelName: some View {
@@ -113,8 +171,8 @@ struct LiveVideoCard: View {
           .accessibilityLabel("Verified")
       }
     }
-    .font(.caption)
-    .foregroundStyle(.secondary)
+    .font(.caption.weight(.medium))
+    .foregroundStyle(Color.primary.opacity(0.65))
   }
 
   @ViewBuilder
@@ -127,6 +185,7 @@ struct LiveVideoCard: View {
         .padding(.vertical, 3)
         .background(.black.opacity(0.84), in: RoundedRectangle(cornerRadius: 5))
         .padding(7)
+        .accessibilityHidden(true)
     }
   }
 
@@ -139,13 +198,14 @@ struct LiveVideoCard: View {
         badge("STREAMED", color: .black.opacity(0.72))
       }
       if video.requiresMembership {
-        badge("MEMBERS", color: DemoTheme.accent)
+        badge("MEMBERS", color: palette.accent)
       }
     }
     .padding(7)
+    .accessibilityHidden(true)
   }
 
-  private func badge(_ text: String, color: Color) -> some View {
+  private func badge(_ text: LocalizedStringKey, color: Color) -> some View {
     Text(text)
       .font(.caption2.weight(.bold))
       .foregroundStyle(.white)

@@ -9,10 +9,20 @@ extension LiveChannelView {
             channel: channel,
             isSubscribed: viewModel.isSubscribed,
             isChangingSubscription:
-              viewModel.isChangingSubscription
-          ) {
-            Task { await viewModel.toggleSubscription() }
-          }
+              viewModel.isChangingSubscription,
+            isNotificationsAvailable:
+              viewModel.isNotificationsAvailable,
+            isNotificationsEnabled:
+              viewModel.isNotificationsEnabled,
+            isChangingNotifications:
+              viewModel.isChangingNotifications,
+            onNotifications: {
+              Task { await viewModel.toggleNotifications() }
+            },
+            onSubscription: {
+              Task { await viewModel.toggleSubscription() }
+            }
+          )
         }
 
         if viewModel.selectedTab == .videos,
@@ -33,7 +43,7 @@ extension LiveChannelView {
       }
       .padding(16)
     }
-    .background(DemoTheme.background)
+    .background(LiveThemeBackground().ignoresSafeArea())
     .refreshable {
       if viewModel.selectedTab == .playlists {
         await viewModel.loadPlaylists()
@@ -47,15 +57,7 @@ extension LiveChannelView {
   private var stateContent: some View {
     switch viewModel.state {
     case .idle, .loading:
-      VStack(spacing: 12) {
-        ProgressView()
-          .controlSize(.large)
-        Text("Loading channel")
-          .font(.subheadline)
-          .foregroundStyle(.secondary)
-      }
-      .frame(maxWidth: .infinity)
-      .padding(.vertical, 70)
+      TypeTypeSkeletonList(layout: .cards, count: 3, scrolls: false)
     case let .failed(message):
       ContentUnavailableView {
         Label("Channel unavailable", systemImage: "wifi.exclamationmark")
@@ -77,11 +79,34 @@ extension LiveChannelView {
         emptyTitle,
         systemImage: emptySystemImage,
         description: Text(emptyDescription)
-      )
+      ).liveThemedEmptyState()
       .padding(.vertical, 50)
     case .loaded:
-      loadedContent
+      if viewModel.selectedTab == .about {
+        aboutContent
+      } else {
+        loadedContent
+      }
     }
+  }
+
+  private var aboutContent: some View {
+    VStack(alignment: .leading, spacing: 12) {
+      Text("About")
+        .font(.headline)
+      if let channel = viewModel.channel, !channel.description.isEmpty {
+        Text(channel.description)
+          .font(.subheadline)
+          .foregroundStyle(.secondary)
+          .textSelection(.enabled)
+      } else {
+        Text("This channel has no description.")
+          .font(.subheadline)
+          .foregroundStyle(.secondary)
+      }
+    }
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .accessibilityIdentifier("live.channel.about")
   }
 
   private var loadedContent: some View {
@@ -115,7 +140,7 @@ extension LiveChannelView {
           )
         }
       }
-      DemoIncrementalLoadingTrigger(
+      LiveIncrementalLoadingTrigger(
         canLoadMore: viewModel.canLoadMore,
         isLoading: viewModel.isLoadingMore,
         label: "Loading more channel content",
@@ -130,22 +155,4 @@ extension LiveChannelView {
     selectedPodcast = podcast
   }
 
-  private var emptyTitle: String {
-    viewModel.selectedTab == .playlists
-      ? "No playlists"
-      : "No videos"
-  }
-
-  private var emptySystemImage: String {
-    viewModel.selectedTab == .playlists
-      ? "rectangle.stack"
-      : "play.rectangle"
-  }
-
-  private var emptyDescription: String {
-    if !viewModel.submittedQuery.isEmpty {
-      return "No channel results for “\(viewModel.submittedQuery)”."
-    }
-    return "This channel has no content in the selected section."
-  }
 }

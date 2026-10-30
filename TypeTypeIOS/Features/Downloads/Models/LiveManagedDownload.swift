@@ -17,14 +17,14 @@ enum LiveManagedDownloadState: String, Codable {
 
   var title: String {
     switch self {
-    case .queued: return "Waiting in queue"
-    case .preparing: return "Preparing media"
-    case .downloading: return "Downloading"
-    case .finalizing: return "Finalizing"
-    case .saving: return "Saving on this device"
-    case .ready: return "Ready offline"
-    case .failed: return "Download failed"
-    case .cancelled: return "Cancelled"
+    case .queued: return String(localized: "Waiting in queue")
+    case .preparing: return String(localized: "Preparing media")
+    case .downloading: return String(localized: "Downloading")
+    case .finalizing: return String(localized: "Finalizing")
+    case .saving: return String(localized: "Saving on this device")
+    case .ready: return String(localized: "Ready offline")
+    case .failed: return String(localized: "Download failed")
+    case .cancelled: return String(localized: "Cancelled")
     }
   }
 
@@ -75,10 +75,66 @@ struct LiveManagedDownload: Codable, Equatable, Identifiable {
   var job: LiveDownloadJob
   var state: LiveManagedDownloadState
   var localFileName: String?
+  var artifactChecksum: String?
   var failureMessage: String?
+  // Optional: older records decode without it.
+  var metadata: LiveOfflineVideoMetadata?
 
   var progress: Double? {
+    // The artifact fetch reports no percentage, and a full bar would read as stalled.
+    guard state != .saving else { return nil }
     guard let value = job.progressPercent else { return nil }
     return Double(min(max(value, 0), 100)) / 100
+  }
+}
+
+struct LiveOfflineVideoMetadata: Codable, Equatable {
+  let thumbnailURL: String
+  let uploaderName: String
+  let uploaderURL: String
+  let uploaderAvatarURL: String
+  let duration: Int64
+  let viewCount: Int64
+  let uploadDate: String
+  let uploaded: Int64
+  let uploaderVerified: Bool
+  let shortDescription: String?
+  let publishedAt: Int64?
+  let streamType: String
+  let isShortFormContent: Bool
+  let isLive: Bool
+  let isPostLive: Bool
+  let isLiveContent: Bool
+  let requiresMembership: Bool
+  let likeCount: Int64
+  let dislikeCount: Int64
+  let localAvatarFileName: String?
+
+  init(
+    video: LiveVideoItem,
+    likeCount: Int64 = -1,
+    dislikeCount: Int64 = -1,
+    localAvatarFileName: String? = nil
+  ) {
+    thumbnailURL = video.thumbnailURL
+    uploaderName = video.uploaderName
+    uploaderURL = video.uploaderURL
+    uploaderAvatarURL = video.uploaderAvatarURL
+    duration = video.duration
+    viewCount = video.viewCount
+    uploadDate = video.uploadDate
+    uploaded = video.uploaded
+    uploaderVerified = video.uploaderVerified
+    shortDescription = video.shortDescription
+    publishedAt = video.publishedAt
+    streamType = video.streamType
+    isShortFormContent = video.isShortFormContent
+    isLive = video.isLive
+    isPostLive = video.isPostLive
+    self.isLiveContent = video.isLiveContent
+    self.requiresMembership = video.requiresMembership
+    self.likeCount = likeCount
+    self.dislikeCount = dislikeCount
+    self.localAvatarFileName = localAvatarFileName
   }
 }

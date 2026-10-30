@@ -5,8 +5,7 @@ extension LivePlaylistsView {
   var content: some View {
     switch viewModel.state {
     case .idle, .loading:
-      ProgressView("Loading playlists")
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+      TypeTypeSkeletonList(layout: .cards, count: 4)
     case let .failed(message):
       ContentUnavailableView {
         Label("Playlists unavailable", systemImage: "wifi.exclamationmark")
@@ -34,7 +33,7 @@ extension LivePlaylistsView {
       .padding(.vertical, 16)
     }
     .refreshable { await viewModel.reload() }
-    .background(DemoTheme.background)
+    .background(LiveThemeBackground().ignoresSafeArea())
   }
 
   private var savedSection: some View {
@@ -49,6 +48,18 @@ extension LivePlaylistsView {
               onOpen: { selectedSaved = playlist },
               onRemove: { pendingSavedDeletion = playlist }
             )
+            .liveConfirmPopover(
+              isPresented: Binding(
+                get: { pendingSavedDeletion?.id == playlist.id },
+                set: { if !$0 { pendingSavedDeletion = nil } }
+              ),
+              title: "Remove saved playlist?",
+              message: "Only the saved reference is removed from your library.",
+              confirmTitle: "Remove"
+            ) {
+              Task { await viewModel.removeSaved(playlist) }
+              pendingSavedDeletion = nil
+            }
           }
         }
       }
@@ -77,6 +88,18 @@ extension LivePlaylistsView {
             onOpen: { selectedPlaylist = playlist },
             onDelete: { pendingPlaylistDeletion = playlist }
           )
+          .liveConfirmPopover(
+            isPresented: Binding(
+              get: { pendingPlaylistDeletion?.id == playlist.id },
+              set: { if !$0 { pendingPlaylistDeletion = nil } }
+            ),
+            title: "Delete playlist?",
+            message: "This action cannot be undone.",
+            confirmTitle: "Delete"
+          ) {
+            Task { await viewModel.delete(playlist) }
+            pendingPlaylistDeletion = nil
+          }
         }
       }
     }
@@ -90,20 +113,6 @@ extension LivePlaylistsView {
         alignment: .top
       ),
     ]
-  }
-
-  var playlistDeletionBinding: Binding<Bool> {
-    Binding(
-      get: { pendingPlaylistDeletion != nil },
-      set: { if !$0 { pendingPlaylistDeletion = nil } }
-    )
-  }
-
-  var savedDeletionBinding: Binding<Bool> {
-    Binding(
-      get: { pendingSavedDeletion != nil },
-      set: { if !$0 { pendingSavedDeletion = nil } }
-    )
   }
 
   var errorBinding: Binding<Bool> {

@@ -3,9 +3,8 @@ import Foundation
 enum LiveAuthenticatedTab: Hashable {
   case home
   case subscriptions
-  case history
-  case playlists
-  case more
+  case library
+  case search
 }
 
 extension LiveAuthenticatedAppView {
@@ -20,19 +19,24 @@ extension LiveAuthenticatedAppView {
     }
     switch settings.defaultLandingPage {
     case "subscriptions":
-      selectedTab = .subscriptions
+      selectedTab.wrappedValue = .subscriptions
     case "history":
-      selectedTab = .history
+      librarySection = .history
+      selectedTab.wrappedValue = .library
     case "playlists":
-      selectedTab = .playlists
+      librarySection = .playlists
+      selectedTab.wrappedValue = .library
     case "watch-later":
-      startupCollection = .watchLater
-      selectedTab = .playlists
+      librarySection = .watchLater
+      selectedTab.wrappedValue = .library
     case "favorites":
-      startupCollection = .favorites
-      selectedTab = .playlists
+      librarySection = .favorites
+      selectedTab.wrappedValue = .library
+    case "downloads":
+      librarySection = .downloads
+      selectedTab.wrappedValue = .library
     default:
-      selectedTab = .home
+      selectedTab.wrappedValue = .home
     }
   }
 }

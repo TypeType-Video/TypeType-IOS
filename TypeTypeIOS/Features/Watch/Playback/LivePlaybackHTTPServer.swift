@@ -12,6 +12,8 @@ final class LivePlaybackHTTPServer: @unchecked Sendable {
     ProviderMediaKind
   ) -> Void
 
+  typealias SABRFailureHandler = @Sendable (Error) -> Void
+
   struct Resource: Sendable {
     let data: Data
     let mimeType: String
@@ -44,6 +46,7 @@ final class LivePlaybackHTTPServer: @unchecked Sendable {
   let preparation: LivePlaybackPreparation
   let preferredSubtitleLanguage: String
   let providerFailureHandler: ProviderFailureHandler?
+  let sabrFailureHandler: SABRFailureHandler?
   let queue = DispatchQueue(
     label: "dev.typetype.ios.live-playback-http",
     qos: .userInitiated
@@ -66,17 +69,21 @@ final class LivePlaybackHTTPServer: @unchecked Sendable {
   var providerProgressiveMaster: String?
   var providerProgressiveVideo: String?
   var providerProgressiveAudio: String?
+  // Read under `lock`.
+  var lastTransportFailureAt: Date?
 
   init(
     service: LivePlaybackServiceProtocol,
     preparation: LivePlaybackPreparation,
     preferredSubtitleLanguage: String,
-    providerFailureHandler: ProviderFailureHandler? = nil
+    providerFailureHandler: ProviderFailureHandler? = nil,
+    sabrFailureHandler: SABRFailureHandler? = nil
   ) {
     self.service = service
     self.preparation = preparation
     self.preferredSubtitleLanguage = preferredSubtitleLanguage
     self.providerFailureHandler = providerFailureHandler
+    self.sabrFailureHandler = sabrFailureHandler
     cache.totalCostLimit = 128 * 1_024 * 1_024
   }
 
@@ -156,6 +163,7 @@ final class LivePlaybackHTTPServer: @unchecked Sendable {
           target: .providerMaster,
           pathExtension: "m3u8"
         )
+        warmProviderHLSStart()
       case .separateProgressive:
         routeID = try await startProgressiveProviderSession()
       }
@@ -245,37 +253,4 @@ final class LivePlaybackHTTPServer: @unchecked Sendable {
 
   static let playlistMIME = "application/vnd.apple.mpegurl"
   static let maximumUpstreamMediaRoutes = 1_024
-}
-
-private final class ContinuationGate: @unchecked Sendable {
-  private let lock = NSLock()
-  private var didResume = false
-
-  func resume<T>(
-    _ continuation: CheckedContinuation<T, Error>,
-    returning value: T
-  ) {
-    guard lock.withLock({
-      guard !didResume else { return false }
-      didResume = true
-      return true
-    }) else {
-      return
-    }
-    continuation.resume(returning: value)
-  }
-
-  func resume<T>(
-    _ continuation: CheckedContinuation<T, Error>,
-    throwing error: Error
-  ) {
-    guard lock.withLock({
-      guard !didResume else { return false }
-      didResume = true
-      return true
-    }) else {
-      return
-    }
-    continuation.resume(throwing: error)
-  }
 }

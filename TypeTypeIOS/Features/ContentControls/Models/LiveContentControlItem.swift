@@ -61,6 +61,7 @@ struct LiveContentControlItem: Codable, Equatable, Hashable, Identifiable {
 enum LiveContentControlKind: String, CaseIterable, Identifiable {
   case blockedChannels
   case blockedVideos
+  case blockedKeywords
   case allowedChannels
 
   var id: String { rawValue }
@@ -69,7 +70,50 @@ enum LiveContentControlKind: String, CaseIterable, Identifiable {
     switch self {
     case .blockedChannels: return "Blocked channels"
     case .blockedVideos: return "Blocked videos"
+    case .blockedKeywords: return "Blocked keywords"
     case .allowedChannels: return "Allowed channels"
     }
+  }
+
+  var icon: String {
+    switch self {
+    case .blockedChannels: "person.crop.circle.badge.xmark"
+    case .blockedVideos: "play.slash"
+    case .blockedKeywords: "textformat"
+    case .allowedChannels: "checkmark.shield"
+    }
+  }
+
+  var summary: String {
+    switch self {
+    case .blockedChannels: "Their videos never show up"
+    case .blockedVideos: "Hidden everywhere in the app"
+    case .blockedKeywords: "Videos whose title contains them are hidden"
+    case .allowedChannels: "Channels kept even when others are limited"
+    }
+  }
+
+  var addTitle: String {
+    switch self {
+    case .blockedChannels: String(localized: "Block a channel")
+    case .blockedVideos: String(localized: "Block a video")
+    case .blockedKeywords: String(localized: "Block a keyword")
+    case .allowedChannels: String(localized: "Allow a channel")
+    }
+  }
+
+  var emptyTitle: String {
+    switch self {
+    case .blockedChannels: String(localized: "No blocked channels")
+    case .blockedVideos: String(localized: "No blocked videos")
+    case .blockedKeywords: String(localized: "No blocked keywords")
+    case .allowedChannels: String(localized: "No allowed channels")
+    }
+  }
+}
+
+extension LiveContentControlItem {
+  var serviceName: String {
+    VideoService.hosting(url)?.name ?? URL(string: url)?.host() ?? url
   }
 }

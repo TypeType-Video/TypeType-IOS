@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct DemoWatchView: View {
+  @Environment(\.themePalette) private var palette
   let video: DemoVideo
   @EnvironmentObject var session: DemoSessionStore
   @Environment(\.horizontalSizeClass) var horizontalSizeClass
@@ -90,7 +91,7 @@ struct DemoWatchView: View {
         }
       }
     }
-    .background(DemoTheme.background)
+    .background(palette.background)
     .externalLinkAlert(pendingURL: $pendingExternalURL)
     .preferredColorScheme(session.preferences.colorScheme)
     .navigationTitle("Watch")
@@ -98,7 +99,7 @@ struct DemoWatchView: View {
     .toolbar(.hidden, for: .tabBar)
     .toolbarBackground(.visible, for: .navigationBar)
     .toolbarBackground(
-      DemoTheme.background.opacity(0.96),
+      palette.background.opacity(0.96),
       for: .navigationBar
     )
     .onAppear {

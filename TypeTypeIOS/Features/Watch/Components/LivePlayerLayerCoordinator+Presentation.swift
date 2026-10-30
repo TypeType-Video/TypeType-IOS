@@ -8,10 +8,9 @@ extension LivePlayerLayerCoordinator {
   ) {
     isEndingFullScreen = false
     isFullScreenPresented = true
-    fullScreenPlaybackWasIntended =
-      playbackWasIntended
-      || controller.player.timeControlStatus == .playing
-      || controller.state == .playing
+    let playerIsPlaying: Bool = controller.player.timeControlStatus == .playing
+    let stateIsPlaying: Bool = controller.state == .playing
+    fullScreenPlaybackWasIntended = playbackWasIntended || playerIsPlaying || stateIsPlaying
     transition(
       playerViewController,
       toFullScreen: true,
@@ -69,6 +68,11 @@ extension LivePlayerLayerCoordinator {
     _ playerViewController: AVPlayerViewController
   ) {
     completePictureInPictureTransition()
+    // AVKit can leave its controls hidden after a hand-back; the toggle must cross a run loop tick.
+    playerViewController.showsPlaybackControls = false
+    DispatchQueue.main.async {
+      playerViewController.showsPlaybackControls = true
+    }
   }
 
   func playerViewControllerShouldAutomaticallyDismissAtPictureInPictureStart(
@@ -82,7 +86,16 @@ extension LivePlayerLayerCoordinator {
     restoreUserInterfaceForPictureInPictureStopWithCompletionHandler
       completionHandler: @escaping (Bool) -> Void
   ) {
-    completionHandler(true)
+    playerViewController.showsPlaybackControls = false
+    DispatchQueue.main.async {
+      playerViewController.showsPlaybackControls = true
+      playerViewController.view.setNeedsLayout()
+    }
+    guard let handler = pictureInPictureUIRestoreHandler else {
+      completionHandler(false)
+      return
+    }
+    handler(completionHandler)
   }
 
   private func transition(
@@ -92,11 +105,11 @@ extension LivePlayerLayerCoordinator {
     with coordinator: UIViewControllerTransitionCoordinator
   ) {
     presentationTransitionInProgress = true
+    LiveScreenOrientation.set(toFullScreen ? .landscape : .portrait)
     pendingPauseIntentTask?.cancel()
     resumeAfterTransitionTask?.cancel()
     settleTransitionTask?.cancel()
-    // AVKit reparents its content view while entering and leaving full
-    // screen. Hosting views must leave that subtree during the move.
+    // AVKit reparents its content view while entering and leaving full screen: hosting views must leave that subtree.
     remove()
 
     coordinator.animate(
@@ -117,7 +130,7 @@ extension LivePlayerLayerCoordinator {
       playbackWasIntended = true
       schedulePlaybackResume()
       settlePlaybackPreservationWindow(
-        checks: toFullScreen ? 4 : 20
+        for: toFullScreen ? .milliseconds(800) : .seconds(4)
       )
     }
   }

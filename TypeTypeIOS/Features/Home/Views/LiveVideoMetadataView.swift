@@ -24,25 +24,13 @@ struct LiveVideoMetadataView: View {
       } else {
         ProgressView("Preparing video")
           .frame(maxWidth: .infinity, maxHeight: .infinity)
-          .background(DemoTheme.background)
+          .background(LiveThemeBackground())
       }
     }
     .task(id: video.url) {
       await Task.yield()
       guard !Task.isCancelled else { return }
       playbackCoordinator.open(video)
-    }
-    .onDisappear {
-      let departingVideoURL = video.url
-      Task { @MainActor in
-        await Task.yield()
-        guard playbackCoordinator.currentVideo?.url
-          == departingVideoURL
-        else {
-          return
-        }
-        playbackCoordinator.minimize()
-      }
     }
   }
 }

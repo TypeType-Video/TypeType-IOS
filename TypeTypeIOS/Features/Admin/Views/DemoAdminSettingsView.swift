@@ -5,29 +5,29 @@ struct DemoAdminSettingsView: View {
 
   var body: some View {
     Form {
-      Section("Instance access") {
-        Toggle("Allow registrations", isOn: adminBinding(\.allowsRegistration))
-        Toggle("Allow guest mode", isOn: adminBinding(\.allowsGuests))
-        Toggle("Track active sessions", isOn: adminBinding(\.tracksActiveSessions))
-      }
+      Section {
+        Toggle("Allow registrations", isOn: adminBinding(\.allowsRegistration)).liveRowFill()
+        Toggle("Allow guest mode", isOn: adminBinding(\.allowsGuests)).liveRowFill()
+        Toggle("Track active sessions", isOn: adminBinding(\.tracksActiveSessions)).liveRowFill()
+      } header: { Text("Instance access").liveSectionHeader() }
 
-      Section("Authentication") {
-        Toggle("Allow local login", isOn: adminBinding(\.allowsLocalLogin))
-        Toggle("Auto-redirect to OIDC", isOn: adminBinding(\.redirectsToOIDC))
-      }
+      Section {
+        Toggle("Allow local login", isOn: adminBinding(\.allowsLocalLogin)).liveRowFill()
+        Toggle("Auto-redirect to OIDC", isOn: adminBinding(\.redirectsToOIDC)).liveRowFill()
+      } header: { Text("Authentication").liveSectionHeader() }
 
-      Section("YouTube") {
+      Section {
         Toggle(
           "Remote YouTube login",
           isOn: adminBinding(\.allowsYouTubeRemoteLogin)
-        )
-      }
+        ).liveRowFill()
+      } header: { Text("YouTube").liveSectionHeader() }
 
-      Section("Access preview") {
+      Section {
         NavigationLink("Preview guest-disabled screen") {
           DemoGuestAccessPreviewView()
         }
-      }
+      } header: { Text("Access preview").liveSectionHeader() }
 
       Section {
         Text("Every instance switch updates the shared local admin state.")

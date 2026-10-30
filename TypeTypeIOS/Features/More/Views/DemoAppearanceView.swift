@@ -5,7 +5,7 @@ struct DemoAppearanceView: View {
 
   var body: some View {
     Form {
-      Section("Appearance") {
+      Section {
         Picker("Color scheme", selection: binding(\.appearanceMode)) {
           ForEach(["System", "Light", "Dark"], id: \.self) { option in
             Text(option).tag(option)
@@ -16,9 +16,9 @@ struct DemoAppearanceView: View {
           Text("Blue").tag("Blue")
           Text("Purple").tag("Purple")
         }
-      }
+      } header: { Text("Appearance").liveSectionHeader() }
 
-      Section("Preview") {
+      Section {
         HStack(spacing: 12) {
           Image("TypeTypeLogo")
             .resizable()
@@ -33,7 +33,7 @@ struct DemoAppearanceView: View {
           }
         }
         .padding(.vertical, 6)
-      }
+      } header: { Text("Preview").liveSectionHeader() }
 
       Section {
         Text("These choices are stored only for this mock session.")

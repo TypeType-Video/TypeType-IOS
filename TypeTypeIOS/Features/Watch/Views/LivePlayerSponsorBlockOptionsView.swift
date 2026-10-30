@@ -5,7 +5,7 @@ struct LivePlayerSponsorBlockOptionsView: View {
 
   var body: some View {
     Form {
-      Section("Behavior") {
+      Section {
         Picker("Global behavior", selection: modeBinding) {
           ForEach(LiveSponsorBlockMode.allCases) { mode in
             Text(mode.title).tag(mode.rawValue)
@@ -15,34 +15,34 @@ struct LivePlayerSponsorBlockOptionsView: View {
           "Minimum duration: \(controller.sponsorBlockMinimumDuration)s",
           value: minimumDurationBinding,
           in: 0...600
-        )
+        ).liveRowFill()
         Toggle(
           "Mute segments instead of skipping",
           isOn: muteInsteadOfSkipBinding
-        )
+        ).liveRowFill()
         Toggle(
           "Show current segment",
           isOn: showCurrentBinding
-        )
+        ).liveRowFill()
         Toggle(
           "Show SponsorBlock chapters",
           isOn: showChaptersBinding
-        )
+        ).liveRowFill()
         Toggle(
           "Show full-video labels",
           isOn: showFullVideoBinding
-        )
+        ).liveRowFill()
         Toggle(
           "Manual skip for full-video labels",
           isOn: manualFullVideoBinding
-        )
+        ).liveRowFill()
         Toggle(
           "Non-music only on music videos",
           isOn: musicOnlyBinding
-        )
-      }
+        ).liveRowFill()
+      } header: { Text("Behavior").liveSectionHeader() }
 
-      Section("Categories") {
+      Section {
         ForEach(Self.categories, id: \.id) { category in
           Picker(
             category.title,
@@ -53,14 +53,15 @@ struct LivePlayerSponsorBlockOptionsView: View {
             Text("Hide").tag("disabled")
           }
         }
-      }
+      } header: { Text("Categories").liveSectionHeader() }
 
       if let count = controller.stream?.sponsorBlockSegments.count {
-        Section("Current video") {
+        Section {
           LabeledContent("Segments received", value: "\(count)")
-        }
+        } header: { Text("Current video").liveSectionHeader() }
       }
     }
+      .liveThemedList()
     .navigationTitle("SponsorBlock")
     .navigationBarTitleDisplayMode(.inline)
   }

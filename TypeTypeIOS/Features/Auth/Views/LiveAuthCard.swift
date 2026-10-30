@@ -53,7 +53,11 @@ struct LiveAuthCard: View {
 
   private var heading: some View {
     VStack(alignment: .leading, spacing: 7) {
-      Text(viewModel.mode == .signIn ? "Sign in" : "Create account")
+      Text(
+        viewModel.mode == .signIn
+          ? LocalizedStringKey("Sign in")
+          : LocalizedStringKey("Create account")
+      )
         .font(.title3.weight(.semibold))
         .foregroundStyle(palette.primaryText)
       Text(coordinator.instance?.name ?? coordinator.selectedServer?.name ?? "TypeType")
@@ -68,22 +72,22 @@ struct LiveAuthCard: View {
   private var fields: some View {
     VStack(spacing: 12) {
       if viewModel.mode == .register {
-        DemoAuthField(
+        AuthField(
           placeholder: "Name",
           kind: .name,
           palette: palette,
           text: $viewModel.name
         )
       }
-      DemoAuthField(
+      AuthField(
         placeholder: viewModel.mode == .signIn
-          ? "Email or username"
-          : "Email",
+          ? LocalizedStringKey("Email or username")
+          : LocalizedStringKey("Email"),
         kind: .email,
         palette: palette,
         text: $viewModel.identifier
       )
-      DemoAuthField(
+      AuthField(
         placeholder: "Password",
         kind: .password,
         palette: palette,
@@ -148,7 +152,7 @@ struct LiveAuthCard: View {
     .accessibilityIdentifier("live.auth.guest")
   }
 
-  var palette: DemoAuthPalette {
-    DemoAuthPalette(isLight: isLight)
+  var palette: AuthPalette {
+    AuthPalette(isLight: isLight)
   }
 }

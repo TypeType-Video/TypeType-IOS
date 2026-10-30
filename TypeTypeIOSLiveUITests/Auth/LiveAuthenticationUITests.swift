@@ -146,12 +146,10 @@ final class LiveAuthenticationUITests: XCTestCase {
   private func exerciseProductionSearch(
     in app: XCUIApplication
   ) {
-    let search = app.buttons["live.home.search"]
+    let search = app.searchTabButton
     XCTAssertTrue(search.waitForExistence(timeout: 3))
     search.tap()
-    let field = app.searchFields[
-      "Search videos, channels..."
-    ]
+    let field = app.textFields["live.search.field"]
     XCTAssertTrue(field.waitForExistence(timeout: 3))
     field.tap()
     field.typeText("Big Buck Bunny")
@@ -165,14 +163,7 @@ final class LiveAuthenticationUITests: XCTestCase {
       ).firstMatch.waitForExistence(timeout: 90)
     )
     capture(app, named: "Live search · HTTPS instance")
-    let close = app.navigationBars["Search"].buttons["Close"]
-    XCTAssertTrue(close.waitForExistence(timeout: 3))
-    XCTAssertTrue(close.isHittable)
-    close.tap()
-    if !app.otherElements["live.search.screen"]
-      .waitForNonExistence(timeout: 1) {
-      close.tap()
-    }
+    app.tabBars.buttons["Home"].tap()
     XCTAssertTrue(
       app.otherElements["live.search.screen"]
         .waitForNonExistence(timeout: 5)
@@ -190,7 +181,7 @@ final class LiveAuthenticationUITests: XCTestCase {
         return
       }
     }
-    let tabButton = app.tabBars.buttons["More"]
+    let tabButton = app.buttons["live.home.settings"]
     XCTAssertTrue(tabButton.waitForExistence(timeout: 2))
     tabButton.tap()
   }

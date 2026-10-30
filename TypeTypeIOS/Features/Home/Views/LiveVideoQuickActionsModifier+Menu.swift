@@ -28,8 +28,8 @@ extension LiveVideoQuickActionsModifier {
           ? "Remove from Watch later"
           : "Add to Watch later",
         systemImage: viewModel.isInWatchLater
-          ? "clock.badge.xmark"
-          : "clock.badge.plus"
+          ? "clock.arrow.circlepath"
+          : "clock"
       )
     }
 
@@ -58,11 +58,14 @@ extension LiveVideoQuickActionsModifier {
       }
     }
 
-    if let shareURL = LiveShareURLBuilder.video(
+    if LiveShareURLBuilder.video(
       serverURL: dependencies.serverStore.selectedServer()?.baseURL,
       sourceURL: viewModel.video.url
-    ) {
-      ShareLink(item: shareURL) {
+    ) != nil {
+      // The popover tears down its content on tap: the dialog and share sheet live on the modifier body.
+      Button {
+        presentsShareChoice = true
+      } label: {
         Label("Share", systemImage: "square.and.arrow.up")
       }
     }

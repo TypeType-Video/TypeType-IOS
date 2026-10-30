@@ -13,8 +13,8 @@ struct DemoLanguageSettingsView: View {
 
   var body: some View {
     Form {
-      Section("Language") {
-        Toggle("Subtitles", isOn: binding(\.subtitlesEnabled))
+      Section {
+        Toggle("Subtitles", isOn: binding(\.subtitlesEnabled)).liveRowFill()
         Picker("Subtitle language", selection: binding(\.subtitleLanguage)) {
           ForEach(languages, id: \.self) { Text($0).tag($0) }
         }
@@ -26,8 +26,8 @@ struct DemoLanguageSettingsView: View {
         Toggle(
           "Prefer original language",
           isOn: binding(\.prefersOriginalLanguage)
-        )
-      }
+        ).liveRowFill()
+      } header: { Text("Language").liveSectionHeader() }
     }
     .navigationTitle("Language")
     .navigationBarTitleDisplayMode(.inline)

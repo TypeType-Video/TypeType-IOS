@@ -12,22 +12,23 @@ struct LiveContentControlEditor: View {
 
   var body: some View {
     NavigationStack {
-      Form {
+      List {
         Section {
-          TextField("URL", text: $url)
+          TextField("Link", text: $url)
             .keyboardType(.URL)
             .textInputAutocapitalization(.never)
           if kind != .blockedVideos {
             TextField("Name (optional)", text: $name)
           }
           if canCreateGlobal {
-            Toggle("Apply globally", isOn: $global)
+            Toggle("Apply globally", isOn: $global).liveRowFill()
           }
         } footer: {
-          Text("The server validates and normalizes supported URLs.")
+          Text("Paste the link of a channel, video or playlist.")
         }
       }
-      .navigationTitle("Add \(kind.title.lowercased())")
+        .liveGroupedList()
+      .navigationTitle(kind.addTitle)
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {
         ToolbarItem(placement: .cancellationAction) {

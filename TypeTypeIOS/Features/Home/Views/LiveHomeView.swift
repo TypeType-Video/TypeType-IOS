@@ -2,23 +2,21 @@ import SwiftUI
 
 struct LiveHomeView: View {
   @ObservedObject var coordinator: RootCoordinator
+  @ObservedObject var notificationCenter: LiveNotificationCenter
   @StateObject var viewModel: LiveHomeViewModel
   @State var selectedVideo: LiveVideoItem?
   @State var selectedChannelURL: String?
-  let onPresentSearch: () -> Void
 
-  init(
-    coordinator: RootCoordinator,
-    onPresentSearch: @escaping () -> Void
-  ) {
+  init(coordinator: RootCoordinator) {
     self.coordinator = coordinator
-    self.onPresentSearch = onPresentSearch
+    notificationCenter = coordinator.dependencies.notificationCenter
     _viewModel = StateObject(
       wrappedValue: LiveHomeViewModel(
         service: coordinator.dependencies.homeFeedService,
         historyService: coordinator.dependencies.historyService,
         settingsService: coordinator.dependencies.settingsService,
-        serviceSelection: coordinator.dependencies.serviceSelection
+        serviceSelection: coordinator.dependencies.serviceSelection,
+        imagePipeline: coordinator.dependencies.imagePipeline
       )
     )
   }
@@ -31,13 +29,12 @@ struct LiveHomeView: View {
         .toolbar {
           brandToolbar
           serviceToolbar
-          searchToolbar
+          accountsToolbar
         }
-        .navigationDestination(item: $selectedVideo) { video in
-          LiveVideoMetadataView(
-            video: video,
-            dependencies: coordinator.dependencies
-          )
+        .onChange(of: selectedVideo) { _, video in
+          guard let video else { return }
+          selectedVideo = nil
+          coordinator.dependencies.playbackCoordinator.open(video)
         }
         .navigationDestination(item: $selectedChannelURL) { channelURL in
           LiveChannelView(

@@ -8,8 +8,15 @@ extension LiveDownloadCenter {
       return
     }
     var savedURL: URL?
+    let startedAt = DispatchTime.now().uptimeNanoseconds
     do {
       let temporaryURL = try await service.artifact(id: record.job.id)
+      let fetchedMs = Int(
+        Double(DispatchTime.now().uptimeNanoseconds - startedAt) / 1e6
+      )
+      AppLogger.network.info(
+        "download artifact fetched in \(fetchedMs, privacy: .public)ms"
+      )
       let fileName = localFileName(for: record)
       let destination = artifactsURL.appendingPathComponent(fileName)
       savedURL = destination
@@ -27,16 +34,37 @@ extension LiveDownloadCenter {
         ],
         ofItemAtPath: destination.path
       )
-      try await mediaValidator.validate(
-        fileURL: destination,
-        mode: record.options.mode
-      )
+      // Ready as soon as the file is in place; validation and checksum finish later and demote the record only if
+      // they fail.
       record.localFileName = fileName
       record.state = .ready
       record.failureMessage = nil
       record.updatedAt = Date()
       replace(record)
+      do {
+        try await mediaValidator.validate(
+          fileURL: destination,
+          mode: record.options.mode
+        )
+        record.artifactChecksum = try await Self.checksum(of: destination)
+        record.updatedAt = Date()
+        replace(record)
+        await refreshStorageUsage()
+      } catch {
+        try? fileManager.removeItem(at: savedURL ?? destination)
+        record.state = .failed
+        record.failureMessage =
+          "The download did not pass validation. " + Self.message(for: error)
+        record.updatedAt = Date()
+        replace(record)
+      }
     } catch {
+      let failedMs = Int(
+        Double(DispatchTime.now().uptimeNanoseconds - startedAt) / 1e6
+      )
+      AppLogger.network.error(
+        "download artifact failed after \(failedMs, privacy: .public)ms: \(Self.message(for: error), privacy: .public)"
+      )
       if Self.isTransientNetworkFailure(error) {
         record.state = .saving
         record.failureMessage =

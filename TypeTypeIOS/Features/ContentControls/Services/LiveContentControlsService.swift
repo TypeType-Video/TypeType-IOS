@@ -12,6 +12,9 @@ protocol LiveContentControlsServiceProtocol {
     kind: LiveContentControlKind,
     url: String
   ) async throws
+  func keywords() async throws -> [LiveBlockedKeywordItem]
+  func addKeyword(_ keyword: String) async throws -> LiveBlockedKeywordItem
+  func removeKeyword(_ keyword: String) async throws
 }
 
 final class LiveContentControlsService:
@@ -54,11 +57,44 @@ final class LiveContentControlsService:
     )
   }
 
+  func keywords() async throws -> [LiveBlockedKeywordItem] {
+    try await apiClient.request(
+      endpoint("/blocked/keywords", .get),
+      as: [LiveBlockedKeywordItem].self
+    )
+  }
+
+  func addKeyword(_ keyword: String) async throws -> LiveBlockedKeywordItem {
+    struct Request: Encodable { let keyword: String }
+    return try await apiClient.request(
+      endpoint(
+        "/blocked/keywords",
+        .post,
+        body: try APIEndpoint.jsonBody(Request(keyword: keyword))
+      ),
+      as: LiveBlockedKeywordItem.self
+    )
+  }
+
+  func removeKeyword(_ keyword: String) async throws {
+    let allowed = CharacterSet.alphanumerics.union(
+      CharacterSet(charactersIn: "-._~")
+    )
+    let encoded = keyword.addingPercentEncoding(
+      withAllowedCharacters: allowed
+    ) ?? keyword
+    try await apiClient.request(
+      endpoint("/blocked/keywords/\(encoded)", .delete)
+    )
+  }
+
   private func path(for kind: LiveContentControlKind) -> String {
     switch kind {
     case .blockedChannels: return "/blocked/channels"
     case .blockedVideos: return "/blocked/videos"
-    case .allowedChannels: return "/allowed/channels"
+    case .blockedKeywords, .allowedChannels: return kind == .blockedKeywords
+      ? "/blocked/keywords"
+      : "/allowed/channels"
     }
   }
 

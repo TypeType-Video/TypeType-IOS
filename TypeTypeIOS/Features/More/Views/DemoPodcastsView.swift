@@ -36,7 +36,7 @@ struct DemoPodcastsView: View {
         .padding(.vertical, 8)
       }
 
-      Section("Episodes") {
+      Section {
         ForEach(episodes.prefix(visibleCount)) { episode in
           DemoVideoCard(video: episode.video(creator: creator, artwork: artwork)) {
             selectedVideo = $0
@@ -46,15 +46,16 @@ struct DemoPodcastsView: View {
           )
           .listRowBackground(Color.clear)
         }
-        DemoIncrementalLoadingTrigger(
+        LiveIncrementalLoadingTrigger(
           canLoadMore: visibleCount < episodes.count,
           isLoading: isLoadingMore,
           label: "Loading more episodes",
           identifier: "demo.podcasts.loading",
           action: loadMore
         )
-      }
+      } header: { Text("Episodes").liveSectionHeader() }
     }
+      .listStyle(.insetGrouped)
     .navigationTitle("Podcasts")
     .navigationBarTitleDisplayMode(.inline)
     .navigationDestination(item: $selectedVideo) { video in

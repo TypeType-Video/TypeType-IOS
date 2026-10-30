@@ -21,6 +21,7 @@ struct LivePlaylistDetailView: View {
     _viewModel = StateObject(
       wrappedValue: LivePlaylistDetailViewModel(
         id: playlist.id,
+        seed: playlist,
         service: dependencies.playlistsService
       )
     )
@@ -28,14 +29,14 @@ struct LivePlaylistDetailView: View {
 
   var body: some View {
     content
+      .liveLibrarySectionSwipe()
       .navigationTitle(viewModel.playlist?.name ?? "Playlist")
       .navigationBarTitleDisplayMode(.inline)
       .toolbar { toolbarContent }
-      .navigationDestination(item: $selectedVideo) { video in
-        LiveVideoMetadataView(
-          video: video,
-          dependencies: dependencies
-        )
+      .onChange(of: selectedVideo) { _, video in
+        guard let video else { return }
+        selectedVideo = nil
+        dependencies.playbackCoordinator.open(video)
       }
       .navigationDestination(item: $selectedChannelURL) { channelURL in
         LiveChannelView(
@@ -63,33 +64,6 @@ struct LivePlaylistDetailView: View {
             }
           }
         }
-      }
-      .confirmationDialog(
-        "Remove video?",
-        isPresented: removalBinding,
-        titleVisibility: .visible
-      ) {
-        Button("Remove", role: .destructive) {
-          guard let video = pendingRemoval else { return }
-          Task { await viewModel.remove(video) }
-          pendingRemoval = nil
-        }
-      }
-      .confirmationDialog(
-        "Delete playlist?",
-        isPresented: $confirmsDeletion,
-        titleVisibility: .visible
-      ) {
-        Button("Delete", role: .destructive) {
-          Task {
-            if await viewModel.delete() {
-              onChanged()
-              dismiss()
-            }
-          }
-        }
-      } message: {
-        Text("This action cannot be undone.")
       }
       .alert("Playlist", isPresented: errorBinding) {
         Button("OK") { viewModel.dismissError() }

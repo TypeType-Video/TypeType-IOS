@@ -49,7 +49,9 @@ final class LivePublicPlaylistViewModel: ObservableObject {
       playlist = page.playlist
       videos = uniqueVisible(page.videos)
       nextPage = page.nextPage
-      savedID = saved.first { $0.url == playlist.url }?.id
+      savedID = saved.first {
+        Self.normalizedURL($0.url) == Self.normalizedURL(playlist.url)
+      }?.id
       state = .loaded
     } catch is CancellationError {
       return
@@ -98,7 +100,10 @@ final class LivePublicPlaylistViewModel: ObservableObject {
     isPreparingPlayback = true
     defer { isPreparingPlayback = false }
     do {
+      var seenTokens: Set<String> = []
       while let pageToken = nextPage, !pageToken.isEmpty {
+        // Track every token used: a cursor cycle (A, B, A) must not spin forever.
+        guard seenTokens.insert(pageToken).inserted else { break }
         let page = try await service.publicPlaylist(
           url: playlist.url,
           nextPage: pageToken
@@ -108,9 +113,6 @@ final class LivePublicPlaylistViewModel: ObservableObject {
           !existing.contains($0.canonicalID)
         })
         nextPage = page.nextPage
-        if nextPage == pageToken {
-          break
-        }
       }
       return videos
     } catch is CancellationError {
@@ -123,6 +125,11 @@ final class LivePublicPlaylistViewModel: ObservableObject {
 
   func dismissError() {
     errorMessage = nil
+  }
+
+  private static func normalizedURL(_ value: String) -> String {
+    value.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+      .lowercased()
   }
 
   private func uniqueVisible(

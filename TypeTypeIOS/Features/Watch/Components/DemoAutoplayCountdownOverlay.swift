@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct DemoAutoplayCountdownOverlay: View {
+  @Environment(\.themePalette) private var palette
   let video: DemoVideo
   let seconds: Int
   let onPlay: () -> Void
@@ -79,6 +80,8 @@ struct DemoAutoplayCountdownOverlay: View {
           HStack {
             Button("Play now", action: onPlay)
               .buttonStyle(.borderedProminent)
+            Button("Cancel autoplay", action: onCancel)
+              .buttonStyle(.bordered)
             Button(isPaused ? "Resume" : "Pause", action: togglePause)
             .buttonStyle(.bordered)
           }
@@ -95,9 +98,9 @@ struct DemoAutoplayCountdownOverlay: View {
           Capsule()
             .fill(.white.opacity(0.22))
           Capsule()
-            .fill(DemoTheme.accent)
+            .fill(palette.accent)
             .frame(width: geometry.size.width * progress(at: date))
-            .shadow(color: DemoTheme.accent.opacity(0.5), radius: 3)
+            .shadow(color: palette.accent.opacity(0.5), radius: 3)
         }
       }
       .frame(height: 4)

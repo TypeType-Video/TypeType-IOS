@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct DemoWatchHeaderView: View {
+  @Environment(\.themePalette) private var palette
   @EnvironmentObject private var session: DemoSessionStore
   @ObservedObject var controller: DemoPlayerController
   let video: DemoVideo
@@ -86,7 +87,7 @@ struct DemoWatchHeaderView: View {
         }
       }
         .buttonStyle(.borderedProminent)
-        .tint(isSubscribed ? DemoTheme.surface : .accentColor)
+        .tint(isSubscribed ? palette.surface : .accentColor)
         .foregroundStyle(isSubscribed ? Color.primary : Color.white)
         .accessibilityIdentifier("demo.watch.subscribe")
     }
@@ -113,7 +114,7 @@ struct DemoWatchHeaderView: View {
     .font(.subheadline)
     .foregroundStyle(.primary)
     .frame(height: 38)
-    .background(DemoTheme.surface)
+    .background(palette.surface)
     .clipShape(Capsule())
     .buttonStyle(.plain)
     .accessibilityIdentifier("demo.watch.reactions")

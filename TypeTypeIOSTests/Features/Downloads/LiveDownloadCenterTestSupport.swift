@@ -11,13 +11,24 @@ final class DownloadServiceStub: LiveDownloaderServiceProtocol {
   private var artifactRequestCount = 0
   private var requestedOptions: [LiveDownloadOptions] = []
   private let artifactDelay: Duration
+  private var jobFailuresRemaining: Int
+  private var jobRequestCount = 0
+  private let jobError: NetworkError
 
   init(
+    jobFailuresRemaining: Int = 0,
+    jobError: NetworkError = .statusCode(503, nil),
     artifactFailuresRemaining: Int = 0,
     artifactDelay: Duration = .zero
   ) {
+    self.jobFailuresRemaining = jobFailuresRemaining
+    self.jobError = jobError
     failuresRemaining = artifactFailuresRemaining
     self.artifactDelay = artifactDelay
+  }
+
+  var jobAttempts: Int {
+    lock.withLock { jobRequestCount }
   }
 
   var artifactAttempts: Int {
@@ -39,7 +50,16 @@ final class DownloadServiceStub: LiveDownloaderServiceProtocol {
   }
 
   func job(id: String) async throws -> LiveDownloadJob {
-    Self.job(status: "done", stage: "done")
+    let shouldFail = lock.withLock {
+      jobRequestCount += 1
+      guard jobFailuresRemaining > 0 else { return false }
+      jobFailuresRemaining -= 1
+      return true
+    }
+    if shouldFail {
+      throw jobError
+    }
+    return Self.job(status: "done", stage: "done")
   }
 
   func cancel(id: String) async throws -> LiveDownloadJob {

@@ -46,6 +46,11 @@
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>audio</string>
+		<string>fetch</string>
+	</array>
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>dev.typetype.ios.notifications-refresh</string>
 	</array>
 	<key>UILaunchScreen</key>
 	<dict/>

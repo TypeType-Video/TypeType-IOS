@@ -4,6 +4,7 @@ extension LivePlaybackService {
   func selectVideo(
     from sources: [LivePlaybackVideoSource],
     quality: String,
+    preferredCodec: String = "recommended",
     requestedItag: Int?,
     requestedSourceID: String? = nil
   ) -> LivePlaybackVideoSource? {
@@ -18,8 +19,16 @@ extension LivePlaybackService {
       return requested
     }
     let target = qualityHeight(quality)
-    let ordered = sources.sorted {
+    let codecCandidates = filteredByCodec(
+      sources,
+      preferredCodec: preferredCodec
+    )
+    let codecOrdered = codecCandidates.isEmpty ? sources : codecCandidates
+    let ordered = codecOrdered.sorted {
       if $0.height != $1.height { return $0.height < $1.height }
+      let lhsRank = Self.codecEfficiencyRank($0.codec)
+      let rhsRank = Self.codecEfficiencyRank($1.codec)
+      if lhsRank != rhsRank { return lhsRank < rhsRank }
       return ($0.bitrate ?? 0) < ($1.bitrate ?? 0)
     }
     if let target {
@@ -27,6 +36,31 @@ extension LivePlaybackService {
         ?? ordered.first
     }
     return ordered.last
+  }
+
+  static func codecEfficiencyRank(_ codec: String?) -> Int {
+    let codec = codec?.lowercased() ?? ""
+    if codec.hasPrefix("hvc1") { return 2 }
+    if codec.hasPrefix("avc1") { return 1 }
+    return 0
+  }
+
+  private func filteredByCodec(
+    _ sources: [LivePlaybackVideoSource],
+    preferredCodec: String
+  ) -> [LivePlaybackVideoSource] {
+    let prefixes: [String]
+    switch preferredCodec.lowercased() {
+    case "av1": prefixes = ["av01"]
+    case "vp9": prefixes = ["vp09", "vp9"]
+    case "h264": prefixes = ["avc1"]
+    default: return sources
+    }
+    return sources.filter { source in
+      prefixes.contains {
+        source.codec?.lowercased().hasPrefix($0) == true
+      }
+    }
   }
 
   func selectAudio(
@@ -78,6 +112,12 @@ extension LivePlaybackService {
     for sourceURL: URL,
     authenticated: Bool
   ) -> URL? {
+    // Server-hosted resources (/media/...) load directly: a relative URL wrapped in /proxy fails with "Missing URL
+    // scheme".
+    if sourceURL.scheme == nil || isSelectedServerURL(sourceURL) {
+      guard let resolved = serverResourceURL(for: sourceURL.absoluteString) else { return nil }
+      return authenticated ? authenticatedAssetURL(for: resolved) : resolved
+    }
     guard let serverURL = serverURLProvider(),
       var components = URLComponents(
         url: serverURL,

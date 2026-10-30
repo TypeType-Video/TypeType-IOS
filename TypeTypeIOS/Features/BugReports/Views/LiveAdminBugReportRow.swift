@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct LiveAdminBugReportRow: View {
+  @Environment(\.themePalette) private var palette
   let report: LiveAdminBugReport
 
   var body: some View {
@@ -29,7 +30,7 @@ struct LiveAdminBugReportRow: View {
     switch report.status {
     case "fixed", "closed": return .green
     case "in_progress": return .orange
-    default: return DemoTheme.accent
+    default: return palette.accent
     }
   }
 }

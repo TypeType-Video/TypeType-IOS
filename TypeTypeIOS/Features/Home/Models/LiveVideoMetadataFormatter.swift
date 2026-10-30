@@ -22,6 +22,8 @@ enum LiveVideoMetadataFormatter {
   }
 
   static func views(_ count: Int64) -> String {
+    // The server sends -1 when the service does not report a view count.
+    guard count >= 0 else { return "" }
     let value = count.formatted(
       .number.notation(.compactName)
     )
@@ -36,18 +38,19 @@ enum LiveVideoMetadataFormatter {
     count.formatted(.number.notation(.compactName))
   }
 
+  // From the timestamp only: the upstream text can be in any locale.
   static func publication(_ video: LiveVideoItem) -> String {
-    if let date = video.publicationDate {
-      let formatter = RelativeDateTimeFormatter()
-      formatter.unitsStyle = .full
-      return formatter.localizedString(for: date, relativeTo: .now)
+    guard let date = video.publicationDate else {
+      return ""
     }
-    return video.uploadDate
+    let formatter = RelativeDateTimeFormatter()
+    formatter.unitsStyle = .full
+    return formatter.localizedString(for: date, relativeTo: .now)
   }
 
   static func fullPublication(_ video: LiveVideoItem) -> String {
     guard let date = video.publicationDate else {
-      return video.uploadDate
+      return ""
     }
     return date.formatted(date: .long, time: .omitted)
   }

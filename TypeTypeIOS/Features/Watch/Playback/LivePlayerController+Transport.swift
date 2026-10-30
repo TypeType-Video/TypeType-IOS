@@ -9,6 +9,7 @@ extension LivePlayerController {
   }
 
   func retry() {
+    startupRetryUsed = false
     loadTask?.cancel()
     didLoad = true
     loadTask = Task { [weak self] in
@@ -16,15 +17,41 @@ extension LivePlayerController {
     }
   }
 
+  func playIfActive(rate: Float) {
+    guard !isTornDown else { return }
+    player.playImmediately(atRate: rate)
+  }
+
+  func playIfActive() {
+    playIfActive(rate: playbackRate)
+  }
+
   func togglePlayback() {
     presentationResumeTask?.cancel()
     presentationResumeTask = nil
+    if let nativePlayback {
+      providerRecoveryDesiredAutoplay = state != .playing
+      if state == .playing {
+        nativePlayback.player.pause()
+        state = .paused
+      } else {
+        nativePlayback.player.play()
+        if state == .paused { state = .playing }
+      }
+      return
+    }
     if player.timeControlStatus == .playing {
       providerRecoveryDesiredAutoplay = false
       player.pause()
+      if state == .playing {
+        state = .paused
+      }
     } else {
       providerRecoveryDesiredAutoplay = true
-      player.playImmediately(atRate: playbackRate)
+      playIfActive()
+      if state == .paused {
+        state = .playing
+      }
     }
   }
 
@@ -33,33 +60,36 @@ extension LivePlayerController {
     presentationResumeTask = nil
     providerRecoveryDesiredAutoplay = false
     player.pause()
+    nativePlayback?.player.pause()
   }
 
   func preservePlaybackAfterViewDetach(shouldContinue: Bool) {
     presentationResumeTask?.cancel()
-    guard shouldContinue, player.currentItem != nil else {
+    guard nativePlayback == nil, shouldContinue, player.currentItem != nil else {
       self.presentationResumeTask = nil
       return
     }
     providerRecoveryDesiredAutoplay = true
-    player.playImmediately(atRate: playbackRate)
+    playIfActive()
+    let player = player
     presentationResumeTask = Task { @MainActor [weak self] in
-      for delay in [100, 250, 500, 900] {
-        do {
-          try await Task.sleep(for: .milliseconds(delay))
-        } catch {
-          return
-        }
+      await player.resumeEachPause(for: .milliseconds(1_750)) { [weak self] in
         guard let self, player.currentItem != nil else { return }
-        if player.timeControlStatus == .paused {
-          player.playImmediately(atRate: playbackRate)
-        }
+        playIfActive()
       }
+      guard !Task.isCancelled else { return }
       self?.presentationResumeTask = nil
     }
   }
 
   func replay() {
+    if let nativePlayback {
+      providerRecoveryDesiredAutoplay = true
+      position = 0
+      nativePlayback.seek(to: 0)
+      nativePlayback.player.play()
+      return
+    }
     guard player.currentItem != nil else {
       retry()
       return
@@ -77,17 +107,18 @@ extension LivePlayerController {
       toleranceAfter: .zero
     ) { [weak self] _ in
       Task { @MainActor [weak self] in
-        try? await Task.sleep(for: .milliseconds(100))
         guard let self else { return }
         if position != 0 {
           position = 0
         }
-        player.playImmediately(atRate: playbackRate)
+        playIfActive()
       }
     }
   }
 
   func stop() {
+    isTornDown = true
+    pictureInPicture.cancelPendingStart()
     presentationResumeTask?.cancel()
     presentationResumeTask = nil
     sabrStallRecoveryTask?.cancel()
@@ -95,11 +126,19 @@ extension LivePlayerController {
     sabrRecoveryBudgetResetTask?.cancel()
     sabrRecoveryBudgetResetTask = nil
     loadTask?.cancel()
+    loadGeneration += 1
+    startupWatchdog?.cancel()
+    startupWatchdog = nil
+    startupTrace = LivePlaybackStartupTrace()
+    metadataTask?.cancel()
+    metadataTask = nil
+    firstFrameJobs = []
     seekTask?.cancel()
     bulletCommentsTask?.cancel()
     bulletCommentsTask = nil
     providerRecoveryDesiredAutoplay = false
     player.pause()
+    stopNative()
     recordHistoryIfNeeded(force: true)
     reportPlaybackSessionProgress()
     stopPlaybackSession()
@@ -121,6 +160,17 @@ extension LivePlayerController {
 
   func seek(to seconds: TimeInterval) {
     let bounded = min(max(seconds, 0), max(duration, 0))
+    if let nativePlayback {
+      let wasPlaying = state == .playing
+      position = bounded
+      nativePlayback.seek(to: bounded)
+      if wasPlaying {
+        nativePlayback.player.play()
+        state = .playing
+      }
+      reportPlaybackSessionProgress()
+      return
+    }
     if preparation?.isSABR == true {
       seekSABR(to: bounded, autoplay: nil)
       return
@@ -132,9 +182,9 @@ extension LivePlayerController {
       to: CMTime(seconds: bounded, preferredTimescale: 600),
       toleranceBefore: .zero,
       toleranceAfter: .zero
-    ) { [weak self] _ in
+    ) { [weak self] finished in
+      guard finished else { return }
       Task { @MainActor [weak self] in
-        try? await Task.sleep(for: .milliseconds(100))
         guard let self else { return }
         let currentPosition = max(player.currentTime().seconds, 0)
         if abs(position - currentPosition) >= 0.05 {
@@ -143,15 +193,6 @@ extension LivePlayerController {
         reportPlaybackSessionProgress()
       }
     }
-  }
-
-  func selectVideoItag(_ itag: Int?) {
-    guard selectedVideoItag != itag else { return }
-    selectedVideoItag = itag
-    selectedVideoSourceID = availableVideoSources.first {
-      $0.itag == itag
-    }?.selectionID
-    restartAtCurrentPosition()
   }
 
   func selectVideoSource(_ sourceID: String?) {
@@ -166,13 +207,33 @@ extension LivePlayerController {
     restartAtCurrentPosition()
   }
 
-  func selectAudioTrack(_ trackID: String?) {
-    guard selectedAudioTrackID != trackID else { return }
-    selectedAudioTrackID = trackID
-    selectedAudioSourceID = availableAudioSources.first {
-      $0.audioTrackID == trackID
-    }?.id
-    restartAtCurrentPosition()
+  var selectedVideoResolution: Int? {
+    let selectedID = selectedVideoSourceID
+      ?? preparation?.video?.selectionID
+    guard let selectedID,
+      let source = availableVideoSources.first(where: {
+        $0.selectionID == selectedID
+      })
+    else {
+      return nil
+    }
+    return source.height
+  }
+
+  func selectVideoResolution(_ height: Int?) {
+    guard let height else {
+      selectVideoSource(nil)
+      return
+    }
+    let candidates = availableVideoSources.filter {
+      $0.height == height
+    }
+    guard let best = candidates.max(by: {
+      ($0.bitrate ?? 0) < ($1.bitrate ?? 0)
+    }) else {
+      return
+    }
+    selectVideoSource(best.selectionID)
   }
 
   func selectAudioSource(_ sourceID: String?) {
@@ -187,16 +248,21 @@ extension LivePlayerController {
   func setAudioOnly(_ enabled: Bool) {
     guard audioOnly != enabled else { return }
     audioOnly = enabled
+    appPreferences.update {
+      $0.playerAudioOnlyPlayback = enabled
+    }
     restartAtCurrentPosition()
   }
 
   func setPlaybackRate(_ rate: Float) {
-    playbackRate = min(max(rate, 0.25), 4)
+    playbackRate = Self.normalizePlaybackRate(rate)
+    Self.savePlaybackRate(playbackRate)
     player.defaultRate = playbackRate
     if player.timeControlStatus == .playing {
-      player.rate = playbackRate
+      playIfActive(rate: playbackRate)
     }
     playbackServer?.updatePlaybackRate(playbackRate)
+    nativePlayback?.setRate(playbackRate)
   }
 
   func flushHistory() {

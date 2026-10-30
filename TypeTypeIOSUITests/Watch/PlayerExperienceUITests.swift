@@ -112,7 +112,7 @@ final class PlayerExperienceUITests: XCTestCase {
 
     app.buttons["Clear channel search"].tap()
     if app.keyboards.buttons["Search"].exists {
-      app.keyboards.buttons["Search"].tap()
+      app.typeText("\n")
     }
     let sectionPicker = app.descendants(matching: .any)[
       "demo.channel.section-picker"

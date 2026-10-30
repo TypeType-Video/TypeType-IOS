@@ -32,6 +32,7 @@ extension DemoHomeFeedView {
         .accessibilityLabel("Open player")
         .accessibilityIdentifier("demo.home.player")
       }
+
       Button {
         presentsSearch = true
       } label: {
@@ -39,6 +40,7 @@ extension DemoHomeFeedView {
       }
       .accessibilityLabel("Search")
       .accessibilityIdentifier("demo.home.search")
+
       Button {
         presentsNotifications = true
       } label: {
@@ -56,6 +58,7 @@ extension DemoHomeFeedView {
       }
       .accessibilityLabel("Notifications")
       .accessibilityIdentifier("demo.home.notifications")
+
       Menu {
         Button {
           presentsProfile = true

@@ -5,8 +5,32 @@ extension LivePlayerController {
     stream?.subtitles ?? []
   }
 
+  var availableChapters: [LivePlaybackChapter] {
+    (stream?.chapters ?? []).sorted {
+      $0.startTimeSeconds < $1.startTimeSeconds
+    }
+  }
+
+  var currentChapter: LivePlaybackChapter? {
+    let index = LivePlaybackChapterNavigator.currentIndex(
+      in: availableChapters,
+      at: position
+    )
+    guard let index else { return nil }
+    return availableChapters[index]
+  }
+
   func applyLoadedSettings() {
     autoplayEnabled = settings.autoplay
+    let serverPlaybackSpeed = settings.defaultPlaybackSpeed ?? 1
+    if serverPlaybackSpeed != 1,
+      UserDefaults.standard.object(
+        forKey: Self.playbackRatePreferenceKey
+      ) == nil {
+      playbackRate = Self.normalizePlaybackRate(
+        Float(serverPlaybackSpeed)
+      )
+    }
     subtitlesEnabled = settings.subtitlesEnabled
     selectedSubtitleLanguage = settings.defaultSubtitleLanguage
     sponsorBlockEnabled =
@@ -25,11 +49,12 @@ extension LivePlayerController {
     sponsorBlockSkipNonMusicOnlyOnMusicVideos =
       settings.sponsorBlockSkipNonMusicOnlyOnMusicVideos
     muted = settings.muted
-    player.volume = Float(min(max(settings.volume, 0), 1))
-    player.isMuted = muted || sponsorMutedRange != nil
+    setOutputMuted(muted || sponsorMutedRange != nil)
     loopsPlayback = UserDefaults.standard.bool(
       forKey: Self.loopPreferenceKey
     )
+    playbackRate = Self.loadPlaybackRate()
+    player.defaultRate = playbackRate
   }
 
   func applySettings(_ settings: LiveSettings) {
@@ -39,6 +64,7 @@ extension LivePlayerController {
     if let item = player.currentItem {
       configureSubtitles(for: item)
     }
+    reloadNativeSubtitles()
   }
 
   func setAutoplay(_ enabled: Bool) {
@@ -56,8 +82,12 @@ extension LivePlayerController {
 
   func setMuted(_ enabled: Bool) {
     muted = enabled
-    player.isMuted = enabled || sponsorMutedRange != nil
+    setOutputMuted(enabled || sponsorMutedRange != nil)
     updateSettings { $0.muted = enabled }
+  }
+
+  func setImageMode(_ mode: LivePlayerImageMode) {
+    imageMode = mode
   }
 
   func setSubtitlesEnabled(_ enabled: Bool) {
@@ -66,6 +96,7 @@ extension LivePlayerController {
     if let item = player.currentItem {
       configureSubtitles(for: item)
     }
+    reloadNativeSubtitles()
   }
 
   func selectSubtitleLanguage(_ language: String) {
@@ -74,15 +105,7 @@ extension LivePlayerController {
     if let item = player.currentItem {
       configureSubtitles(for: item)
     }
-  }
-
-  func setSponsorBlockEnabled(_ enabled: Bool) {
-    sponsorBlockEnabled = enabled
-    setSponsorBlockMode(
-      enabled
-        ? LiveSponsorBlockMode.autoSkip.rawValue
-        : LiveSponsorBlockMode.disabled.rawValue
-    )
+    reloadNativeSubtitles()
   }
 
   func setSponsorBlockMode(_ mode: String) {
@@ -119,7 +142,7 @@ extension LivePlayerController {
     handledSponsorSegments.removeAll()
     if !enabled, sponsorMutedRange != nil {
       sponsorMutedRange = nil
-      player.isMuted = settings.muted
+      setOutputMuted(settings.muted)
     }
     updateSettings { $0.sponsorBlockMuteInsteadOfSkip = enabled }
   }
@@ -130,10 +153,42 @@ extension LivePlayerController {
     mutation(&settings)
     let value = settings
     Task { [settingsService] in
-      _ = try? await settingsService.update(value)
+      do {
+        _ = try await settingsService.update(value)
+      } catch {
+        AppLogger.network.failure("Saving player settings", error)
+      }
     }
   }
 
   private static let loopPreferenceKey =
     "typetype.player.loop-playback"
+
+  nonisolated static let playbackRatePreferenceKey =
+    "typetype.player.playback-rate"
+
+  nonisolated static func normalizePlaybackRate(_ rate: Float) -> Float {
+    min(max(rate, 0.25), 4)
+  }
+
+  nonisolated static func loadPlaybackRate(
+    defaults: UserDefaults = .standard
+  ) -> Float {
+    guard defaults.object(forKey: playbackRatePreferenceKey) != nil else {
+      return 1
+    }
+    return normalizePlaybackRate(Float(
+      defaults.double(forKey: playbackRatePreferenceKey)
+    ))
+  }
+
+  nonisolated static func savePlaybackRate(
+    _ rate: Float,
+    defaults: UserDefaults = .standard
+  ) {
+    defaults.set(
+      Double(normalizePlaybackRate(rate)),
+      forKey: playbackRatePreferenceKey
+    )
+  }
 }

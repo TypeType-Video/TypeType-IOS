@@ -30,7 +30,7 @@ final class ExtendedParityUITests: XCTestCase {
     add(lightScreenshot)
     app.buttons["demo.oidc.authorize"].tap()
     XCTAssertTrue(
-      app.otherElements["demo.home.brand"].waitForExistence(timeout: 4)
+      app.descendants(matching: .any)["demo.home.brand"].waitForExistence(timeout: 4)
     )
   }
 
@@ -50,13 +50,19 @@ final class ExtendedParityUITests: XCTestCase {
     XCTAssertTrue(app.staticTexts["Global channels"].waitForExistence(timeout: 2))
 
     app.buttons["Users"].tap()
-    XCTAssertTrue(app.searchFields["Name, email, or ID"].waitForExistence(timeout: 2))
+    XCTAssertTrue(
+      app.searchField("Name, email, or ID")
+        .waitForExistence(timeout: 2)
+    )
 
     app.buttons["Sessions"].tap()
     XCTAssertTrue(app.staticTexts["iPhone 17 · iOS"].waitForExistence(timeout: 2))
 
     app.buttons["Issues"].tap()
-    XCTAssertTrue(app.searchFields["Search issues"].waitForExistence(timeout: 2))
+    XCTAssertTrue(
+      app.searchField("Search issues")
+        .waitForExistence(timeout: 2)
+    )
   }
 
   func testLightAppearanceRemainsReadableAcrossMainSurfaces() {
@@ -73,7 +79,7 @@ final class ExtendedParityUITests: XCTestCase {
     app.buttons["Light"].tap()
     app.navigationBars.buttons.element(boundBy: 0).tap()
 
-    app.tabBars.buttons["Subscriptions"].tap()
+    app.tapTab("Subscriptions")
     XCTAssertTrue(
       app.descendants(matching: .any)["demo.subscriptions.videos"]
         .waitForExistence(timeout: 3)
@@ -87,7 +93,7 @@ final class ExtendedParityUITests: XCTestCase {
     subscriptions.lifetime = .keepAlways
     add(subscriptions)
 
-    app.tabBars.buttons["More"].tap()
+    app.tapTab("More")
     app.staticTexts["Import"].tap()
     XCTAssertTrue(
       app.descendants(matching: .any)["demo.import.screen"]

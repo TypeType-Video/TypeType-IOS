@@ -21,13 +21,13 @@ struct LivePublicPlaylistView: View {
 
   var body: some View {
     content
+      .liveLibrarySectionSwipe()
       .navigationTitle("Playlist")
       .navigationBarTitleDisplayMode(.inline)
-      .navigationDestination(item: $selectedVideo) { video in
-        LiveVideoMetadataView(
-          video: video,
-          dependencies: dependencies
-        )
+      .onChange(of: selectedVideo) { _, video in
+        guard let video else { return }
+        selectedVideo = nil
+        dependencies.playbackCoordinator.open(video)
       }
       .navigationDestination(item: $selectedChannelURL) { channelURL in
         LiveChannelView(
@@ -48,7 +48,7 @@ struct LivePublicPlaylistView: View {
   private var content: some View {
     switch viewModel.state {
     case .idle, .loading:
-      ProgressView("Loading playlist")
+      TypeTypeSkeletonList(layout: .rows, count: 8)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     case let .failed(message):
       ContentUnavailableView {
@@ -86,7 +86,7 @@ struct LivePublicPlaylistView: View {
           ContentUnavailableView(
             "No videos",
             systemImage: "rectangle.stack"
-          )
+          ).liveThemedEmptyState()
           .frame(maxWidth: .infinity)
           .padding(.top, 50)
         } else {
@@ -110,7 +110,7 @@ struct LivePublicPlaylistView: View {
                 }
               )
             }
-            DemoIncrementalLoadingTrigger(
+            LiveIncrementalLoadingTrigger(
               canLoadMore: viewModel.canLoadMore,
               isLoading: viewModel.isLoadingMore,
               label: "Loading more playlist videos",
@@ -124,7 +124,7 @@ struct LivePublicPlaylistView: View {
       .padding(16)
     }
     .refreshable { await viewModel.reload() }
-    .background(DemoTheme.background)
+    .background(LiveThemeBackground().ignoresSafeArea())
   }
 
   private var columns: [GridItem] {

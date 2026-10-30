@@ -10,12 +10,12 @@ struct DemoAdminSessionsView: View {
           "Session tracking disabled",
           systemImage: "eye.slash",
           description: Text("Enable active sessions in instance settings.")
-        )
+        ).liveThemedEmptyState()
       } else if session.adminSessions.isEmpty {
         ContentUnavailableView(
           "No active sessions",
           systemImage: "person.2.slash"
-        )
+        ).liveThemedEmptyState()
       } else {
         ForEach(session.adminSessions) { item in
           VStack(alignment: .leading, spacing: 10) {

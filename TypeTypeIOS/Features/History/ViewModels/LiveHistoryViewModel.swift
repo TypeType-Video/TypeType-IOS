@@ -18,11 +18,16 @@ final class LiveHistoryViewModel: ObservableObject {
   @Published private(set) var errorMessage: String?
 
   private let service: LiveHistoryServiceProtocol
-  private let pageSize = 30
+  private let pageSize = 20
   private var queryTask: Task<Void, Never>?
+  // Raw count: the display collapses duplicates, so pagination must never advance by the visible count.
+  private var fetchedCount = 0
 
-  init(service: LiveHistoryServiceProtocol) {
+  private let watchProgress: LiveWatchProgressStore
+
+  init(service: LiveHistoryServiceProtocol, watchProgress: LiveWatchProgressStore) {
     self.service = service
+    self.watchProgress = watchProgress
   }
 
   deinit {
@@ -57,8 +62,10 @@ final class LiveHistoryViewModel: ObservableObject {
     do {
       let page = try await request(offset: 0)
       try Task.checkCancellation()
-      items = unique(page)
-      canLoadMore = page.count == pageSize
+      watchProgress.seed(fromHistory: page)
+      fetchedCount = page.count
+      items = collapsedToLatest(page)
+      canLoadMore = page.count >= pageSize
       state = .loaded
     } catch is CancellationError {
       return
@@ -72,12 +79,11 @@ final class LiveHistoryViewModel: ObservableObject {
     isLoadingMore = true
     defer { isLoadingMore = false }
     do {
-      let page = try await request(offset: items.count)
-      let existing = Set(items.map(\.url))
-      items.append(contentsOf: page.filter {
-        !existing.contains($0.url)
-      })
-      canLoadMore = page.count == pageSize
+      let page = try await request(offset: fetchedCount)
+      watchProgress.seed(fromHistory: page)
+      fetchedCount += page.count
+      items = collapsedToLatest(items + page)
+      canLoadMore = page.count >= pageSize
     } catch is CancellationError {
       return
     } catch {
@@ -121,11 +127,23 @@ final class LiveHistoryViewModel: ObservableObject {
     )
   }
 
-  private func unique(
+  private func collapsedToLatest(
     _ candidates: [LiveHistoryItem]
   ) -> [LiveHistoryItem] {
-    var seen: Set<String> = []
-    return candidates.filter { seen.insert($0.url).inserted }
+    var best: [String: LiveHistoryItem] = [:]
+    for item in candidates {
+      if let existing = best[item.url], existing.watchedAt >= item.watchedAt {
+        continue
+      }
+      best[item.url] = item
+    }
+    return candidates
+      .compactMap { best[$0.url] }
+      .enumerated()
+      .filter { index, item in
+        candidates.firstIndex { $0.url == item.url } == index
+      }
+      .map(\.element)
   }
 
   private func message(for error: Error) -> String {

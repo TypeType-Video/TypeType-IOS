@@ -33,6 +33,21 @@ final class LiveCollectionViewModelTests: XCTestCase {
     XCTAssertEqual(service.actions.count, 1)
   }
 
+  func testSlowerOlderReloadDoesNotReplaceANewerOne() async {
+    let service = LiveLibraryServiceStub()
+    service.favoriteItems = [LiveLibraryFixtures.favorite(url: "https://video.test/old", title: "Old")]
+    service.favoritesDelays = [.milliseconds(300), .zero]
+    let viewModel = LiveCollectionViewModel(kind: .favorites, service: service)
+
+    async let older: Void = viewModel.reload()
+    try? await Task.sleep(for: .milliseconds(50))
+    service.favoriteItems = [LiveLibraryFixtures.favorite(url: "https://video.test/new", title: "New")]
+    await viewModel.reload()
+    await older
+
+    XCTAssertEqual(viewModel.videos.map(\.title), ["New"])
+  }
+
   func testWatchLaterLoadsFromDedicatedCollection() async {
     let service = LiveLibraryServiceStub()
     service.watchLaterItems = [LiveLibraryFixtures.watchLater()]

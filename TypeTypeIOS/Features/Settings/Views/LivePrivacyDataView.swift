@@ -22,7 +22,7 @@ struct LivePrivacyDataView: View {
     Group {
       switch viewModel.state {
       case .idle, .loading:
-        ProgressView("Loading stored data")
+        TypeTypeSkeletonList(layout: .settings, count: 6, scrolls: false)
       case let .failed(message):
         ContentUnavailableView {
           Label("Stored data unavailable", systemImage: "externaldrive.badge.exclamationmark")
@@ -38,28 +38,11 @@ struct LivePrivacyDataView: View {
     .navigationTitle("Stored data")
     .navigationBarTitleDisplayMode(.inline)
     .task { await viewModel.prepare() }
-    .confirmationDialog(
-      confirmation?.title ?? "",
-      isPresented: Binding(
-        get: { confirmation != nil },
-        set: { if !$0 { confirmation = nil } }
-      ),
-      titleVisibility: .visible
-    ) {
-      if let confirmation {
-        Button(confirmation.button, role: .destructive) {
-          perform(confirmation)
-        }
-      }
-      Button("Cancel", role: .cancel) {}
-    } message: {
-      Text("This action cannot be undone.")
-    }
   }
 
   private var list: some View {
     List {
-      Section {
+      LiveSection {
         dataRow(
           "Watch history",
           count: viewModel.historyCount,
@@ -79,24 +62,25 @@ struct LivePrivacyDataView: View {
         Text("These actions update the selected TypeType instance.")
       }
       if let message = viewModel.message {
-        Section {
+        LiveSection {
           Label(message, systemImage: "checkmark.circle.fill")
             .foregroundStyle(.green)
         }
       }
     }
+      .liveGroupedList()
     .refreshable { await viewModel.reload() }
   }
 
   private func dataRow(
-    _ title: String,
+    _ title: LocalizedStringKey,
     count: Int,
     action: Action
   ) -> some View {
     HStack {
       VStack(alignment: .leading) {
         Text(title)
-        Text("\(count) \(count == 1 ? "item" : "items")")
+        Text("^[\(count) item](inflect: true)")
           .font(.caption)
           .foregroundStyle(.secondary)
       }
@@ -105,6 +89,16 @@ struct LivePrivacyDataView: View {
         confirmation = action
       }
       .disabled(count == 0 || viewModel.isBusy)
+      .liveConfirmPopover(
+        isPresented: Binding(
+          get: { confirmation == action },
+          set: { if !$0 { confirmation = nil } }
+        ),
+        title: action.title,
+        confirmTitle: action.button
+      ) {
+        perform(action)
+      }
     }
   }
 

@@ -23,13 +23,18 @@ actor LiveSABRPlaybackSession {
       id: UUID,
       task: Task<LiveSABRPlaybackSnapshot, Error>
     )?
+  let maintenanceFailureHandler: @Sendable (Error) -> Void
 
   init(
     service: LivePlaybackServiceProtocol,
-    preparation: LivePlaybackPreparation
+    preparation: LivePlaybackPreparation,
+    maintenanceFailureHandler: @escaping @Sendable (Error) -> Void = {
+      _ in
+    }
   ) {
     self.service = service
     self.preparation = preparation
+    self.maintenanceFailureHandler = maintenanceFailureHandler
     playerTimeMS = Int64(preparation.resumeTime * 1_000)
   }
 
@@ -42,14 +47,16 @@ actor LiveSABRPlaybackSession {
     else {
       throw LivePlaybackFailure.noPlayableSource
     }
-    control = try await createControl(
-      videoItag: selectedVideo.itag,
-      audioItag: selectedAudio.itag,
-      audioTrackID: selectedAudio.audioTrackID
-    )
+    control = try await LivePlaybackDebugTrace.measure("sabr create") {
+      try await createControl(
+        videoItag: selectedVideo.itag,
+        audioItag: selectedAudio.itag,
+        audioTrackID: selectedAudio.audioTrackID
+      )
+    }
     attemptedVideoItags = [selectedVideo.itag]
-    _ = try await loadWindow()
-    let snapshot = try await loadIndexedSnapshot()
+    _ = try await LivePlaybackDebugTrace.measure("sabr window") { try await loadWindow() }
+    let snapshot = try await LivePlaybackDebugTrace.measure("sabr index") { try await loadIndexedSnapshot() }
     startMaintenanceIfNeeded()
     return snapshot
   }
@@ -94,7 +101,14 @@ actor LiveSABRPlaybackSession {
     recoveryCount = 0
     attemptedVideoItags = [current.videoItag]
     _ = try await loadWindow()
-    let snapshot = try await loadIndexedSnapshot()
+    let snapshot: LiveSABRPlaybackSnapshot
+    do {
+      snapshot = try await loadIndexedSnapshot()
+    } catch {
+      // After a seek the server can publish the new window slower than one index budget.
+      try await Task.sleep(for: .milliseconds(Self.minimumRetryMS))
+      snapshot = try await loadIndexedSnapshot()
+    }
     startMaintenanceIfNeeded()
     return snapshot
   }
@@ -210,7 +224,10 @@ actor LiveSABRPlaybackSession {
       else {
         throw LivePlaybackFailure.invalidSABRContract
       }
+      let knowsSegmentCount = value.tracks.audio.endSegment > 0
+        && (preparation.audioOnly || value.tracks.video.endSegment > 0)
       let published = value.live
+        || knowsSegmentCount
         || value.tracks.audio.maxSegment >= requiredAudioSegment
           && (
             preparation.audioOnly
@@ -234,8 +251,13 @@ actor LiveSABRPlaybackSession {
   static let backBufferMS: Int64 = 30_000
   static let maximumAttempts = 60
   static let maximumRecoveries = 2
+  static let maximumMaintenanceFailures = 5
   static let minimumRetryMS: Int64 = 250
   static let maximumRetryMS: Int64 = 2_000
+
+  static func shouldStopMaintenance(failureCount: Int) -> Bool {
+    failureCount >= maximumMaintenanceFailures
+  }
 
   static func maintenanceRetryDelayMS(
     failureCount: Int

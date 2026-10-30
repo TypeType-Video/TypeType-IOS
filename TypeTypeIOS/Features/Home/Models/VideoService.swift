@@ -47,3 +47,13 @@ struct VideoService: Identifiable, Hashable {
     }
   }
 }
+
+extension VideoService {
+  static func hosting(_ url: String) -> VideoService? {
+    let host = URL(string: url)?.host()?.lowercased() ?? ""
+    if host.contains("youtube") || host.contains("youtu.be") { return service(for: 0) }
+    if host.contains("bilibili") || host.contains("b23.tv") { return service(for: 5) }
+    if host.contains("nicovideo") || host.contains("nico.ms") { return service(for: 6) }
+    return nil
+  }
+}

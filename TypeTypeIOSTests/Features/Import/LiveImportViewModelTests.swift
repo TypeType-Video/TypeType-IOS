@@ -42,7 +42,7 @@ final class LiveImportViewModelTests: XCTestCase {
   func testYouTubeQueueRetriesRateLimitedReport() async throws {
     let service = ImportServiceStub()
     service.remainingReportFailures = 2
-    let viewModel = LiveImportViewModel(service: service)
+    let viewModel = LiveImportViewModel(service: service, pacing: .instant)
     let file = try archive(named: "takeout.zip")
     defer {
       try? FileManager.default.removeItem(
@@ -142,6 +142,33 @@ private final class ImportServiceStub: LiveImportServiceProtocol {
       warnings: [],
       errors: [],
       finishedAt: 1
+    )
+  }
+
+  func exportTypeTypeBackup(
+    categories: Set<LiveTypeTypeBackupCategory>
+  ) async throws -> URL {
+    URL(fileURLWithPath: "/tmp/\(UUID().uuidString).json")
+  }
+
+  func restoreTypeTypeBackup(
+    data: Data,
+    fileName: String,
+    categories: Set<LiveTypeTypeBackupCategory>
+  ) async throws -> LiveTypeTypeRestoreSummary {
+    LiveTypeTypeRestoreSummary(
+      restored: ["subscriptions": 1, "history": 2]
+    )
+  }
+
+  func restoreTypeTypeBackup(
+    fileURL: URL,
+    originalName: String,
+    categories: Set<LiveTypeTypeBackupCategory>,
+    progress: @escaping @Sendable (LiveTypeTypeBackupPhase, Double) -> Void
+  ) async throws -> LiveTypeTypeRestoreSummary {
+    LiveTypeTypeRestoreSummary(
+      restored: ["subscriptions": 1, "history": 2]
     )
   }
 

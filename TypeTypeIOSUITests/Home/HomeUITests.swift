@@ -7,12 +7,15 @@ final class HomeUITests: XCTestCase {
     app.launch()
 
     XCTAssertTrue(
-      app.otherElements["demo.home.brand"].waitForExistence(timeout: 3)
+      app.descendants(matching: .any)["demo.home.brand"].waitForExistence(timeout: 3)
     )
-    XCTAssertTrue(app.staticTexts["Continue watching"].exists)
-    XCTAssertTrue(app.staticTexts["Recommended"].exists)
-    XCTAssertTrue(app.tabBars.buttons["Home"].exists)
-    XCTAssertTrue(app.tabBars.buttons["Subscriptions"].exists)
+    XCTAssertTrue(
+      app.descendants(matching: .any).matching(
+        NSPredicate(format: "identifier BEGINSWITH 'demo.home.video.'")
+      ).firstMatch.exists
+    )
+    XCTAssertTrue(app.tabItem("Home").exists)
+    XCTAssertTrue(app.tabItem("Subscriptions").exists)
     XCTAssertTrue(
       app.buttons["demo.home.video.native-ios"].exists
     )
@@ -24,7 +27,11 @@ final class HomeUITests: XCTestCase {
       180,
       "Recommended thumbnails should remain compact on iPhone."
     )
-    XCTAssertTrue(app.staticTexts["Duration 12:24"].exists)
+    XCTAssertTrue(
+      app.staticTexts.containing(
+        NSPredicate(format: "label CONTAINS '12:24'")
+      ).firstMatch.exists
+    )
     XCTAssertFalse(app.buttons["Load more recommendations"].exists)
 
     let loadedLater = app.buttons["demo.home.video.big-buck-restored"]

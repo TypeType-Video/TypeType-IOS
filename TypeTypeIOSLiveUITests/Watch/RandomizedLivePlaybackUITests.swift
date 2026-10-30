@@ -147,11 +147,11 @@ final class RandomizedLivePlaybackUITests: XCTestCase {
     query: String,
     resultOffset: Int
   ) -> String {
-    let searchButton = app.buttons["live.home.search"]
+    let searchButton = app.searchTabButton
     if searchButton.waitForExistence(timeout: 3) {
       searchButton.tap()
     }
-    let field = app.searchFields["Search videos, channels..."]
+    let field = app.textFields["live.search.field"]
     XCTAssertTrue(field.waitForExistence(timeout: 5))
     field.tap()
     let clear = app.buttons["Clear text"]

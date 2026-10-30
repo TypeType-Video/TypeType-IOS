@@ -4,8 +4,7 @@ extension LiveSearchViewModel {
   func prepare() async {
     async let filters: Void = loadFilters()
     async let history: Void = loadHistory()
-    async let trending: Void = loadTrending()
-    _ = await (filters, history, trending)
+    _ = await (filters, history)
   }
 
   func queryDidChange() {
@@ -56,36 +55,6 @@ extension LiveSearchViewModel {
         contentFilters: [],
         sortFilters: []
       )
-    }
-  }
-
-  func loadTrending() async {
-    let currentRequest = UUID()
-    trendingRequestID = currentRequest
-    let serviceID = selectedServiceID
-    isLoadingTrending = true
-    trendingError = nil
-    trendingLimit = 8
-    defer { isLoadingTrending = false }
-    do {
-      let values = try await searchService.trending(
-        serviceID: serviceID
-      )
-      guard trendingRequestID == currentRequest,
-        selectedServiceID == serviceID else {
-        return
-      }
-      var seen: Set<String> = []
-      trending = values.filter {
-        seen.insert($0.canonicalID).inserted
-      }
-    } catch is CancellationError {
-      return
-    } catch {
-      guard trendingRequestID == currentRequest else { return }
-      trending = []
-      trendingError = (error as? LocalizedError)?.errorDescription
-        ?? "Trending videos could not be loaded."
     }
   }
 

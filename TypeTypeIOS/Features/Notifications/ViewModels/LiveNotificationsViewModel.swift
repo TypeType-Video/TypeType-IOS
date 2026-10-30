@@ -14,6 +14,7 @@ final class LiveNotificationsViewModel: ObservableObject {
   @Published private(set) var unreadCount = 0
   @Published private(set) var isLoadingMore = false
   @Published private(set) var isMarkingRead = false
+  @Published private(set) var markingReadIDs: Set<String> = []
   @Published private(set) var errorMessage: String?
 
   private let service: LiveNotificationsServiceProtocol
@@ -84,6 +85,47 @@ final class LiveNotificationsViewModel: ObservableObject {
     }
   }
 
+  func markReadAndOpen(_ notification: LiveNotification) -> LiveVideoItem {
+    markRead(notification)
+    return notification.video
+  }
+
+  func markRead(_ notification: LiveNotification) {
+    guard !notification.read,
+      let notificationID = notification.serverID,
+      !markingReadIDs.contains(notificationID)
+    else {
+      return
+    }
+
+    markingReadIDs.insert(notificationID)
+    let previousUnreadCount = unreadCount
+    if let index = indexOf(notification) {
+      items[index].read = true
+      unreadCount = max(unreadCount - 1, 0)
+      notificationCenter.synchronize(unreadCount: unreadCount)
+    }
+
+    Task { [weak self] in
+      guard let self else { return }
+      do {
+        let result = try await service.markRead(
+          notificationID: notificationID
+        )
+        unreadCount = result.unreadCount
+        notificationCenter.synchronize(unreadCount: result.unreadCount)
+      } catch {
+        if let index = indexOf(notification) {
+          items[index].read = false
+        }
+        unreadCount = previousUnreadCount
+        notificationCenter.synchronize(unreadCount: previousUnreadCount)
+        errorMessage = text(for: error)
+      }
+      markingReadIDs.remove(notificationID)
+    }
+  }
+
   func dismissError() {
     errorMessage = nil
   }
@@ -93,6 +135,12 @@ final class LiveNotificationsViewModel: ObservableObject {
   ) -> [LiveNotification] {
     var seen: Set<String> = []
     return candidates.filter { seen.insert($0.id).inserted }
+  }
+
+  private func indexOf(
+    _ notification: LiveNotification
+  ) -> Array<LiveNotification>.Index? {
+    items.firstIndex { $0.id == notification.id }
   }
 
   private func text(for error: Error) -> String {

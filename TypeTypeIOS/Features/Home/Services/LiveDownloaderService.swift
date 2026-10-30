@@ -63,7 +63,13 @@ final class LiveDownloaderService: LiveDownloaderServiceProtocol {
 
   func artifact(id: String) async throws -> URL {
     try await apiClient.download(
-      endpoint("/downloader/jobs/\(id)/artifact", .get)
+      // Long timeout: the 90 s default cuts large transfers mid-flight.
+      APIEndpoint(
+        path: "/downloader/jobs/\(id)/artifact",
+        method: .get,
+        requiresAuth: true,
+        timeoutInterval: 600
+      )
     )
   }
 

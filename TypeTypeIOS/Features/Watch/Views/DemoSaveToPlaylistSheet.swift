@@ -12,15 +12,15 @@ struct DemoSaveToPlaylistSheet: View {
   var body: some View {
     NavigationStack {
       List {
-        Section("New playlist") {
+        Section {
           TextField("Playlist name", text: $newPlaylistName)
           Button("Create and save", systemImage: "plus") {
             createPlaylist()
           }
           .disabled(newPlaylistName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-        }
+        } header: { Text("New playlist").liveSectionHeader() }
 
-        Section("Save to playlist") {
+        Section {
           ForEach(session.playlists) { playlist in
             Button {
               toggle(playlist)
@@ -52,8 +52,9 @@ struct DemoSaveToPlaylistSheet: View {
             }
             .buttonStyle(.plain)
           }
-        }
+        } header: { Text("Save to playlist").liveSectionHeader() }
       }
+      .listStyle(.insetGrouped)
       .navigationTitle("Save")
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {

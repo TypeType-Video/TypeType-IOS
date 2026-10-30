@@ -176,8 +176,8 @@ final class NetworkInterruptionLiveUITests: XCTestCase {
     in app: XCUIApplication,
     query: String
   ) -> String {
-    app.buttons["live.home.search"].tap()
-    let field = app.searchFields["Search videos, channels..."]
+    app.searchTabButton.tap()
+    let field = app.textFields["live.search.field"]
     XCTAssertTrue(field.waitForExistence(timeout: 5))
     field.tap()
     field.typeText(query)
@@ -203,8 +203,8 @@ final class NetworkInterruptionLiveUITests: XCTestCase {
     in app: XCUIApplication,
     query: String
   ) -> (identifier: String, duration: Int) {
-    app.buttons["live.home.search"].tap()
-    let field = app.searchFields["Search videos, channels..."]
+    app.searchTabButton.tap()
+    let field = app.textFields["live.search.field"]
     XCTAssertTrue(field.waitForExistence(timeout: 5))
     field.tap()
     field.typeText(query)

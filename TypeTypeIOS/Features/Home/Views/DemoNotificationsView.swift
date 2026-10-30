@@ -27,7 +27,7 @@ struct DemoNotificationsView: View {
             "No notifications",
             systemImage: "bell.slash",
             description: Text("New uploads and local activity will appear here.")
-          )
+          ).liveThemedEmptyState()
         } else {
           List {
             ForEach(
@@ -47,7 +47,7 @@ struct DemoNotificationsView: View {
                 }
               }
             }
-            DemoIncrementalLoadingTrigger(
+            LiveIncrementalLoadingTrigger(
               canLoadMore: visibleCount < session.notifications.count,
               isLoading: isLoadingMore,
               label: "Loading more notifications",

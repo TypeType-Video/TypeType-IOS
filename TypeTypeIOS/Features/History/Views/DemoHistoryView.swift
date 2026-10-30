@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct DemoHistoryView: View {
+  @Environment(\.themePalette) private var palette
   @EnvironmentObject var session: DemoSessionStore
   @State var searchText = ""
   @State var filter = DemoHistoryFilterBar.Filter.all
@@ -30,7 +31,7 @@ struct DemoHistoryView: View {
         .padding(.bottom, 30)
       }
       .defaultScrollAnchor(.top)
-      .background(DemoTheme.background)
+      .background(palette.background)
       .navigationTitle("History")
       .navigationBarTitleDisplayMode(.inline)
       .searchable(text: $searchText, prompt: "Search history")
@@ -44,7 +45,7 @@ struct DemoHistoryView: View {
       }
       .toolbarBackground(.visible, for: .navigationBar)
       .toolbarBackground(
-        DemoTheme.background.opacity(0.96),
+        palette.background.opacity(0.96),
         for: .navigationBar
       )
       .navigationDestination(item: $selectedVideo) { video in
@@ -94,7 +95,7 @@ struct DemoHistoryView: View {
           }
         }
       }
-      DemoIncrementalLoadingTrigger(
+      LiveIncrementalLoadingTrigger(
         canLoadMore: visibleCount < filteredEntries.count,
         isLoading: isLoadingMore,
         label: "Loading more history",

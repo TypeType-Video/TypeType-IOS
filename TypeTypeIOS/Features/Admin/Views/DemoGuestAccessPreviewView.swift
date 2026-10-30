@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct DemoGuestAccessPreviewView: View {
-  @State private var authMode = DemoAuthMode.signIn
+  @State private var authMode = AuthMode.signIn
   @State private var presentsAuth = false
 
   var body: some View {

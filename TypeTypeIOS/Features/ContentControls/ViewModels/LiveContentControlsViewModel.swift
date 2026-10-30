@@ -15,20 +15,15 @@ final class LiveContentControlsViewModel: ObservableObject {
   @Published private(set) var isBusy = false
   @Published private(set) var errorMessage: String?
 
-  private let service: LiveContentControlsServiceProtocol
+  let service: LiveContentControlsServiceProtocol
 
-  init(service: LiveContentControlsServiceProtocol) {
+  init(service: LiveContentControlsServiceProtocol, kind: LiveContentControlKind = .blockedChannels) {
     self.service = service
+    self.kind = kind
   }
 
   func prepare() async {
     guard state == .idle else { return }
-    await reload()
-  }
-
-  func select(_ kind: LiveContentControlKind) async {
-    guard self.kind != kind else { return }
-    self.kind = kind
     await reload()
   }
 

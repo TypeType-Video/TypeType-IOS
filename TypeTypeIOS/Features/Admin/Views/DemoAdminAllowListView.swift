@@ -7,13 +7,13 @@ struct DemoAdminAllowListView: View {
 
   var body: some View {
     Form {
-      Section("Entire instance") {
+      Section {
         Picker("Access mode", selection: $session.isInstanceAllowListRestricted) {
           Text("Unrestricted").tag(false)
           Text("Allow list").tag(true)
         }
         .pickerStyle(.segmented)
-      }
+      } header: { Text("Entire instance").liveSectionHeader() }
 
       addSection(
         title: "Global channels",
@@ -38,21 +38,19 @@ struct DemoAdminAllowListView: View {
           Toggle(
             user.name,
             isOn: restrictedBinding(for: user.id)
-          )
+          ).liveRowFill()
         }
-      } header: {
-        Text("User access")
-      } footer: {
+      } header: { Text("User access").liveSectionHeader() } footer: {
         Text("Enabled means this user has a user-specific allow list.")
       }
 
-      Section("Specific user lists") {
+      Section {
         ForEach(session.adminUsers) { user in
           NavigationLink(user.name) {
             DemoAdminUserAllowListView(userID: user.id)
           }
         }
-      }
+      } header: { Text("Specific user lists").liveSectionHeader() }
     }
   }
 

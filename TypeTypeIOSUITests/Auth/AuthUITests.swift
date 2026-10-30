@@ -27,7 +27,7 @@ final class AuthUITests: XCTestCase {
     submit.tap()
 
     XCTAssertTrue(
-      app.otherElements["demo.home.brand"].waitForExistence(timeout: 3)
+      app.descendants(matching: .any)["demo.home.brand"].waitForExistence(timeout: 3)
     )
   }
 

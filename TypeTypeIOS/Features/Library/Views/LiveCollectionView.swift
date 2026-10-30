@@ -2,47 +2,44 @@ import SwiftUI
 
 struct LiveCollectionView: View {
   let dependencies: AppDependencies
-  @StateObject private var viewModel: LiveCollectionViewModel
+  // StateObject: an ObservedObject created inline is replaced on every parent render after its .task ran.
+  @StateObject var viewModel: LiveCollectionViewModel
   @State private var selectedVideo: LiveVideoItem?
   @State private var selectedChannelURL: String?
   @State private var pendingRemoval: LiveLibraryVideo?
 
   init(
     kind: LiveLibraryCollectionKind,
-    dependencies: AppDependencies
+    dependencies: AppDependencies,
+    seed: [LiveLibraryVideo] = []
   ) {
     self.dependencies = dependencies
     _viewModel = StateObject(
       wrappedValue: LiveCollectionViewModel(
         kind: kind,
+        seed: seed,
         service: dependencies.libraryService
       )
     )
   }
 
+  init(
+    viewModel: LiveCollectionViewModel,
+    dependencies: AppDependencies
+  ) {
+    self.dependencies = dependencies
+    _viewModel = StateObject(wrappedValue: viewModel)
+  }
+
   var body: some View {
     content
+      .liveLibrarySectionSwipe()
       .navigationTitle(viewModel.kind.title)
       .navigationBarTitleDisplayMode(.inline)
-      .toolbar {
-        ToolbarItem(placement: .topBarTrailing) {
-          Menu {
-            Picker("Sort", selection: $viewModel.sort) {
-              ForEach(LiveCollectionViewModel.Sort.allCases) {
-                Text($0.title).tag($0)
-              }
-            }
-          } label: {
-            Label("Sort", systemImage: "arrow.up.arrow.down")
-          }
-          .disabled(viewModel.videos.isEmpty)
-        }
-      }
-      .navigationDestination(item: $selectedVideo) { video in
-        LiveVideoMetadataView(
-          video: video,
-          dependencies: dependencies
-        )
+      .onChange(of: selectedVideo) { _, video in
+        guard let video else { return }
+        selectedVideo = nil
+        dependencies.playbackCoordinator.open(video)
       }
       .navigationDestination(item: $selectedChannelURL) { channelURL in
         LiveChannelView(
@@ -51,17 +48,6 @@ struct LiveCollectionView: View {
         )
       }
       .task { await viewModel.prepare() }
-      .confirmationDialog(
-        "Remove from \(viewModel.kind.title)?",
-        isPresented: removalBinding,
-        titleVisibility: .visible
-      ) {
-        Button("Remove", role: .destructive) {
-          guard let item = pendingRemoval else { return }
-          Task { await viewModel.remove(item) }
-          pendingRemoval = nil
-        }
-      }
       .alert("Library", isPresented: errorBinding) {
         Button("OK") { viewModel.dismissError() }
       } message: {
@@ -74,8 +60,7 @@ struct LiveCollectionView: View {
   private var content: some View {
     switch viewModel.state {
     case .idle, .loading:
-      ProgressView("Loading \(viewModel.kind.title.lowercased())")
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+      TypeTypeSkeletonList(layout: .cards)
     case let .failed(message):
       ContentUnavailableView {
         Label("Library unavailable", systemImage: "wifi.exclamationmark")
@@ -98,7 +83,7 @@ struct LiveCollectionView: View {
         "No \(viewModel.kind.title.lowercased())",
         systemImage: viewModel.kind.symbol,
         description: Text("Videos saved here will appear in this collection.")
-      )
+      ).liveThemedEmptyState()
     } else {
       ScrollView {
         LazyVGrid(columns: columns, alignment: .leading, spacing: 24) {
@@ -113,12 +98,28 @@ struct LiveCollectionView: View {
               onSelect: { selectedVideo = item.video },
               onRemove: { pendingRemoval = item }
             )
+            .popover(
+              isPresented: Binding(
+                get: { pendingRemoval?.id == item.id },
+                set: { if !$0 { pendingRemoval = nil } }
+              ),
+              attachmentAnchor: .point(.init(x: 0.5, y: 1.0)),
+              arrowEdge: .top
+            ) {
+              LiveConfirmCard(
+                title: "Remove from \(viewModel.kind.title)?",
+                confirmTitle: "Remove"
+              ) {
+                Task { await viewModel.remove(item) }
+                pendingRemoval = nil
+              }
+            }
           }
         }
         .padding(16)
       }
       .refreshable { await viewModel.reload() }
-      .background(DemoTheme.background)
+      .background(LiveThemeBackground().ignoresSafeArea())
     }
   }
 
@@ -130,13 +131,6 @@ struct LiveCollectionView: View {
         alignment: .top
       ),
     ]
-  }
-
-  private var removalBinding: Binding<Bool> {
-    Binding(
-      get: { pendingRemoval != nil },
-      set: { if !$0 { pendingRemoval = nil } }
-    )
   }
 
   private var errorBinding: Binding<Bool> {

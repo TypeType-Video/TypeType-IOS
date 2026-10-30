@@ -30,7 +30,7 @@ extension LiveHomeView {
       .padding(.horizontal, 16)
       .padding(.vertical, 18)
     }
-    .background(DemoTheme.background)
+    .background(LiveThemeBackground().ignoresSafeArea())
     .accessibilityIdentifier("live.home.feed")
     .refreshable {
       await viewModel.reload()
@@ -57,7 +57,7 @@ extension LiveHomeView {
           recommendationCard(video)
         }
 
-        DemoIncrementalLoadingTrigger(
+        LiveIncrementalLoadingTrigger(
           canLoadMore: viewModel.canLoadMore,
           isLoading: viewModel.isLoadingMore,
           label: "Loading more recommendations",
@@ -123,15 +123,8 @@ extension LiveHomeView {
   }
 
   private var loadingView: some View {
-    VStack(spacing: 14) {
-      ProgressView()
-        .controlSize(.large)
-      Text("Loading recommendations")
-        .font(.subheadline)
-        .foregroundStyle(.secondary)
-    }
-    .frame(maxWidth: .infinity, maxHeight: .infinity)
-    .accessibilityIdentifier("live.home.loading")
+    TypeTypeSkeletonList(layout: .cards)
+.accessibilityIdentifier("live.home.loading")
   }
 
   private var emptyView: some View {
@@ -147,7 +140,7 @@ extension LiveHomeView {
       Button("Refresh") {
         Task { await viewModel.reload() }
       }
-      .buttonStyle(.borderedProminent)
+      .liveProminentButton()
     }
     .accessibilityIdentifier("live.home.empty")
   }
@@ -161,7 +154,7 @@ extension LiveHomeView {
       Button("Try again") {
         Task { await viewModel.reload() }
       }
-      .buttonStyle(.borderedProminent)
+      .liveProminentButton()
     }
     .accessibilityIdentifier("live.home.error")
   }

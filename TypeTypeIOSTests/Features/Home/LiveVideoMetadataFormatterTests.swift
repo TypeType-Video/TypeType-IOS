@@ -2,27 +2,52 @@ import XCTest
 @testable import TypeTypeIOS
 
 final class LiveVideoMetadataFormatterTests: XCTestCase {
-  func testDurationFormatsMinutesAndHours() {
-    XCTAssertEqual(
-      LiveVideoMetadataFormatter.duration(596),
-      "9:56"
-    )
-    XCTAssertEqual(
-      LiveVideoMetadataFormatter.duration(3_661),
-      "1:01:01"
-    )
+  func testUnknownViewCountShowsNothing() {
+    XCTAssertEqual(LiveVideoMetadataFormatter.views(-1), "")
+    XCTAssertEqual(LiveVideoMetadataFormatter.views(0), "0 views")
   }
 
-  func testPublicationAcceptsMillisecondEpoch() {
-    let video = LiveVideoItemFixture.make(
-      publishedAt: 1_785_063_770_906
+  func testPublicationDerivesFromEpochNotUpstreamText() throws {
+    let video = try LiveVideoItem.fixture(
+      uploaded: 1_609_459_200_000,
+      uploadDate: "emahoreni angu-3 edlule"
     )
-    let timestamp = video.publicationDate?.timeIntervalSince1970
-    XCTAssertNotNil(timestamp)
-    XCTAssertEqual(
-      timestamp ?? 0,
-      1_785_063_770.906,
-      accuracy: 0.001
+    let text = LiveVideoMetadataFormatter.publication(video)
+    XCTAssertFalse(text.contains("edlule"))
+    XCTAssertFalse(text.isEmpty)
+  }
+
+  func testPublicationOmitsDateWithoutAnyTimestamp() throws {
+    let video = try LiveVideoItem.fixture(
+      uploaded: -1,
+      uploadDate: "ezinsukwini ezingu-3 ezedlule."
+    )
+    XCTAssertEqual(LiveVideoMetadataFormatter.publication(video), "")
+    XCTAssertEqual(LiveVideoMetadataFormatter.fullPublication(video), "")
+  }
+}
+
+private extension LiveVideoItem {
+  static func fixture(uploaded: Int64, uploadDate: String) throws -> LiveVideoItem {
+    LiveVideoItem(
+      id: "fixture",
+      title: "Fixture",
+      url: "https://www.youtube.com/watch?v=fixture0001",
+      thumbnailURL: "",
+      uploaderName: "Channel",
+      uploaderURL: "",
+      uploaderAvatarURL: "",
+      duration: 10,
+      viewCount: 0,
+      uploadDate: uploadDate,
+      uploaded: uploaded,
+      streamType: "VIDEO_STREAM",
+      isShortFormContent: false,
+      uploaderVerified: false,
+      isLive: false,
+      isPostLive: false,
+      isLiveContent: false,
+      requiresMembership: false
     )
   }
 }

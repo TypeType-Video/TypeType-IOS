@@ -9,14 +9,16 @@ struct LivePlaylistsView: View {
   @State var selectedCollection: LiveLibraryCollectionKind?
   @State var pendingPlaylistDeletion: LivePlaylist?
   @State var pendingSavedDeletion: LiveSavedPlaylist?
-  @State var createsPlaylist = false
+  @Binding var createsPlaylist: Bool
 
   init(
     coordinator: RootCoordinator,
-    requestedCollection: Binding<LiveLibraryCollectionKind?> = .constant(nil)
+    requestedCollection: Binding<LiveLibraryCollectionKind?> = .constant(nil),
+    createsPlaylist: Binding<Bool>
   ) {
     self.coordinator = coordinator
     _requestedCollection = requestedCollection
+    _createsPlaylist = createsPlaylist
     _viewModel = StateObject(
       wrappedValue: LivePlaylistsViewModel(
         playlistsService: coordinator.dependencies.playlistsService,
@@ -26,19 +28,10 @@ struct LivePlaylistsView: View {
   }
 
   var body: some View {
-    NavigationStack {
-      content
-        .navigationTitle("Playlists")
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-          ToolbarItem(placement: .topBarTrailing) {
-            Button("New playlist", systemImage: "plus") {
-              createsPlaylist = true
-            }
-            .accessibilityIdentifier("live.playlists.add")
-          }
-        }
-        .navigationDestination(item: $selectedPlaylist) { playlist in
+    content
+      .navigationTitle("Playlists")
+      .navigationBarTitleDisplayMode(.inline)
+          .navigationDestination(item: $selectedPlaylist) { playlist in
           LivePlaylistDetailView(
             playlist: playlist,
             dependencies: coordinator.dependencies
@@ -52,13 +45,13 @@ struct LivePlaylistsView: View {
             dependencies: coordinator.dependencies
           )
         }
-        .navigationDestination(item: $selectedCollection) { kind in
-          LiveCollectionView(
-            kind: kind,
-            dependencies: coordinator.dependencies
-          )
-        }
-    }
+      .navigationDestination(item: $selectedCollection) { kind in
+        LiveCollectionView(
+          kind: kind,
+          dependencies: coordinator.dependencies,
+          seed: kind == .watchLater ? viewModel.watchLater : viewModel.favorites
+        )
+      }
     .task {
       await viewModel.prepare()
       openRequestedCollection()
@@ -80,32 +73,6 @@ struct LivePlaylistsView: View {
           }
         }
       }
-    }
-    .confirmationDialog(
-      "Delete playlist?",
-      isPresented: playlistDeletionBinding,
-      titleVisibility: .visible
-    ) {
-      Button("Delete", role: .destructive) {
-        guard let playlist = pendingPlaylistDeletion else { return }
-        Task { await viewModel.delete(playlist) }
-        pendingPlaylistDeletion = nil
-      }
-    } message: {
-      Text("This action cannot be undone.")
-    }
-    .confirmationDialog(
-      "Remove saved playlist?",
-      isPresented: savedDeletionBinding,
-      titleVisibility: .visible
-    ) {
-      Button("Remove", role: .destructive) {
-        guard let playlist = pendingSavedDeletion else { return }
-        Task { await viewModel.removeSaved(playlist) }
-        pendingSavedDeletion = nil
-      }
-    } message: {
-      Text("Only the saved reference is removed from your library.")
     }
     .alert("Playlists", isPresented: errorBinding) {
       Button("OK") { viewModel.dismissError() }

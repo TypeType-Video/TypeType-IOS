@@ -18,6 +18,11 @@ private final class LiveAVPlayerViewController: AVPlayerViewController {
 struct LivePlayerLayerView: UIViewControllerRepresentable {
   let player: AVPlayer
   let controller: LivePlayerController
+  var onSwipeAdjustment: ((PlayerSwipeAdjustmentEvent) -> Void)? = nil
+  var onHorizontalSeek: ((PlayerHorizontalSeekEvent) -> Void)? = nil
+  var onPictureInPictureUIRestore:
+    (((@escaping (Bool) -> Void)) -> Void)? = nil
+  var showsSystemControls = true
 
   func makeCoordinator() -> LivePlayerLayerCoordinator {
     LivePlayerLayerCoordinator(controller: controller)
@@ -28,19 +33,34 @@ struct LivePlayerLayerView: UIViewControllerRepresentable {
   ) -> AVPlayerViewController {
     let playerController = LiveAVPlayerViewController()
     playerController.player = player
-    playerController.showsPlaybackControls = true
+    playerController.showsPlaybackControls = showsSystemControls
     playerController.allowsPictureInPicturePlayback = true
-    playerController.canStartPictureInPictureAutomaticallyFromInline = true
+    // No auto-PiP while the native player shows the landscape full screen.
+    playerController.canStartPictureInPictureAutomaticallyFromInline = false
     playerController.entersFullScreenWhenPlaybackBegins = false
     playerController.exitsFullScreenWhenPlaybackEnds = false
-    playerController.videoGravity = .resizeAspect
+    playerController.videoGravity = controller.imageMode.videoGravity
     playerController.view.backgroundColor = .black
     playerController.delegate = context.coordinator
+    context.coordinator.swipeGestureHandler = onSwipeAdjustment
+    context.coordinator.horizontalSeekHandler = onHorizontalSeek
+    context.coordinator.installHorizontalSeekGesture(
+      in: playerController.view
+    )
+    context.coordinator.pictureInPictureUIRestoreHandler =
+      onPictureInPictureUIRestore
+    context.coordinator.installSwipeGesture(
+      in: playerController.view
+    )
     playerController.onWillTransition = {
       [weak coordinator = context.coordinator] transitionCoordinator in
       coordinator?.preservePlayback(across: transitionCoordinator)
     }
     context.coordinator.install(in: playerController)
+    controller.pictureInPicture.installContentLayer(
+      on: playerController.view,
+      player: player
+    )
     return playerController
   }
 
@@ -51,7 +71,24 @@ struct LivePlayerLayerView: UIViewControllerRepresentable {
     if playerController.player !== player {
       playerController.player = player
     }
+    playerController.videoGravity = controller.imageMode.videoGravity
     context.coordinator.update(controller, in: playerController)
+    playerController.canStartPictureInPictureAutomaticallyFromInline =
+      controller.nativePlayback == nil && !controller.isPresentingFullscreen
+    controller.pictureInPicture.installContentLayer(
+      on: playerController.view,
+      player: player
+    )
+    if controller.pictureInPicture.consumeControlsRefresh() {
+      playerController.showsPlaybackControls = false
+      DispatchQueue.main.async {
+        playerController.showsPlaybackControls = showsSystemControls
+      }
+    }
+    context.coordinator.swipeGestureHandler = onSwipeAdjustment
+    context.coordinator.horizontalSeekHandler = onHorizontalSeek
+    context.coordinator.pictureInPictureUIRestoreHandler =
+      onPictureInPictureUIRestore
   }
 
   static func dismantleUIViewController(

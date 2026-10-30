@@ -5,7 +5,7 @@ struct DemoVideoSettingsView: View {
 
   var body: some View {
     Form {
-      Section("Community enhancements") {
+      Section {
         NavigationLink {
           DemoSponsorBlockSettingsView()
         } label: {
@@ -15,7 +15,7 @@ struct DemoVideoSettingsView: View {
           )
         }
 
-        Toggle("DeArrow titles and thumbnails", isOn: binding(\.deArrow))
+        Toggle("DeArrow titles and thumbnails", isOn: binding(\.deArrow)).liveRowFill()
 
         if session.preferences.deArrow {
           picker(
@@ -39,13 +39,13 @@ struct DemoVideoSettingsView: View {
             values: ["Accepted entries", "Locked entries only"]
           )
         }
-      }
+      } header: { Text("Community enhancements").liveSectionHeader() }
 
-      Section("Watch page") {
-        Toggle("Autoplay next video", isOn: binding(\.autoplay))
-        Toggle("Related videos", isOn: binding(\.showsRelated))
-        Toggle("Comments and danmaku", isOn: binding(\.loadsComments))
-      }
+      Section {
+        Toggle("Autoplay next video", isOn: binding(\.autoplay)).liveRowFill()
+        Toggle("Related videos", isOn: binding(\.showsRelated)).liveRowFill()
+        Toggle("Comments and danmaku", isOn: binding(\.loadsComments)).liveRowFill()
+      } header: { Text("Watch page").liveSectionHeader() }
     }
     .navigationTitle("Video")
     .navigationBarTitleDisplayMode(.inline)

@@ -6,6 +6,7 @@ final class LiveDownloadCenter: ObservableObject {
 
   @Published var records: [LiveManagedDownload] = []
   @Published var message: String?
+  @Published var storageUsage: Int64 = 0
 
   let service: LiveDownloaderServiceProtocol
   let scopeProvider: ScopeProvider
@@ -14,9 +15,11 @@ final class LiveDownloadCenter: ObservableObject {
   let rootURL: URL
   let indexURL: URL
   let artifactsURL: URL
+  let retryPolicy: LiveDownloadRetryPolicy
   var activeScope: LiveDownloadScope?
   var trackingTasks: [String: Task<Void, Never>] = [:]
   var refreshingRecordIDs: Set<String> = []
+  private var integrityTask: Task<Void, Never>?
 
   init(
     service: LiveDownloaderServiceProtocol,
@@ -24,12 +27,14 @@ final class LiveDownloadCenter: ObservableObject {
     rootURL: URL = LiveDownloadCenter.defaultRootURL(),
     fileManager: FileManager = .default,
     mediaValidator: LiveOfflineMediaValidating =
-      LiveOfflineMediaValidator()
+      LiveOfflineMediaValidator(),
+    retryPolicy: LiveDownloadRetryPolicy = .standard
   ) {
     self.service = service
     self.scopeProvider = scopeProvider
     self.fileManager = fileManager
     self.mediaValidator = mediaValidator
+    self.retryPolicy = retryPolicy
     self.rootURL = rootURL
     indexURL = rootURL.appendingPathComponent(
       "downloads.json",
@@ -41,10 +46,14 @@ final class LiveDownloadCenter: ObservableObject {
     )
     prepareStorage()
     load()
+    integrityTask = Task { [weak self] in
+      await self?.verifyArtifacts()
+    }
   }
 
   deinit {
     trackingTasks.values.forEach { $0.cancel() }
+    integrityTask?.cancel()
   }
 
   var visibleRecords: [LiveManagedDownload] {
@@ -56,6 +65,16 @@ final class LiveDownloadCenter: ObservableObject {
 
   var activeCount: Int {
     visibleRecords.filter(\.state.isActive).count
+  }
+
+  var activeTrackingCount: Int {
+    trackingTasks.count
+  }
+
+  func cancelTracking() {
+    trackingTasks.values.forEach { $0.cancel() }
+    trackingTasks.removeAll()
+    activeScope = nil
   }
 
   func activate() async {
@@ -88,8 +107,14 @@ final class LiveDownloadCenter: ObservableObject {
 
 enum LiveDownloadCenterError: LocalizedError {
   case missingScope
+  case duplicateActiveDownload(mode: String)
 
   var errorDescription: String? {
-    "Sign in to an instance before starting a download."
+    switch self {
+    case .missingScope:
+      return "Sign in to an instance before starting a download."
+    case let .duplicateActiveDownload(mode):
+      return "A \(mode) download for this video is already active."
+    }
   }
 }

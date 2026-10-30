@@ -27,30 +27,43 @@ extension LiveSABRPlaybackSession {
     guard let control else {
       throw LivePlaybackFailure.invalidSABRContract
     }
-    try await reportPosition(control)
+    try await LivePlaybackDebugTrace.measure("sabr position") { try await reportPosition(control) }
     var previousBufferedEdgeMS: Int64?
     var stagnantAttempts = 0
     for _ in 0..<Self.maximumAttempts {
       try Task.checkCancellation()
-      let pending = try await service.prefetchSABRPlayback(
-        sessionID: control.sessionID,
-        request: windowRequest(for: control)
-      )
+      let pending = try await LivePlaybackDebugTrace.measure("sabr prefetch") {
+        try await service.prefetchSABRPlayback(
+          sessionID: control.sessionID,
+          request: windowRequest(for: control)
+        )
+      }
+      LivePlaybackDebugTrace.note("prefetch ready=\(pending.ready) retry=\(pending.retryAfterMS ?? -1) edge=\(pending.bufferedEdgeMS ?? -1)")
       try validate(pending, against: control)
       if hasTerminalFailure(pending) {
         return try await recover(from: pending)
       }
       if pending.ready {
-        let window = try await service.loadSABRSegments(
-          sessionID: control.sessionID,
-          request: windowRequest(for: control)
-        )
+        let window = try await LivePlaybackDebugTrace.measure("sabr segments") {
+          try await service.loadSABRSegments(
+            sessionID: control.sessionID,
+            request: windowRequest(for: control)
+          )
+        }
+        LivePlaybackDebugTrace.note("segments ready=\(window.ready) retry=\(window.retryAfterMS ?? -1) edge=\(window.bufferedEdgeMS ?? -1)")
         try validate(window, against: control)
         if hasTerminalFailure(window) {
           return try await recover(from: window)
         }
         if window.ready {
-          try merge(window)
+          do {
+            try merge(window)
+          } catch {
+            AppLogger.playback.notice(
+              "sabr merge rejected start=\(window.startTimeMS ?? -1) duration=\(window.durationMS ?? -1) audio=\(Self.debugSummary(window.audio), privacy: .public) video=\(Self.debugSummary(window.video), privacy: .public) player=\(self.playerTimeMS)"
+            )
+            throw error
+          }
           guard let currentSnapshot else {
             throw LivePlaybackFailure.invalidSABRContract
           }
@@ -107,6 +120,9 @@ extension LiveSABRPlaybackSession {
       self.control?.sessionID == control.sessionID,
       self.control?.generation == control.generation
     else {
+      AppLogger.playback.notice(
+        "sabr window mismatch session=\(response.sessionID == control.sessionID) generation=\(response.generation)/\(control.generation) current=\(self.control?.generation ?? -1)"
+      )
       throw LivePlaybackFailure.invalidSABRContract
     }
   }
@@ -181,5 +197,11 @@ extension LiveSABRPlaybackSession {
       live: live,
       index: index
     )
+  }
+
+  static func debugSummary(_ track: LiveSABRWindowTrack?) -> String {
+    guard let track else { return "none" }
+    let spans = track.segments.map { "\($0.startMS)+\($0.durationMS)" }
+    return "\(track.mime.prefix(24)) n=\(track.segments.count) [\(spans.prefix(3).joined(separator: ",")) … \(spans.suffix(2).joined(separator: ","))]"
   }
 }

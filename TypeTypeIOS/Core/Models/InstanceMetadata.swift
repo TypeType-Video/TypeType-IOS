@@ -17,6 +17,8 @@ struct InstanceMetadata: Decodable, Equatable {
   let youtubeRemoteLoginEnabled: Bool
   let youtubeRemoteLoginReady: Bool
   let youtubeRemoteLoginUnavailableReason: String?
+  let rss: InstanceRssCapability?
+  let pushNotifications: InstancePushNotificationsCapability?
 
   private enum CodingKeys: String, CodingKey {
     case name
@@ -35,5 +37,19 @@ struct InstanceMetadata: Decodable, Equatable {
     case youtubeRemoteLoginEnabled
     case youtubeRemoteLoginReady
     case youtubeRemoteLoginUnavailableReason
+    case rss
+    case pushNotifications
   }
+}
+
+struct InstanceRssCapability: Decodable, Equatable {
+  let enabled: Bool
+  let maxFeedsPerUser: Int?
+}
+
+struct InstancePushNotificationsCapability: Decodable, Equatable {
+  let enabled: Bool
+  let provider: String?
+  let eventTypes: [String]?
+  let maxDevicesPerAccount: Int?
 }

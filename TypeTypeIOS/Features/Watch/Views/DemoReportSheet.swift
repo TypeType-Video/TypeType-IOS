@@ -12,7 +12,7 @@ struct DemoReportSheet: View {
   var body: some View {
     NavigationStack {
       Form {
-        Section("What happened?") {
+        Section {
           Picker("Category", selection: $category) {
             Text("Playback").tag("Playback")
             Text("Audio language").tag("Audio language")
@@ -26,16 +26,16 @@ struct DemoReportSheet: View {
             axis: .vertical
           )
           .lineLimit(4...8)
-        }
+        } header: { Text("What happened?").liveSectionHeader() }
 
-        Section("Diagnostics") {
-          Toggle("Attach technical details", isOn: $includesDiagnostics)
+        Section {
+          Toggle("Attach technical details", isOn: $includesDiagnostics).liveRowFill()
           if includesDiagnostics {
             LabeledContent("Playback", value: "SABR")
             LabeledContent("App", value: "TypeType iOS mock")
             LabeledContent("Personal data", value: "Not included")
           }
-        }
+        } header: { Text("Diagnostics").liveSectionHeader() }
       }
       .navigationTitle("Report a problem")
       .navigationBarTitleDisplayMode(.inline)

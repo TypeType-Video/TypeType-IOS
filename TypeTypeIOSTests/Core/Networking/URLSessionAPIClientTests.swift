@@ -167,6 +167,41 @@ final class URLSessionAPIClientTests: XCTestCase {
     }
   }
 
+  func testRefusalsMarkedFinalAreNotRetried() async {
+    let state = RequestCounter()
+    URLProtocolStub.register { request in
+      _ = state.increment()
+      return try Self.response(request: request, status: 503, body: #"{"error":"no bootstrap"}"#)
+    }
+    let client = makeClient(token: { nil })
+
+    do {
+      try await client.request(
+        APIEndpoint(path: "/streams/youtube/sabr/bootstrap", method: .get, retriesTransientFailures: false)
+      )
+      XCTFail("A 503 should be reported.")
+    } catch {
+      XCTAssertEqual(state.value, 1)
+    }
+  }
+
+  func testCancelledRequestIsNeitherRetriedNorATransportFailure() async {
+    let state = RequestCounter()
+    URLProtocolStub.register { _ in
+      _ = state.increment()
+      throw URLError(.cancelled)
+    }
+    let client = makeClient(token: { nil })
+
+    do {
+      try await client.request(APIEndpoint(path: "/streams/youtube/sabr", method: .get))
+      XCTFail("A cancelled request should not succeed.")
+    } catch {
+      XCTAssertTrue(error is CancellationError, "\(error)")
+      XCTAssertEqual(state.value, 1)
+    }
+  }
+
   func testStreamsFileUploadAndRetriesWithRefreshedToken() async throws {
     let directory = FileManager.default.temporaryDirectory
       .appendingPathComponent(UUID().uuidString)
@@ -318,7 +353,6 @@ final class URLSessionAPIClientTests: XCTestCase {
       )
       XCTFail("Expected HTTP 422.")
     } catch {
-      // The request failure is the event under test.
     }
 
     let entries = await store.entries(for: scope)

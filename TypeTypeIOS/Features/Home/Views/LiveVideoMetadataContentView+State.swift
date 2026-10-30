@@ -63,7 +63,7 @@ extension LiveVideoMetadataContentView {
       serverURL: dependencies.serverStore.selectedServer()?.baseURL
     ) {
     case let .video(linkedVideo):
-      selectedRelatedVideo = linkedVideo
+      playbackCoordinator.open(linkedVideo)
     case let .channel(channelURL):
       selectedChannelURL = channelURL
     case let .playlist(playlist):
@@ -71,5 +71,12 @@ extension LiveVideoMetadataContentView {
     case nil:
       pendingExternalURL = url
     }
+  }
+
+  var channelMetadataIdentity: String {
+    [
+      resolvedVideo.uploaderURL,
+      String(playerController.stream?.uploaderSubscriberCount ?? -1),
+    ].joined(separator: ":")
   }
 }

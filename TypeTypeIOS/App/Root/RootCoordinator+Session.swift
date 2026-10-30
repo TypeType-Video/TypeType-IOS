@@ -31,6 +31,9 @@ extension RootCoordinator {
       dependencies.serviceSelection.configure(
         supportedServiceIDs: metadata.supportedServices
       )
+      dependencies.pushNotificationsEnabled =
+        metadata.pushNotifications?.enabled == true
+      dependencies.rssEnabled = metadata.rss?.enabled == true
       completeAuthentication(result)
     } catch {
       if shouldInvalidateCachedSession(after: error) {
@@ -50,7 +53,7 @@ extension RootCoordinator {
     restoresSession: Bool
   ) async {
     if selectedServer?.id != server.id {
-      dependencies.playbackCoordinator.endSession()
+      dependencies.invalidateIdentityScopedRuntimeState()
     }
     state = .booting
     connectionError = nil
@@ -70,6 +73,9 @@ extension RootCoordinator {
       dependencies.serviceSelection.configure(
         supportedServiceIDs: instance?.supportedServices ?? [0]
       )
+      dependencies.pushNotificationsEnabled =
+        instance?.pushNotifications?.enabled == true
+      dependencies.rssEnabled = instance?.rss?.enabled == true
     } catch {
       if restoresSession, restoreOfflineSession(for: server) {
         connectionError =
@@ -122,6 +128,11 @@ extension RootCoordinator {
 
   func completeAuthentication(_ result: AuthSessionResult) {
     guard let server = selectedServer else { return }
+    if let previousSnapshot = dependencies.sessionStore.session(
+      forServerID: server.id
+    ), previousSnapshot.userID != result.user.id {
+      dependencies.sessionStore.clearSession(forServerID: server.id)
+    }
     let snapshot = SessionSnapshot(
       serverID: server.id,
       userID: result.user.id,
@@ -139,6 +150,41 @@ extension RootCoordinator {
     state = .authenticated
     Task {
       await dependencies.serviceSelection.refresh()
+    }
+  }
+
+  func switchAccountProfile(to profileID: String) async throws {
+    guard let server = selectedServer,
+      let service = dependencies.accountProfileService
+    else {
+      throw AccountProfileError.unavailable
+    }
+
+    let response = try await service.switchTo(id: profileID)
+    let accountIdentifier = dependencies.sessionStore.session(
+      forServerID: server.id
+    )?.accountIdentifier
+    let user = try await dependencies.authService.user(
+      accessToken: response.accessToken
+    )
+    dependencies.invalidateIdentityScopedRuntimeState()
+    completeAuthentication(
+      AuthSessionResult(
+        user: user,
+        accountIdentifier: accountIdentifier,
+        accessToken: response.accessToken
+      )
+    )
+  }
+
+  enum AccountProfileError: LocalizedError {
+    case unavailable
+
+    var errorDescription: String? {
+      switch self {
+      case .unavailable:
+        return "Account profiles are unavailable on this instance."
+      }
     }
   }
 

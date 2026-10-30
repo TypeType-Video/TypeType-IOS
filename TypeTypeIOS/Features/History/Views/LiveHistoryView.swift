@@ -2,81 +2,51 @@ import SwiftUI
 
 struct LiveHistoryView: View {
   @ObservedObject var coordinator: RootCoordinator
-  @StateObject var viewModel: LiveHistoryViewModel
+  @ObservedObject var viewModel: LiveHistoryViewModel
   @State var selectedVideo: LiveVideoItem?
   @State var selectedChannelURL: String?
   @State var pendingRemoval: LiveHistoryItem?
-  @State var confirmsClear = false
   @State var choosesDate = false
 
-  init(coordinator: RootCoordinator) {
+  init(
+    coordinator: RootCoordinator,
+    viewModel: LiveHistoryViewModel,
+    isActive: Bool = true
+  ) {
     self.coordinator = coordinator
-    _viewModel = StateObject(
-      wrappedValue: LiveHistoryViewModel(
-        service: coordinator.dependencies.historyService
-      )
-    )
+    self.viewModel = viewModel
+    self.isActive = isActive
   }
 
+  var isActive = true
+
   var body: some View {
-    NavigationStack {
-      content
-        .navigationTitle("History")
-        .navigationBarTitleDisplayMode(.inline)
-        .searchable(
-          text: $viewModel.query,
-          prompt: "Search history"
+    content
+      .navigationTitle("History")
+      .navigationBarTitleDisplayMode(.inline)
+      .searchableWhenActive(
+        isActive,
+        text: $viewModel.query,
+        prompt: "Search history"
+      )
+      .onChange(of: viewModel.query) {
+        viewModel.queryDidChange()
+      }
+      .onChange(of: selectedVideo) { _, video in
+        guard let video else { return }
+        selectedVideo = nil
+        coordinator.dependencies.playbackCoordinator.open(video)
+      }
+      .navigationDestination(item: $selectedChannelURL) { channelURL in
+        LiveChannelView(
+          channelURL: channelURL,
+          dependencies: coordinator.dependencies
         )
-        .onChange(of: viewModel.query) {
-          viewModel.queryDidChange()
-        }
-        .toolbar {
-          ToolbarItem(placement: .topBarTrailing) {
-            Button("Clear", role: .destructive) {
-              confirmsClear = true
-            }
-            .disabled(viewModel.items.isEmpty)
-          }
-        }
-        .navigationDestination(item: $selectedVideo) { video in
-          LiveVideoMetadataView(
-            video: video,
-            dependencies: coordinator.dependencies
-          )
-        }
-        .navigationDestination(item: $selectedChannelURL) { channelURL in
-          LiveChannelView(
-            channelURL: channelURL,
-            dependencies: coordinator.dependencies
-          )
-        }
-    }
+      }
     .task { await viewModel.prepare() }
     .sheet(isPresented: $choosesDate) {
       LiveHistoryDateSheet { date in
         viewModel.setFilter(.date(date))
-      }
-    }
-    .confirmationDialog(
-      "Clear watch history?",
-      isPresented: $confirmsClear,
-      titleVisibility: .visible
-    ) {
-      Button("Clear all", role: .destructive) {
-        Task { await viewModel.clear() }
-      }
-    } message: {
-      Text("This removes every video from your watch history.")
-    }
-    .confirmationDialog(
-      "Remove from history?",
-      isPresented: removalBinding,
-      titleVisibility: .visible
-    ) {
-      Button("Remove", role: .destructive) {
-        guard let item = pendingRemoval else { return }
-        Task { await viewModel.remove(item) }
-        pendingRemoval = nil
       }
     }
     .alert(
@@ -88,5 +58,21 @@ struct LiveHistoryView: View {
       Text(viewModel.errorMessage ?? "")
     }
     .accessibilityIdentifier("live.history.screen")
+  }
+}
+
+private extension View {
+  // .searchable attaches to the library's shared bar: attach it only while this section is active.
+  @ViewBuilder
+  func searchableWhenActive(
+    _ active: Bool,
+    text: Binding<String>,
+    prompt: String
+  ) -> some View {
+    if active {
+      searchable(text: text, prompt: prompt)
+    } else {
+      self
+    }
   }
 }

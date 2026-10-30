@@ -34,6 +34,8 @@ extension LiveDownloadCenter {
           "The downloaded file is no longer available on this device."
         changed = true
       }
+
+      cleanOrphanedArtifacts()
       if changed { persist() }
     } catch {
       AppLogger.app.error(

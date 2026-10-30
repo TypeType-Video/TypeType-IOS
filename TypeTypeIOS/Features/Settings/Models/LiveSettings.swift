@@ -23,6 +23,7 @@ struct LiveCaptionStyles: Codable, Equatable {
 struct LiveSettings: Codable, Equatable {
   var defaultService = 0
   var defaultQuality = "1080p"
+  var defaultPlaybackSpeed: Double?
   var defaultLandingPage = "home"
   var autoplay = true
   var skipPlaylistAutoplayScreen = false
@@ -60,6 +61,7 @@ struct LiveSettings: Codable, Equatable {
   var hideRelatedVideos = false
   var hideComments = false
   var hideShorts = false
+  var hideSubscriptionLiveStreams: Bool?
   var disableWatchHistory = false
   var deArrowEnabled = false
   var deArrowTitleMode = "dearrow"

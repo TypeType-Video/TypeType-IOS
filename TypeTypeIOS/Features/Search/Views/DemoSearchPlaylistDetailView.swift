@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct DemoSearchPlaylistDetailView: View {
+  @Environment(\.themePalette) var palette
   @EnvironmentObject var session: DemoSessionStore
   let playlist: DemoPlaylist
   @State var title: String
@@ -42,16 +43,8 @@ struct DemoSearchPlaylistDetailView: View {
     }
     .alert("Rename playlist", isPresented: $renamesPlaylist) {
       TextField("Playlist name", text: $renameDraft)
-      Button("Save") {
-        let value = renameDraft.trimmingCharacters(in: .whitespacesAndNewlines)
-        if !value.isEmpty {
-          title = value
-          session.renamePlaylist(playlist.id, to: value)
-        }
-      }
-      Button("Cancel", role: .cancel) {
-        renameDraft = title
-      }
+      Button("Save", action: saveRename)
+      Button("Cancel", role: .cancel) { renameDraft = title }
     }
     .confirmationDialog(
       "Delete \(title)?",
@@ -65,21 +58,11 @@ struct DemoSearchPlaylistDetailView: View {
     }
     .confirmationDialog(
       "Remove video?",
-      isPresented: Binding(
-        get: { pendingVideoRemoval != nil },
-        set: { if !$0 { pendingVideoRemoval = nil } }
-      ),
+      isPresented: removalBinding,
       titleVisibility: .visible
     ) {
-      Button("Remove", role: .destructive) {
-        if let pendingVideoRemoval {
-          remove(pendingVideoRemoval)
-        }
-        pendingVideoRemoval = nil
-      }
-      Button("Cancel", role: .cancel) {
-        pendingVideoRemoval = nil
-      }
+      Button("Remove", role: .destructive, action: confirmRemoval)
+      Button("Cancel", role: .cancel) { pendingVideoRemoval = nil }
     } message: {
       Text("Remove this video from \(title)?")
     }
@@ -87,13 +70,29 @@ struct DemoSearchPlaylistDetailView: View {
       DemoWatchView(video: video)
     }
     .onAppear(perform: synchronizeBuiltInCollection)
-    .onChange(of: session.favoriteVideoIDs) {
-      synchronizeBuiltInCollection()
-    }
-    .onChange(of: session.watchLaterVideoIDs) {
-      synchronizeBuiltInCollection()
-    }
+    .onChange(of: session.favoriteVideoIDs) { synchronizeBuiltInCollection() }
+    .onChange(of: session.watchLaterVideoIDs) { synchronizeBuiltInCollection() }
     .accessibilityIdentifier("demo.playlist-detail.screen")
   }
 
+  private var removalBinding: Binding<Bool> {
+    Binding(
+      get: { pendingVideoRemoval != nil },
+      set: { if !$0 { pendingVideoRemoval = nil } }
+    )
+  }
+
+  private func saveRename() {
+    let value = renameDraft.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard !value.isEmpty else { return }
+    title = value
+    session.renamePlaylist(playlist.id, to: value)
+  }
+
+  private func confirmRemoval() {
+    if let pendingVideoRemoval {
+      remove(pendingVideoRemoval)
+    }
+    pendingVideoRemoval = nil
+  }
 }

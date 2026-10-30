@@ -31,6 +31,7 @@ struct LivePlaybackQueueSheet: View {
           header
         }
       }
+        .liveThemedList()
       .listStyle(.plain)
       .navigationTitle("Playback queue")
       .navigationBarTitleDisplayMode(.inline)

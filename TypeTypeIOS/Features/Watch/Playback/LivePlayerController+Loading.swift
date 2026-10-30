@@ -10,6 +10,12 @@ extension LivePlayerController {
       return
     }
     state = .loading
+    loadGeneration += 1
+    let generation = loadGeneration
+    startupTrace.begin()
+    armStartupWatchdog()
+    service.preconnectMedia()
+    async let audioSession: Void = configureAudioSession()
     sabrStallRecoveryTask?.cancel()
     sabrStallRecoveryTask = nil
     sabrRecoveryBudgetResetTask?.cancel()
@@ -19,14 +25,17 @@ extension LivePlayerController {
     sponsorMutedRange = nil
     do {
       async let settingsRequest = settingsService.settings()
-      async let streamRequest = service.stream(for: video.url)
+      async let streamRequest = video.isLive
+        ? service.stream(for: video.url)
+        : service.playbackStream(for: video.url)
       async let progressRequest = historyService.progress(
         videoURL: video.url
       )
       settings = (try? await settingsRequest) ?? LiveSettings()
       applyLoadedSettings()
-      loadBulletCommentsIfNeeded()
+      afterFirstFrame { [weak self] in self?.loadBulletCommentsIfNeeded() }
       let loadedStream = try await streamRequest
+      startupTrace.mark("stream")
       let savedPositionMS: Int64?
       do {
         savedPositionMS = try await progressRequest
@@ -36,30 +45,25 @@ extension LivePlayerController {
       guard !Task.isCancelled else { return }
       stream = loadedStream
       onMetadataResolved?(video.resolving(with: loadedStream))
+      isLoadingFullMetadata = true
+      afterFirstFrame { [weak self] in self?.loadFullMetadata(using: service) }
       if selectedVideoItag != nil {
         selectedVideoItag = nil
       }
       if selectedVideoSourceID != nil {
         selectedVideoSourceID = nil
       }
-      let preferredAudioTrackID = settings.defaultAudioLanguage.isEmpty
-        ? nil
-        : loadedStream.audioStreams.first(where: {
-          $0.audioLocale?.lowercased().hasPrefix(
-            settings.defaultAudioLanguage.lowercased()
-          ) == true
-        })?.audioTrackID
-      if selectedAudioTrackID != preferredAudioTrackID {
-        selectedAudioTrackID = preferredAudioTrackID
+      let initial = LivePlaybackPreferences.initial(
+        for: loadedStream,
+        settings: settings,
+        audioOnly: audioOnly,
+        preferredCodec: appPreferences.preferences.playerPreferredCodec
+      )
+      if selectedAudioTrackID != initial.audioTrackID {
+        selectedAudioTrackID = initial.audioTrackID
       }
-      let preferredAudioSourceID = loadedStream.audioStreams.first(where: {
-        guard !settings.defaultAudioLanguage.isEmpty else { return false }
-        return $0.audioLocale?.lowercased().hasPrefix(
-          settings.defaultAudioLanguage.lowercased()
-        ) == true
-      })?.id
-      if selectedAudioSourceID != preferredAudioSourceID {
-        selectedAudioSourceID = preferredAudioSourceID
+      if selectedAudioSourceID != initial.audioSourceID {
+        selectedAudioSourceID = initial.audioSourceID
       }
       var preparation = try service.prepare(
         stream: loadedStream,
@@ -75,6 +79,9 @@ extension LivePlayerController {
         for: preparation,
         autoplay: initialAutoplay
       )
+      await audioSession
+      startupTrace.mark("audio")
+      guard generation == loadGeneration else { return }
       try await installWithProviderFallback(
         preparation,
         autoplay: initialAutoplay,
@@ -84,6 +91,11 @@ extension LivePlayerController {
       return
     } catch {
       Self.logPreparationFailure(error)
+      if Self.isTransientStartupFailure(error),
+        retryStartupOnce(reason: "\(error)") {
+        return
+      }
+      startupWatchdog?.cancel()
       state = .failed(Self.message(for: error))
       stopPlaybackSession()
     }
@@ -94,6 +106,7 @@ extension LivePlayerController {
     let restartTime = position
     let wasPlaying = player.timeControlStatus == .playing
     state = .loading
+    loadGeneration += 1
     loadTask?.cancel()
     loadTask = Task { [weak self] in
       guard let self else { return }
@@ -124,6 +137,8 @@ extension LivePlayerController {
   var preferences: LivePlaybackPreferences {
     LivePlaybackPreferences(
       quality: settings.defaultQuality,
+      preferredCodec: appPreferences.preferences
+        .playerPreferredCodec,
       videoItag: selectedVideoItag,
       videoSourceID: selectedVideoSourceID,
       audioTrackID: selectedAudioTrackID,
@@ -137,24 +152,43 @@ extension LivePlayerController {
     autoplay: Bool,
     seekOverride: TimeInterval?
   ) async throws {
+    startupTrace.mark("prepared")
+    let generation = loadGeneration
     player.pause()
+    stopNative()
     playbackServer?.stop()
     playbackServer = nil
     let resolvedDuration = TimeInterval(preparation.stream.duration)
     if duration != resolvedDuration {
       duration = resolvedDuration
     }
-    let requestedTime: TimeInterval = {
-      let requested = seekOverride ?? preparation.resumeTime
-      guard duration > 0, requested < duration - 5 else { return 0 }
-      return max(requested, 0)
-    }()
+    let requestedTime = LivePlaybackPreparation.startTime(
+      requested: seekOverride ?? preparation.resumeTime,
+      duration: duration
+    )
     let installedPreparation = preparation.isSABR
       ? preparation.resuming(at: requestedTime)
       : preparation
     self.preparation = installedPreparation
     pendingSeek = installedPreparation.isSABR ? nil : requestedTime
     playbackTimeOffset = 0
+    if playsNatively(installedPreparation), let service {
+      do {
+        try await installNative(
+          installedPreparation,
+          service: service,
+          startTime: requestedTime,
+          autoplay: autoplay,
+          generation: generation
+        )
+        return
+      } catch is CancellationError {
+        throw CancellationError()
+      } catch {
+        AppLogger.playback.error("Native playback unavailable, using AVPlayer: \(String(describing: error), privacy: .public)")
+        nativeFallbackUsed = true
+      }
+    }
 
     let assetURL: URL
     if installedPreparation.usesAuthenticatedLoader,
@@ -170,6 +204,15 @@ extension LivePlayerController {
               failedKind: kind
             )
           }
+        },
+        sabrFailureHandler: { [weak self] error in
+          Task { @MainActor [weak self] in
+            guard let self else { return }
+            sabrStallRecoveryTask?.cancel()
+            sabrRecoveryBudgetResetTask?.cancel()
+            state = .failed(Self.message(for: error))
+            stopPlaybackSession()
+          }
         }
       )
       do {
@@ -178,7 +221,12 @@ extension LivePlayerController {
         server.stop()
         throw error
       }
+      guard generation == loadGeneration else {
+        server.stop()
+        throw CancellationError()
+      }
       playbackServer = server
+      startupTrace.mark("session")
       if installedPreparation.isSABR {
         server.updatePlaybackRate(playbackRate)
         playbackTimeOffset = server.sabrPlaybackStartTime
@@ -199,6 +247,7 @@ extension LivePlayerController {
     at assetURL: URL,
     autoplay: Bool
   ) {
+    startupTrace.mark("item")
     let asset = AVURLAsset(url: assetURL)
     installPlayerItem(asset: asset, autoplay: autoplay)
   }
@@ -216,14 +265,9 @@ extension LivePlayerController {
       item.automaticallyPreservesTimeOffsetFromLive = true
     }
     observe(item, autoplay: autoplay)
+    guard !isTornDown else { return }
     player.replaceCurrentItem(with: item)
     player.defaultRate = playbackRate
-    do {
-      try DemoAudioSessionConfigurator.configure(
-        backgroundAudio: true
-      )
-    } catch {
-      state = .failed("The audio session could not be configured.")
-    }
+  // Do not reconfigure the audio session here: on the main thread it trips the unresponsiveness warnings.
   }
 }

@@ -6,7 +6,7 @@ struct LiveAdminSettingsForm: View {
 
   var body: some View {
     Form {
-      Section("Branding") {
+      Section {
         TextField("Instance name", text: $settings.name)
         TextField(
           "Tagline",
@@ -24,28 +24,28 @@ struct LiveAdminSettingsForm: View {
         )
         .keyboardType(.URL)
         .textInputAutocapitalization(.never)
-      }
+      } header: { Text("Branding").liveSectionHeader() }
 
-      Section("Authentication") {
-        Toggle("Allow registration", isOn: $settings.allowRegistration)
-        Toggle("Allow guests", isOn: $settings.allowGuest)
+      Section {
+        Toggle("Allow registration", isOn: $settings.allowRegistration).liveRowFill()
+        Toggle("Allow guests", isOn: $settings.allowGuest).liveRowFill()
         Toggle(
           "Require email verification",
           isOn: $settings.forceEmailVerification
-        )
-        Toggle("Local login", isOn: $settings.localLoginEnabled)
-        Toggle("OIDC auto redirect", isOn: $settings.oidcAutoRedirect)
-      }
+        ).liveRowFill()
+        Toggle("Local login", isOn: $settings.localLoginEnabled).liveRowFill()
+        Toggle("OIDC auto redirect", isOn: $settings.oidcAutoRedirect).liveRowFill()
+      } header: { Text("Authentication").liveSectionHeader() }
 
-      Section("Services") {
+      Section {
         Toggle(
           "Active session visibility",
           isOn: $settings.activeSessionsEnabled
-        )
+        ).liveRowFill()
         Toggle(
           "YouTube remote login",
           isOn: $settings.youtubeRemoteLoginEnabled
-        )
+        ).liveRowFill()
         TextField(
           "Minimum Android version",
           text: optionalBinding(\.minimumAndroidClientVersion)
@@ -54,7 +54,7 @@ struct LiveAdminSettingsForm: View {
           Text("Unrestricted").tag("unrestricted")
           Text("Allow list").tag("allow_list")
         }
-      }
+      } header: { Text("Services").liveSectionHeader() }
 
       if let message {
         Section {
@@ -63,6 +63,7 @@ struct LiveAdminSettingsForm: View {
         }
       }
     }
+      .liveGroupedList()
   }
 
   private func optionalBinding(

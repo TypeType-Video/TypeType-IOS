@@ -16,24 +16,26 @@ struct LiveChannelView: View {
       wrappedValue: LiveChannelViewModel(
         channelURL: channelURL,
         channelService: dependencies.channelService,
-        subscriptionsService: dependencies.subscriptionsService
+        subscriptionsService: dependencies.subscriptionsService,
+        pushNotificationsService:
+          dependencies.pushNotificationsService,
+        pushNotificationsEnabled:
+          dependencies.pushNotificationsEnabled
       )
     )
   }
 
   var body: some View {
     content
-      .modifier(LiveChannelSearchModifier(viewModel: viewModel))
       .navigationTitle(viewModel.channel?.name ?? "Channel")
       .navigationBarTitleDisplayMode(.inline)
       .task {
         await viewModel.loadIfNeeded()
       }
-      .navigationDestination(item: $selectedVideo) { video in
-        LiveVideoMetadataView(
-          video: video,
-          dependencies: dependencies
-        )
+      .onChange(of: selectedVideo) { _, video in
+        guard let video else { return }
+        selectedVideo = nil
+        dependencies.playbackCoordinator.open(video)
       }
       .navigationDestination(item: $selectedPlaylist) { playlist in
         LivePublicPlaylistView(

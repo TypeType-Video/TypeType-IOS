@@ -6,7 +6,7 @@ struct LiveAdminConsoleView: View {
 
   var body: some View {
     List {
-      Section("Instance") {
+      Section {
         NavigationLink {
           LiveAdminSettingsView(service: dependencies.adminService)
         } label: {
@@ -17,9 +17,9 @@ struct LiveAdminConsoleView: View {
         } label: {
           Label("Active sessions", systemImage: "dot.radiowaves.left.and.right")
         }
-      }
+      } header: { Text("Instance").liveSectionHeader() }
 
-      Section("People and access") {
+      Section {
         NavigationLink {
           LiveAdminAllowListView(
             admin: dependencies.adminService,
@@ -38,9 +38,9 @@ struct LiveAdminConsoleView: View {
         } label: {
           Label("Users", systemImage: "person.3")
         }
-      }
+      } header: { Text("People and access").liveSectionHeader() }
 
-      Section("Support") {
+      Section {
         NavigationLink {
           LiveAdminBugReportsView(
             service: dependencies.bugReportsService,
@@ -49,8 +49,9 @@ struct LiveAdminConsoleView: View {
         } label: {
           Label("Bug reports", systemImage: "ladybug")
         }
-      }
+      } header: { Text("Support").liveSectionHeader() }
     }
+      .liveGroupedList()
     .navigationTitle("Administration")
     .navigationBarTitleDisplayMode(.inline)
     .accessibilityIdentifier("live.admin.screen")

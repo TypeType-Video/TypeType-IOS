@@ -10,7 +10,9 @@ extension LivePlaybackHTTPServer {
       for: cacheKey
     ) { [weak self] in
       guard let self else { throw CancellationError() }
-      return try await self.loadResource(route, cacheKey: cacheKey)
+      return try await LivePlaybackDebugTrace.measure("proxy \(route.debugName)") {
+        try await self.loadResource(route, cacheKey: cacheKey)
+      }
     }
   }
 

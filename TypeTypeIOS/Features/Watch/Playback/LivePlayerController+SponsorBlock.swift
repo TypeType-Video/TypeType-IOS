@@ -16,6 +16,12 @@ extension LivePlayerController {
     }
   }
 
+  var displayedChapters: [LivePlaybackChapter] {
+    (availableChapters + sponsorBlockChapters).sorted {
+      $0.startTimeSeconds < $1.startTimeSeconds
+    }
+  }
+
   func canManuallySkipSponsorBlock(
     _ window: LiveSponsorBlockWindow
   ) -> Bool {
@@ -72,7 +78,11 @@ extension LivePlayerController {
     mutation(&settings)
     let value = settings
     Task { [settingsService] in
-      _ = try? await settingsService.update(value)
+      do {
+        _ = try await settingsService.update(value)
+      } catch {
+        AppLogger.network.failure("Saving SponsorBlock settings", error)
+      }
     }
   }
 }

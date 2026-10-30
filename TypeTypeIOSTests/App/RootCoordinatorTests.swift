@@ -153,8 +153,157 @@ final class RootCoordinatorTests: XCTestCase {
     XCTAssertNotNil(coordinator.connectionError)
   }
 
+  func testProfileSwitchReplacesServerScopedSession() async throws {
+    let profileUser = AuthUser(
+      id: "profile-2",
+      role: .user,
+      publicUsername: "Kids profile"
+    )
+    let profileID = "22222222-2222-2222-2222-222222222222"
+    let authStub = RootAuthStub(
+      tokenUsers: [
+        "profile-token": profileUser,
+      ]
+    )
+    let accountProfiles = RootAccountProfileStub(
+      profile: AccountProfileItem(
+        id: profileID,
+        name: "Kids",
+        isActive: false,
+        isDefault: false,
+        lastUsedAt: 20,
+        publicUsername: nil,
+        avatarURL: nil,
+        avatarType: nil,
+        avatarCode: nil
+      )
+    )
+    let dependencies = try makeDependencies(
+      auth: authStub,
+      accountProfiles: accountProfiles
+    )
+    let coordinator = RootCoordinator(dependencies: dependencies)
+    await coordinator.bootstrap()
+    try await coordinator.addServer(
+      name: "Beta",
+      urlInput: "https://beta.example.test"
+    )
+    try await coordinator.login(
+      identifier: "person@example.test",
+      password: "secret"
+    )
+    let serverID = try XCTUnwrap(coordinator.selectedServer?.id)
+    let identityBeforeSwitch = coordinator.identityScopeID
+
+    try await coordinator.switchAccountProfile(to: profileID)
+
+    XCTAssertNotEqual(
+      identityBeforeSwitch,
+      coordinator.identityScopeID
+    )
+    XCTAssertEqual(
+      coordinator.identityScopeID,
+      "\(serverID):profile-2"
+    )
+
+    XCTAssertEqual(coordinator.state, .authenticated)
+    XCTAssertEqual(coordinator.currentUser?.id, "profile-2")
+    XCTAssertEqual(
+      dependencies.sessionStore.accessToken(forServerID: serverID),
+      "profile-token"
+    )
+    XCTAssertEqual(
+      dependencies.sessionStore.session(forServerID: serverID)?
+        .accountIdentifier,
+      "person@example.test"
+    )
+  }
+
+  func testMultipleInstancesPreserveIndependentSessions() async throws {
+    let auth = RootAuthStub(
+      restoreResults: [
+        "token-beta": AuthSessionResult(
+          user: AuthUser(
+            id: "user-beta",
+            role: .user,
+            publicUsername: "Beta Person"
+          ),
+          accountIdentifier: "beta@example.test",
+          accessToken: "restored-beta"
+        ),
+        "token-stable": AuthSessionResult(
+          user: AuthUser(
+            id: "user-stable",
+            role: .admin,
+            publicUsername: "Stable Person"
+          ),
+          accountIdentifier: "stable@example.test",
+          accessToken: "restored-stable"
+        ),
+      ]
+    )
+    let dependencies = try makeDependencies(auth: auth)
+    let coordinator = RootCoordinator(dependencies: dependencies)
+    await coordinator.bootstrap()
+    XCTAssertEqual(coordinator.state, .serverSetup)
+
+    try await coordinator.addServer(
+      name: "Beta",
+      urlInput: "https://beta.example.test"
+    )
+    let beta = try XCTUnwrap(coordinator.selectedServer)
+    try await coordinator.addServer(
+      name: "Stable",
+      urlInput: "https://stable.example.test"
+    )
+    let stable = try XCTUnwrap(coordinator.selectedServer)
+
+    dependencies.sessionStore.saveSession(
+      snapshot: SessionSnapshot(
+        serverID: beta.id,
+        userID: "user-beta",
+        accountIdentifier: "beta@example.test",
+        publicUsername: "Beta Person",
+        role: AuthRole.user.rawValue
+      ),
+      accessToken: "token-beta"
+    )
+    dependencies.sessionStore.saveSession(
+      snapshot: SessionSnapshot(
+        serverID: stable.id,
+        userID: "user-stable",
+        accountIdentifier: "stable@example.test",
+        publicUsername: "Stable Person",
+        role: AuthRole.admin.rawValue
+      ),
+      accessToken: "token-stable"
+    )
+
+    await coordinator.selectServer(beta)
+    XCTAssertEqual(coordinator.selectedServer?.id, beta.id)
+    XCTAssertEqual(coordinator.currentUser?.id, "user-beta")
+    XCTAssertEqual(
+      dependencies.sessionStore.accessToken(forServerID: beta.id),
+      "restored-beta"
+    )
+
+    await coordinator.selectServer(stable)
+    XCTAssertEqual(coordinator.selectedServer?.id, stable.id)
+    XCTAssertEqual(coordinator.currentUser?.id, "user-stable")
+    XCTAssertEqual(
+      dependencies.sessionStore.accessToken(forServerID: stable.id),
+      "restored-stable"
+    )
+    XCTAssertEqual(
+      dependencies.sessionStore.session(forServerID: beta.id)?.userID,
+      "user-beta"
+    )
+  }
+
   private func makeDependencies(
-    probe: ServerProbeServiceProtocol? = nil
+    probe: ServerProbeServiceProtocol? = nil,
+    auth: RootAuthStub? = nil,
+    accountProfiles: RootAccountProfileStub? = nil
   ) throws -> AppDependencies {
     let selectedProbe: ServerProbeServiceProtocol
     if let probe {
@@ -182,7 +331,7 @@ final class RootCoordinatorTests: XCTestCase {
       serverStore: serverStore,
       sessionStore: sessionStore,
       serverProbeService: selectedProbe,
-      authService: RootAuthStub(),
+      authService: auth ?? RootAuthStub(),
       oidcService: RootOIDCStub(),
       resetPasswordService: RootResetPasswordStub(),
       homeFeedService: RootHomeFeedStub(),
@@ -200,6 +349,7 @@ final class RootCoordinatorTests: XCTestCase {
       libraryService: RootLibraryStub(),
       playlistsService: RootPlaylistsStub(),
       profileService: LiveProfileService(apiClient: apiClient),
+      accountProfileService: accountProfiles,
       settingsService: settingsService,
       serviceSelection: LiveServiceSelection(
         settingsService: settingsService,
@@ -220,9 +370,8 @@ final class RootCoordinatorTests: XCTestCase {
       ),
       bugReportsService: LiveBugReportsService(apiClient: apiClient),
       importService: LiveImportService(apiClient: apiClient),
-      youtubeSessionService: LiveYouTubeSessionService(
-        apiClient: apiClient
-      )
+      orientationLock: LiveOrientationLock(),
+      backgroundRefresh: LiveBackgroundRefreshCoordinator()
     )
   }
 
@@ -295,6 +444,16 @@ private final class RootAuthStub: AuthServiceProtocol {
     accountIdentifier: "person@example.test",
     accessToken: "access-1"
   )
+  private let tokenUsers: [String: AuthUser]
+  private let restoreResults: [String: AuthSessionResult]
+
+  init(
+    tokenUsers: [String: AuthUser] = [:],
+    restoreResults: [String: AuthSessionResult] = [:]
+  ) {
+    self.tokenUsers = tokenUsers
+    self.restoreResults = restoreResults
+  }
 
   func registrationStatus() async throws -> RegisterStatus {
     RegisterStatus(
@@ -331,14 +490,49 @@ private final class RootAuthStub: AuthServiceProtocol {
     snapshot: SessionSnapshot,
     accessToken: String
   ) async throws -> AuthSessionResult {
-    result
+    restoreResults[accessToken] ?? result
   }
 
   func user(accessToken: String) async throws -> AuthUser {
-    result.user
+    tokenUsers[accessToken] ?? result.user
   }
 
   func logout() async throws {}
+}
+
+private final class RootAccountProfileStub:
+  LiveAccountProfileServiceProtocol {
+  private let profile: AccountProfileItem
+
+  init(profile: AccountProfileItem) {
+    self.profile = profile
+  }
+
+  func list() async throws -> AccountProfilesResponse {
+    AccountProfilesResponse(
+      profiles: [profile],
+      activeProfileID: "11111111-1111-1111-1111-111111111111",
+      defaultProfileID: "11111111-1111-1111-1111-111111111111"
+    )
+  }
+
+  func create(name: String) async throws -> AccountProfileItem {
+    profile
+  }
+
+  func rename(id: String, name: String) async throws -> AccountProfileItem {
+    profile
+  }
+
+  func setDefault(id: String) async throws -> AccountProfileItem {
+    profile
+  }
+
+  func switchTo(id: String) async throws -> ProfileSwitchResponse {
+    ProfileSwitchResponse(accessToken: "profile-token", profile: profile)
+  }
+
+  func delete(id: String) async throws {}
 }
 
 private final class RootOIDCStub: OIDCServiceProtocol {

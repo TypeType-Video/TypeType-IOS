@@ -42,15 +42,15 @@ enum LiveDescriptionTextFormatter {
     return value.trimmingCharacters(in: .whitespacesAndNewlines)
   }
 
+  private static let anchorPattern = try? NSRegularExpression(
+    pattern: #"<a\b[^>]*href\s*=\s*["']([^"']+)["'][^>]*>(.*?)</a>"#,
+    options: [.caseInsensitive, .dotMatchesLineSeparators]
+  )
+
   private static func preservingAnchorDestinations(
     in value: String
   ) -> String {
-    guard let expression = try? NSRegularExpression(
-      pattern: #"<a\b[^>]*href\s*=\s*["']([^"']+)["'][^>]*>(.*?)</a>"#,
-      options: [.caseInsensitive, .dotMatchesLineSeparators]
-    ) else {
-      return value
-    }
+    guard let expression = anchorPattern else { return value }
 
     let range = NSRange(value.startIndex..., in: value)
     let matches = expression.matches(in: value, range: range)
@@ -77,21 +77,44 @@ enum LiveDescriptionTextFormatter {
     return result
   }
 
-  private static func decodingHTMLEntities(in value: String) -> String {
-    let document = value.replacingOccurrences(of: "\n", with: "<br>")
-    guard let data = document.data(using: .utf8),
-      let attributed = try? NSAttributedString(
-        data: data,
-        options: [
-          .documentType: NSAttributedString.DocumentType.html,
-          .characterEncoding: String.Encoding.utf8.rawValue,
-        ],
-        documentAttributes: nil
-      )
-    else {
-      return value
+  private static let namedEntities: [String: String] = [
+    "amp": "&", "lt": "<", "gt": ">", "quot": "\"", "apos": "'", "nbsp": "\u{00A0}",
+    "hellip": "…", "mdash": "—", "ndash": "–", "lsquo": "‘", "rsquo": "’",
+    "ldquo": "“", "rdquo": "”", "laquo": "«", "raquo": "»", "middot": "·",
+    "bull": "•", "copy": "©", "reg": "®", "trade": "™", "times": "×", "yen": "¥",
+  ]
+
+  // Not NSAttributedString's HTML importer: it runs WebKit in a nested run loop that re-enters SwiftUI.
+  static func decodingHTMLEntities(in value: String) -> String {
+    guard value.contains("&") else { return value }
+    var result = ""
+    result.reserveCapacity(value.count)
+    var index = value.startIndex
+    while index < value.endIndex {
+      let character = value[index]
+      guard character == "&",
+        let end = value[index...].prefix(12).firstIndex(of: ";"),
+        let decoded = decodedEntity(String(value[value.index(after: index)..<end]))
+      else {
+        result.append(character)
+        index = value.index(after: index)
+        continue
+      }
+      result.append(decoded)
+      index = value.index(after: end)
     }
-    return attributed.string
+    return result
+  }
+
+  private static func decodedEntity(_ name: String) -> String? {
+    if name.hasPrefix("#") {
+      let digits = name.dropFirst()
+      let scalarValue = digits.first == "x" || digits.first == "X"
+        ? UInt32(digits.dropFirst(), radix: 16)
+        : UInt32(digits)
+      return scalarValue.flatMap(Unicode.Scalar.init).map { String(Character($0)) }
+    }
+    return namedEntities[name]
   }
 
   private static func isNicoNico(_ rawURL: String) -> Bool {

@@ -2,6 +2,7 @@ import SwiftUI
 import UIKit
 
 struct LiveDiagnosticRow: View {
+  @Environment(\.themePalette) private var palette
   let entry: LiveDiagnosticEntry
   @Binding var copiedRequestID: String?
 
@@ -46,7 +47,7 @@ struct LiveDiagnosticRow: View {
           .lineLimit(1)
       }
       .buttonStyle(.plain)
-      .foregroundStyle(DemoTheme.accent)
+      .foregroundStyle(palette.accent)
       .accessibilityLabel("Copy request ID \(requestID)")
     }
   }

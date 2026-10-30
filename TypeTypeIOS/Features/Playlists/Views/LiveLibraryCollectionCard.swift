@@ -10,7 +10,7 @@ struct LiveLibraryCollectionCard: View {
       VStack(alignment: .leading, spacing: 9) {
         ZStack(alignment: .bottomTrailing) {
           Color.clear
-            .aspectRatio(16 / 10, contentMode: .fit)
+            .aspectRatio(16 / 9, contentMode: .fit)
             .overlay {
               LiveRemoteImage(
                 url: URL(string: videos.first?.thumbnail ?? "")
@@ -21,10 +21,12 @@ struct LiveLibraryCollectionCard: View {
             .clipShape(
               RoundedRectangle(cornerRadius: 14, style: .continuous)
             )
-          Label(String(videos.count), systemImage: kind.symbol)
+          Text(String(videos.count))
             .font(.caption.weight(.semibold))
+            .multilineTextAlignment(.center)
             .padding(.horizontal, 9)
             .padding(.vertical, 6)
+            .frame(minWidth: 36, minHeight: 24)
             .background(.black.opacity(0.78), in: Capsule())
             .foregroundStyle(.white)
             .padding(8)
@@ -38,5 +40,7 @@ struct LiveLibraryCollectionCard: View {
     }
     .buttonStyle(.plain)
     .accessibilityIdentifier("live.library.collection-card")
+      .accessibilityElement(children: .combine)
+      .accessibilityLabel("\(kind.title), \(videos.count) videos")
   }
 }

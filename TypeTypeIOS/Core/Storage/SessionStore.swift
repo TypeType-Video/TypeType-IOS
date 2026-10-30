@@ -7,10 +7,12 @@ final class SessionStore {
   private let encoder = JSONEncoder()
   private let tokenLock = NSLock()
   private var memoryTokens: [String: String] = [:]
+  let savedAccounts: LiveSavedAccountStore
 
   init(defaults: UserDefaults = .standard, keychain: KeychainService) {
     self.defaults = defaults
     self.keychain = keychain
+    savedAccounts = LiveSavedAccountStore(defaults: defaults, keychain: keychain)
   }
 
   func session(forServerID serverID: String) -> SessionSnapshot? {
@@ -52,6 +54,21 @@ final class SessionStore {
     )
   }
 
+  func refreshToken(forServerID serverID: String) -> String? {
+    keychain.get(refreshAccount(forServerID: serverID))
+  }
+
+  func setRefreshToken(_ token: String?, forServerID serverID: String) {
+    if let token {
+      _ = keychain.set(token, for: refreshAccount(forServerID: serverID))
+      if let snapshot = session(forServerID: serverID) {
+        savedAccounts.storeRefreshToken(token, serverID: serverID, userID: snapshot.userID)
+      }
+    } else {
+      _ = keychain.remove(refreshAccount(forServerID: serverID))
+    }
+  }
+
   func hasActiveSession(serverID: String) -> Bool {
     accessToken(forServerID: serverID) != nil
   }
@@ -64,12 +81,14 @@ final class SessionStore {
       memoryTokens[snapshot.serverID] = accessToken
     }
     _ = keychain.set(accessToken, for: tokenAccount(for: snapshot))
+    savedAccounts.remember(snapshot, refreshToken: refreshToken(forServerID: snapshot.serverID))
   }
 
   func clearSession(forServerID serverID: String) {
     _ = tokenLock.withLock {
       memoryTokens.removeValue(forKey: serverID)
     }
+    setRefreshToken(nil, forServerID: serverID)
     guard let snapshot = session(forServerID: serverID) else {
       var snapshots = registry()
       snapshots.removeValue(forKey: serverID)
@@ -87,8 +106,9 @@ final class SessionStore {
     tokenLock.withLock {
       memoryTokens.removeAll()
     }
-    for (_, snapshot) in registry() {
+    for (serverID, snapshot) in registry() {
       _ = keychain.remove(tokenAccount(for: snapshot))
+      setRefreshToken(nil, forServerID: serverID)
     }
     defaults.removeObject(forKey: AppConfig.sessionRegistryKey)
   }
@@ -99,12 +119,19 @@ final class SessionStore {
   }
 
   private func persistRegistry(_ snapshots: [String: SessionSnapshot]) {
-    guard let data = try? encoder.encode(snapshots) else { return }
-    defaults.set(data, forKey: AppConfig.sessionRegistryKey)
+    do {
+      defaults.set(try encoder.encode(snapshots), forKey: AppConfig.sessionRegistryKey)
+    } catch {
+      AppLogger.app.failure("Saving the sessions", error)
+    }
   }
 
   private func accessToken(for snapshot: SessionSnapshot) -> String? {
     keychain.get(tokenAccount(for: snapshot))
+  }
+
+  private func refreshAccount(forServerID serverID: String) -> String {
+    "\(AppConfig.keychainTokenPrefix).refresh.\(serverID)"
   }
 
   private func tokenAccount(for snapshot: SessionSnapshot) -> String {

@@ -35,7 +35,7 @@ struct DemoWatchCommentsView: View {
         )
       }
 
-      DemoIncrementalLoadingTrigger(
+      LiveIncrementalLoadingTrigger(
         canLoadMore: visibleCount < sortedComments.count,
         isLoading: isLoadingMore,
         label: "Loading more comments",

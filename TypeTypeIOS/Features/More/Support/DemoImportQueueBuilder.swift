@@ -24,7 +24,7 @@ struct DemoImportQueueBuilder: View {
           }
         }
 
-        Section("Archive queue") {
+        Section {
           ForEach(Array(queue.enumerated()), id: \.offset) { index, file in
             HStack {
               Image(systemName: "doc.zipper")
@@ -42,7 +42,7 @@ struct DemoImportQueueBuilder: View {
             queue.removeAll()
           }
           .disabled(queue.isEmpty)
-        }
+        } header: { Text("Archive queue").liveSectionHeader() }
 
         Section {
           Button {
@@ -55,6 +55,7 @@ struct DemoImportQueueBuilder: View {
           .disabled(queue.isEmpty)
         }
       }
+      .listStyle(.insetGrouped)
       .navigationTitle("YouTube archive queue")
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {

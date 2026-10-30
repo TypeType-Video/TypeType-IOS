@@ -26,9 +26,9 @@ extension PlaybackMatrixLiveUITests {
       app.otherElements["live.home.screen"]
         .waitForExistence(timeout: 20)
     )
-    app.buttons["live.home.search"].tap()
+    app.searchTabButton.tap()
     XCTAssertTrue(
-      app.searchFields["Search videos, channels..."]
+      app.textFields["live.search.field"]
         .waitForExistence(timeout: 10)
     )
     return app
@@ -53,9 +53,9 @@ extension PlaybackMatrixLiveUITests {
     option.tap()
     RunLoop.current.run(until: Date().addingTimeInterval(2))
     if !selectsFromSearch {
-      app.buttons["live.home.search"].tap()
+      app.searchTabButton.tap()
       XCTAssertTrue(
-        app.searchFields["Search videos, channels..."]
+        app.textFields["live.search.field"]
           .waitForExistence(timeout: 10)
       )
     }
@@ -65,7 +65,7 @@ extension PlaybackMatrixLiveUITests {
     _ scenario: LivePlaybackMatrixCase,
     in app: XCUIApplication
   ) throws -> String {
-    let field = app.searchFields["Search videos, channels..."]
+    let field = app.textFields["live.search.field"]
     XCTAssertTrue(field.waitForExistence(timeout: 5))
     field.tap()
     let clear = app.buttons["Clear text"]

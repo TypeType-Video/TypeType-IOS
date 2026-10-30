@@ -3,14 +3,17 @@ import UIKit
 
 struct LiveDiagnosticsView: View {
   let store: LiveDiagnosticsStore
+  let crashReports: LiveCrashReportArchive
   let scopeProvider: () -> LiveDiagnosticScope?
   @State private var entries: [LiveDiagnosticEntry] = []
   @State private var isLoading = true
   @State private var confirmsClear = false
   @State private var copiedRequestID: String?
+  @Environment(\.liveToasts) private var toasts
 
   var body: some View {
     List {
+      LiveCrashReportsSection(archive: crashReports)
       Section {
         Text(
           "Recent requests are stored only on this device. Routes are sanitized and never include query values, media URLs, tokens, or passwords."
@@ -20,34 +23,35 @@ struct LiveDiagnosticsView: View {
       }
 
       if isLoading {
-        Section {
+        LiveSection {
           HStack {
             Spacer()
-            ProgressView("Loading diagnostics")
+            TypeTypeSkeletonList(layout: .settings, count: 6, scrolls: false)
             Spacer()
           }
         }
       } else if entries.isEmpty {
-        Section {
+        LiveSection {
           ContentUnavailableView(
             "No diagnostics yet",
             systemImage: "checkmark.shield",
             description: Text(
               "Requests made to this TypeType instance will appear here."
             )
-          )
+          ).liveThemedEmptyState()
         }
       } else {
-        Section("Recent requests") {
+        LiveSection {
           ForEach(entries) { entry in
             LiveDiagnosticRow(
               entry: entry,
               copiedRequestID: $copiedRequestID
             )
           }
-        }
+        } header: { Text("Recent requests").liveSettingsHeader() }
       }
     }
+      .liveGroupedList()
     .navigationTitle("Diagnostics")
     .navigationBarTitleDisplayMode(.inline)
     .toolbar {
@@ -63,31 +67,21 @@ struct LiveDiagnosticsView: View {
             Image(systemName: "trash")
           }
           .accessibilityLabel("Clear diagnostics")
+          .liveConfirmPopover(
+            isPresented: $confirmsClear,
+            title: "Clear diagnostics?",
+            message: "The stored logs are removed.",
+            confirmTitle: "Clear all"
+          ) {
+            Task { await clear() }
+          }
         }
       }
     }
     .refreshable { await reload() }
     .task { await reload() }
-    .confirmationDialog(
-      "Clear diagnostics on this device?",
-      isPresented: $confirmsClear,
-      titleVisibility: .visible
-    ) {
-      Button("Clear diagnostics", role: .destructive) {
-        Task { await clear() }
-      }
-      Button("Cancel", role: .cancel) {}
-    }
-    .overlay(alignment: .bottom) {
-      if copiedRequestID != nil {
-        Text("Request ID copied")
-          .font(.footnote.weight(.semibold))
-          .padding(.horizontal, 14)
-          .padding(.vertical, 9)
-          .background(.regularMaterial, in: Capsule())
-          .padding(.bottom, 16)
-          .transition(.move(edge: .bottom).combined(with: .opacity))
-      }
+    .onChange(of: copiedRequestID) { _, id in
+      if id != nil { toasts?.show(String(localized: "Request ID copied")) }
     }
     .accessibilityIdentifier("live.diagnostics.screen")
   }

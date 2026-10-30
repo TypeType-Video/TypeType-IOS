@@ -15,6 +15,7 @@ final class LiveHomeViewModel: ObservableObject {
   let services: [VideoService]
 
   private let service: HomeFeedServiceProtocol
+  private let imagePipeline: TypeTypeImagePipeline
   private let historyService: LiveHistoryServiceProtocol
   private let settingsService: LiveSettingsServiceProtocol
   private let serviceSelection: LiveServiceSelection
@@ -29,8 +30,10 @@ final class LiveHomeViewModel: ObservableObject {
     service: HomeFeedServiceProtocol,
     historyService: LiveHistoryServiceProtocol,
     settingsService: LiveSettingsServiceProtocol,
-    serviceSelection: LiveServiceSelection
+    serviceSelection: LiveServiceSelection,
+    imagePipeline: TypeTypeImagePipeline = TypeTypeImagePipeline()
   ) {
+    self.imagePipeline = imagePipeline
     self.service = service
     self.historyService = historyService
     self.settingsService = settingsService
@@ -48,6 +51,26 @@ final class LiveHomeViewModel: ObservableObject {
       .store(in: &cancellables)
   }
 
+  private static func withTimeout<T: Sendable>(
+    seconds: Double,
+    operation: @escaping @Sendable () async throws -> T
+  ) async throws -> T {
+    try await withThrowingTaskGroup(of: T.self) { group in
+      group.addTask {
+        try await operation()
+      }
+      group.addTask {
+        try await Task.sleep(for: .seconds(seconds))
+        throw NetworkError.transport
+      }
+      guard let first = try await group.next() else {
+        throw NetworkError.transport
+      }
+      group.cancelAll()
+      return first
+    }
+  }
+
   func reload() async {
     let currentRequest = UUID()
     requestID = currentRequest
@@ -56,12 +79,17 @@ final class LiveHomeViewModel: ObservableObject {
     nextCursor = nil
     loadTask?.cancel()
     paginationTask?.cancel()
-    let settings = (try? await settingsService.settings())
-      ?? LiveSettings()
+    // Time-boxed: one stalled request would keep reload() loading forever.
+    let settingsService = self.settingsService
+    let settings = (try? await Self.withTimeout(seconds: 4) {
+      try await settingsService.settings()
+    }) ?? LiveSettings()
     showsRecommendations = !settings.hideHomeRecommendations
     showsContinueWatching = !settings.hideContinueWatching
 
     let serviceID = selectedServiceID
+    let service = self.service
+    let limit = pageSize
     let task = Task {
       guard !settings.hideHomeRecommendations else {
         return HomeRecommendationsPage(
@@ -70,30 +98,42 @@ final class LiveHomeViewModel: ObservableObject {
           hasMore: false
         )
       }
-      return try await service.recommendations(
-        serviceID: serviceID,
-        intent: "auto",
-        limit: pageSize,
-        cursor: nil
-      )
+      return try await Self.withTimeout(seconds: 15) {
+        try await service.recommendations(
+          serviceID: serviceID,
+          intent: "auto",
+          limit: limit,
+          cursor: nil
+        )
+      }
     }
     loadTask = task
-    let historyTask = Task { [historyService] in
+    let historyService = self.historyService
+    let historyTask = Task {
       guard !settings.hideContinueWatching else {
         return [LiveHistoryItem]()
       }
-      return try await historyService.history(
-        query: nil,
-        from: nil,
-        to: nil,
-        limit: 30,
-        offset: 0
-      )
+      return (try? await Self.withTimeout(seconds: 8) {
+        try await historyService.history(
+          query: nil,
+          from: nil,
+          to: nil,
+          limit: 30,
+          offset: 0
+        )
+      }) ?? []
     }
 
     let recommendationsResult = await task.result
     let historyResult = await historyTask.result
-    guard requestID == currentRequest, !Task.isCancelled else {
+    guard requestID == currentRequest else {
+      return
+    }
+    if Task.isCancelled {
+      // A restarted view task cancels reload() mid-flight, and loadIfNeeded() only starts from .idle.
+      if state == .loading {
+        state = .idle
+      }
       return
     }
 
@@ -174,12 +214,21 @@ final class LiveHomeViewModel: ObservableObject {
         state = .empty
       }
     } catch {
-      // The full History screen exposes destructive-action errors.
+    }
+  }
+
+  private func prefetchThumbnails(for items: [LiveVideoItem]) {
+    for item in items.prefix(8) {
+      guard let url = LiveImageURLResolver.resolve(item.thumbnail) else { continue }
+      Task.detached(priority: .utility) { [imagePipeline] in
+        _ = await imagePipeline.image(for: url, maxPixelSize: 640)
+      }
     }
   }
 
   private func applyInitial(_ page: HomeRecommendationsPage) {
     videos = Self.uniqueVisibleVideos(page.items)
+    prefetchThumbnails(for: page.items)
     nextCursor = page.nextCursor
     canLoadMore = page.hasMore && page.nextCursor?.isEmpty == false
     state = videos.isEmpty && continueWatching.isEmpty
@@ -189,6 +238,7 @@ final class LiveHomeViewModel: ObservableObject {
 
   private func append(_ page: HomeRecommendationsPage) {
     videos = Self.uniqueVisibleVideos(videos + page.items)
+    prefetchThumbnails(for: page.items)
     nextCursor = page.nextCursor
     canLoadMore = page.hasMore && page.nextCursor?.isEmpty == false
     state = videos.isEmpty && continueWatching.isEmpty

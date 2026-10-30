@@ -91,6 +91,52 @@ extension LiveChannelViewModel {
     }
   }
 
+  func refreshNotificationPreference() async {
+    guard isSubscribed,
+      let service = pushNotificationsService,
+      pushNotificationsEnabled
+    else {
+      isNotificationsAvailable = false
+      isNotificationsEnabled = false
+      return
+    }
+
+    do {
+      let preferences = try await service.channelPreferences()
+      isNotificationsEnabled = preferences.first {
+        $0.matches(channelURL: channelURL)
+      }?.enabled == true
+      isNotificationsAvailable = true
+    } catch {
+      isNotificationsAvailable = false
+      isNotificationsEnabled = false
+    }
+  }
+
+  func toggleNotifications() async {
+    guard isNotificationsAvailable,
+      !isChangingNotifications,
+      let service = pushNotificationsService
+    else {
+      return
+    }
+
+    isChangingNotifications = true
+    subscriptionError = nil
+    let newValue = !isNotificationsEnabled
+    do {
+      _ = try await service.setChannelPreference(
+        channelURL: channelURL,
+        enabled: newValue
+      )
+      isNotificationsEnabled = newValue
+    } catch {
+      subscriptionError = (error as? LocalizedError)?
+        .errorDescription ?? "Channel notifications could not be updated."
+    }
+    isChangingNotifications = false
+  }
+
   func toggleSubscription() async {
     guard let channel, !isChangingSubscription else { return }
     isChangingSubscription = true
@@ -102,6 +148,8 @@ extension LiveChannelViewModel {
           channelURL: channelURL
         )
         isSubscribed = false
+        isNotificationsAvailable = false
+        isNotificationsEnabled = false
       } else {
         _ = try await subscriptionsService.subscribe(
           channelURL: channelURL,
@@ -109,6 +157,7 @@ extension LiveChannelViewModel {
           avatarURL: channel.avatarURL
         )
         isSubscribed = true
+        await refreshNotificationPreference()
       }
     } catch {
       subscriptionError = (error as? LocalizedError)?
@@ -133,7 +182,6 @@ extension LiveChannelViewModel {
   }
 
   private static func normalizedURL(_ value: String) -> String {
-    value.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
-      .lowercased()
+    LiveChannelURLCanonicalizer.identity(value)
   }
 }

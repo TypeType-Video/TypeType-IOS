@@ -2,6 +2,8 @@ import Foundation
 
 protocol LivePlaybackServiceProtocol: AnyObject {
   func stream(for videoURL: String) async throws -> LivePlaybackStream
+  func playbackStream(for videoURL: String) async throws -> LivePlaybackStream
+  func discardPendingStreams(for videoURL: String) async
   func prepare(
     stream: LivePlaybackStream,
     sourceURL: String,
@@ -13,6 +15,8 @@ protocol LivePlaybackServiceProtocol: AnyObject {
     range: ClosedRange<Int>
   ) async throws -> Data
   func subtitleData(for source: LivePlaybackSubtitle) async throws -> Data
+  func preconnectMedia()
+  func prewarmSABRPlayback(videoID: String, request: LiveSABRPlaybackRequest) async
   func createSABRPlayback(
     videoID: String,
     request: LiveSABRPlaybackRequest
@@ -58,21 +62,52 @@ extension LivePlaybackServiceProtocol {
   ) async throws -> [LiveBulletComment] {
     []
   }
+
+  func preconnectMedia() {}
+
+  func prewarmSABRPlayback(videoID: String, request: LiveSABRPlaybackRequest) async {}
 }
 
 final class LivePlaybackService: LivePlaybackServiceProtocol {
   let apiClient: APIClient
   let serverURLProvider: () -> URL?
+  let pacing: LivePacing
 
   init(
     apiClient: APIClient,
-    serverURLProvider: @escaping () -> URL?
+    serverURLProvider: @escaping () -> URL?,
+    pacing: LivePacing = .realTime
   ) {
     self.apiClient = apiClient
     self.serverURLProvider = serverURLProvider
+    self.pacing = pacing
   }
 
+  let streamCache = LiveStreamMetadataCache()
+  let playbackCache = LiveStreamMetadataCache()
+  static let streamCacheTTL: TimeInterval = 600
+  let requests = LiveStreamRequests()
+  let preconnector = LiveMediaPreconnector()
+  let prewarms = LiveSABRPrewarms()
+
   func stream(for videoURL: String) async throws -> LivePlaybackStream {
+    if let cached = streamCache.stream(
+      for: videoURL,
+      ttl: Self.streamCacheTTL
+    ) {
+      return cached
+    }
+    let loaded = try await requests.value(for: "full|" + videoURL) { [self] in
+      try await loadStream(for: videoURL)
+    }
+    // Live manifests are short-lived and the edge moves: never reuse them.
+    if !loaded.isLive {
+      streamCache.store(loaded, for: videoURL)
+    }
+    return loaded
+  }
+
+  private func loadStream(for videoURL: String) async throws -> LivePlaybackStream {
     let path = streamPath(for: videoURL)
     if path == "/streams/youtube/sabr/bootstrap" {
       do {
@@ -80,6 +115,8 @@ final class LivePlaybackService: LivePlaybackServiceProtocol {
           path: "/streams/youtube/sabr",
           videoURL: videoURL
         )
+      } catch is CancellationError {
+        throw CancellationError()
       } catch {
         return try await youtubeSABRStream(
           path: path,
@@ -91,10 +128,11 @@ final class LivePlaybackService: LivePlaybackServiceProtocol {
     return try await requestStream(path: path, videoURL: videoURL)
   }
 
-  private func requestStream(
+  func requestStream(
     path: String,
     videoURL: String,
-    retryToken: String? = nil
+    retryToken: String? = nil,
+    retriesTransientFailures: Bool = true
   ) async throws -> LivePlaybackStream {
     var queryItems = [URLQueryItem(name: "url", value: videoURL)]
     if let retryToken {
@@ -111,7 +149,8 @@ final class LivePlaybackService: LivePlaybackServiceProtocol {
           ? [:]
           : ["Cache-Control": "no-cache"],
         requiresAuth: true,
-        timeoutInterval: 120
+        timeoutInterval: 120,
+        retriesTransientFailures: retriesTransientFailures
       ),
       as: LivePlaybackStream.self
     )
@@ -123,17 +162,19 @@ final class LivePlaybackService: LivePlaybackServiceProtocol {
     attempt: Int
   ) async throws -> LivePlaybackStream {
     do {
+      // This loop owns the retries: client retries inside it multiply the requests.
       return try await requestStream(
         path: path,
         videoURL: videoURL,
-        retryToken: attempt == 0 ? nil : UUID().uuidString
+        retryToken: attempt == 0 ? nil : UUID().uuidString,
+        retriesTransientFailures: false
       )
     } catch {
       guard attempt < 3, isRetryableSABRBootstrap(error) else {
         throw error
       }
       let delays = [350, 750, 1_500]
-      try await Task.sleep(for: .milliseconds(delays[attempt]))
+      try await pacing.sleep(for: .milliseconds(delays[attempt]))
       return try await youtubeSABRStream(
         path: path,
         videoURL: videoURL,
@@ -163,6 +204,9 @@ final class LivePlaybackService: LivePlaybackServiceProtocol {
     sourceURL: String,
     preferences: LivePlaybackPreferences
   ) throws -> LivePlaybackPreparation {
+    if isYouTubeURL(sourceURL), Self.playsAsLiveHLS(stream) {
+      return try prepareLiveHLS(stream: stream, preferences: preferences)
+    }
     if isYouTubeURL(sourceURL) {
       return try prepareYouTubeSABR(
         stream: stream,
@@ -172,67 +216,6 @@ final class LivePlaybackService: LivePlaybackServiceProtocol {
     return try prepareProviderPlayback(
       stream: stream,
       preferences: preferences
-    )
-  }
-
-  func resourceData(for assetURL: URL) async throws -> Data {
-    let endpoint = try serverEndpoint(for: assetURL)
-    return try await apiClient.requestData(endpoint)
-  }
-
-  func resourceData(
-    for assetURL: URL,
-    range: ClosedRange<Int>
-  ) async throws -> Data {
-    let endpoint = try serverEndpoint(for: assetURL)
-    return try await apiClient.requestData(
-      APIEndpoint(
-        path: endpoint.path,
-        method: endpoint.method,
-        queryItems: endpoint.queryItems,
-        headers: [
-          "Range": "bytes=\(range.lowerBound)-\(range.upperBound)"
-        ],
-        body: endpoint.body,
-        requiresAuth: endpoint.requiresAuth,
-        timeoutInterval: endpoint.timeoutInterval
-      )
-    )
-  }
-
-  func subtitleData(for source: LivePlaybackSubtitle) async throws -> Data {
-    guard let sourceURL = URL(string: source.url) else {
-      throw LivePlaybackFailure.invalidServerResource
-    }
-    if isSelectedServerURL(sourceURL) {
-      return try await resourceData(
-        for: authenticatedAssetURL(for: sourceURL)
-      )
-    }
-    guard var components = URLComponents(
-      url: sourceURL,
-      resolvingAgainstBaseURL: false
-    ) else {
-      throw LivePlaybackFailure.invalidServerResource
-    }
-    var items = components.queryItems ?? []
-    if !items.contains(where: { $0.name == "fmt" }) {
-      items.append(URLQueryItem(name: "fmt", value: "vtt"))
-      components.queryItems = items
-    }
-    guard let vttURL = components.url else {
-      throw LivePlaybackFailure.invalidServerResource
-    }
-    return try await apiClient.requestData(
-      APIEndpoint(
-        path: "/proxy",
-        method: .get,
-        queryItems: [
-          URLQueryItem(name: "url", value: vttURL.absoluteString)
-        ],
-        requiresAuth: true,
-        timeoutInterval: 120
-      )
     )
   }
 }

@@ -8,12 +8,12 @@ struct DemoAdminUserAllowListView: View {
 
   var body: some View {
     Form {
-      Section("Access mode") {
-        Toggle("User-specific allow list", isOn: restricted)
+      Section {
+        Toggle("User-specific allow list", isOn: restricted).liveRowFill()
         Text(accessSummary)
           .font(.caption)
           .foregroundStyle(.secondary)
-      }
+      } header: { Text("Access mode").liveSectionHeader() }
 
       inheritedSection(
         "Inherited global channels",

@@ -25,7 +25,7 @@ extension DemoSearchView {
         .font(.title2.weight(.medium))
         .foregroundStyle(Color(red: 1, green: 0.31, blue: 0.34))
         .frame(width: 46, height: 46)
-        .background(DemoTheme.surface)
+        .background(palette.surface)
         .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
 
       VStack(alignment: .leading, spacing: 4) {
@@ -93,7 +93,7 @@ extension DemoSearchView {
             }
           }
         }
-        .background(DemoTheme.surface)
+        .background(palette.surface)
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         .padding(.horizontal, 16)
       }

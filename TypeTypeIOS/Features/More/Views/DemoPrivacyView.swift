@@ -14,11 +14,11 @@ struct DemoPrivacyView: View {
 
   var body: some View {
     Form {
-      Section("Privacy") {
-        Toggle("Watch history tracking", isOn: tracksHistory)
-      }
+      Section {
+        Toggle("Watch history tracking", isOn: tracksHistory).liveRowFill()
+      } header: { Text("Privacy").liveSectionHeader() }
 
-      Section("Stored data") {
+      Section {
         dataRow("Watch history", count: session.historyEntries.count, id: "history") {
           pendingClear = .history
         }
@@ -28,7 +28,7 @@ struct DemoPrivacyView: View {
         dataRow("Subscriptions", count: session.followedChannelIDs.count, id: "subscriptions") {
           pendingClear = .subscriptions
         }
-      }
+      } header: { Text("Stored data").liveSectionHeader() }
 
       blockedContent
 
@@ -58,7 +58,7 @@ struct DemoPrivacyView: View {
 
   @ViewBuilder
   private var blockedContent: some View {
-    Section("Blocked content") {
+    Section {
       if session.blockedChannelNames.isEmpty && session.blockedVideoIDs.isEmpty {
         Text("No blocked channels or videos.")
           .foregroundStyle(.secondary)
@@ -74,7 +74,7 @@ struct DemoPrivacyView: View {
           }
         }
       }
-    }
+    } header: { Text("Blocked content").liveSectionHeader() }
   }
 
   private func dataRow(

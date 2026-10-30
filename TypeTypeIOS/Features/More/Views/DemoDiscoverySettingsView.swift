@@ -5,7 +5,7 @@ struct DemoDiscoverySettingsView: View {
 
   var body: some View {
     Form {
-      Section("Service") {
+      Section {
         ForEach(["YouTube", "NicoNico", "BiliBili"], id: \.self) { service in
           Button {
             session.setPreference(\.defaultService, to: service)
@@ -26,9 +26,9 @@ struct DemoDiscoverySettingsView: View {
           }
           .accessibilityIdentifier("demo.discovery.service.\(service.lowercased())")
         }
-      }
+      } header: { Text("Service").liveSectionHeader() }
 
-      Section("Startup") {
+      Section {
         Picker("Default landing page", selection: binding(\.landingPage)) {
           Text("Home").tag("home")
           Text("Subscriptions").tag("subscriptions")
@@ -37,14 +37,14 @@ struct DemoDiscoverySettingsView: View {
           Text("Watch later").tag("watch-later")
           Text("Favorites").tag("favorites")
         }
-      }
+      } header: { Text("Startup").liveSectionHeader() }
 
-      Section("Discovery surfaces") {
-        Toggle("Continue watching", isOn: binding(\.showsContinueWatching))
-        Toggle("Home recommendations", isOn: binding(\.showsRecommendations))
-        Toggle("Related videos", isOn: binding(\.showsRelated))
-        Toggle("Comments and bullet comments", isOn: binding(\.loadsComments))
-      }
+      Section {
+        Toggle("Continue watching", isOn: binding(\.showsContinueWatching)).liveRowFill()
+        Toggle("Home recommendations", isOn: binding(\.showsRecommendations)).liveRowFill()
+        Toggle("Related videos", isOn: binding(\.showsRelated)).liveRowFill()
+        Toggle("Comments and bullet comments", isOn: binding(\.loadsComments)).liveRowFill()
+      } header: { Text("Discovery surfaces").liveSectionHeader() }
 
       Section {
         DemoHideEverythingControl()

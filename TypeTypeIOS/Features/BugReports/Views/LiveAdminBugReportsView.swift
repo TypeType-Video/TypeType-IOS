@@ -70,10 +70,10 @@ struct LiveAdminBugReportsView: View {
         "Reports unavailable",
         systemImage: "ladybug",
         description: Text(message)
-      )
+      ).liveThemedEmptyState()
     case .loaded:
       List {
-        Section("\(viewModel.total) reports") {
+        Section {
           ForEach(viewModel.reports) { report in
             Button {
               selected = report
@@ -82,7 +82,7 @@ struct LiveAdminBugReportsView: View {
             }
             .buttonStyle(.plain)
           }
-          DemoIncrementalLoadingTrigger(
+          LiveIncrementalLoadingTrigger(
             canLoadMore: viewModel.canLoadMore,
             isLoading: viewModel.isLoadingMore,
             label: "Loading more reports",
@@ -90,8 +90,9 @@ struct LiveAdminBugReportsView: View {
           ) {
             Task { await viewModel.loadMore() }
           }
-        }
+        } header: { Text("\(viewModel.total) reports").liveSectionHeader() }
       }
+        .liveGroupedList()
       .listStyle(.plain)
       .refreshable { await viewModel.reload() }
     }

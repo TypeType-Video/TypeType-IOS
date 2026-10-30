@@ -36,8 +36,7 @@ struct LiveAdminSettingsView: View {
   private var content: some View {
     switch viewModel.state {
     case .idle, .loading:
-      ProgressView("Loading instance settings")
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+      TypeTypeSkeletonList(layout: .settings, count: 8)
     case let .failed(message):
       ContentUnavailableView {
         Label("Settings unavailable", systemImage: "server.rack")

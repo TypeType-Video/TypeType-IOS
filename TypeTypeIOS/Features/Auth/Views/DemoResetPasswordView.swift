@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct DemoResetPasswordView: View {
+  @Environment(\.themePalette) private var palette
   let preferredColorScheme: ColorScheme
   @Environment(\.dismiss) private var dismiss
   @State private var email = ""
@@ -20,9 +21,7 @@ struct DemoResetPasswordView: View {
             .textInputAutocapitalization(.never)
             .keyboardType(.emailAddress)
             .accessibilityIdentifier("demo.auth.reset.email")
-        } header: {
-          Text("Account")
-        } footer: {
+        } header: { Text("Account").liveSectionHeader() } footer: {
           Text("A mock reset link will be created locally. No message is sent.")
         }
 
@@ -44,9 +43,7 @@ struct DemoResetPasswordView: View {
               Text("Passwords do not match.")
                 .foregroundStyle(.red)
             }
-          } header: {
-            Text("Complete reset")
-          } footer: {
+          } header: { Text("Complete reset").liveSectionHeader() } footer: {
             Text("The local token is prefilled so the complete Web flow can be exercised.")
           }
         }
@@ -75,7 +72,7 @@ struct DemoResetPasswordView: View {
         }
       }
     }
-    .tint(DemoTheme.accent)
+    .tint(palette.accent)
     .preferredColorScheme(preferredColorScheme)
     .presentationDetents([.medium])
     .accessibilityIdentifier("demo.auth.reset.screen")

@@ -3,43 +3,45 @@ import SwiftUI
 extension LiveSearchView {
   @ViewBuilder
   var content: some View {
-    if viewModel.submittedQuery.isEmpty {
-      discovery
-    } else {
-      switch viewModel.state {
-      case .idle:
-        discovery
-      case .loading:
-        searchLoading
-      case .empty:
-        searchEmpty
-      case let .failed(message):
-        searchError(message)
-      case .loaded:
-        searchResults
+    VStack(spacing: 0) {
+      if showsResultFilters {
+        LiveSearchFilterBar(viewModel: viewModel, showsResultFilters: true)
       }
+      if viewModel.submittedQuery.isEmpty {
+        discovery
+      } else {
+        switch viewModel.state {
+        case .idle:
+          discovery
+        case .loading:
+          searchLoading
+        case .empty:
+          searchEmpty
+        case let .failed(message):
+          searchError(message)
+        case .loaded:
+          searchResults
+        }
+      }
+    }
+    .background(LiveThemeBackground().ignoresSafeArea())
+  }
+
+  private var showsResultFilters: Bool {
+    guard !viewModel.submittedQuery.isEmpty else { return false }
+    switch viewModel.state {
+    case .loaded, .empty: return true
+    default: return false
     }
   }
 
   private var discovery: some View {
-    LiveSearchHistoryView(
-      viewModel: viewModel,
-      dependencies: coordinator.dependencies,
-      onVideo: { selectedVideo = $0 },
-      onChannel: { selectedVideoChannelURL = $0 }
-    )
+    LiveSearchHistoryView(viewModel: viewModel)
   }
 
   private var searchLoading: some View {
-    VStack(spacing: 12) {
-      ProgressView()
-        .controlSize(.large)
-      Text("Searching TypeType")
-        .font(.subheadline)
-        .foregroundStyle(.secondary)
-    }
-    .frame(maxWidth: .infinity, maxHeight: .infinity)
-    .accessibilityIdentifier("live.search.loading")
+    TypeTypeSkeletonList(layout: .cards)
+      .accessibilityIdentifier("live.search.loading")
   }
 
   private var searchEmpty: some View {
@@ -54,7 +56,7 @@ extension LiveSearchView {
         viewModel.query = ""
         viewModel.queryDidChange()
       }
-      .buttonStyle(.borderedProminent)
+      .liveProminentButton()
     }
     .accessibilityIdentifier("live.search.empty")
   }
@@ -68,84 +70,9 @@ extension LiveSearchView {
       Button("Try again") {
         Task { await viewModel.submit(viewModel.submittedQuery) }
       }
-      .buttonStyle(.borderedProminent)
+      .liveProminentButton()
     }
     .accessibilityIdentifier("live.search.error")
   }
 
-  private var searchResults: some View {
-    ScrollView {
-      LazyVStack(alignment: .leading, spacing: 18) {
-        LiveSearchFilterBar(viewModel: viewModel)
-        if let suggestion = viewModel.searchSuggestion,
-          !suggestion.isEmpty {
-          LiveSearchSuggestionView(
-            query: viewModel.submittedQuery,
-            suggestion: suggestion,
-            isCorrected: viewModel.isCorrectedSearch
-          ) {
-            Task { await viewModel.submit(suggestion) }
-          }
-        }
-        LazyVGrid(
-          columns: [
-            GridItem(
-              .adaptive(minimum: 300, maximum: 520),
-              spacing: 20,
-              alignment: .top
-            ),
-          ],
-          alignment: .leading,
-          spacing: 24
-        ) {
-          ForEach(viewModel.results) { result in
-            resultView(result)
-          }
-          DemoIncrementalLoadingTrigger(
-            canLoadMore: viewModel.canLoadMore,
-            isLoading: viewModel.isLoadingMore,
-            label: "Loading more search results",
-            identifier: "live.search.loading-more"
-          ) {
-            Task { await viewModel.loadMore() }
-          }
-        }
-      }
-      .padding(16)
-    }
-    .scrollDismissesKeyboard(.immediately)
-    .background(DemoTheme.background)
-  }
-
-  @ViewBuilder
-  private func resultView(_ result: LiveSearchResult) -> some View {
-    switch result {
-    case let .channel(channel):
-      LiveSearchChannelCard(channel: channel) {
-        selectedChannel = channel
-      }
-    case let .playlist(playlist):
-      LiveSearchPlaylistCard(playlist: playlist) {
-        selectedPlaylist = playlist
-      }
-    case let .video(video):
-      LiveVideoCard(
-        video: video,
-        deArrowStore: coordinator.dependencies.deArrowStore,
-        onChannel: {
-          guard !video.uploaderURL.isEmpty else { return }
-          selectedVideoChannelURL = video.uploaderURL
-        },
-        action: { selectedVideo = video }
-      )
-      .liveVideoQuickActions(
-        video: video,
-        dependencies: coordinator.dependencies,
-        onOpenChannel: {
-          guard !video.uploaderURL.isEmpty else { return }
-          selectedVideoChannelURL = video.uploaderURL
-        }
-      )
-    }
-  }
 }

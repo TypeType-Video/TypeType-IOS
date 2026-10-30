@@ -1,17 +1,29 @@
 import SwiftUI
 
 struct LiveSettingsView: View {
-  @StateObject private var viewModel: LiveSettingsViewModel
-  private let dependencies: AppDependencies
+  @StateObject var viewModel: LiveSettingsViewModel
+  @ObservedObject var coordinator: RootCoordinator
+  @ObservedObject var preferences: LiveAppPreferencesStore
+  @ObservedObject private var playbackCoordinator: LivePlaybackCoordinator
 
-  init(dependencies: AppDependencies) {
-    self.dependencies = dependencies
-    _viewModel = StateObject(
-      wrappedValue: LiveSettingsViewModel(
-        service: dependencies.settingsService,
-        serviceSelection: dependencies.serviceSelection,
-        deArrowStore: dependencies.deArrowStore
-      )
+  init(coordinator: RootCoordinator) {
+    self.coordinator = coordinator
+    _preferences = ObservedObject(wrappedValue: coordinator.dependencies.appPreferences)
+    let playbackCoordinator = coordinator.dependencies.playbackCoordinator
+    self.playbackCoordinator = playbackCoordinator
+    _viewModel = StateObject(wrappedValue: Self.makeViewModel(for: coordinator))
+  }
+
+  @MainActor
+  static func makeViewModel(for coordinator: RootCoordinator) -> LiveSettingsViewModel {
+    let dependencies = coordinator.dependencies
+    let playbackCoordinator = dependencies.playbackCoordinator
+    return LiveSettingsViewModel(
+      service: dependencies.settingsService,
+      serviceSelection: dependencies.serviceSelection,
+      deArrowStore: dependencies.deArrowStore,
+      connectivity: dependencies.connectivityMonitor,
+      onSaved: { playbackCoordinator.applySettings($0) }
     )
   }
 
@@ -19,29 +31,7 @@ struct LiveSettingsView: View {
     content
       .navigationTitle("Settings")
       .navigationBarTitleDisplayMode(.inline)
-      .toolbar {
-        ToolbarItemGroup(placement: .topBarTrailing) {
-          if viewModel.hasChanges {
-            Button("Reset") { viewModel.resetDraft() }
-          }
-          Button("Save") {
-            Task {
-              guard let settings = await viewModel.save() else {
-                return
-              }
-              dependencies.playbackCoordinator.applySettings(settings)
-            }
-          }
-          .disabled(!viewModel.hasChanges || viewModel.isSaving)
-          .accessibilityIdentifier("live.settings.save")
-        }
-      }
       .task { await viewModel.prepare() }
-      .alert("Settings", isPresented: errorBinding) {
-        Button("OK") { viewModel.dismissError() }
-      } message: {
-        Text(viewModel.errorMessage ?? "")
-      }
       .accessibilityIdentifier("live.settings.screen")
   }
 
@@ -49,8 +39,7 @@ struct LiveSettingsView: View {
   private var content: some View {
     switch viewModel.state {
     case .idle, .loading:
-      ProgressView("Loading settings")
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+      TypeTypeSkeletonList(layout: .settings, count: 9)
     case let .failed(message):
       ContentUnavailableView {
         Label("Settings unavailable", systemImage: "gear.badge.xmark")
@@ -62,38 +51,41 @@ struct LiveSettingsView: View {
         }
       }
     case .loaded:
-      Form {
-        LiveSettingsPlaybackSection(settings: $viewModel.draft)
-        LiveSettingsLanguageSection(settings: $viewModel.draft)
-        LiveSettingsDiscoverySection(
-          settings: $viewModel.draft,
-          services: dependencies.serviceSelection.services
-        )
-        LiveSettingsSponsorBlockSection(settings: $viewModel.draft)
-        LiveSettingsPrivacySection(settings: $viewModel.draft)
-        Section("Stored data") {
-          NavigationLink("Manage stored data") {
-            LivePrivacyDataView(
-              history: dependencies.historyService,
-              searchHistory: dependencies.searchHistoryService,
-              subscriptions: dependencies.subscriptionsService
-            )
-          }
-        }
-        if let message = viewModel.message {
-          Section {
-            Label(message, systemImage: "checkmark.circle.fill")
-              .foregroundStyle(.green)
-          }
-        }
-      }
+      settingsList
     }
   }
 
-  private var errorBinding: Binding<Bool> {
-    Binding(
-      get: { viewModel.errorMessage != nil },
-      set: { if !$0 { viewModel.dismissError() } }
-    )
+  private var settingsList: some View {
+    List {
+      LiveSection {
+        LiveSettingsAccountCard(coordinator: coordinator)
+      }
+      ForEach(Array(coordinator.settingsGroups.enumerated()), id: \.offset) { index, pages in
+        group(pages, title: LiveSettingsPage.groupTitles[index])
+      }
+    }
+    .contentMargins(.top, 8, for: .scrollContent)
+    .padding(.bottom, playbackCoordinator.showsMiniPlayer ? 82 : 0)
+    .liveGroupedList()
+    .tint(preferences.preferences.accent)
+  }
+
+  @ViewBuilder
+  private func group(_ pages: [LiveSettingsPage], title: String?) -> some View {
+    if let title {
+      LiveSection { rows(pages) } header: { Text(LocalizedStringKey(title)).liveSettingsHeader() }
+    } else {
+      LiveSection { rows(pages) }
+    }
+  }
+
+  private func rows(_ pages: [LiveSettingsPage]) -> some View {
+    ForEach(pages) { page in
+      NavigationLink {
+        LiveSettingsDestination(page: page, coordinator: coordinator, viewModel: viewModel, preferences: preferences)
+      } label: {
+        LiveSettingsPageLabel(page: page, downloads: coordinator.dependencies.downloadCenter)
+      }
+    }
   }
 }

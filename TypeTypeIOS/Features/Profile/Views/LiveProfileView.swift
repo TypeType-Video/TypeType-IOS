@@ -40,8 +40,7 @@ struct LiveProfileView: View {
   private var content: some View {
     switch viewModel.state {
     case .idle, .loading:
-      ProgressView("Loading profile")
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+      TypeTypeSkeletonList(layout: .settings, count: 8)
     case let .failed(message):
       ContentUnavailableView {
         Label("Profile unavailable", systemImage: "person.crop.circle.badge.xmark")
@@ -71,13 +70,13 @@ struct LiveProfileView: View {
         }
       )
       LiveProfileDetailsSection(viewModel: viewModel)
-      Section("Account") {
+      Section {
         NavigationLink("Email and account name") {
           LiveAccountIdentityView(
             service: coordinator.dependencies.profileService
           )
         }
-      }
+      } header: { Text("Account").liveSectionHeader() }
       if let message = viewModel.message {
         Section {
           Label(message, systemImage: "checkmark.circle.fill")
@@ -85,16 +84,18 @@ struct LiveProfileView: View {
         }
       }
     }
+      .liveGroupedList()
   }
 
   private func importPhoto(_ item: PhotosPickerItem) async {
+    defer { selectedPhoto = nil }
     guard let data = try? await item.loadTransferable(type: Data.self) else {
+      viewModel.photoCouldNotBeRead()
       return
     }
     let type = item.supportedContentTypes.first?.preferredMIMEType
       ?? "application/octet-stream"
     await viewModel.uploadAvatar(data: data, mediaType: type)
-    selectedPhoto = nil
   }
 
   private var errorBinding: Binding<Bool> {

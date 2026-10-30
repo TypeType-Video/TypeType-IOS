@@ -85,18 +85,24 @@ enum LiveSponsorBlockPolicy {
 
   static func title(for category: String) -> String {
     switch category {
-    case "sponsor": return "Sponsored message"
-    case "selfpromo": return "Self-promotion"
-    case "exclusive_access": return "Exclusive access"
-    case "interaction": return "Interaction reminder"
-    case "poi_highlight": return "Highlight"
-    case "intro": return "Intermission or intro"
-    case "outro": return "Endcards or credits"
-    case "preview": return "Preview or recap"
-    case "filler": return "Tangents or jokes"
-    case "chapter": return "Chapter"
-    case "music_offtopic": return "Music: non-music"
+    case "sponsor": return String(localized: "Sponsored message")
+    case "selfpromo": return String(localized: "Self-promotion")
+    case "exclusive_access": return String(localized: "Exclusive access")
+    case "interaction": return String(localized: "Interaction reminder")
+    case "poi_highlight": return String(localized: "Highlight")
+    case "intro": return String(localized: "Intermission or intro")
+    case "outro": return String(localized: "Endcards or credits")
+    case "preview": return String(localized: "Preview or recap")
+    case "filler": return String(localized: "Tangents or jokes")
+    case "chapter": return String(localized: "Chapter")
+    case "music_offtopic": return String(localized: "Music: non-music")
     default: return category
     }
   }
+}
+
+struct LiveSponsorBlockNotice: Equatable, Identifiable {
+  let id = UUID()
+  let category: String
+  let muted: Bool
 }

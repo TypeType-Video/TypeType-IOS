@@ -1,8 +1,97 @@
 import SwiftUI
 
 extension LiveImportView {
+  var typeTypeBackupSection: some View {
+    Section {
+      ForEach(LiveTypeTypeBackupCategory.allCases) { category in
+        Toggle(category.title, isOn: categoryBinding(category)).liveRowFill()
+          .disabled(viewModel.isRunning)
+      }
+      if let exportedBackupURL = viewModel.exportedBackupURL {
+        ShareLink(
+          item: exportedBackupURL,
+          preview: SharePreview("TypeType backup", image: "externaldrive")
+        ) {
+          Label("Share backup", systemImage: "square.and.arrow.up")
+        }
+      } else {
+        Label("Share backup", systemImage: "square.and.arrow.up")
+          .foregroundStyle(.secondary)
+      }
+      Button {
+        Task { await viewModel.exportTypeTypeBackup() }
+      } label: {
+        if viewModel.isExportingBackup {
+          HStack {
+            Text("Export selected data")
+            Spacer()
+            ProgressView()
+          }
+        } else {
+          Label("Export selected data", systemImage: "square.and.arrow.down")
+        }
+      }
+      .disabled(!viewModel.canExportTypeTypeBackup)
+      .accessibilityIdentifier("live.import.typetype.export")
+      if viewModel.isRestoringBackup {
+        VStack(alignment: .leading, spacing: 6) {
+          ProgressView(value: viewModel.backupProgress)
+          Text(Self.backupPhaseTitle(viewModel.backupPhase))
+            .font(.caption)
+            .foregroundStyle(.secondary)
+          Button("Cancel restore", role: .destructive) {
+            viewModel.cancelTypeTypeRestore()
+          }
+        }
+      } else if viewModel.hasResumableRestore {
+        VStack(alignment: .leading, spacing: 6) {
+          Text("An interrupted restore can be resumed.")
+            .font(.caption)
+            .foregroundStyle(.secondary)
+          Button("Resume restore") {
+            viewModel.resumeTypeTypeRestore()
+          }
+        }
+      } else {
+        Button {
+          importsTypeTypeBackup = true
+        } label: {
+          Label("Restore TypeType backup", systemImage: "clock.arrow.circlepath")
+        }
+        .disabled(viewModel.isRunning)
+      }
+      if let summary = viewModel.typeTypeRestoreSummary {
+        LabeledContent("Items restored", value: String(summary.total))
+        ForEach(summary.restored.sorted(by: { $0.key < $1.key }), id: \.key) { item in
+          LabeledContent(item.key, value: String(item.value))
+        }
+      }
+    } header: { Text("TypeType backup").liveSectionHeader() } footer: {
+      Text("Restore replaces matching data in this TypeType account. Export and restore use the selected categories.")
+    }
+  }
+
+  private func categoryBinding(
+    _ category: LiveTypeTypeBackupCategory
+  ) -> Binding<Bool> {
+    Binding(
+      get: { viewModel.selectedBackupCategories.contains(category) },
+      set: { _ in viewModel.toggleBackupCategory(category) }
+    )
+  }
+
+  static func backupPhaseTitle(_ phase: LiveTypeTypeBackupPhase) -> String {
+    switch phase {
+    case .preparing: return String(localized: "Preparing backup")
+    case .filtering: return String(localized: "Selecting categories")
+    case .uploading: return String(localized: "Uploading restore")
+    case .finalizing: return String(localized: "Finalizing restore")
+    case .completed: return String(localized: "Restore complete")
+    }
+  }
+
   var pipePipeSection: some View {
-    Section("PipePipe") {
+    Section {
       Picker("Timestamp handling", selection: $timeMode) {
         Text("Normalized").tag("normalized")
         Text("Raw").tag("raw")
@@ -14,7 +103,7 @@ extension LiveImportView {
       if let result = viewModel.pipePipeResult {
         LivePipePipeImportSummary(result: result)
       }
-    }
+    } header: { Text("PipePipe").liveSectionHeader() }
   }
 
   var youTubeSection: some View {
@@ -27,9 +116,7 @@ extension LiveImportView {
       .disabled(viewModel.isRunning)
       takeoutGuide
       archiveQueue
-    } header: {
-      Text("YouTube Takeout")
-    } footer: {
+    } header: { Text("YouTube Takeout").liveSectionHeader() } footer: {
       Text(
         "Archives are uploaded one at a time. "
           + "Subscriptions, playlists, favorites, Watch later, "

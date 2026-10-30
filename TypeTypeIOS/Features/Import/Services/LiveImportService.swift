@@ -1,24 +1,5 @@
 import Foundation
 
-protocol LiveImportServiceProtocol {
-  func restorePipePipe(
-    data: Data,
-    fileName: String,
-    timeMode: String
-  ) async throws -> LivePipePipeRestoreResult
-  func createYouTubeImport(
-    fileURL: URL,
-    fileName: String
-  ) async throws -> LiveYouTubeImportJob
-  func youTubeJob(id: String) async throws -> LiveYouTubeImportJob
-  func youTubePreview(id: String) async throws -> LiveYouTubeImportPreview
-  func commitYouTube(
-    id: String,
-    options: LiveYouTubeImportCommit
-  ) async throws -> LiveYouTubeImportJob
-  func youTubeReport(id: String) async throws -> LiveYouTubeImportReport
-}
-
 final class LiveImportService: LiveImportServiceProtocol {
   private let apiClient: APIClient
 
@@ -149,4 +130,85 @@ final class LiveImportService: LiveImportServiceProtocol {
       timeoutInterval: 90
     )
   }
+
+  func exportTypeTypeBackup(
+    categories: Set<LiveTypeTypeBackupCategory>
+  ) async throws -> URL {
+    let names = categories.map(\.rawValue).sorted().joined(separator: ",")
+    return try await apiClient.download(
+      APIEndpoint(
+        path: "/backup/typetype",
+        method: .get,
+        queryItems: [URLQueryItem(name: "categories", value: names)],
+        requiresAuth: true,
+        timeoutInterval: 120
+      )
+    )
+  }
+
+  func restoreTypeTypeBackup(
+    data: Data,
+    fileName: String,
+    categories: Set<LiveTypeTypeBackupCategory>
+  ) async throws -> LiveTypeTypeRestoreSummary {
+    let filteredData = try Self.filterTypeTypeBackup(
+      data: data,
+      categories: categories
+    )
+    let form = MultipartFormData(
+      fieldName: "file",
+      fileName: fileName,
+      mediaType: "application/json",
+      data: filteredData
+    )
+    return try await apiClient.request(
+      uploadEndpoint("/restore/typetype", form: form),
+      as: LiveTypeTypeRestoreSummary.self
+    )
+  }
+
+  func restoreTypeTypeBackup(
+    fileURL: URL,
+    originalName: String,
+    categories: Set<LiveTypeTypeBackupCategory>,
+    progress: @escaping @Sendable (LiveTypeTypeBackupPhase, Double) -> Void
+  ) async throws -> LiveTypeTypeRestoreSummary {
+    progress(.filtering, 0.3)
+    let filteredURL = try await Task.detached(priority: .userInitiated) {
+      let sourceData = try Data(contentsOf: fileURL)
+      let filteredData = try Self.filterTypeTypeBackup(
+        data: sourceData,
+        categories: categories
+      )
+      let destination = FileManager.default.temporaryDirectory
+        .appendingPathComponent("typetype-filtered-\(UUID().uuidString).json")
+      try filteredData.write(to: destination, options: .atomic)
+      return destination
+    }.value
+    defer {
+      try? FileManager.default.removeItem(at: filteredURL)
+    }
+
+    progress(.uploading, 0.65)
+    let form = try MultipartFormFile(
+      sourceURL: filteredURL,
+      fieldName: "file",
+      fileName: originalName,
+      mediaType: "application/json"
+    )
+    let summary = try await apiClient.upload(
+      APIEndpoint(
+        path: "/restore/typetype",
+        method: .post,
+        headers: ["Content-Type": form.contentType],
+        requiresAuth: true,
+        timeoutInterval: 120
+      ),
+      from: form.fileURL,
+      as: LiveTypeTypeRestoreSummary.self
+    )
+    progress(.finalizing, 1)
+    return summary
+  }
+
 }

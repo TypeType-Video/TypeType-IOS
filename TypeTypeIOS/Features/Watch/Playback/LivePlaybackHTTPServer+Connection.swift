@@ -119,6 +119,9 @@ extension LivePlaybackHTTPServer {
           )
           return
         }
+        if Self.isTransportFailure(error) {
+          lock.withLock { self.lastTransportFailureAt = Date() }
+        }
         let failure = error as NSError
         AppLogger.app.error(
           "Local playback response failed: \(failure.domain, privacy: .public) \(failure.code) \(failure.localizedDescription, privacy: .public)"

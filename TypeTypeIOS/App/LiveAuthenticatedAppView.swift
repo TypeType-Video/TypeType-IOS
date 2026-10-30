@@ -1,21 +1,35 @@
 import SwiftUI
 
 struct LiveAuthenticatedAppView: View {
+  @Environment(\.themePalette) var palette
   @ObservedObject var coordinator: RootCoordinator
   @ObservedObject var serviceSelection: LiveServiceSelection
   @ObservedObject var notificationCenter: LiveNotificationCenter
   @ObservedObject var downloadCenter: LiveDownloadCenter
   @ObservedObject var playbackCoordinator: LivePlaybackCoordinator
   @ObservedObject var connectivityMonitor: LiveConnectivityMonitor
-  @State var selectedTab = LiveAuthenticatedTab.home
-  @State var startupCollection: LiveLibraryCollectionKind?
+  var selectedTab: Binding<LiveAuthenticatedTab> {
+    Binding(
+      get: { coordinator.selectedTab },
+      set: { newValue in
+        // TabView writes the binding even when the active tab is tapped again; that re-tap means back to this tab's
+        // input.
+        if newValue == coordinator.selectedTab {
+          coordinator.handleTabReselection(newValue)
+        } else {
+          coordinator.selectedTab = newValue
+        }
+      }
+    )
+  }
+  @State var librarySection = LiveLibrarySection.history
   @State var didApplyDefaultLandingPage = false
-  @State var presentsSearch = false
   @State var presentsExpandedPlayback = false
+  @State var lastScenePhase: ScenePhase = .active
   @State var incomingMediaLink: LiveIncomingMediaLink?
   @State var presentsOfflineDownloads = false
   @State var observedConnectivityOutage = false
-  @Environment(\.scenePhase) private var scenePhase
+  @Environment(\.scenePhase) var scenePhase
 
   init(coordinator: RootCoordinator) {
     self.coordinator = coordinator
@@ -28,122 +42,28 @@ struct LiveAuthenticatedAppView: View {
 
   var body: some View {
     shell
-    .safeAreaInset(edge: .top, spacing: 0) {
-      if connectivityMonitor.status == .offline
-        || coordinator.isUsingOfflineSession {
-        LiveConnectivityBanner(
-          instanceUnavailable: coordinator.isUsingOfflineSession,
-          onOpenDownloads: {
-            presentsOfflineDownloads = true
-          },
-          onRetry: reconnect
-        )
+      .safeAreaInset(edge: .top, spacing: 0) { connectivityBanner }
+      .animation(.snappy.delay(0.25), value: playbackCoordinator.showsMiniPlayer)
+      .onChange(of: scenePhase) { _, phase in handlePictureInPicture(for: phase) }
+      .environment(\.livePrewarm) { video in
+        coordinator.dependencies.playbackPrewarmer?.prewarm(video)
       }
-    }
-    .animation(.snappy, value: playbackCoordinator.showsMiniPlayer)
-    .animation(.snappy, value: presentsSearch)
-    .task {
-      await notificationCenter.refresh()
-      await applyDefaultLandingPage()
-    }
-    .task(id: downloadScopeID) {
-      await downloadCenter.activate()
-    }
-    .task {
-      await playbackCoordinator.restoreIfNeeded()
-    }
-    .task {
-      presentPendingIncomingMediaLink()
-    }
-#if DEBUG
-    .task {
-      if CommandLine.arguments.contains("--typetype-open-downloads") {
-        presentsOfflineDownloads = true
+      .task { await startSession() }
+      .onDisappear { notificationCenter.stopPolling() }
+      .task(id: coordinator.identityScopeID) { await downloadCenter.activate() }
+      .task { await playbackCoordinator.restoreIfNeeded() }
+      .task { presentPendingIncomingMediaLink() }
+      .task { openDownloadsForDebugLaunch() }
+      .onChange(of: coordinator.pendingIncomingURL) { presentPendingIncomingMediaLink() }
+      .task { await reportActivityWhileVisible() }
+      .onChange(of: scenePhase) { handleScenePhaseChange() }
+      .onChange(of: connectivityMonitor.status) { handleConnectivityChange() }
+      .alert("Video service", isPresented: serviceErrorBinding) {
+        Button("OK") { serviceSelection.dismissError() }
+      } message: {
+        Text(serviceSelection.errorMessage ?? String(localized: "The default service could not be updated."))
       }
-    }
-#endif
-    .onChange(of: coordinator.pendingIncomingURL) {
-      presentPendingIncomingMediaLink()
-    }
-    .task {
-      while !Task.isCancelled {
-        try? await coordinator.dependencies.sessionActivityService
-          .report()
-        do {
-          try await Task.sleep(for: .seconds(60))
-        } catch {
-          return
-        }
-      }
-    }
-    .onChange(of: scenePhase) {
-      guard scenePhase == .active else { return }
-      Task {
-        try? await coordinator.dependencies.sessionActivityService
-          .report()
-        await downloadCenter.activate()
-        await coordinator.reconnectIfNeeded()
-      }
-    }
-    .onChange(of: connectivityMonitor.status) {
-      if connectivityMonitor.status == .offline {
-        observedConnectivityOutage = true
-        return
-      }
-      guard connectivityMonitor.status == .online,
-        observedConnectivityOutage
-      else {
-        return
-      }
-      observedConnectivityOutage = false
-      reconnect()
-      playbackCoordinator.retryAfterNetworkRecovery()
-    }
-    .tint(DemoTheme.accent)
-    .alert(
-      "Video service",
-      isPresented: Binding(
-        get: { serviceSelection.errorMessage != nil },
-        set: {
-          if !$0 {
-            serviceSelection.dismissError()
-          }
-        }
-      )
-    ) {
-      Button("OK") {
-        serviceSelection.dismissError()
-      }
-    } message: {
-      Text(
-        serviceSelection.errorMessage
-          ?? "The default service could not be updated."
-      )
-    }
-    .accessibilityIdentifier("live.authenticated.shell")
-  }
-
-  var downloadScopeID: String {
-    [
-      coordinator.selectedServer?.id ?? "no-server",
-      coordinator.currentUser?.id ?? "no-user",
-    ].joined(separator: ":")
-  }
-
-  func presentPendingIncomingMediaLink() {
-    guard incomingMediaLink == nil,
-      let link = coordinator.consumeIncomingMediaLink()
-    else {
-      return
-    }
-    incomingMediaLink = link
-  }
-
-  func reconnect() {
-    Task {
-      await coordinator.reconnectIfNeeded()
-      await downloadCenter.activate()
-      await notificationCenter.refresh()
-    }
+      .modifier(LiveSettingsPresentation(coordinator: coordinator))
+      .accessibilityIdentifier("live.authenticated.shell")
   }
 }

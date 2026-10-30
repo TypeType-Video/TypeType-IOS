@@ -1,62 +1,58 @@
-import AVKit
 import SwiftUI
 
 extension LivePlayerOptionsSheet {
   var presentationSection: some View {
-    Section("Player presentation") {
-      Toggle("Cinema mode", isOn: $cinemaMode)
-      LabeledContent(
-        "Picture in Picture",
-        value: AVPictureInPictureController
-          .isPictureInPictureSupported()
-          ? "Available"
-          : "Unavailable"
-      )
+    LiveSection {
+      Picker(selection: binding(\.imageMode, setter: controller.setImageMode)) {
+        ForEach(LivePlayerImageMode.allCases) { mode in
+          Text(LocalizedStringKey(mode.title)).tag(mode)
+        }
+      } label: {
+        LivePlayerOptionLabel("Image mode", icon: "aspectratio")
+      }
+      Toggle(isOn: $cinemaMode) {
+        LivePlayerOptionLabel("Cinema mode", icon: "theatermasks", detail: "Dims the page around the video.")
+      }
+    } header: { Text("Display").liveSectionHeader() }
+  }
 
-      if controller.supportsBulletComments {
-        Toggle(
-          "Danmaku",
-          isOn: binding(
-            \.bulletCommentsEnabled,
-            setter: controller.setBulletCommentsEnabled
-          )
-        )
+  @ViewBuilder var danmakuSection: some View {
+    if controller.supportsBulletComments {
+      LiveSection {
+        Toggle(isOn: binding(\.bulletCommentsEnabled, setter: controller.setBulletCommentsEnabled)) {
+          LivePlayerOptionLabel("Danmaku", icon: "text.bubble")
+        }
         if controller.bulletCommentsEnabled {
-          LabeledContent("Danmaku speed") {
-            Slider(
-              value: binding(
-                \.bulletCommentSpeed,
-                setter: controller.setBulletCommentSpeed
-              ),
-              in: 0.5...2,
-              step: 0.1
-            )
-            .frame(width: 145)
-          }
-          LabeledContent("Danmaku size") {
-            Slider(
-              value: binding(
-                \.bulletCommentSize,
-                setter: controller.setBulletCommentSize
-              ),
-              in: 0.5...2,
-              step: 0.1
-            )
-            .frame(width: 145)
-          }
+          slider("Speed", icon: "hare", value: binding(\.bulletCommentSpeed, setter: controller.setBulletCommentSpeed))
+          slider("Size", icon: "textformat.size", value: binding(\.bulletCommentSize, setter: controller.setBulletCommentSize))
           if bulletCommentStore.state.isLoading {
             HStack {
               Text("Loading danmaku")
               Spacer()
               ProgressView()
             }
+            .foregroundStyle(.secondary)
           } else if bulletCommentStore.state.comments.isEmpty {
             Text("No danmaku is available for this video.")
-              .font(.caption)
+              .font(.footnote)
               .foregroundStyle(.secondary)
           }
         }
+      } header: { Text("Danmaku").liveSectionHeader() }
+    }
+  }
+
+  private func slider(_ title: LocalizedStringKey, icon: String, value: Binding<Double>) -> some View {
+    VStack(alignment: .leading, spacing: 6) {
+      HStack {
+        LivePlayerOptionLabel(title, icon: icon)
+        Spacer()
+        Text(value.wrappedValue, format: .number.precision(.fractionLength(1)))
+          .monospacedDigit()
+          .foregroundStyle(.secondary)
       }
+      Slider(value: value, in: 0.5...2, step: 0.1)
+        .accessibilityLabel(Text(title))
     }
   }
 }

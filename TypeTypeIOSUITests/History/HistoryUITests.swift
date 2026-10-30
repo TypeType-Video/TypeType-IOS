@@ -6,7 +6,7 @@ final class HistoryUITests: XCTestCase {
     app.launchArguments = ["--typetype-demo-home"]
     app.launch()
 
-    app.tabBars.buttons["History"].tap()
+    app.tapTab("History")
     XCTAssertTrue(
       app.descendants(matching: .any)["demo.history.screen"]
         .waitForExistence(timeout: 5)
@@ -16,8 +16,7 @@ final class HistoryUITests: XCTestCase {
       app.staticTexts["Big Buck Bunny — Blender Open Movie"].exists
     )
 
-    let search = app.searchFields["Search history"]
-    XCTAssertTrue(search.waitForExistence(timeout: 3))
+    let search = app.searchField("Search history")
     search.tap()
     search.typeText("SABR")
 
@@ -36,7 +35,7 @@ final class HistoryUITests: XCTestCase {
     app.launchArguments = ["--typetype-demo-home"]
     app.launch()
 
-    app.tabBars.buttons["History"].tap()
+    app.tapTab("History")
     let actions = app.buttons[
       "History actions for Big Buck Bunny — Blender Open Movie"
     ]

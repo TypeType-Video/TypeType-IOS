@@ -53,7 +53,8 @@ struct LivePlaybackVideoSource: Decodable, Hashable, Identifiable {
       || isHLSPlaylist {
       return true
     }
-    return codec?.lowercased().hasPrefix("avc1") == true
+    let codec = codec?.lowercased() ?? ""
+    return codec.hasPrefix("avc1") || codec.hasPrefix("hvc1")
   }
 
   private var isHLSPlaylist: Bool {
@@ -127,8 +128,9 @@ struct LivePlaybackAudioSource: Decodable, Hashable, Identifiable {
       || isHLSPlaylist {
       return true
     }
-    return codec?.lowercased().hasPrefix("mp4a") == true
-      || codec?.lowercased() == "aac"
+    // MP4 audio without a declared codec (NicoNico) is AAC in practice.
+    guard let codec = codec?.lowercased() else { return true }
+    return codec.hasPrefix("mp4a") || codec == "aac"
   }
 
   private var isHLSPlaylist: Bool {

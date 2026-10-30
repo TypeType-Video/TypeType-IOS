@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct DemoPlaylistsView: View {
+  @Environment(\.themePalette) private var palette
   @EnvironmentObject var session: DemoSessionStore
   let initialPlaylistID: String?
   @State var createsPlaylist = false
@@ -28,7 +29,7 @@ struct DemoPlaylistsView: View {
         .padding(.top, 14)
         .padding(.bottom, 32)
       }
-      .background(DemoTheme.background)
+      .background(palette.background)
       .navigationTitle("Playlists")
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {
@@ -60,7 +61,7 @@ struct DemoPlaylistsView: View {
       }
       .toolbarBackground(.visible, for: .navigationBar)
       .toolbarBackground(
-        DemoTheme.background.opacity(0.96),
+        palette.background.opacity(0.96),
         for: .navigationBar
       )
       .sheet(isPresented: $createsPlaylist) {

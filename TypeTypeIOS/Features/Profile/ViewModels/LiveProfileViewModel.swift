@@ -87,6 +87,10 @@ final class LiveProfileViewModel: ObservableObject {
     }
   }
 
+  func photoCouldNotBeRead() {
+    errorMessage = "This photo could not be read. Choose another one."
+  }
+
   func dismissError() {
     errorMessage = nil
   }

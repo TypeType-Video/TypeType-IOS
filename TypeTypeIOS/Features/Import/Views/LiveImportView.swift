@@ -5,6 +5,7 @@ struct LiveImportView: View {
   @StateObject var viewModel: LiveImportViewModel
   @State var importsPipePipe = false
   @State var importsYouTube = false
+  @State var importsTypeTypeBackup = false
   @State var timeMode = "normalized"
   @State var showsTakeoutGuide = false
 
@@ -18,7 +19,9 @@ struct LiveImportView: View {
     List {
       pipePipeSection
       youTubeSection
+      typeTypeBackupSection
     }
+      .liveGroupedList()
     .navigationTitle("Import")
     .navigationBarTitleDisplayMode(.inline)
     .fileImporter(
@@ -33,6 +36,17 @@ struct LiveImportView: View {
       }
     }
     .fileImporter(
+      isPresented: $importsTypeTypeBackup,
+      allowedContentTypes: [.json],
+      allowsMultipleSelection: false
+    ) { result in
+      guard case let .success(urls) = result,
+        let url = urls.first else { return }
+      Task {
+        await viewModel.restoreTypeTypeBackup(url: url)
+      }
+    }
+    .fileImporter(
       isPresented: $importsYouTube,
       allowedContentTypes: [.zip],
       allowsMultipleSelection: true
@@ -44,6 +58,9 @@ struct LiveImportView: View {
       Button("OK") { viewModel.dismissError() }
     } message: {
       Text(viewModel.errorMessage ?? "")
+    }
+    .task {
+      viewModel.loadResumableRestore()
     }
     .accessibilityIdentifier("live.import.screen")
   }

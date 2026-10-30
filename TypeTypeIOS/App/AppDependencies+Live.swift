@@ -2,8 +2,15 @@ import Foundation
 
 extension AppDependencies {
   @MainActor
-  static func live() -> AppDependencies {
+  static func live(
+    orientationLock: LiveOrientationLock,
+    backgroundRefresh: LiveBackgroundRefreshCoordinator,
+    crashReports: LiveCrashReportArchive
+  ) -> AppDependencies {
     let serverStore = ServerStore()
+    LiveImageURLResolver.baseURLProvider = {
+      serverStore.selectedServer()?.baseURL
+    }
     let sessionStore = SessionStore(
       keychain: SecureKeychainService()
     )
@@ -47,10 +54,33 @@ extension AppDependencies {
         )
       }
     )
-    let authService = AuthService(apiClient: client)
+    let authService = AuthService(
+      apiClient: client,
+      refreshTokenProvider: {
+        serverStore.selectedServerID().flatMap { sessionStore.refreshToken(forServerID: $0) }
+      }
+    )
+    let accountProfileService = LiveAccountProfileService(apiClient: client)
+    client.setRefreshCookieObserver { token in
+      guard let serverID = serverStore.selectedServerID() else { return }
+      sessionStore.setRefreshToken(token, forServerID: serverID)
+    }
     client.setTokenRefreshHandler { _ in
-      let token = try await authService.refresh()
-      guard let serverID = serverStore.selectedServerID(),
+      let serverID = serverStore.selectedServerID()
+      let token: String
+      do {
+        token = try await authService.refresh()
+      } catch let NetworkError.statusCode(code, message) where code == 401 {
+        if let serverID {
+          NotificationCenter.default.post(
+            name: .liveSessionExpired,
+            object: nil,
+            userInfo: [LiveSessionExpiry.serverIDKey: serverID]
+          )
+        }
+        throw NetworkError.statusCode(code, message)
+      }
+      guard let serverID,
         sessionStore.updateAccessToken(token, forServerID: serverID)
       else {
         return nil
@@ -59,6 +89,10 @@ extension AppDependencies {
     }
     let settingsService = LiveSettingsService(apiClient: client)
     let notificationsService = LiveNotificationsService(apiClient: client)
+    let pushNotificationsService = LivePushNotificationsService(
+      apiClient: client
+    )
+    let rssFeedService = LiveRssFeedService(apiClient: client)
     let deArrowService = LiveDeArrowService(
       apiClient: client,
       baseURLProvider: {
@@ -89,11 +123,14 @@ extension AppDependencies {
       libraryService: LiveLibraryService(apiClient: client),
       playlistsService: LivePlaylistsService(apiClient: client),
       profileService: LiveProfileService(apiClient: client),
+      accountProfileService: accountProfileService,
       settingsService: settingsService,
       serviceSelection: LiveServiceSelection(
         settingsService: settingsService
       ),
       notificationsService: notificationsService,
+      pushNotificationsService: pushNotificationsService,
+      rssFeedService: rssFeedService,
       notificationCenter: LiveNotificationCenter(
         service: notificationsService
       ),
@@ -128,13 +165,18 @@ extension AppDependencies {
       ),
       diagnosticsStore: diagnosticsStore,
       importService: LiveImportService(apiClient: client),
+      portabilityService: LivePortabilityService(apiClient: client),
+      versionService: LiveVersionService(apiClient: client),
       youtubeSessionService: LiveYouTubeSessionService(apiClient: client),
       playbackService: LivePlaybackService(
         apiClient: client,
         serverURLProvider: {
           serverStore.selectedServer()?.baseURL
         }
-      )
+      ),
+      orientationLock: orientationLock,
+      backgroundRefresh: backgroundRefresh,
+      crashReports: crashReports
     )
   }
 }

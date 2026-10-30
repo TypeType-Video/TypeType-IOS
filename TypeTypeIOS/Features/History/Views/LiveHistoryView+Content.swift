@@ -5,8 +5,7 @@ extension LiveHistoryView {
   var content: some View {
     switch viewModel.state {
     case .idle, .loading:
-      ProgressView("Loading history")
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+      TypeTypeSkeletonList(layout: .rows, count: 8)
     case let .failed(message):
       ContentUnavailableView {
         Label("History unavailable", systemImage: "wifi.exclamationmark")
@@ -33,7 +32,7 @@ extension LiveHistoryView {
             ? "Videos you watch will appear here."
             : "Try another search or date."
         )
-      )
+      ).liveThemedEmptyState()
     } else {
       ScrollView {
         LiveHistoryFilterBar(
@@ -54,8 +53,25 @@ extension LiveHistoryView {
               },
               onRemove: { pendingRemoval = item }
             )
+            .popover(
+              isPresented: Binding(
+                get: { pendingRemoval?.id == item.id },
+                set: { if !$0 { pendingRemoval = nil } }
+              ),
+              attachmentAnchor: .point(.init(x: 0.5, y: 1.0)),
+              arrowEdge: .top
+            ) {
+              LiveConfirmCard(
+                title: "Remove from history?",
+                confirmTitle: "Remove"
+              ) {
+                guard let item = pendingRemoval else { return }
+                pendingRemoval = nil
+                Task { await viewModel.remove(item) }
+              }
+            }
           }
-          DemoIncrementalLoadingTrigger(
+          LiveIncrementalLoadingTrigger(
             canLoadMore: viewModel.canLoadMore,
             isLoading: viewModel.isLoadingMore,
             label: "Loading more history",
@@ -68,7 +84,7 @@ extension LiveHistoryView {
         .padding(.bottom, 30)
       }
       .refreshable { await viewModel.reload() }
-      .background(DemoTheme.background)
+      .background(LiveThemeBackground().ignoresSafeArea())
     }
   }
 
@@ -80,13 +96,6 @@ extension LiveHistoryView {
         alignment: .top
       ),
     ]
-  }
-
-  var removalBinding: Binding<Bool> {
-    Binding(
-      get: { pendingRemoval != nil },
-      set: { if !$0 { pendingRemoval = nil } }
-    )
   }
 
   var errorBinding: Binding<Bool> {

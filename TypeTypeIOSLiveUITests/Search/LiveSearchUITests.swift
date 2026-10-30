@@ -26,13 +26,11 @@ final class LiveSearchUITests: XCTestCase {
 
     connect(app, address: serverURL.absoluteString)
     app.buttons["live.auth.guest"].tap()
-    let searchButton = app.buttons["live.home.search"]
+    let searchButton = app.searchTabButton
     XCTAssertTrue(searchButton.waitForExistence(timeout: 10))
     searchButton.tap()
 
-    let field = app.searchFields[
-      "Search videos, channels..."
-    ]
+    let field = app.textFields["live.search.field"]
     XCTAssertTrue(field.waitForExistence(timeout: 5))
     field.tap()
     field.typeText("Backend search")

@@ -10,6 +10,12 @@ extension LiveSABRPlaybackSession {
     await reportPosition()
   }
 
+  func playerSeeked(to seconds: TimeInterval) async {
+    guard seconds.isFinite else { return }
+    playerTimeMS = Int64(max(seconds, 0) * 1_000)
+    await reportPosition()
+  }
+
   func updatePlaybackRate(_ rate: Float) async {
     let supportedRate = min(max(rate, 0.25), 4)
     guard playbackRate != supportedRate else { return }

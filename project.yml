@@ -1,9 +1,20 @@
 name: TypeTypeIOS
 options:
+  developmentLanguage: en
   createIntermediateGroups: true
 settings:
   base:
     SWIFT_VERSION: 5.10
+    ALWAYS_SEARCH_USER_PATHS: NO
+  configs:
+    Debug:
+      ENABLE_TESTABILITY: YES
+      GCC_OPTIMIZATION_LEVEL: 0
+      SWIFT_ACTIVE_COMPILATION_CONDITIONS: DEBUG
+      SWIFT_OPTIMIZATION_LEVEL: -Onone
+    Release:
+      SWIFT_COMPILATION_MODE: wholemodule
+      SWIFT_OPTIMIZATION_LEVEL: -O
 targets:
   TypeTypeIOS:
     type: application
@@ -15,7 +26,14 @@ targets:
       - TypeTypeIOS/DesignSystem
       - TypeTypeIOS/Features
       - TypeTypeIOS/MockData
-      - TypeTypeIOS/Resources
+      - path: TypeTypeIOS/Resources
+        excludes:
+          - AppIcon.icon
+      - path: TypeTypeIOS/Resources/AppIcon.icon
+        type: file
+        buildPhase: resources
+    dependencies:
+      - target: TypeTypePlayerKit
     info:
       path: TypeTypeIOS/Info.plist
       properties:
@@ -41,15 +59,47 @@ targets:
           - UIInterfaceOrientationLandscapeRight
         UIBackgroundModes:
           - audio
+          - fetch
+        BGTaskSchedulerPermittedIdentifiers:
+          - dev.typetype.ios.notifications-refresh
         UIApplicationSceneManifest:
           UIApplicationSupportsMultipleScenes: false
     settings:
       base:
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         CURRENT_PROJECT_VERSION: 1
+        ENABLE_DEBUG_DYLIB: NO
         MARKETING_VERSION: 0.2.0
         PRODUCT_BUNDLE_IDENTIFIER: dev.typetype.ios
         PRODUCT_NAME: TypeTypeIOS
+        TARGETED_DEVICE_FAMILY: "1,2"
+      configs:
+        Release:
+          EXCLUDED_SOURCE_FILE_NAMES: "Demo*.swift TypeTypeDemoAppView.swift MockAppConfiguration.swift"
+
+  TypeTypePlayerKit:
+    type: library.static
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - TypeTypePlayerKit
+    settings:
+      base:
+        PRODUCT_NAME: TypeTypePlayerKit
+
+  TypeTypePlayerKitTests:
+    type: bundle.unit-test
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - TypeTypePlayerKitTests
+    dependencies:
+      - target: TypeTypePlayerKit
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: true
+        PRODUCT_BUNDLE_IDENTIFIER: dev.typetype.playerkit.tests
+        PRODUCT_NAME: TypeTypePlayerKitTests
 
   TypeTypeIOSTests:
     type: bundle.unit-test
@@ -62,6 +112,9 @@ targets:
     settings:
       base:
         GENERATE_INFOPLIST_FILE: true
+        BUNDLE_LOADER: "$(TEST_HOST)"
+        PRODUCT_BUNDLE_IDENTIFIER: dev.typetype.ios.tests
+        PRODUCT_NAME: TypeTypeIOSTests
 
   TypeTypeIOSUITests:
     type: bundle.ui-testing
@@ -74,6 +127,8 @@ targets:
     settings:
       base:
         GENERATE_INFOPLIST_FILE: true
+        PRODUCT_BUNDLE_IDENTIFIER: dev.typetype.ios.uitests
+        PRODUCT_NAME: TypeTypeIOSUITests
 
   TypeTypeIOSLiveUITests:
     type: bundle.ui-testing
@@ -86,6 +141,8 @@ targets:
     settings:
       base:
         GENERATE_INFOPLIST_FILE: true
+        PRODUCT_BUNDLE_IDENTIFIER: dev.typetype.ios.live-uitests
+        PRODUCT_NAME: TypeTypeIOSLiveUITests
 
 schemes:
   TypeTypeIOS:
@@ -95,7 +152,17 @@ schemes:
     test:
       targets:
         - TypeTypeIOSTests
+        - TypeTypePlayerKitTests
         - TypeTypeIOSUITests
+
+  TypeTypeIOSUnit:
+    build:
+      targets:
+        TypeTypeIOS: all
+    test:
+      targets:
+        - TypeTypeIOSTests
+        - TypeTypePlayerKitTests
 
   TypeTypeIOSLive:
     build:

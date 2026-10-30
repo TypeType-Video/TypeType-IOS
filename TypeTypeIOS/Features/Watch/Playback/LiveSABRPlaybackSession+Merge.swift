@@ -83,6 +83,14 @@ extension LiveSABRPlaybackSession {
 
   private static let maximumLiveLeadMS: Int64 = 60_000
 
+  // Server segment times are rounded, so neighbours can overlap by a few ms (3 to 4 seen): a small overlap is the
+  // same timeline.
+  static let segmentOverlapToleranceMS: Int64 = 50
+
+  static func segmentFollows(startMS: Int64, previousEndMS: Int64) -> Bool {
+    previousEndMS < 0 || startMS + segmentOverlapToleranceMS >= previousEndMS
+  }
+
   private func mergeTrack(
     current: LiveSABRTrackSnapshot?,
     incoming: LiveSABRWindowTrack,
@@ -115,14 +123,20 @@ extension LiveSABRPlaybackSession {
     }
     var known = Set(segments.map(\.url))
     var previousEndMS: Int64 = -1
+    var acceptedCount = 0
     for item in incoming.segments {
       guard item.startMS >= 0,
         item.durationMS > 0,
-        previousEndMS < 0 || item.startMS + 1 >= previousEndMS,
         item.startMS <= Int64.max - item.durationMS
       else {
         throw LivePlaybackFailure.invalidSABRContract
       }
+      // After a seek the server can append a leftover segment that starts before the previous one ends: drop it, not
+      // the window.
+      guard Self.segmentFollows(startMS: item.startMS, previousEndMS: previousEndMS) else {
+        continue
+      }
+      acceptedCount += 1
       let url = try validatedResourceURL(
         item.url,
         itag: itag,
@@ -139,7 +153,7 @@ extension LiveSABRPlaybackSession {
       }
       previousEndMS = item.startMS + item.durationMS
     }
-    guard !segments.isEmpty else {
+    guard acceptedCount > 0, !segments.isEmpty else {
       throw LivePlaybackFailure.invalidSABRContract
     }
     segments.sort { $0.startMS < $1.startMS }

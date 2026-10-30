@@ -9,7 +9,7 @@ struct DemoPlayerOptionsSheet: View {
   var body: some View {
     NavigationStack {
       Form {
-        Section("Playback") {
+        Section {
           Picker("Quality", selection: binding(\.defaultQuality)) {
             Text("Best available").tag("Best available")
             Text("2160p").tag("2160p")
@@ -32,7 +32,7 @@ struct DemoPlayerOptionsSheet: View {
             value: binding(\.audioGainPercent),
             in: 100...300,
             step: 25
-          )
+          ).liveRowFill()
           .onChange(of: session.preferences.audioGainPercent) {
             controller.setAudioGain(
               percent: session.preferences.audioGainPercent
@@ -46,15 +46,15 @@ struct DemoPlayerOptionsSheet: View {
             "Audio only",
             systemImage: "headphones",
             isOn: audioOnlyBinding
-          )
-          Toggle("Autoplay next video", isOn: binding(\.autoplay))
-          Toggle("Loop video", isOn: binding(\.loopPlayback))
+          ).liveRowFill()
+          Toggle("Autoplay next video", isOn: binding(\.autoplay)).liveRowFill()
+          Toggle("Loop video", isOn: binding(\.loopPlayback)).liveRowFill()
             .onChange(of: session.preferences.loopPlayback) {
               controller.setLooping(session.preferences.loopPlayback)
             }
-        }
+        } header: { Text("Playback").liveSectionHeader() }
 
-        Section("Tracks") {
+        Section {
           Picker("Audio", selection: binding(\.audioLanguage)) {
             Text("Original · English").tag("Original")
             Text("French").tag("French")
@@ -66,7 +66,7 @@ struct DemoPlayerOptionsSheet: View {
               .font(.caption)
               .foregroundStyle(.secondary)
           }
-          Toggle("Subtitles", isOn: binding(\.subtitlesEnabled))
+          Toggle("Subtitles", isOn: binding(\.subtitlesEnabled)).liveRowFill()
           if session.preferences.subtitlesEnabled {
             Picker("Subtitle language", selection: binding(\.subtitleLanguage)) {
               Text("English").tag("English")
@@ -78,11 +78,11 @@ struct DemoPlayerOptionsSheet: View {
           NavigationLink("Caption appearance") {
             DemoCaptionSettingsView()
           }
-        }
+        } header: { Text("Tracks").liveSectionHeader() }
 
-        Section("Player presentation") {
-          Toggle("Cinema mode", isOn: binding(\.cinemaMode))
-          Toggle("Bullet comments", isOn: binding(\.bulletComments))
+        Section {
+          Toggle("Cinema mode", isOn: binding(\.cinemaMode)).liveRowFill()
+          Toggle("Bullet comments", isOn: binding(\.bulletComments)).liveRowFill()
           if session.preferences.bulletComments {
             LabeledContent("Danmaku speed") {
               Slider(value: binding(\.bulletCommentSpeed), in: 0.5...2)
@@ -111,12 +111,12 @@ struct DemoPlayerOptionsSheet: View {
               Text($0).tag($0)
             }
           }
-        }
+        } header: { Text("Player presentation").liveSectionHeader() }
 
-        Section("Community enhancements") {
-          Toggle("SponsorBlock", isOn: binding(\.sponsorBlock))
+        Section {
+          Toggle("SponsorBlock", isOn: binding(\.sponsorBlock)).liveRowFill()
             .accessibilityIdentifier("demo.player.options.sponsorblock")
-          Toggle("DeArrow", isOn: binding(\.deArrow))
+          Toggle("DeArrow", isOn: binding(\.deArrow)).liveRowFill()
             .accessibilityIdentifier("demo.player.options.dearrow")
           LabeledContent(
             "SponsorBlock behavior",
@@ -126,9 +126,9 @@ struct DemoPlayerOptionsSheet: View {
             "Title and thumbnail",
             value: session.preferences.deArrow ? "Community" : "Original"
           )
-        }
+        } header: { Text("Community enhancements").liveSectionHeader() }
 
-        Section("Stream information") {
+        Section {
           LabeledContent("Delivery", value: "SABR")
           LabeledContent(
             "Video",
@@ -139,7 +139,7 @@ struct DemoPlayerOptionsSheet: View {
             value: "\(effectiveAudioLanguage) · AAC · 48 kHz"
           )
           LabeledContent("Buffer", value: "Healthy")
-        }
+        } header: { Text("Stream information").liveSectionHeader() }
       }
       .navigationTitle("Player options")
       .navigationBarTitleDisplayMode(.inline)

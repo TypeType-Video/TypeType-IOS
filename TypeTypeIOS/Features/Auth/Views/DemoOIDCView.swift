@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct DemoOIDCView: View {
+  @Environment(\.themePalette) private var palette
   let preferredColorScheme: ColorScheme
   let onAuthorized: () -> Void
   @Environment(\.dismiss) private var dismiss
@@ -28,7 +29,7 @@ struct DemoOIDCView: View {
             .frame(maxWidth: .infinity)
         }
 
-        Section("Identity provider") {
+        Section {
           Picker("Provider", selection: $provider) {
             Text("TypeType SSO").tag("TypeType SSO")
             Text("Community ID").tag("Community ID")
@@ -37,7 +38,7 @@ struct DemoOIDCView: View {
           TextField("Email", text: $email)
             .textInputAutocapitalization(.never)
             .keyboardType(.emailAddress)
-        }
+        } header: { Text("Identity provider").liveSectionHeader() }
 
         Section {
           Button(action: authorize) {
@@ -76,7 +77,7 @@ struct DemoOIDCView: View {
         }
       }
     }
-    .tint(DemoTheme.accent)
+    .tint(palette.accent)
     .preferredColorScheme(preferredColorScheme)
     .accessibilityIdentifier("demo.oidc.screen")
   }

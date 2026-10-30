@@ -19,10 +19,17 @@ final class AppDependencies {
   let libraryService: LiveLibraryServiceProtocol
   let playlistsService: LivePlaylistsServiceProtocol
   let profileService: LiveProfileServiceProtocol
+  let accountProfileService: LiveAccountProfileServiceProtocol?
   let settingsService: LiveSettingsServiceProtocol
   let serviceSelection: LiveServiceSelection
   let notificationsService: LiveNotificationsServiceProtocol
+  let pushNotificationsService: LivePushNotificationsServiceProtocol?
+  let rssFeedService: LiveRssFeedServiceProtocol?
   let notificationCenter: LiveNotificationCenter
+  lazy var notificationPermissionManager: LiveNotificationPermissionManaging =
+    LiveNotificationPermissionService()
+  var pushNotificationsEnabled = false
+  var rssEnabled = false
   let sessionActivityService: LiveSessionActivityServiceProtocol
   let adminService: LiveAdminServiceProtocol
   let adminAccessService: LiveAdminAccessServiceProtocol
@@ -30,8 +37,15 @@ final class AppDependencies {
   let bugReportsService: LiveBugReportsServiceProtocol
   let diagnosticsStore: LiveDiagnosticsStore
   let importService: LiveImportServiceProtocol
-  let youtubeSessionService: LiveYouTubeSessionServiceProtocol
+  let portabilityService: LivePortabilityServiceProtocol
+  let versionService: LiveVersionServiceProtocol
+  let youtubeSessionService: LiveYouTubeSessionServiceProtocol?
   let playbackService: LivePlaybackServiceProtocol?
+  let watchProgress: LiveWatchProgressStore
+  let imagePipeline: TypeTypeImagePipeline
+  let orientationLock: LiveOrientationLock
+  let crashReports: LiveCrashReportArchive
+  let backgroundRefresh: LiveBackgroundRefreshCoordinator
   lazy var connectivityMonitor = LiveConnectivityMonitor()
   @MainActor
   lazy var downloadCenter: LiveDownloadCenter = {
@@ -52,9 +66,22 @@ final class AppDependencies {
     )
   }()
   @MainActor
-  lazy var playbackCoordinator: LivePlaybackCoordinator = {
-    LivePlaybackCoordinator(
+  lazy var appPreferences = LiveAppPreferencesStore()
+  @MainActor lazy var toasts = LiveToastCenter()
+  @MainActor
+  lazy var playbackPrewarmer: LivePlaybackPrewarmer? = playbackService.map {
+    LivePlaybackPrewarmer(
+      service: $0,
       settingsService: settingsService,
+      historyService: historyService,
+      appPreferences: appPreferences
+    )
+  }
+  @MainActor
+  lazy var playbackCoordinator: LivePlaybackCoordinator = {
+    let coordinator = LivePlaybackCoordinator(
+      settingsService: settingsService,
+      appPreferences: appPreferences,
       scopeProvider: { [weak self] in
         guard let self,
           let serverID = serverStore.selectedServerID(),
@@ -75,8 +102,11 @@ final class AppDependencies {
         )
       }
     )
+    coordinator.prewarmer = playbackPrewarmer
+    return coordinator
   }()
 
+  @MainActor
   init(
     serverStore: ServerStore,
     sessionStore: SessionStore,
@@ -96,9 +126,12 @@ final class AppDependencies {
     libraryService: LiveLibraryServiceProtocol,
     playlistsService: LivePlaylistsServiceProtocol,
     profileService: LiveProfileServiceProtocol,
+    accountProfileService: LiveAccountProfileServiceProtocol? = nil,
     settingsService: LiveSettingsServiceProtocol,
     serviceSelection: LiveServiceSelection,
     notificationsService: LiveNotificationsServiceProtocol,
+    pushNotificationsService: LivePushNotificationsServiceProtocol? = nil,
+    rssFeedService: LiveRssFeedServiceProtocol? = nil,
     notificationCenter: LiveNotificationCenter,
     sessionActivityService: LiveSessionActivityServiceProtocol,
     adminService: LiveAdminServiceProtocol,
@@ -107,8 +140,15 @@ final class AppDependencies {
     bugReportsService: LiveBugReportsServiceProtocol,
     diagnosticsStore: LiveDiagnosticsStore = LiveDiagnosticsStore(),
     importService: LiveImportServiceProtocol,
-    youtubeSessionService: LiveYouTubeSessionServiceProtocol,
-    playbackService: LivePlaybackServiceProtocol? = nil
+    portabilityService: LivePortabilityServiceProtocol = LivePortabilityNoopService(),
+    versionService: LiveVersionServiceProtocol = LiveVersionUnavailableService(),
+    youtubeSessionService: LiveYouTubeSessionServiceProtocol? = nil,
+    playbackService: LivePlaybackServiceProtocol? = nil,
+    watchProgress: LiveWatchProgressStore = LiveWatchProgressStore(),
+    imagePipeline: TypeTypeImagePipeline = TypeTypeImagePipeline(),
+    orientationLock: LiveOrientationLock,
+    backgroundRefresh: LiveBackgroundRefreshCoordinator,
+    crashReports: LiveCrashReportArchive = LiveCrashReportArchive()
   ) {
     self.serverStore = serverStore
     self.sessionStore = sessionStore
@@ -128,9 +168,12 @@ final class AppDependencies {
     self.libraryService = libraryService
     self.playlistsService = playlistsService
     self.profileService = profileService
+    self.accountProfileService = accountProfileService
     self.settingsService = settingsService
     self.serviceSelection = serviceSelection
     self.notificationsService = notificationsService
+    self.pushNotificationsService = pushNotificationsService
+    self.rssFeedService = rssFeedService
     self.notificationCenter = notificationCenter
     self.sessionActivityService = sessionActivityService
     self.adminService = adminService
@@ -139,8 +182,15 @@ final class AppDependencies {
     self.bugReportsService = bugReportsService
     self.diagnosticsStore = diagnosticsStore
     self.importService = importService
+    self.portabilityService = portabilityService
+    self.versionService = versionService
     self.youtubeSessionService = youtubeSessionService
     self.playbackService = playbackService
+    self.watchProgress = watchProgress
+    self.imagePipeline = imagePipeline
+    self.orientationLock = orientationLock
+    self.crashReports = crashReports
+    self.backgroundRefresh = backgroundRefresh
   }
 
   func diagnosticScope() -> LiveDiagnosticScope? {
@@ -153,5 +203,15 @@ final class AppDependencies {
       serverID: serverID,
       accountID: session.userID
     )
+  }
+}
+
+@MainActor
+extension AppDependencies {
+  func invalidateIdentityScopedRuntimeState() {
+    playbackCoordinator.endSession()
+    notificationCenter.clear()
+    deArrowStore.invalidatePreferences()
+    downloadCenter.cancelTracking()
   }
 }

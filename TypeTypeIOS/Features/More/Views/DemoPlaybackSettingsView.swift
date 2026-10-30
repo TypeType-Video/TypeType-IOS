@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct DemoPlaybackSettingsView: View {
+  @Environment(\.themePalette) private var palette
   @EnvironmentObject var session: DemoSessionStore
 
   var body: some View {
@@ -13,7 +14,7 @@ struct DemoPlaybackSettingsView: View {
             "Autoplay countdown · \(session.preferences.autoplayCountdownSeconds)s",
             value: binding(\.autoplayCountdownSeconds),
             in: 0...60
-          )
+          ).liveRowFill()
           .foregroundStyle(.primary)
           .padding(.vertical, 12)
           divider
@@ -31,7 +32,7 @@ struct DemoPlaybackSettingsView: View {
             value: binding(\.audioGainPercent),
             in: 100...300,
             step: 25
-          )
+          ).liveRowFill()
           .foregroundStyle(.primary)
           .padding(.vertical, 12)
           Text("Independent from device volume · up to 300%")
@@ -84,7 +85,7 @@ struct DemoPlaybackSettingsView: View {
       }
       .padding(16)
     }
-    .background(DemoTheme.groupedBackground)
+    .background(palette.groupedBackground)
     .navigationTitle("Playback")
     .navigationBarTitleDisplayMode(.inline)
     .accessibilityIdentifier("demo.more.playback")
@@ -97,6 +98,7 @@ struct DemoPlaybackSettingsView: View {
     Toggle(isOn: value) {
       Text(title).foregroundStyle(.primary)
     }
+    .liveRowFill()
     .tint(Color(red: 1, green: 0.3, blue: 0.34))
     .padding(.vertical, 12)
   }

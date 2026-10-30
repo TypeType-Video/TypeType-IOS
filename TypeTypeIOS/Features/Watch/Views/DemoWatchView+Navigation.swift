@@ -31,14 +31,6 @@ extension DemoWatchView {
     }
   }
 
-  func selectOffset(_ offset: Int) {
-    let catalog = DemoSearchCatalog.videos
-    guard !catalog.isEmpty else { return }
-    let index = catalog.firstIndex { $0.id == video.id } ?? 0
-    let nextIndex = (index + offset + catalog.count) % catalog.count
-    selectRelated(catalog[nextIndex])
-  }
-
   func previewPlaylistEnd(_ nextVideo: DemoVideo) {
     let presentation = DemoAutoplayPolicy.presentation(
       autoplay: autoplay,

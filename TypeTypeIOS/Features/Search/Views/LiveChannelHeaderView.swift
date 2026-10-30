@@ -1,9 +1,14 @@
 import SwiftUI
 
 struct LiveChannelHeaderView: View {
+  @Environment(\.themePalette) private var palette
   let channel: LiveChannelPage
   let isSubscribed: Bool
   let isChangingSubscription: Bool
+  var isNotificationsAvailable = false
+  var isNotificationsEnabled = false
+  var isChangingNotifications = false
+  var onNotifications: () -> Void = {}
   let onSubscription: () -> Void
 
   var body: some View {
@@ -11,7 +16,7 @@ struct LiveChannelHeaderView: View {
       if !channel.bannerURL.isEmpty {
         LiveRemoteImage(url: channel.banner)
           .frame(maxWidth: .infinity)
-          .aspectRatio(4.4, contentMode: .fit)
+          .aspectRatio(8, contentMode: .fit)
           .clipped()
           .clipShape(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
@@ -31,7 +36,7 @@ struct LiveChannelHeaderView: View {
             if channel.isVerified {
               Image(systemName: "checkmark.seal.fill")
                 .font(.caption)
-                .foregroundStyle(DemoTheme.accent)
+                .foregroundStyle(palette.accent)
                 .accessibilityLabel("Verified")
             }
           }
@@ -46,32 +51,47 @@ struct LiveChannelHeaderView: View {
 
         Spacer()
 
-        Button(action: onSubscription) {
-          if isChangingSubscription {
-            ProgressView()
-              .frame(minWidth: 76)
-          } else {
-            Text(isSubscribed ? "Subscribed" : "Subscribe")
-              .frame(minWidth: 76)
-          }
+        if isChangingSubscription {
+          ProgressView()
+            .frame(width: 44, height: 34)
+        } else if isSubscribed {
+          subscribedMenu
+        } else {
+          Button("Subscribe", action: onSubscription)
+            .liveProminentButton()
+            .tint(palette.accent)
+            .buttonBorderShape(.capsule)
+            .accessibilityIdentifier("live.channel.subscription")
         }
-        .buttonStyle(.borderedProminent)
-        .tint(
-          isSubscribed
-            ? DemoTheme.elevatedSurface
-            : DemoTheme.accent
-        )
-        .buttonBorderShape(.capsule)
-        .disabled(isChangingSubscription)
-        .accessibilityIdentifier("live.channel.subscription")
-      }
-
-      if !channel.description.isEmpty {
-        Text(channel.description)
-          .font(.footnote)
-          .foregroundStyle(.secondary)
-          .lineLimit(3)
       }
     }
+  }
+
+  private var subscribedMenu: some View {
+    Menu {
+      if isNotificationsAvailable {
+        Button(
+          isNotificationsEnabled ? "Turn off notifications" : "Turn on notifications",
+          systemImage: isNotificationsEnabled ? "bell.slash" : "bell",
+          action: onNotifications
+        )
+        .disabled(isChangingNotifications)
+      }
+      Button("Unsubscribe", systemImage: "person.badge.minus", role: .destructive, action: onSubscription)
+    } label: {
+      HStack(spacing: 6) {
+        Image(systemName: isNotificationsEnabled ? "bell.fill" : "checkmark")
+        Image(systemName: "chevron.down")
+          .font(.caption.weight(.bold))
+      }
+      .font(.body.weight(.semibold))
+      .foregroundStyle(.primary)
+      .padding(.horizontal, 14)
+      .frame(height: 34)
+      .background(.quaternary, in: Capsule())
+    }
+    .accessibilityLabel(Text("Subscribed"))
+    .accessibilityHint(Text("Shows notification and unsubscribe options"))
+    .accessibilityIdentifier("live.channel.subscription")
   }
 }

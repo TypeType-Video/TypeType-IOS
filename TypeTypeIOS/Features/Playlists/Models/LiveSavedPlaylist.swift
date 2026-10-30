@@ -25,6 +25,41 @@ struct LiveSavedPlaylist: Decodable, Equatable, Hashable, Identifiable {
     )
   }
 
+  init(
+    id: String,
+    publicPlaylistID: String,
+    url: String,
+    title: String,
+    thumbnailURL: String,
+    uploaderName: String,
+    streamCount: Int64,
+    playlistType: String,
+    savedAt: Int64
+  ) {
+    self.id = id
+    self.publicPlaylistID = publicPlaylistID
+    self.url = url
+    self.title = title
+    self.thumbnailURL = thumbnailURL
+    self.uploaderName = uploaderName
+    self.streamCount = streamCount
+    self.playlistType = playlistType
+    self.savedAt = savedAt
+  }
+
+  init(from decoder: Decoder) throws {
+    let container = try decoder.container(keyedBy: CodingKeys.self)
+    id = try container.decodeIfPresent(String.self, forKey: .id) ?? ""
+    publicPlaylistID = try container.decodeIfPresent(String.self, forKey: .publicPlaylistID) ?? ""
+    url = try container.decodeIfPresent(String.self, forKey: .url) ?? ""
+    title = try container.decodeIfPresent(String.self, forKey: .title) ?? ""
+    thumbnailURL = try container.decodeIfPresent(String.self, forKey: .thumbnailURL) ?? ""
+    uploaderName = try container.decodeIfPresent(String.self, forKey: .uploaderName) ?? ""
+    streamCount = try container.decodeIfPresent(Int64.self, forKey: .streamCount) ?? 0
+    playlistType = try container.decodeIfPresent(String.self, forKey: .playlistType) ?? ""
+    savedAt = try container.decodeIfPresent(Int64.self, forKey: .savedAt) ?? 0
+  }
+
   private enum CodingKeys: String, CodingKey {
     case id
     case publicPlaylistID = "publicPlaylistId"

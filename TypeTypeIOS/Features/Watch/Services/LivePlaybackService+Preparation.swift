@@ -5,15 +5,24 @@ extension LivePlaybackService {
     stream: LivePlaybackStream,
     preferences: LivePlaybackPreferences
   ) throws -> LivePlaybackPreparation {
-    let videos = stream.allVideoSources.filter {
+    var videos = stream.allVideoSources.filter {
       $0.isSABR && $0.isAppleH264 && $0.itag > 0
     }
-    let audios = stream.audioStreams.filter {
+    var audios = stream.audioStreams.filter {
       $0.isSABR && $0.isAppleAAC && $0.itag > 0
+    }
+    if preferences.audioOnly {
+      if videos.isEmpty {
+        videos = stream.allVideoSources.filter { $0.isSABR && $0.itag > 0 }
+      }
+      if audios.isEmpty {
+        audios = stream.audioStreams.filter { $0.isSABR && $0.itag > 0 }
+      }
     }
     let video = selectVideo(
       from: videos,
       quality: preferences.quality,
+      preferredCodec: preferences.preferredCodec,
       requestedItag: preferences.videoItag
     )
     let audio = selectAudio(
@@ -41,7 +50,7 @@ extension LivePlaybackService {
     stream: LivePlaybackStream,
     preferences: LivePlaybackPreferences
   ) throws -> LivePlaybackPreparation {
-    if let hlsURL = URL(string: stream.hlsURL), !stream.hlsURL.isEmpty {
+    if let hlsURL = serverResourceURL(for: stream.hlsURL) {
       let isServer = isSelectedServerURL(hlsURL)
       return LivePlaybackPreparation(
         stream: stream,
@@ -53,7 +62,7 @@ extension LivePlaybackService {
         subtitles: stream.subtitles,
         resumeTime: TimeInterval(max(stream.startPosition, 0)),
         isSABR: false,
-        audioOnly: false
+        audioOnly: preferences.audioOnly
       )
     }
     let muxed = stream.videoStreams.filter {
@@ -63,9 +72,10 @@ extension LivePlaybackService {
     if let selected = selectVideo(
       from: muxed,
       quality: preferences.quality,
+      preferredCodec: preferences.preferredCodec,
       requestedItag: preferences.videoItag,
       requestedSourceID: preferences.videoSourceID
-    ), let url = URL(string: selected.url) {
+    ), let url = serverResourceURL(for: selected.url) {
       return LivePlaybackPreparation(
         stream: stream,
         assetURL: url,
@@ -76,7 +86,7 @@ extension LivePlaybackService {
         subtitles: stream.subtitles,
         resumeTime: TimeInterval(max(stream.startPosition, 0)),
         isSABR: false,
-        audioOnly: false
+        audioOnly: preferences.audioOnly
       )
     }
 
@@ -89,6 +99,7 @@ extension LivePlaybackService {
     guard let video = selectVideo(
       from: videos,
       quality: preferences.quality,
+      preferredCodec: preferences.preferredCodec,
       requestedItag: preferences.videoItag,
       requestedSourceID: preferences.videoSourceID
     ), let audio = selectAudio(
@@ -105,10 +116,16 @@ extension LivePlaybackService {
       declared: video.deliveryMethod,
       sourceURL: videoURL
     )
-    let audioMethod = providerDeliveryMethod(
+    var audioMethod = providerDeliveryMethod(
       declared: audio.deliveryMethod,
       sourceURL: audioURL
     )
+    // NicoNico labels its HLS audio "progressive" without a .m3u8 extension: audio without byte ranges next to HLS
+    // video is HLS.
+    if videoMethod == "hls", audioMethod == "progressive",
+      audio.initEnd == 0, audio.indexEnd == 0 {
+      audioMethod = "hls"
+    }
     let providerPlayback: LiveProviderPlayback
     let usesAuthenticatedLoader: Bool
     if videoMethod == "hls", audioMethod == "hls" {
@@ -162,7 +179,7 @@ extension LivePlaybackService {
       subtitles: stream.subtitles,
       resumeTime: TimeInterval(max(stream.startPosition, 0)),
       isSABR: false,
-      audioOnly: false
+      audioOnly: preferences.audioOnly
     )
   }
 

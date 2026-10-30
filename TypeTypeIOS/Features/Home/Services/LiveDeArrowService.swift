@@ -37,7 +37,12 @@ final class LiveDeArrowService: LiveDeArrowServiceProtocol {
     if let url = URL(string: value), url.scheme != nil {
       return url
     }
-    return endpointURL(path: value)
+    // The query must stay a query: an escaped "?" lands in the path and the image answers 404.
+    let relative = URLComponents(string: value)
+    return endpointURL(
+      path: relative?.path ?? value,
+      queryItems: relative?.queryItems ?? []
+    )
   }
 
   func thumbnailURL(videoID: String, time: Double) -> URL? {

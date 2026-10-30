@@ -37,7 +37,14 @@ extension PlaybackLifecycleLiveUITests {
       metadata.swipeUp(velocity: .slow)
     }
     XCTAssertTrue(toggle.waitForExistence(timeout: 10))
-    XCTAssertEqual(toggle.label, "Show more")
+    XCTAssertEqual(toggle.label, "Description")
+    let published = app.staticTexts.matching(
+      NSPredicate(format: "label BEGINSWITH %@", "Published ")
+    ).firstMatch
+    XCTAssertFalse(
+      published.exists,
+      "The description tile must be closed by default."
+    )
     attach(
       app,
       name: "Compact video description",
@@ -45,16 +52,17 @@ extension PlaybackLifecycleLiveUITests {
     )
 
     toggle.tap()
-    XCTAssertEqual(toggle.label, "Show less")
-    XCTAssertTrue(
-      app.staticTexts.matching(
-        NSPredicate(format: "label BEGINSWITH %@", "Published ")
-      ).firstMatch.waitForExistence(timeout: 5)
-    )
+    XCTAssertTrue(published.waitForExistence(timeout: 5))
     attach(
       app,
       name: "Expanded video description",
       details: "query=\(query)\nvideo=\(videoID)"
+    )
+
+    toggle.tap()
+    XCTAssertFalse(
+      published.exists,
+      "The second tap must collapse the description again."
     )
   }
 

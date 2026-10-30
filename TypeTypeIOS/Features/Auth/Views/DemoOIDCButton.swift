@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct DemoOIDCButton: View {
-  let palette: DemoAuthPalette
+  let palette: AuthPalette
   let action: () -> Void
 
   var body: some View {

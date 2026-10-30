@@ -1,3 +1,6 @@
+import AVKit
+import Foundation
+import QuartzCore
 import Foundation
 
 struct LivePlaybackStream: Decodable {
@@ -30,6 +33,9 @@ struct LivePlaybackStream: Decodable {
   let isLive: Bool
   let isPostLive: Bool
   let isLiveContent: Bool
+  var originalAudioTrackID: String? = nil
+  var preferredDefaultAudioTrackID: String? = nil
+  var previewFrames: [LivePlaybackPreviewFrames]? = nil
 
   var allVideoSources: [LivePlaybackVideoSource] {
     var seen: Set<String> = []
@@ -51,16 +57,44 @@ struct LivePlaybackStream: Decodable {
     case hlsURL = "hlsUrl"
     case chapters = "streamSegments"
     case sponsorBlockSegments
+    case originalAudioTrackID = "originalAudioTrackId"
+    case preferredDefaultAudioTrackID = "preferredDefaultAudioTrackId"
+    case previewFrames
   }
 }
 
 struct LivePlaybackPreferences: Equatable {
   var quality: String
+  var preferredCodec = "recommended"
   var videoItag: Int?
   var videoSourceID: String?
   var audioTrackID: String?
   var audioSourceID: String?
   var audioOnly: Bool
+}
+
+enum LivePlayerImageMode: String, CaseIterable, Identifiable {
+  case fit
+  case crop
+  case stretch
+
+  var id: String { rawValue }
+
+  var title: String {
+    switch self {
+    case .fit: return "Fit"
+    case .crop: return "Crop"
+    case .stretch: return "Stretch"
+    }
+  }
+
+  var videoGravity: AVLayerVideoGravity {
+    switch self {
+    case .fit: return .resizeAspect
+    case .crop: return .resizeAspectFill
+    case .stretch: return .resize
+    }
+  }
 }
 
 enum LiveProviderPlayback {

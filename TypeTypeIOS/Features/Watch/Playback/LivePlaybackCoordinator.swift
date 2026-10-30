@@ -18,8 +18,10 @@ final class LivePlaybackCoordinator: ObservableObject {
   @Published var presentation = Presentation.hidden
   @Published var queue = LivePlaybackQueueSnapshot.empty
   @Published var sleepTimer = LivePlaybackSleepTimerState()
+  @Published var autoplayCountdownRemaining: Int?
 
   let settingsService: LiveSettingsServiceProtocol
+  let appPreferences: LiveAppPreferencesStore
   let queueStore: LivePlaybackQueueStore
   let scopeProvider: () -> LivePlaybackScope?
   let playerFactory: PlayerFactory
@@ -28,14 +30,19 @@ final class LivePlaybackCoordinator: ObservableObject {
   var persistenceEnabled = false
   var playbackGeneration = 0
   var sleepTimerTask: Task<Void, Never>?
+  var autoplayCountdownTask: Task<Void, Never>?
+  var pendingAutoplay: LivePendingAutoplay?
+  var prewarmer: LivePlaybackPrewarmer?
 
   init(
     settingsService: LiveSettingsServiceProtocol,
+    appPreferences: LiveAppPreferencesStore,
     queueStore: LivePlaybackQueueStore = LivePlaybackQueueStore(),
     scopeProvider: @escaping () -> LivePlaybackScope?,
     playerFactory: @escaping PlayerFactory
   ) {
     self.settingsService = settingsService
+    self.appPreferences = appPreferences
     self.queueStore = queueStore
     self.scopeProvider = scopeProvider
     self.playerFactory = playerFactory
@@ -47,6 +54,8 @@ final class LivePlaybackCoordinator: ObservableObject {
 
   var showsMiniPlayer: Bool {
     hasActivePlayback && presentation == .mini
+   && !(controller?.pictureInPicture.isEngaged ?? false)
+    && !(controller?.pictureInPicture.isPendingStart ?? false)
   }
 
   func restoreIfNeeded() async {

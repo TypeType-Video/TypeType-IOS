@@ -30,7 +30,7 @@ struct LiveConnectivityBanner: View {
       Spacer(minLength: 4)
 
       Button("Downloads", action: onOpenDownloads)
-        .buttonStyle(.borderedProminent)
+        .liveProminentButton()
         .controlSize(.small)
 
       if instanceUnavailable {

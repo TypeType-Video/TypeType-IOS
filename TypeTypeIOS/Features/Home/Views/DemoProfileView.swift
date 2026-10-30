@@ -29,7 +29,7 @@ struct DemoProfileView: View {
           }
         }
 
-        Section("Public profile") {
+        Section {
           TextField("Public username", text: $username)
             .textInputAutocapitalization(.never)
           if !username.isEmpty && !validUsername {
@@ -42,9 +42,9 @@ struct DemoProfileView: View {
           Text("\(bio.count)/280")
             .font(.caption)
             .foregroundStyle(bio.count > 280 ? .red : .secondary)
-        }
+        } header: { Text("Public profile").liveSectionHeader() }
 
-        Section("Account identity") {
+        Section {
           TextField("Display name", text: $displayName)
           TextField("Email address", text: $email)
             .textInputAutocapitalization(.never)
@@ -55,7 +55,7 @@ struct DemoProfileView: View {
           Button("Change password") {
             presentsPassword = true
           }
-        }
+        } header: { Text("Account identity").liveSectionHeader() }
 
         if let savedMessage {
           Section {

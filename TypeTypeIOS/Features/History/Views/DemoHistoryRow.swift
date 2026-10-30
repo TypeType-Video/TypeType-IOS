@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct DemoHistoryRow: View {
+  @Environment(\.themePalette) private var palette
   @EnvironmentObject private var session: DemoSessionStore
   let entry: DemoHistoryEntry
   let onSelect: () -> Void
@@ -44,13 +45,13 @@ struct DemoHistoryRow: View {
           .font(.subheadline.weight(.semibold))
           .foregroundStyle(.secondary)
           .frame(width: 30, height: 30)
-          .background(DemoTheme.elevatedSurface)
+          .background(palette.elevatedSurface)
           .clipShape(Circle())
       }
       .accessibilityLabel("History actions for \(entry.video.title)")
     }
     .padding(10)
-    .background(DemoTheme.surface)
+    .background(palette.surface)
     .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
     .accessibilityIdentifier("demo.history.video.\(entry.id)")
   }

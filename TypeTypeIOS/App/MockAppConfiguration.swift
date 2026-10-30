@@ -27,7 +27,7 @@ enum MockAppConfiguration {
 #endif
   }
 
-  static var initialAuthMode: DemoAuthMode {
+  static var initialAuthMode: AuthMode {
     if CommandLine.arguments.contains("--typetype-demo-register") {
       return .register
     }

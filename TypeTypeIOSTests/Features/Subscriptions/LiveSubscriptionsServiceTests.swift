@@ -124,4 +124,142 @@ final class LiveSubscriptionsServiceTests: XCTestCase {
     )
     return (response, Data(body.utf8))
   }
+
+  func testGroupContractUsesAuthenticatedRoutesAndFilter() async throws {
+    URLProtocolStub.register { request in
+      XCTAssertEqual(
+        request.value(forHTTPHeaderField: "Authorization"),
+        "Bearer token"
+      )
+      switch request.url?.path {
+      case "/api/subscriptions/groups":
+        if request.httpMethod == "GET" {
+          return try Self.response(
+            request,
+            status: 200,
+            body: Self.groupsJSON
+          )
+        }
+        return try Self.response(
+          request,
+          status: 201,
+          body: Self.groupJSON
+        )
+      case "/api/subscriptions/group-memberships":
+        return try Self.response(request, status: 200, body: "[]")
+      case "/api/subscriptions/feed":
+        let query = URLComponents(
+          url: try XCTUnwrap(request.url),
+          resolvingAgainstBaseURL: false
+        )?.queryItems
+        XCTAssertTrue(
+          query?.contains(
+            URLQueryItem(
+              name: "groupId",
+              value: "11111111-1111-1111-1111-111111111111"
+            )
+          ) == true
+        )
+        return try Self.response(
+          request,
+          status: 200,
+          body: """
+          {"videos":[],"nextpage":null,"generation":1,\
+          "generatedAt":2,"refreshing":false}
+          """
+        )
+      default:
+        XCTFail("Unexpected path: \(request.url?.path ?? "")")
+        return try Self.response(request, status: 500, body: "")
+      }
+    }
+
+    let service = makeService()
+    let groups = try await service.groups()
+    let memberships = try await service.memberships()
+    _ = try await service.createGroup(name: "Kids")
+    let page = try await service.feed(
+      nextPage: nil,
+      filter: .group(
+        id: "11111111-1111-1111-1111-111111111111",
+        name: "Kids"
+      )
+    )
+
+    XCTAssertEqual(groups.first?.name, "Kids")
+    XCTAssertTrue(memberships.isEmpty)
+    XCTAssertNil(page.nextPage)
+  }
+
+  func testGroupManagementUsesServerRoutes() async throws {
+    var requests: [(path: String, method: String, body: Data)] = []
+    URLProtocolStub.register { request in
+      XCTAssertEqual(
+        request.value(forHTTPHeaderField: "Authorization"),
+        "Bearer token"
+      )
+      let entry = (
+        path: request.url?.path ?? "",
+        method: request.httpMethod ?? "",
+        body: (try? URLProtocolStub.bodyData(from: request)) ?? Data()
+      )
+      requests.append(entry)
+      return try Self.response(
+        request,
+        status: request.httpMethod == "POST" ? 201 : 204,
+        body: request.httpMethod == "POST" ? Self.groupJSON : ""
+      )
+    }
+
+    let service = makeService()
+    let groupID = "11111111-1111-1111-1111-111111111111"
+    _ = try await service.createGroup(name: "Music")
+    try await service.renameGroup(id: groupID, name: "Gaming")
+    try await service.addChannels(
+      ["https://youtube.test/channel/one"],
+      toGroup: groupID
+    )
+    try await service.removeChannel(
+      "https://youtube.test/channel/one",
+      fromGroup: groupID
+    )
+    try await service.deleteGroup(id: groupID)
+
+    XCTAssertEqual(requests.map(\.method), [
+      "POST", "PUT", "PUT", "DELETE", "DELETE",
+    ])
+    XCTAssertEqual(requests[1].path, "/api/subscriptions/groups/\(groupID)")
+    XCTAssertEqual(
+      requests[2].path,
+      "/api/subscriptions/groups/\(groupID)/channels"
+    )
+    XCTAssertTrue(
+      requests[3].path == "/api/subscriptions/groups/\(groupID)/channels"
+    )
+    XCTAssertTrue(
+      requests[3].body.isEmpty
+    )
+  }
+
+  private static let groupsJSON = """
+    [
+      {
+        "id": "11111111-1111-1111-1111-111111111111",
+        "name": "Kids",
+        "channelCount": 2,
+        "createdAt": 1,
+        "updatedAt": 2
+      }
+    ]
+    """
+
+  private static let groupJSON = """
+    {
+      "id": "11111111-1111-1111-1111-111111111111",
+      "name": "Kids",
+      "channelCount": 0,
+      "createdAt": 1,
+      "updatedAt": 2
+    }
+    """
 }

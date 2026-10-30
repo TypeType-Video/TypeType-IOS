@@ -15,6 +15,7 @@ extension LivePlayerController {
       queue: .main
     ) { [weak self] _ in
       Task { @MainActor [weak self] in
+        // Let AVPlayer's own end-of-item pause land first: after a loop restart it reads as a stall.
         try? await Task.sleep(for: .milliseconds(100))
         guard let self else { return }
         state = .paused
@@ -33,7 +34,6 @@ extension LivePlayerController {
       options: [.initial, .new]
     ) { [weak self] item, _ in
       Task { @MainActor [weak self] in
-        try? await Task.sleep(for: .milliseconds(100))
         guard let self, player.currentItem === item else { return }
         handleStatus(item, autoplay: autoplay)
       }
@@ -43,10 +43,16 @@ extension LivePlayerController {
       options: [.new]
     ) { [weak self] player, _ in
       Task { @MainActor [weak self] in
-        try? await Task.sleep(for: .milliseconds(100))
         guard let self else { return }
         switch player.timeControlStatus {
         case .paused:
+          // AVPlayer pauses itself after repeated segment failures: a stall, not the user's pause.
+          if providerRecoveryDesiredAutoplay, state == .loading {
+            if sabrStallRecoveryTask == nil {
+              scheduleSABRStallRecovery(for: item)
+            }
+            return
+          }
           sabrStallRecoveryTask?.cancel()
           sabrStallRecoveryTask = nil
           sabrRecoveryBudgetResetTask?.cancel()
@@ -65,6 +71,10 @@ extension LivePlayerController {
         case .playing:
           sabrStallRecoveryTask?.cancel()
           sabrStallRecoveryTask = nil
+          if let total = startupTrace.finish(source: video.url) {
+            lastStartupMilliseconds = total
+            startupWatchdog?.cancel()
+          }
           if state != .playing {
             state = .playing
           }
@@ -87,6 +97,7 @@ extension LivePlayerController {
         state = .loading
       }
     case .readyToPlay:
+      startupTrace.mark("ready")
       let resolvedDuration: TimeInterval
       if preparation?.isSABR == true {
         resolvedDuration = TimeInterval(
@@ -104,7 +115,7 @@ extension LivePlayerController {
       resume(item, autoplay: autoplay)
     case .failed:
       let failure = State.failed(
-        DemoPlaybackErrorFormatter.message(for: item.error)
+        PlaybackErrorFormatter.message(for: item.error)
       )
       if state != failure {
         state = failure
@@ -124,11 +135,12 @@ extension LivePlayerController {
     _ item: AVPlayerItem,
     autoplay: Bool
   ) {
+    guard !isTornDown else { return }
     let target = pendingSeek ?? 0
     pendingSeek = nil
     guard target > 0 else {
       if autoplay {
-        player.playImmediately(atRate: playbackRate)
+        playIfActive()
       } else if state != .ready {
         state = .ready
       }
@@ -140,10 +152,9 @@ extension LivePlayerController {
       toleranceAfter: .zero
     ) { [weak self] _ in
       Task { @MainActor [weak self] in
-        try? await Task.sleep(for: .milliseconds(100))
         guard let self else { return }
         if autoplay {
-          player.playImmediately(atRate: playbackRate)
+          playIfActive()
         } else if state != .ready {
           state = .ready
         }

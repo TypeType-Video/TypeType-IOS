@@ -5,16 +5,39 @@ extension LivePlaybackService {
     videoID: String,
     request: LiveSABRPlaybackRequest
   ) async throws -> LiveSABRPlaybackControl {
-    try await sabrRequest(
+    await prewarms.settle(LiveSABRPrewarms.Key(videoID: videoID, request: request))
+    return try await sabrRequest(
       APIEndpoint(
         path: "/sabr/playback/\(videoID)",
         method: .post,
+        headers: Self.playbackTraceHeader(videoID: videoID, request: request),
         body: try APIEndpoint.jsonBody(request),
         requiresAuth: true,
         timeoutInterval: 150
       ),
       as: LiveSABRPlaybackControl.self
     )
+  }
+
+  func prewarmSABRPlayback(
+    videoID: String,
+    request: LiveSABRPlaybackRequest
+  ) async {
+    guard let body = try? APIEndpoint.jsonBody(request) else { return }
+    let endpoint = APIEndpoint(
+      path: "/sabr/playback/\(videoID)",
+      method: .post,
+      queryItems: [URLQueryItem(name: "prewarm", value: "true")],
+      headers: Self.playbackTraceHeader(videoID: videoID, request: request),
+      body: body,
+      requiresAuth: true,
+      timeoutInterval: 30,
+      retriesTransientFailures: false
+    )
+    let key = LiveSABRPrewarms.Key(videoID: videoID, request: request)
+    await prewarms.prewarm(key) { [apiClient] in
+      _ = try? await apiClient.requestData(endpoint)
+    }
   }
 
   func seekSABRPlayback(
@@ -130,5 +153,10 @@ extension LivePlaybackService {
       throw LivePlaybackFailure.invalidServerResource
     }
     return authenticatedAssetURL(for: url)
+  }
+
+  static func playbackTraceHeader(videoID: String, request: LiveSABRPlaybackRequest) -> [String: String] {
+    let safeID = videoID.filter { ($0.isASCII && ($0.isLetter || $0.isNumber)) || "._-".contains($0) }
+    return ["X-Playback-Trace-ID": "ios.\(safeID).\(request.startTimeMS)"]
   }
 }

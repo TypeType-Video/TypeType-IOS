@@ -4,6 +4,7 @@ struct LivePlaylistVideoRow: View {
   let video: LivePlaylistVideo
   let dependencies: AppDependencies
   @ObservedObject private var deArrowStore: LiveDeArrowStore
+  @EnvironmentObject private var watchProgress: LiveWatchProgressStore
   let onOpen: () -> Void
   let onChannel: () -> Void
   let onRemove: () -> Void
@@ -30,6 +31,9 @@ struct LivePlaylistVideoRow: View {
           .aspectRatio(16 / 9, contentMode: .fill)
           .frame(width: 128, height: 72)
           .clipped()
+          .liveThumbnailProgress(
+            watchProgress.fraction(forVideoID: video.url)
+          )
           .clipShape(
             RoundedRectangle(cornerRadius: 9, style: .continuous)
           )

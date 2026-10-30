@@ -1,10 +1,13 @@
 import Foundation
 
 extension URLSessionAPIClient {
-  func execute(_ request: URLRequest) async throws -> Data {
+  func execute(_ request: URLRequest, media: Bool = false) async throws -> Data {
     let startedAt = DispatchTime.now().uptimeNanoseconds
     do {
-      let (data, response) = try await session.data(for: request)
+      try DebugNetworkOutage.check()
+      let (data, response) = media
+        ? try await mediaSession.data(for: request, delegate: mediaTaskPriority)
+        : try await session.data(for: request)
       guard let http = response as? HTTPURLResponse else {
         await recordDiagnostic(
           request,
@@ -20,6 +23,7 @@ extension URLSessionAPIClient {
         requestID: http.value(forHTTPHeaderField: "X-Request-Id"),
         startedAt: startedAt
       )
+      captureRefreshCookie(from: http)
       guard (200...299).contains(http.statusCode) else {
         throw NetworkError.statusCode(
           http.statusCode,
@@ -30,6 +34,9 @@ extension URLSessionAPIClient {
     } catch let error as NetworkError {
       throw error
     } catch is CancellationError {
+      throw CancellationError()
+    } catch let error as URLError where error.code == .cancelled {
+      // A cancelled task is not a network failure: no retry, no fallback, no diagnostic.
       throw CancellationError()
     } catch {
       await recordDiagnostic(
@@ -78,6 +85,8 @@ extension URLSessionAPIClient {
       throw error
     } catch is CancellationError {
       throw CancellationError()
+    } catch let error as URLError where error.code == .cancelled {
+      throw CancellationError()
     } catch {
       await recordDiagnostic(
         request,
@@ -94,7 +103,9 @@ extension URLSessionAPIClient {
   ) async throws -> URL {
     let startedAt = DispatchTime.now().uptimeNanoseconds
     do {
-      let (fileURL, response) = try await session.download(for: request)
+      let (fileURL, response) = try await downloadSession.download(
+        for: request
+      )
       guard let http = response as? HTTPURLResponse else {
         await recordDiagnostic(
           request,
@@ -122,6 +133,8 @@ extension URLSessionAPIClient {
       throw error
     } catch is CancellationError {
       throw CancellationError()
+    } catch let error as URLError where error.code == .cancelled {
+      throw CancellationError()
     } catch {
       await recordDiagnostic(
         request,
@@ -131,5 +144,36 @@ extension URLSessionAPIClient {
       )
       throw NetworkError.transport
     }
+  }
+}
+
+extension URLSessionAPIClient {
+  // No 120 s resource timeout here: it cuts large artifacts mid-transfer. `configuration` returns a copy.
+  static func makeDownloadSession(like session: URLSession) -> URLSession {
+    let configuration = session.configuration
+    configuration.timeoutIntervalForRequest = 600
+    configuration.timeoutIntervalForResource = 7_200
+    configuration.waitsForConnectivity = true
+    return URLSession(
+      configuration: configuration,
+      delegate: DownloadRedirectCleaner(),
+      delegateQueue: nil
+    )
+  }
+}
+
+// Artifacts redirect to presigned URLs on the same host: drop the API credentials, signed URLs reject them.
+final class DownloadRedirectCleaner: NSObject, URLSessionTaskDelegate {
+  func urlSession(
+    _ session: URLSession,
+    task: URLSessionTask,
+    willPerformHTTPRedirection response: HTTPURLResponse,
+    newRequest request: URLRequest,
+    completionHandler: @escaping (URLRequest?) -> Void
+  ) {
+    var clean = request
+    clean.setValue(nil, forHTTPHeaderField: "Authorization")
+    clean.setValue(nil, forHTTPHeaderField: "Cookie")
+    completionHandler(clean)
   }
 }

@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct LivePlaybackQueueRow: View {
+  @Environment(\.themePalette) private var palette
   let video: LiveVideoItem
   let isCurrent: Bool
   let onPlay: () -> Void
@@ -20,30 +21,32 @@ struct LivePlaybackQueueRow: View {
       .disabled(isCurrent)
 
       if !isCurrent {
-        Menu {
+        LiveDotMenu {
           Button("Play next", systemImage: "text.insert") {
             onPlayNext()
           }
           Button("Remove", systemImage: "trash", role: .destructive) {
             onRemove()
           }
-        } label: {
-          Image(systemName: "ellipsis")
-            .frame(width: 34, height: 40)
         }
         .accessibilityLabel("Queue options")
       }
     }
     .listRowBackground(
-      isCurrent ? DemoTheme.accent.opacity(0.1) : Color.clear
+      isCurrent ? palette.accent.opacity(0.1) : Color.clear
     )
   }
+
+  @EnvironmentObject private var watchProgress: LiveWatchProgressStore
 
   private var thumbnail: some View {
     LiveRemoteImage(url: video.thumbnail)
       .frame(width: 96, height: 54)
       .aspectRatio(16 / 9, contentMode: .fill)
       .clipped()
+      .liveThumbnailProgress(
+        watchProgress.fraction(forVideoID: video.canonicalID)
+      )
       .clipShape(
         RoundedRectangle(cornerRadius: 8, style: .continuous)
       )
@@ -53,7 +56,7 @@ struct LivePlaybackQueueRow: View {
             .font(.caption.weight(.bold))
             .foregroundStyle(.white)
             .padding(7)
-            .background(DemoTheme.accent, in: Circle())
+            .background(palette.accent, in: Circle())
         }
       }
   }

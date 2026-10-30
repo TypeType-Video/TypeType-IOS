@@ -20,7 +20,7 @@ extension DemoSearchPlaylistDetailView {
             "No videos yet",
             systemImage: "rectangle.stack.badge.plus",
             description: Text("Save a video from its action menu to fill this playlist.")
-          )
+          ).liveThemedEmptyState()
           .frame(maxWidth: .infinity)
           .padding(.top, 34)
         } else {
@@ -31,7 +31,7 @@ extension DemoSearchPlaylistDetailView {
       .padding(.top, 14)
       .padding(.bottom, 36)
     }
-    .background(DemoTheme.background)
+    .background(palette.background)
   }
 
   private var playlistSortBar: some View {
@@ -79,7 +79,7 @@ extension DemoSearchPlaylistDetailView {
         }
       }
 
-      DemoIncrementalLoadingTrigger(
+      LiveIncrementalLoadingTrigger(
         canLoadMore: visibleVideoCount < sortedVideos.count,
         isLoading: isLoadingMore,
         label: "Loading more playlist videos",

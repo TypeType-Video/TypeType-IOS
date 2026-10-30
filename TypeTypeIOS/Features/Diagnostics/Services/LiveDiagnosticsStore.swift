@@ -76,6 +76,12 @@ actor LiveDiagnosticsStore {
     try? fileManager.removeItem(at: fileURL(for: scope))
   }
 
+  func flush() async {
+    for task in persistenceTasks.values {
+      await task.value
+    }
+  }
+
   nonisolated static func resetPersistentState(
     fileManager: FileManager = .default
   ) {

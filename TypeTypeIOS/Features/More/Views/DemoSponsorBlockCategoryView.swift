@@ -17,14 +17,14 @@ struct DemoSponsorBlockCategoryView: View {
         }
       }
 
-      Section("Action") {
+      Section {
         Picker("Action", selection: action) {
           Text("Skip").tag("Skip")
           Text("Mark").tag("Mark")
           Text("Hide").tag("Hide")
         }
         .pickerStyle(.inline)
-      }
+      } header: { Text("Action").liveSectionHeader() }
     }
     .navigationTitle(category.title)
     .navigationBarTitleDisplayMode(.inline)

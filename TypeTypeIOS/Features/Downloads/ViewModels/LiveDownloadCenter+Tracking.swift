@@ -13,16 +13,28 @@ extension LiveDownloadCenter {
           break
         }
         do {
-          let exponent = min(failureCount, 4)
-          let delay = 1_500 * (1 << exponent)
-          try await Task.sleep(for: .milliseconds(delay))
+          let attempt = failureCount + 1
+          guard let delay = self.retryPolicy.delayBeforeAttempt(attempt) else {
+            break
+          }
+          try await Task.sleep(for: delay)
           try await self.refreshRecord(id)
           failureCount = 0
         } catch is CancellationError {
           break
         } catch {
           failureCount += 1
-          if Self.isTransientNetworkFailure(error) {
+          let isTransient = Self.isTransientNetworkFailure(error)
+          if !isTransient
+            || failureCount >= self.retryPolicy.maxAttempts {
+            self.markFailedAfterRetries(
+              id: id,
+              error: error,
+              transient: isTransient
+            )
+            break
+          }
+          if isTransient {
             self.markWaitingForNetwork(id: id)
           }
           AppLogger.network.error(
@@ -84,5 +96,22 @@ extension LiveDownloadCenter {
   static func message(for error: Error) -> String {
     (error as? LocalizedError)?.errorDescription
       ?? error.localizedDescription
+  }
+
+  private func markFailedAfterRetries(
+    id: String,
+    error: Error,
+    transient: Bool
+  ) {
+    guard var record = record(id: id), record.state.isActive else {
+      return
+    }
+    record.state = .failed
+    record.failureMessage = transient
+      ? "Download paused after \(retryPolicy.maxAttempts) attempts. "
+        + "The network is unavailable; try again later."
+      : "Download failed. " + Self.message(for: error)
+    record.updatedAt = Date()
+    replace(record)
   }
 }

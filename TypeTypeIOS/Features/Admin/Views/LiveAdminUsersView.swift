@@ -40,8 +40,7 @@ struct LiveAdminUsersView: View {
   private var content: some View {
     switch viewModel.state {
     case .idle, .loading:
-      ProgressView("Loading users")
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+      TypeTypeSkeletonList(layout: .settings, count: 8)
     case let .failed(message):
       ContentUnavailableView {
         Label("Users unavailable", systemImage: "person.3")
@@ -54,7 +53,7 @@ struct LiveAdminUsersView: View {
       }
     case .loaded:
       List {
-        Section("\(viewModel.total) users") {
+        Section {
           ForEach(viewModel.users) { user in
             Button {
               selectedUser = user
@@ -63,7 +62,7 @@ struct LiveAdminUsersView: View {
             }
             .buttonStyle(.plain)
           }
-          DemoIncrementalLoadingTrigger(
+          LiveIncrementalLoadingTrigger(
             canLoadMore: viewModel.canLoadMore,
             isLoading: viewModel.isLoadingMore,
             label: "Loading more users",
@@ -71,8 +70,9 @@ struct LiveAdminUsersView: View {
           ) {
             Task { await viewModel.loadMore() }
           }
-        }
+        } header: { Text("\(viewModel.total) users").liveSectionHeader() }
       }
+        .liveGroupedList()
       .listStyle(.plain)
       .refreshable { await viewModel.reload() }
     }

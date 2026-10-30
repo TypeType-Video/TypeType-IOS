@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct DemoSearchPlaylistRow: View {
+  @Environment(\.themePalette) private var palette
   @EnvironmentObject private var session: DemoSessionStore
   let playlist: DemoPlaylist
   let onSelect: () -> Void
@@ -88,10 +89,10 @@ struct DemoSearchPlaylistRow: View {
   }
 
   private var cardSurface: Color {
-    DemoTheme.surface
+    palette.surface
   }
 
   private var actionSurface: Color {
-    DemoTheme.elevatedSurface
+    palette.elevatedSurface
   }
 }

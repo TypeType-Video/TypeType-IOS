@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct DemoSubscriptionsView: View {
+  @Environment(\.themePalette) private var palette
   enum Section: Hashable {
     case videos
     case channels
@@ -39,12 +40,12 @@ struct DemoSubscriptionsView: View {
         }
         .defaultScrollAnchor(.top)
       }
-      .background(DemoTheme.background)
+      .background(palette.background)
       .navigationTitle("Subscriptions")
       .navigationBarTitleDisplayMode(.inline)
       .toolbarBackground(.visible, for: .navigationBar)
       .toolbarBackground(
-        DemoTheme.background.opacity(0.96),
+        palette.background.opacity(0.96),
         for: .navigationBar
       )
       .navigationDestination(item: $selectedVideo) { video in
@@ -67,7 +68,7 @@ struct DemoSubscriptionsView: View {
             "No followed videos",
             systemImage: "bell.slash",
             description: Text("Follow a channel to rebuild this local feed.")
-          )
+          ).liveThemedEmptyState()
           .frame(maxWidth: .infinity)
           .padding(.top, 70)
         } else {
@@ -78,7 +79,7 @@ struct DemoSubscriptionsView: View {
               }
             }
 
-            DemoIncrementalLoadingTrigger(
+            LiveIncrementalLoadingTrigger(
               canLoadMore: visibleVideoCount < followedVideos.count,
               isLoading: isLoadingMore,
               label: "Loading more subscriptions",
