@@ -3,189 +3,113 @@ import SwiftUI
 struct LiveSearchFilterBar: View {
   @Environment(\.themePalette) private var palette
   @ObservedObject var viewModel: LiveSearchViewModel
-  @State private var presentsService = false
-  @State private var presentsContent = false
-  @State private var presentsSort = false
+  let showsResultFilters: Bool
 
   var body: some View {
     ScrollView(.horizontal) {
-      HStack(spacing: 10) {
-        serviceMenu
-        if !viewModel.visibleContentFilters.isEmpty {
+      HStack(spacing: 8) {
+        if viewModel.services.count > 1 {
+          serviceMenu
+        }
+        if showsResultFilters, !viewModel.visibleContentFilters.isEmpty {
           contentMenu
         }
-        if !viewModel.filters.sortFilters.isEmpty {
+        if showsResultFilters, !viewModel.filters.sortFilters.isEmpty {
           sortMenu
         }
       }
+      .padding(.horizontal, 16)
+      .padding(.vertical, 8)
     }
     .scrollIndicators(.hidden)
     .accessibilityIdentifier("live.search.filters")
   }
 
-  // Popovers, not Menu: the iOS 26 glass menu crashes on item taps (`setEffect:`).
   private var serviceMenu: some View {
-    Button {
-      presentsService = true
-    } label: {
-      filterLabel(
-        Text(verbatim: selectedService.name),
-        systemImage: selectedService.systemImage
-      )
-    }
-    .buttonStyle(.plain)
-    .popover(
-      isPresented: $presentsService,
-      attachmentAnchor: .point(.init(x: 0.5, y: 1.0)),
-      arrowEdge: .top
-    ) {
-      optionList(
-        viewModel.services.map {
-          (label: $0.name, selected: $0.id == viewModel.selectedServiceID)
+    Menu {
+      Picker("Service", selection: Binding(
+        get: { viewModel.selectedServiceID },
+        set: { id in Task { await viewModel.selectService(id) } }
+      )) {
+        ForEach(viewModel.services) { service in
+          Label { Text(verbatim: service.name) } icon: { Image(systemName: service.systemImage) }
+            .tag(service.id)
         }
-      ) { index in
-        presentsService = false
-        let service = viewModel.services[index]
-        Task { await viewModel.selectService(service.id) }
       }
+      .pickerStyle(.inline)
+    } label: {
+      chip(Text(verbatim: selectedService?.name ?? ""), systemImage: selectedService?.systemImage ?? "globe")
     }
+    .accessibilityLabel(Text("Service"))
+    .accessibilityValue(Text(verbatim: selectedService?.name ?? ""))
     .accessibilityIdentifier("live.search.service")
   }
 
   private var contentMenu: some View {
-    Button {
-      presentsContent = true
-    } label: {
-      filterLabel(contentTitle, systemImage: "line.3.horizontal.decrease")
-    }
-    .buttonStyle(.plain)
-    .popover(
-      isPresented: $presentsContent,
-      attachmentAnchor: .point(.init(x: 0.5, y: 1.0)),
-      arrowEdge: .top
-    ) {
-      optionList(
-        [(label: "All content", selected: viewModel.selectedContentFilter == nil)]
-          + viewModel.visibleContentFilters.map {
-            (
-              label: $0.displayName,
-              selected: $0.value == viewModel.selectedContentFilter
-            )
-          }
-      ) { index in
-        presentsContent = false
-        let value = index == 0
-          ? nil
-          : viewModel.visibleContentFilters[index - 1].value
-        Task { await viewModel.selectContentFilter(value) }
+    Menu {
+      Picker("Content", selection: Binding(
+        get: { viewModel.selectedContentFilter },
+        set: { value in Task { await viewModel.selectContentFilter(value) } }
+      )) {
+        Text("All content").tag(String?.none)
+        ForEach(viewModel.visibleContentFilters, id: \.value) { filter in
+          Text(verbatim: filter.displayName).tag(Optional(filter.value))
+        }
       }
+      .pickerStyle(.inline)
+    } label: {
+      chip(contentTitle, systemImage: "line.3.horizontal.decrease", isActive: viewModel.selectedContentFilter != nil)
     }
+    .accessibilityLabel(Text("Content"))
     .accessibilityIdentifier("live.search.content-filter")
   }
 
   private var sortMenu: some View {
-    Button {
-      presentsSort = true
-    } label: {
-      filterLabel(sortTitle, systemImage: "arrow.up.arrow.down")
-    }
-    .buttonStyle(.plain)
-    .popover(
-      isPresented: $presentsSort,
-      attachmentAnchor: .point(.init(x: 0.5, y: 1.0)),
-      arrowEdge: .top
-    ) {
-      optionList(
-        [(label: "Default order", selected: viewModel.selectedSortFilter == nil)]
-          + viewModel.filters.sortFilters.map {
-            (
-              label: $0.displayName,
-              selected: $0.value == viewModel.selectedSortFilter
-            )
-          }
-      ) { index in
-        presentsSort = false
-        let value: String? = index == 0 ? nil : viewModel.filters.sortFilters[index - 1].value
-        Task { await viewModel.selectSortFilter(value) }
+    Menu {
+      Picker("Order", selection: Binding(
+        get: { viewModel.selectedSortFilter },
+        set: { value in Task { await viewModel.selectSortFilter(value) } }
+      )) {
+        Text("Default order").tag(String?.none)
+        ForEach(viewModel.filters.sortFilters, id: \.value) { filter in
+          Text(verbatim: filter.displayName).tag(Optional(filter.value))
+        }
       }
+      .pickerStyle(.inline)
+    } label: {
+      chip(sortTitle, systemImage: "arrow.up.arrow.down", isActive: viewModel.selectedSortFilter != nil)
     }
+    .accessibilityLabel(Text("Order"))
     .accessibilityIdentifier("live.search.sort-filter")
   }
 
-  private func optionList(
-    _ options: [(label: String, selected: Bool)],
-    onSelect: @escaping (Int) -> Void
-  ) -> some View {
-    ScrollView {
-      VStack(alignment: .leading, spacing: 0) {
-        ForEach(Array(options.enumerated()), id: \.offset) { index, option in
-          Button {
-            onSelect(index)
-          } label: {
-            HStack(spacing: 12) {
-              Text(verbatim: option.label)
-                .foregroundStyle(.primary)
-                .lineLimit(2)
-              Spacer(minLength: 12)
-              if option.selected {
-                Image(systemName: "checkmark")
-                  .foregroundStyle(palette.accent)
-              }
-            }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 8)
-            .frame(minHeight: 44)
-            .contentShape(Rectangle())
-          }
-          .buttonStyle(.plain)
-          if index < options.count - 1 {
-            Rectangle()
-              .fill(palette.separator)
-              .frame(height: 1)
-              .padding(.horizontal, 16)
-          }
-        }
-      }
-      .frame(width: 280)
-    }
-    .frame(maxHeight: 440)
-    .presentationCompactAdaptation(.popover)
-  }
-
-  private func filterLabel(
-    _ title: Text,
-    systemImage: String
-  ) -> some View {
-    Label {
-      title
-    } icon: {
+  private func chip(_ title: Text, systemImage: String, isActive: Bool = false) -> some View {
+    HStack(spacing: 5) {
       Image(systemName: systemImage)
+      title
+      Image(systemName: "chevron.down")
+        .font(.caption2.weight(.bold))
     }
-      .font(.caption.weight(.semibold))
-      .padding(.horizontal, 11)
-      .padding(.vertical, 8)
-      .background(palette.surface, in: Capsule())
+    .font(.subheadline.weight(.medium))
+    .foregroundStyle(isActive ? palette.accent : .primary)
+    .padding(.horizontal, 12)
+    .frame(height: 34)
+    .background(isActive ? palette.accent.opacity(0.15) : palette.surface, in: Capsule())
   }
 
-  private var selectedService: VideoService {
-    viewModel.services.first {
-      $0.id == viewModel.selectedServiceID
-    } ?? viewModel.services[0]
+  private var selectedService: VideoService? {
+    viewModel.services.first { $0.id == viewModel.selectedServiceID } ?? viewModel.services.first
   }
 
   private var contentTitle: Text {
-    if let selected = viewModel.visibleContentFilters.first(where: {
-      $0.value == viewModel.selectedContentFilter
-    }) {
+    if let selected = viewModel.visibleContentFilters.first(where: { $0.value == viewModel.selectedContentFilter }) {
       return Text(verbatim: selected.displayName)
     }
     return Text("All content")
   }
 
   private var sortTitle: Text {
-    if let selected = viewModel.filters.sortFilters.first(where: {
-      $0.value == viewModel.selectedSortFilter
-    }) {
+    if let selected = viewModel.filters.sortFilters.first(where: { $0.value == viewModel.selectedSortFilter }) {
       return Text(verbatim: selected.displayName)
     }
     return Text("Default order")
