@@ -7,135 +7,77 @@ extension LiveDownloadSheet {
     case .idle:
       EmptyView()
     case .creating:
-      Section {
+      LiveSection {
         HStack(spacing: 12) {
           ProgressView()
-          Text("Creating download job")
+          Text("Starting the download")
         }
       }
     case .tracking:
-      trackingStatus
+      LiveSection {
+        progressBlock
+        Button("Cancel download", systemImage: "xmark", role: .destructive) {
+          Task { await viewModel.cancel() }
+        }
+        .disabled(viewModel.isCancelling || viewModel.isFinishing)
+      }
     case .done:
-      readyStatus
-    case let .failed(message):
-      failedStatus(message)
-    }
-  }
-
-  private var trackingStatus: some View {
-    Section {
-      VStack(alignment: .leading, spacing: 10) {
-        if viewModel.isFinishing {
-          HStack(spacing: 12) {
-            ProgressView()
-            Text("Saving on this device")
+      LiveSection {
+        Label("Available offline", systemImage: "checkmark.circle.fill")
+          .foregroundStyle(.green)
+          .font(.headline)
+        if let artifactURL = viewModel.artifactURL {
+          ShareLink(item: artifactURL) {
+            Label("Share the file", systemImage: "square.and.arrow.up")
           }
-          if let transferDetail {
-            Text(transferDetail)
-              .font(.caption)
-              .foregroundStyle(.secondary)
-          }
-        } else {
-          HStack {
-            Text(stageTitle)
-            Spacer()
-            if let percent = viewModel.job?.progressPercent {
-              Text("\(percent)%")
-                .monospacedDigit()
-                .foregroundStyle(.secondary)
-            }
-          }
-          if let progress = viewModel.progress {
-            ProgressView(value: progress)
-              .tint(palette.accent)
-          } else {
-            ProgressView()
-          }
-          if let transferDetail {
-            Text(transferDetail)
-              .font(.caption)
-              .foregroundStyle(.secondary)
-          }
-          Button("Cancel", role: .destructive) {
-            Task { await viewModel.cancel() }
-          }
-          .disabled(viewModel.isCancelling)
         }
-      }
-    } header: { Text("Progress").liveSectionHeader() }
-  }
-
-  private var readyStatus: some View {
-    Section {
-      Label(
-        viewModel.job?.resolved?.fileName ?? "Download completed",
-        systemImage: "checkmark.circle.fill"
-      )
-      .foregroundStyle(.green)
-      if let artifactURL = viewModel.artifactURL {
-        ShareLink(item: artifactURL) {
-          Label("Open or save file", systemImage: "square.and.arrow.up")
-        }
-      }
-      Button("Clear job", role: .destructive) {
-        Task { await viewModel.clear() }
-      }
-      .disabled(viewModel.isClearing)
-    } header: { Text("Ready").liveSectionHeader() }
-  }
-
-  private func failedStatus(_ message: String) -> some View {
-    Section {
-      Label(message, systemImage: "exclamationmark.triangle.fill")
-        .foregroundStyle(.red)
-      if viewModel.job != nil {
-        Button("Retry", systemImage: "arrow.clockwise") {
-          Task { await viewModel.start() }
-        }
-        .disabled(!viewModel.canStart)
-        Button("Clear job", role: .destructive) {
+        Button("Delete download", systemImage: "trash", role: .destructive) {
           Task { await viewModel.clear() }
         }
         .disabled(viewModel.isClearing)
+      } footer: {
+        Text("Find it any time in Library, Downloads.").liveSettingsFooter()
       }
-    } header: { Text("Download failed").liveSectionHeader() }
+    case let .failed(message):
+      LiveSection {
+        Label(message, systemImage: "exclamationmark.triangle.fill")
+          .foregroundStyle(.red)
+        if viewModel.job != nil {
+          Button("Delete download", systemImage: "trash", role: .destructive) {
+            Task { await viewModel.clear() }
+          }
+          .disabled(viewModel.isClearing)
+        }
+      }
+    }
+  }
+
+  private var progressBlock: some View {
+    VStack(alignment: .leading, spacing: 8) {
+      Text(stageTitle)
+        .font(.headline)
+      if let progress = viewModel.progress, !viewModel.isFinishing {
+        ProgressView(value: progress).tint(palette.accent)
+      } else {
+        ProgressView().frame(maxWidth: .infinity, alignment: .leading)
+      }
+      if let job = viewModel.job, let detail = LiveDownloadTexts.transfer(job) {
+        Text(detail)
+          .font(.caption.monospacedDigit())
+          .foregroundStyle(.secondary)
+      }
+    }
+    .padding(.vertical, 4)
+    .accessibilityElement(children: .combine)
   }
 
   private var stageTitle: String {
+    if viewModel.isFinishing { return LiveManagedDownloadState.saving.title }
     switch viewModel.job?.stage {
-    case "extract": return "Preparing media"
-    case "download": return "Downloading"
-    case "mux": return "Finalizing"
-    case "queued": return "Waiting in queue"
-    default:
-      return viewModel.job?.status.capitalized ?? "Working"
+    case "extract": return LiveManagedDownloadState.preparing.title
+    case "mux": return LiveManagedDownloadState.finalizing.title
+    case "queued": return LiveManagedDownloadState.queued.title
+    default: return LiveManagedDownloadState.downloading.title
     }
-  }
-
-  private var transferDetail: String? {
-    guard let job = viewModel.job else { return nil }
-    var values: [String] = []
-    if let downloaded = job.downloadedBytes {
-      let downloadedText = ByteCountFormatter.string(
-        fromByteCount: downloaded,
-        countStyle: .file
-      )
-      if let total = job.totalBytes {
-        values.append(
-          "\(downloadedText) of \(ByteCountFormatter.string(fromByteCount: total, countStyle: .file))"
-        )
-      } else {
-        values.append(downloadedText)
-      }
-    }
-    if let speed = job.speedBytesPerSecond {
-      values.append(
-        "\(ByteCountFormatter.string(fromByteCount: speed, countStyle: .file))/s"
-      )
-    }
-    if let eta = job.etaSeconds {
-      values.append("\(eta)s remaining")
-    }
-    return values.isEmpty ? nil : values.joined(separator: " · ")
   }
 }

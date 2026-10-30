@@ -736,3 +736,13 @@
 "Ready offline" = "Disponible hors ligne";
 "Download failed" = "Échec du téléchargement";
 "Cancelled" = "Annulé";
+"Download again" = "Télécharger à nouveau";
+"Format" = "Format";
+"Best audio quality" = "Meilleure qualité audio";
+"Skip sponsors" = "Passer les sponsors";
+"Cuts SponsorBlock segments out of the file." = "Retire du fichier les segments signalés par SponsorBlock.";
+"Image" = "Image";
+"Starting the download" = "Démarrage du téléchargement";
+"Share the file" = "Partager le fichier";
+"Delete download" = "Supprimer le téléchargement";
+"Find it any time in Library, Downloads." = "Retrouvez-le à tout moment dans Bibliothèque, Téléchargements.";

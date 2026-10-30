@@ -736,3 +736,13 @@
 "Ready offline" = "Ready offline";
 "Download failed" = "Download failed";
 "Cancelled" = "Cancelled";
+"Download again" = "Download again";
+"Format" = "Format";
+"Best audio quality" = "Best audio quality";
+"Skip sponsors" = "Skip sponsors";
+"Cuts SponsorBlock segments out of the file." = "Cuts SponsorBlock segments out of the file.";
+"Image" = "Image";
+"Starting the download" = "Starting the download";
+"Share the file" = "Share the file";
+"Delete download" = "Delete download";
+"Find it any time in Library, Downloads." = "Find it any time in Library, Downloads.";

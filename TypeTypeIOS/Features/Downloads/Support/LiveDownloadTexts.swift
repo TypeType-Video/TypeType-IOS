@@ -24,18 +24,22 @@ enum LiveDownloadTexts {
 
   static func transfer(_ record: LiveManagedDownload) -> String {
     guard record.state == .downloading else { return record.state.title }
+    return transfer(record.job) ?? record.state.title
+  }
+
+  static func transfer(_ job: LiveDownloadJob) -> String? {
     var parts: [String] = []
-    if let percent = record.job.progressPercent {
+    if let percent = job.progressPercent {
       parts.append(Double(percent).formatted(.number) + " %")
     }
-    if let speed = record.job.speedBytesPerSecond, speed > 0 {
+    if let speed = job.speedBytesPerSecond, speed > 0 {
       parts.append(String(localized: "\(size(speed))/s"))
     }
-    if let eta = record.job.etaSeconds, eta > 0 {
+    if let eta = job.etaSeconds, eta > 0 {
       let left = Duration.seconds(eta).formatted(.units(allowed: [.hours, .minutes, .seconds], width: .abbreviated, maximumUnitCount: 1))
       parts.append(String(localized: "\(left) left"))
     }
-    return parts.isEmpty ? record.state.title : parts.joined(separator: " · ")
+    return parts.isEmpty ? nil : parts.joined(separator: " · ")
   }
 
   static func mode(_ raw: String) -> String {
