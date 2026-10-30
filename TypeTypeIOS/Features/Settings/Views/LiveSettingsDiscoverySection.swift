@@ -20,7 +20,12 @@ struct LiveSettingsDiscoverySection: View {
         help: "The page TypeType opens on after sign-in."
       )
       if services.count > 1 {
-        LiveSettingsServicePicker(selection: $settings.defaultService, services: services)
+        LiveOptionMenu(
+          "Default service",
+          selection: $settings.defaultService,
+          options: services.map { ($0.id, $0.name) },
+          help: "Where Home, Search and links open first."
+        )
       }
     } header: {
       Text("Opening").liveSettingsHeader()

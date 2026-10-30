@@ -680,3 +680,7 @@
 "Blocked channels" = "Blocked channels";
 "Blocked videos" = "Blocked videos";
 "Allowed channels" = "Allowed channels";
+"Their videos never show up" = "Their videos never show up";
+"Hidden everywhere in the app" = "Hidden everywhere in the app";
+"Videos whose title contains them are hidden" = "Videos whose title contains them are hidden";
+"Channels kept even when others are limited" = "Channels kept even when others are limited";

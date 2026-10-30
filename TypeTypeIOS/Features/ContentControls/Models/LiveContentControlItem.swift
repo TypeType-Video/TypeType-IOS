@@ -75,6 +75,24 @@ enum LiveContentControlKind: String, CaseIterable, Identifiable {
     }
   }
 
+  var icon: String {
+    switch self {
+    case .blockedChannels: "person.crop.circle.badge.xmark"
+    case .blockedVideos: "play.slash"
+    case .blockedKeywords: "textformat"
+    case .allowedChannels: "checkmark.shield"
+    }
+  }
+
+  var summary: String {
+    switch self {
+    case .blockedChannels: "Their videos never show up"
+    case .blockedVideos: "Hidden everywhere in the app"
+    case .blockedKeywords: "Videos whose title contains them are hidden"
+    case .allowedChannels: "Channels kept even when others are limited"
+    }
+  }
+
   var addTitle: String {
     switch self {
     case .blockedChannels: String(localized: "Block a channel")
@@ -91,5 +109,15 @@ enum LiveContentControlKind: String, CaseIterable, Identifiable {
     case .blockedKeywords: String(localized: "No blocked keywords")
     case .allowedChannels: String(localized: "No allowed channels")
     }
+  }
+}
+
+extension LiveContentControlItem {
+  var serviceName: String {
+    let host = URL(string: url)?.host()?.lowercased() ?? ""
+    if host.contains("youtube") || host.contains("youtu.be") { return "YouTube" }
+    if host.contains("nicovideo") || host.contains("nico.ms") { return "NicoNico" }
+    if host.contains("bilibili") || host.contains("b23.tv") { return "BiliBili" }
+    return host.isEmpty ? url : host
   }
 }

@@ -58,13 +58,15 @@ struct LiveSettingsAccountsView: View {
             Task { await coordinator.selectServer(server) }
           } label: {
             HStack {
-              VStack(alignment: .leading, spacing: 3) {
+              VStack(alignment: .leading, spacing: 4) {
                 Text(server.name)
+                  .font(.title3.weight(.semibold))
                   .foregroundStyle(.primary)
-                Text(server.baseURLString)
-                  .font(.caption)
+                Text(server.baseURL?.host() ?? server.baseURLString)
+                  .font(.body)
                   .foregroundStyle(.secondary)
               }
+              .padding(.vertical, 4)
               Spacer()
               if coordinator.selectedServer?.id == server.id {
                 Image(systemName: "checkmark")
