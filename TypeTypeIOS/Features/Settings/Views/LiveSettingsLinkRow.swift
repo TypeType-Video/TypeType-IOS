@@ -43,7 +43,7 @@ struct LiveSettingsLinkRow<Destination: View>: View {
     } label: {
       HStack(spacing: 14) {
         LiveSettingsIconTile(icon: icon, color: iconColor)
-        Text(title)
+        Text(LocalizedStringKey(title))
           .foregroundStyle(.primary)
         Spacer(minLength: 0)
         if let value {

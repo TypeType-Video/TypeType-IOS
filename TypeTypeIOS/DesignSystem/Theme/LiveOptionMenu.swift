@@ -1,6 +1,5 @@
 import SwiftUI
 
-/// Selection popover in the theme's surface colour: system menus are Liquid Glass and cannot take it.
 struct LiveOptionMenu<Option: Hashable>: View {
   let title: String
   @Binding var selection: Option
@@ -23,14 +22,12 @@ struct LiveOptionMenu<Option: Hashable>: View {
       isPresented = true
     } label: {
       HStack(spacing: 12) {
-        Text(title)
+        Text(localized(title))
           .foregroundStyle(palette.textPrimary)
         Spacer(minLength: 12)
-        Text(currentLabel)
+        Text(localized(currentLabel))
           .foregroundStyle(palette.textSecondary)
           .lineLimit(1)
-          // Anchored on the VALUE text so the menu drops where the selected
-          // value sits (like the system pickers), not at the row centre.
           .popover(
             isPresented: $isPresented,
             attachmentAnchor: .rect(.bounds),
@@ -43,7 +40,7 @@ struct LiveOptionMenu<Option: Hashable>: View {
                   isPresented = false
                 } label: {
                   HStack(spacing: 12) {
-                    Text(options[index].label)
+                    Text(localized(options[index].label))
                       .foregroundStyle(palette.textPrimary)
                     Spacer(minLength: 12)
                     if options[index].value == selection {
@@ -74,6 +71,10 @@ struct LiveOptionMenu<Option: Hashable>: View {
     }
     .buttonStyle(.plain)
     .liveRowFill()
+  }
+
+  private func localized(_ key: String) -> String {
+    Bundle.main.localizedString(forKey: key, value: nil, table: nil)
   }
 
   private var currentLabel: String {
