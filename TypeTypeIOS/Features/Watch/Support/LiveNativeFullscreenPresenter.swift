@@ -109,10 +109,7 @@ final class LiveNativeFullscreenPresenter {
   }
 
   private func present(facing orientation: UIDeviceOrientation) {
-    guard let controller,
-      !controller.isPresentingFullscreen,
-      controller.nativePlayback != nil || controller.isOfflineContent
-    else { return }
+    guard let controller, !controller.isPresentingFullscreen, controller.drawsOwnPlayer else { return }
     closesOnPortrait = orientation.isLandscape
     controller.isPresentingFullscreen = true
     // Device landscape left is interface landscape right.
