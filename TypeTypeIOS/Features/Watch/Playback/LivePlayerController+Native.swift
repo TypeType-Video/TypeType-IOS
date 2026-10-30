@@ -172,10 +172,10 @@ extension LivePlayerController {
     fullscreen.present()
   }
 
-  func exitNativeFullscreen(_ reason: String = "unspecified") {
+  func exitNativeFullscreen(_ reason: String = "unspecified", byUser: Bool = false) {
     AppLogger.playback
       .info("fullscreen: exit requested reason=\(reason, privacy: .public) flag=\(self.isPresentingFullscreen, privacy: .public)")
-    fullscreen.dismiss()
+    fullscreen.dismiss(byUser: byUser)
   }
 
   func fallBackFromNative(reason: String) {

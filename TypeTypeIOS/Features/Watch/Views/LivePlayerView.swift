@@ -25,7 +25,7 @@ struct LivePlayerView: View {
   }
   @State var systemBrightnessBeforeSwipe: CGFloat?
   @State var longPressBaseRate: Float?
-  @State var longPressBoostTask: Task<Void, Never>?
+  @GestureState var isSpeedRamping = false
   @State var horizontalSeekPreview: TimeInterval?
   @State var autoPictureInPictureArmed = true
   @State var autoPictureInPictureActive = false
@@ -75,7 +75,7 @@ struct LivePlayerView: View {
             onFullscreen: {
               AppLogger.playback.info("fullscreen: toggle pressed flag=\(controller.isPresentingFullscreen, privacy: .public)")
               if controller.isPresentingFullscreen {
-                controller.exitNativeFullscreen("player-toggle")
+                controller.exitNativeFullscreen("player-toggle", byUser: true)
               } else {
                 controller.enterNativeFullscreen("player-toggle")
               }

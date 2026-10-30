@@ -8,6 +8,9 @@ final class LiveNativeFullscreenPresenter {
   private var portraitExit: Task<Void, Never>?
   // A phone picked up off a table reports portrait: that is not someone leaving full screen.
   private var closesOnPortrait = false
+  // Leaving full screen by hand while the phone is still held sideways must not re-enter it on the next rotation
+  // event; the phone has to come back to portrait first.
+  private var waitsForPortrait = false
 
   var isPageActive = false {
     didSet {
@@ -32,8 +35,9 @@ final class LiveNativeFullscreenPresenter {
     present(facing: UIDevice.current.orientation)
   }
 
-  func dismiss() {
+  func dismiss(byUser: Bool = false) {
     guard let controller else { return }
+    waitsForPortrait = byUser && UIDevice.current.orientation.isLandscape
     closesOnPortrait = false
     cancelPortraitExit()
     controller.isPresentingFullscreen = false
@@ -77,9 +81,12 @@ final class LiveNativeFullscreenPresenter {
 
   private func deviceDidRotate() {
     let orientation = UIDevice.current.orientation
+    if orientation == .portrait {
+      waitsForPortrait = false
+    }
     guard orientation == .portrait else {
       cancelPortraitExit()
-      if orientation.isLandscape, !isPresenting {
+      if orientation.isLandscape, !isPresenting, !waitsForPortrait {
         present(facing: orientation)
       } else if orientation.isLandscape {
         closesOnPortrait = true

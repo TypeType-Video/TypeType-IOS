@@ -170,25 +170,4 @@ extension LivePlayerView {
     longPressBaseRate = nil
     speedBoostRate = nil
   }
-
-  func setLongPressBoost(active: Bool) {
-    LivePlayerView.logGesture(active ? "longPress ON" : "longPress OFF")
-    guard !accessibleControls, preferences.preferences.playerLongPressSpeedEnabled else { return }
-    longPressBoostTask?.cancel()
-    longPressBoostTask = nil
-    if active {
-      // Boost only after the long-press threshold, or every tap changes the rate twice.
-      longPressBoostTask = Task {
-        try? await Task.sleep(nanoseconds: 350_000_000)
-        guard !Task.isCancelled else { return }
-        self.longPressBaseRate = self.controller.playbackRate
-        self.speedBoostRate = 2
-        self.controller.setPlaybackRate(2)
-      }
-    } else if let baseRate = longPressBaseRate {
-      controller.setPlaybackRate(baseRate)
-      longPressBaseRate = nil
-      speedBoostRate = nil
-    }
-  }
 }

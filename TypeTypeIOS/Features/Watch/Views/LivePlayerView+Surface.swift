@@ -35,6 +35,9 @@ extension LivePlayerView {
           }
       )
       .simultaneousGesture(speedRampGesture)
+      .onChange(of: isSpeedRamping) { _, ramping in
+        if !ramping { endSpeedRamp() }
+      }
       .simultaneousGesture(
         DragGesture(minimumDistance: 30)
           .onEnded { value in
@@ -43,24 +46,25 @@ extension LivePlayerView {
               abs(value.translation.width) < value.translation.height,
               abs(value.startLocation.x - width / 2) < width / 6
             else { return }
-            controller.exitNativeFullscreen("surface-drag")
+            controller.exitNativeFullscreen("surface-drag", byUser: true)
           }
       )
   }
 
   // One gesture owns the speed ramp: a separate long press and drag let the drag win before the hold.
+  // `.first(true)` arrives on touch down, before the hold: starting there left every plain tap stuck at 2x, since a
+  // failed long press never reaches onEnded. The GestureState resets on end, failure and cancel alike.
   private var speedRampGesture: some Gesture {
     LongPressGesture(minimumDuration: 0.35)
       .sequenced(before: DragGesture(minimumDistance: 0))
+      .updating($isSpeedRamping) { value, ramping, _ in
+        if case .second(true, _) = value { ramping = true }
+      }
       .onChanged { value in
-        switch value {
-        case .first(true):
-          beginSpeedRamp()
-        case let .second(true, drag?):
-          beginSpeedRamp()
+        guard case let .second(true, drag) = value else { return }
+        beginSpeedRamp()
+        if let drag {
           applySpeedRamp(translationHeight: drag.translation.height)
-        default:
-          break
         }
       }
       .onEnded { _ in
