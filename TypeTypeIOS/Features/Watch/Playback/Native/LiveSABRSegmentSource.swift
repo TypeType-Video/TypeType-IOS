@@ -17,6 +17,8 @@ final class LiveSABRSegmentSource: MediaSegmentSource, @unchecked Sendable {
     return try await LiveSABRPendingResource.load(track.initURL, service: service)
   }
 
+  // Segments count from the video start and the server repositions on demand: a start outside the window is estimated
+  // and the engine corrects it.
   func firstSequence(for kind: MP4TrackKind, at time: TimeInterval) async throws -> Int {
     let snapshot = try await session.snapshot()
     let targetMS = Int64(max(time, 0) * 1_000)

@@ -105,6 +105,7 @@ actor LiveSABRPlaybackSession {
     do {
       snapshot = try await loadIndexedSnapshot()
     } catch {
+      // After a seek the server can publish the new window slower than one index budget.
       try await Task.sleep(for: .milliseconds(Self.minimumRetryMS))
       snapshot = try await loadIndexedSnapshot()
     }

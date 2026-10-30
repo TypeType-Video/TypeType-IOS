@@ -1,5 +1,6 @@
 import Foundation
 
+// The server's subscribe form. @handle and /channel/UC... stay apart: unifying them needs a lookup.
 enum LiveChannelURLCanonicalizer {
   static func canonicalize(_ channelURL: String) -> String {
     guard channelURL.hasPrefix("http://") || channelURL.hasPrefix("https://"),

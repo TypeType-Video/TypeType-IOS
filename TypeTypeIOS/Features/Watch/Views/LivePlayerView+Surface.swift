@@ -18,6 +18,7 @@ extension LivePlayerView {
       .onAppear {
         controller.pictureInPicture.markControlsRefresh()
       }
+      // Seek and speed gestures on the video surface only: at container level a double tap on pause also seeks.
       .simultaneousGesture(
         SpatialTapGesture(count: 2)
           .onEnded { value in
@@ -47,6 +48,7 @@ extension LivePlayerView {
       )
   }
 
+  // One gesture owns the speed ramp: a separate long press and drag let the drag win before the hold.
   private var speedRampGesture: some Gesture {
     LongPressGesture(minimumDuration: 0.35)
       .sequenced(before: DragGesture(minimumDistance: 0))

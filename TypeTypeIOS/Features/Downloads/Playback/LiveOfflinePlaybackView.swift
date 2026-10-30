@@ -52,6 +52,8 @@ struct LiveOfflinePlaybackView: View {
       )
     }
     .onDisappear {
+      // Offline playback runs on AVPlayer, not the native engine: stop the controller so closing never leaves a
+      // player running.
       controller.stop()
     }
     .accessibilityIdentifier("live.offline-player")

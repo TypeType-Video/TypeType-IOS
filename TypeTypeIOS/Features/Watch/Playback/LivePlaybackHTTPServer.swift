@@ -69,6 +69,7 @@ final class LivePlaybackHTTPServer: @unchecked Sendable {
   var providerProgressiveMaster: String?
   var providerProgressiveVideo: String?
   var providerProgressiveAudio: String?
+  // Read under `lock`.
   var lastTransportFailureAt: Date?
 
   init(

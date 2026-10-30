@@ -20,6 +20,7 @@ struct ThemeSurfaces {
       groupedSurface = UIColor.systemGray5.resolvedColor(with: traits)
       elevatedSurface = UIColor.systemGray4.resolvedColor(with: traits)
     }
+    // AMOLED blacks the page only: the cards keep the theme surface, or the theme vanishes.
     if amoled { background = .black }
     groupedBackground = background
   }

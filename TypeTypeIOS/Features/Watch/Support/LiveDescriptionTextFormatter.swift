@@ -84,6 +84,7 @@ enum LiveDescriptionTextFormatter {
     "bull": "•", "copy": "©", "reg": "®", "trade": "™", "times": "×", "yen": "¥",
   ]
 
+  // Not NSAttributedString's HTML importer: it runs WebKit in a nested run loop that re-enters SwiftUI.
   static func decodingHTMLEntities(in value: String) -> String {
     guard value.contains("&") else { return value }
     var result = ""

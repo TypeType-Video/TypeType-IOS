@@ -129,6 +129,8 @@ extension PlaybackEngine {
     clockMayChange()
   }
 
+  // The server repositions its pump for every segment it waits on: both tracks must request near the same time or it
+  // swings and stalls.
   private func waitForAlignment(_ kind: MP4TrackKind, generation current: Int) async throws {
     let slack = CMTime(value: 1, timescale: 1)
     while true {

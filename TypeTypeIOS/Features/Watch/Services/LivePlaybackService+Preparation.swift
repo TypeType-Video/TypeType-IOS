@@ -120,6 +120,8 @@ extension LivePlaybackService {
       declared: audio.deliveryMethod,
       sourceURL: audioURL
     )
+    // NicoNico labels its HLS audio "progressive" without a .m3u8 extension: audio without byte ranges next to HLS
+    // video is HLS.
     if videoMethod == "hls", audioMethod == "progressive",
       audio.initEnd == 0, audio.indexEnd == 0 {
       audioMethod = "hls"

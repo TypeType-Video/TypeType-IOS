@@ -6,6 +6,7 @@ final class LiveNativeFullscreenPresenter {
   private let orientationLock: LiveOrientationLock
   private var orientationObservation: NSObjectProtocol?
   private var portraitExit: Task<Void, Never>?
+  // A phone picked up off a table reports portrait: that is not someone leaving full screen.
   private var closesOnPortrait = false
 
   var isPageActive = false {
@@ -86,6 +87,7 @@ final class LiveNativeFullscreenPresenter {
       return
     }
     guard isPresenting, closesOnPortrait, portraitExit == nil else { return }
+    // Flipping from one landscape side to the other reads portrait for a moment.
     portraitExit = Task { @MainActor [weak self] in
       try? await Task.sleep(for: .milliseconds(350))
       guard !Task.isCancelled else { return }
@@ -106,6 +108,7 @@ final class LiveNativeFullscreenPresenter {
     else { return }
     closesOnPortrait = orientation.isLandscape
     controller.isPresentingFullscreen = true
+    // Device landscape left is interface landscape right.
     orientationLock.claim(by: self, turningTo: orientation == .landscapeRight ? .landscapeLeft : .landscapeRight)
   }
 }

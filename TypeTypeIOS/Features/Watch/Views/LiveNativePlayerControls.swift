@@ -98,6 +98,7 @@ struct LiveNativePlayerControls: View {
       .tint(.white)
       .accessibilityLabel("Playback position")
       .accessibilityIdentifier("live.player.timeline")
+      // An overlay, not a GeometryReader in the row: that inflates the controls bar.
       .overlay(alignment: .center) {
         sponsorSegmentBands
       }

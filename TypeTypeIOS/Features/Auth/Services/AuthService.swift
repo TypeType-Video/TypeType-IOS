@@ -89,6 +89,7 @@ final class AuthService: AuthServiceProtocol {
         payload: EmptyJSONPayload()
       )
     }
+    // Without cookies the server reads the token from the body; with them a stale stored cookie would win.
     let endpoint = APIEndpoint(
       path: "/auth/refresh",
       method: .post,

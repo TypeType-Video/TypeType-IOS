@@ -69,6 +69,7 @@ extension LivePlayerLayerCoordinator {
     _ playerViewController: AVPlayerViewController
   ) {
     completePictureInPictureTransition()
+    // AVKit can leave its controls hidden after a hand-back; the toggle must cross a run loop tick.
     playerViewController.showsPlaybackControls = false
     DispatchQueue.main.async {
       playerViewController.showsPlaybackControls = true
@@ -109,6 +110,7 @@ extension LivePlayerLayerCoordinator {
     pendingPauseIntentTask?.cancel()
     resumeAfterTransitionTask?.cancel()
     settleTransitionTask?.cancel()
+    // AVKit reparents its content view while entering and leaving full screen: hosting views must leave that subtree.
     remove()
 
     coordinator.animate(

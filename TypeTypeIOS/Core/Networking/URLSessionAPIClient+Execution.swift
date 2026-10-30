@@ -36,6 +36,7 @@ extension URLSessionAPIClient {
     } catch is CancellationError {
       throw CancellationError()
     } catch let error as URLError where error.code == .cancelled {
+      // A cancelled task is not a network failure: no retry, no fallback, no diagnostic.
       throw CancellationError()
     } catch {
       await recordDiagnostic(
@@ -147,6 +148,7 @@ extension URLSessionAPIClient {
 }
 
 extension URLSessionAPIClient {
+  // No 120 s resource timeout here: it cuts large artifacts mid-transfer. `configuration` returns a copy.
   static func makeDownloadSession(like session: URLSession) -> URLSession {
     let configuration = session.configuration
     configuration.timeoutIntervalForRequest = 600
@@ -160,6 +162,7 @@ extension URLSessionAPIClient {
   }
 }
 
+// Artifacts redirect to presigned URLs on the same host: drop the API credentials, signed URLs reject them.
 final class DownloadRedirectCleaner: NSObject, URLSessionTaskDelegate {
   func urlSession(
     _ session: URLSession,

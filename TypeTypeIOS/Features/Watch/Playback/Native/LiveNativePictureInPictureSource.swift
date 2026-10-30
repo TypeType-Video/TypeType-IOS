@@ -1,5 +1,6 @@
 import AVKit
 
+// PiP asks synchronously and maybe off the main actor: answers come from a snapshot kept current.
 final class LiveNativePictureInPictureSource: NSObject, AVPictureInPictureSampleBufferPlaybackDelegate,
   @unchecked Sendable
 {

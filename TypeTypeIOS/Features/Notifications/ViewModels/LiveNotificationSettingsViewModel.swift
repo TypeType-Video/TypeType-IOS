@@ -7,6 +7,7 @@ final class LiveNotificationSettingsViewModel: ObservableObject {
     let systemImage: String
   }
 
+  // Each enabled channel costs one polling query a cycle; over the budget the server answers 429.
   static let pollingQueryBudget = 120
   static let pollingQueriesPerEnabledFeed = 1
 
@@ -237,6 +238,7 @@ final class LiveNotificationSettingsViewModel: ObservableObject {
     return preferences[index].enabled
   }
 
+  // Resync without touching `state`: no skeleton flash after a failed batch.
   private func resync() async {
     if let fresh = try? await service.channelPreferences() {
       preferences = fresh

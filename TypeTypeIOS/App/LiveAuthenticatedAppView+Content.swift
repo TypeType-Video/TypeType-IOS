@@ -4,6 +4,8 @@ extension LiveAuthenticatedAppView {
   var shell: some View {
     tabs
     .onChange(of: playbackCoordinator.presentation) { _, newValue in
+      // No slide on a PiP restore: the system animates its window onto the player, and a moving cover shifts that
+      // target.
       if newValue == .expanded {
         if playbackCoordinator.controller?.pictureInPicture.isEngaged == true {
           var transaction = Transaction()
@@ -48,6 +50,7 @@ extension LiveAuthenticatedAppView {
         legacyTabs
       }
     }
+    // Full-bleed page background: without it the area under the floating tab bar shows the window's black.
     .background(DemoThemeBackground().ignoresSafeArea())
     .toolbarBackground(palette.background, for: .tabBar)
     .overlay {
@@ -121,6 +124,7 @@ extension LiveAuthenticatedAppView {
     tabBarBand: CGFloat,
     topBand: CGFloat
   ) -> some View {
+    // Only while system PiP is not engaged: the card would duplicate its window.
     if playbackCoordinator.showsMiniPlayer,
       playbackCoordinator.controller?.pictureInPicture.isEngaged != true {
       LiveMiniPlayerView(
@@ -188,6 +192,7 @@ private extension LiveAuthenticatedAppView {
           value.startLocation.y < 320,
           value.translation.height > 120,
           abs(value.translation.height) > abs(value.translation.width),
+          // Only from the top of the page: scrolling the content must never minimize the player.
           playbackCoordinator.controller?.isPlayerSurfaceFullyVisible == true
         else {
           return

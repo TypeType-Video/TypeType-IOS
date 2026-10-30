@@ -2,6 +2,7 @@ import AVFoundation
 import AVKit
 import UIKit
 
+// The content layer must stay in the visible player hierarchy: a detached one renders nothing.
 @MainActor
 final class LivePictureInPictureDriver: NSObject, ObservableObject {
   @Published private(set) var isEngaged = false
@@ -31,6 +32,7 @@ final class LivePictureInPictureDriver: NSObject, ObservableObject {
     if contentLayer == nil {
       let layer = AVPlayerLayer()
       layer.videoGravity = .resizeAspect
+      // Hidden unless PiP runs: a live player layer here corrupts the backdrop AVKit draws its controls on.
       layer.isHidden = true
       contentLayer = layer
     }
@@ -58,6 +60,7 @@ final class LivePictureInPictureDriver: NSObject, ObservableObject {
       AppLogger.playback.info("pip timing: poster took \(ms, privacy: .public)ms")
       Self.lastTimingLog = "poster \(ms)ms | " + Self.lastTimingLog
     }
+    // A slow poster must not hold the PiP start: race the fetch against a short budget.
     let image: UIImage? = await withTaskGroup(
       of: UIImage?.self
     ) { group in
@@ -90,6 +93,7 @@ final class LivePictureInPictureDriver: NSObject, ObservableObject {
       contentSource: .init(sampleBufferDisplayLayer: layer, playbackDelegate: playback)
     )
     controller.delegate = self
+    // The system does the background hand-off: a manual start at .inactive loses the race against suspension.
     controller.canStartPictureInPictureAutomaticallyFromInline = true
     AppLogger.playback
       .info("pip engine: native content installed")
@@ -193,6 +197,7 @@ final class LivePictureInPictureDriver: NSObject, ObservableObject {
 
   func bringInline() {
     AppLogger.playback.info("pip driver: bring inline requested")
+    // The system is the truth: a late-confirmed window can be up while the flag says otherwise.
     let systemActive = pipController?.isPictureInPictureActive ?? false
     guard isEngaged || systemActive else {
       AppLogger.playback.info("pip driver: bring inline skipped, not engaged")
@@ -213,6 +218,7 @@ extension LivePictureInPictureDriver: AVPictureInPictureControllerDelegate {
     Task { @MainActor [weak self] in
       guard let self else { return }
       didStartConfirmed = true
+      // Late confirms arrive after verification gave up: the window is up and the return path needs the flag.
       isEngaged = true
       if let requestedAt = startRequestedAt {
         let ms = Int(Double(DispatchTime.now().uptimeNanoseconds - requestedAt.uptimeNanoseconds) / 1e6)

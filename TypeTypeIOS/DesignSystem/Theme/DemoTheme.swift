@@ -81,11 +81,13 @@ private struct LiveThemedListModifier: ViewModifier {
       .listRowInsets(EdgeInsets(top: 0, leading: 20, bottom: 0, trailing: 20))
       .listRowBackground(palette.rowBackground)
       .listRowSeparatorTint(palette.separator)
+      // Otherwise the bar stays system white above a coloured page.
       .toolbarBackground(palette.background, for: .navigationBar)
       .toolbarBackground(.visible, for: .navigationBar)
   }
 }
 
+// ContentUnavailableView paints a system background: fill it with the page colour.
 extension View {
   func liveThemedEmptyState() -> some View {
     self
@@ -93,6 +95,8 @@ extension View {
       .background(DemoThemeBackground())
   }
 
+  // iOS 26 paints its own fill under control rows, above listRowBackground: the row colour bleeds past the insets to
+  // cover it.
   func liveRowFill() -> some View {
     frame(maxWidth: .infinity, minHeight: 44)
       .background(ThemeRowFill().padding(.horizontal, -20))

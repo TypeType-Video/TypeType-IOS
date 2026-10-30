@@ -5,6 +5,8 @@ public struct MP4AudioConfiguration: Equatable, Sendable {
   public let sampleRate: Double
   public let channelCount: Int
 
+  // ES_Descriptor (0x03) > DecoderConfigDescriptor (0x04) > DecoderSpecificInfo (0x05), which holds the
+  // AudioSpecificConfig.
   public init(descriptor: Data) throws {
     let config = try descriptor.withUnsafeBytes { bytes -> Data in
       let reader = MP4ByteReader(bytes: bytes)

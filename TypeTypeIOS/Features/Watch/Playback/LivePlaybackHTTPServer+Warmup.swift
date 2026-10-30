@@ -86,6 +86,7 @@ extension LivePlaybackHTTPServer {
     return (error as NSError).domain == NSURLErrorDomain
   }
 
+  // While offline the player retries by itself: do not rebuild the SABR session.
   func isWaitingForNetwork(within interval: TimeInterval = 6) -> Bool {
     lock.withLock {
       guard let lastTransportFailureAt else { return false }
@@ -95,6 +96,7 @@ extension LivePlaybackHTTPServer {
 }
 
 extension LivePlaybackHTTPServer.Route {
+  // Never includes tokens.
   var debugName: String {
     switch target {
     case let .upstream(url): return "upstream \(url.path.suffix(24))"

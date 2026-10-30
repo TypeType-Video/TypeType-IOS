@@ -1,5 +1,6 @@
 import SwiftUI
 
+// Drawn from shapes: SF Symbols in menu labels take the accent tint and their weight cannot be set.
 struct LiveDotsGlyph: View {
   var body: some View {
     VStack(spacing: 2.5) {
@@ -27,6 +28,7 @@ struct LiveDotMenuRowStyle: ButtonStyle {
   }
 }
 
+// A button and a popover, not Menu: a Menu closed mid-scroll leaves its label frozen on screen.
 struct LiveDotMenu<Content: View>: View {
   @State private var isPresented = false
   @State private var anchorFrame: CGRect?

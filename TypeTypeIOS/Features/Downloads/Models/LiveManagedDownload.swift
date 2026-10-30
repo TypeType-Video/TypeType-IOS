@@ -77,9 +77,11 @@ struct LiveManagedDownload: Codable, Equatable, Identifiable {
   var localFileName: String?
   var artifactChecksum: String?
   var failureMessage: String?
+  // Optional: older records decode without it.
   var metadata: LiveOfflineVideoMetadata?
 
   var progress: Double? {
+    // The artifact fetch reports no percentage, and a full bar would read as stalled.
     guard state != .saving else { return nil }
     guard let value = job.progressPercent else { return nil }
     return Double(min(max(value, 0), 100)) / 100

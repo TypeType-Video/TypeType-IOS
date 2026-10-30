@@ -38,6 +38,7 @@ enum RichTextParser {
     init(_ value: AttributedString) { self.value = value }
   }
 
+  // Bodies run on every player tick: build the detector once and parse each description once.
   private static let parsed = NSCache<NSString, Parsed>()
   private static let linkDetector = try? NSDataDetector(
     types: NSTextCheckingResult.CheckingType.link.rawValue

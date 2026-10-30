@@ -2,6 +2,7 @@ import SwiftUI
 
 extension LivePlayerView {
   func evaluateAutoPictureInPicture(_ frame: CGRect) {
+    // Rotating into full screen moves this surface: that is not a scroll-away.
     guard !controller.isPresentingFullscreen else { return }
     let screenH = UIScreen.main.bounds.height
     controller.isPlayerSurfaceFullyVisible =
@@ -45,6 +46,7 @@ extension LivePlayerView {
     else {
       return
     }
+    // The middle band holds the transport buttons.
     guard location.x < width * 0.35 || location.x > width * 0.65 else {
       return
     }
@@ -54,6 +56,7 @@ extension LivePlayerView {
     ) else {
       return
     }
+    // Build on the pending target: the position only moves once the seek has run.
     let pending = doubleTapSeek.flatMap {
       $0.direction == direction && Date().timeIntervalSince($0.at) < 1.5 ? $0 : nil
     }
@@ -174,6 +177,7 @@ extension LivePlayerView {
     longPressBoostTask?.cancel()
     longPressBoostTask = nil
     if active {
+      // Boost only after the long-press threshold, or every tap changes the rate twice.
       longPressBoostTask = Task {
         try? await Task.sleep(nanoseconds: 350_000_000)
         guard !Task.isCancelled else { return }

@@ -8,6 +8,7 @@ enum LiveImageURLResolver {
       in: .whitespacesAndNewlines
     ), !reference.isEmpty
     else { return nil }
+    // The server sometimes emits "httpss://".
     if reference.hasPrefix("httpss://") {
       reference = "https://" + reference.dropFirst("httpss://".count)
     }

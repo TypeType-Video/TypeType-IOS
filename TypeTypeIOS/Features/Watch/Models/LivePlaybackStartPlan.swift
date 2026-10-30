@@ -1,6 +1,7 @@
 import Foundation
 
 extension LivePlaybackPreferences {
+  // The prewarm and the real start must send the same plan, or the server opens a second session.
   static func initial(
     for stream: LivePlaybackStream,
     settings: LiveSettings,

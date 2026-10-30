@@ -22,6 +22,7 @@ struct LiveMiniPlayerView: View {
       ZStack {
         if controller.audioOnly {
           ZStack {
+            // No .scaledToFill on LiveRemoteImage: it inflates the card and pushes the controls out of reach.
             LiveRemoteImage(url: video.thumbnail)
               .blur(radius: 18)
               .opacity(0.5)
@@ -89,6 +90,7 @@ struct LiveMiniPlayerView: View {
           .frame(maxWidth: .infinity)
         }
         .padding(12)
+        // One rasterized layer: re-compositing glass on every drag frame stutters.
         .compositingGroup()
       }
       .frame(width: Self.cardWidth, height: Self.cardHeight)
@@ -98,8 +100,10 @@ struct LiveMiniPlayerView: View {
           .strokeBorder(.white.opacity(0.14), lineWidth: 1)
       }
       .shadow(color: .black.opacity(0.3), radius: 12, y: 5)
+      // Offset placement keeps the card and its buttons one piece while dragging.
       .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
       .offset(clampedOffset)
+      // simultaneousGesture: the drag works whatever child is under the finger.
       .simultaneousGesture(freeDrag)
       .accessibilityElement(children: .contain)
       .accessibilityAction(named: "Expand player") {

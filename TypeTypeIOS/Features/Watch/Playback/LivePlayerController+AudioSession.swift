@@ -1,6 +1,7 @@
 import AVFoundation
 
 extension LivePlayerController {
+  // Off the main thread (setActive stalls the UI there) and awaited before AVPlayer starts.
   nonisolated func configureAudioSession() async {
     await Task.detached(priority: .userInitiated) {
       let audioSession = AVAudioSession.sharedInstance()

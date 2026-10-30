@@ -15,6 +15,7 @@ extension LivePlayerController {
       queue: .main
     ) { [weak self] _ in
       Task { @MainActor [weak self] in
+        // Let AVPlayer's own end-of-item pause land first: after a loop restart it reads as a stall.
         try? await Task.sleep(for: .milliseconds(100))
         guard let self else { return }
         state = .paused
@@ -45,6 +46,7 @@ extension LivePlayerController {
         guard let self else { return }
         switch player.timeControlStatus {
         case .paused:
+          // AVPlayer pauses itself after repeated segment failures: a stall, not the user's pause.
           if providerRecoveryDesiredAutoplay, state == .loading {
             if sabrStallRecoveryTask == nil {
               scheduleSABRStallRecovery(for: item)

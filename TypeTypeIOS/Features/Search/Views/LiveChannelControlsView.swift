@@ -10,6 +10,7 @@ struct LiveChannelControlsView: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
       HStack(spacing: 10) {
+        // Popovers, not Menu: the iOS 26 glass menu crashes on item taps (`setEffect:`).
         Button {
           presentsSections = true
         } label: {

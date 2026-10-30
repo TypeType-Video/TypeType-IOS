@@ -47,9 +47,11 @@ enum PlayerSwipeAdjustmentRules {
     guard startLocation.y > size.height * 0.10,
       startLocation.y < size.height * 0.66
     else { return nil }
+    // Direction only: the recognizer begins after about 10 pt, so a distance gate fails every swipe.
     guard abs(translation.height) >= abs(translation.width) * verticalBias
     else { return nil }
 
+    // Outer thirds only: the centre belongs to the swipe-down gestures.
     guard startLocation.x < size.width / 3
       || startLocation.x > size.width * 2 / 3
     else { return nil }

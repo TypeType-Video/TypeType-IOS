@@ -38,6 +38,7 @@ enum LiveAppearanceTheme: String, Codable, CaseIterable, Identifiable {
   case typetype, snow, nord, cream, forest, plum
   var id: String { rawValue }
 
+  // Stores may still hold the removed `dynamic` theme: it maps to Snow.
   init(from decoder: Decoder) throws {
     let raw = try decoder.singleValueContainer().decode(String.self)
     switch raw {

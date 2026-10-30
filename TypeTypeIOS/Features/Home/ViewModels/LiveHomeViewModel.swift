@@ -79,6 +79,7 @@ final class LiveHomeViewModel: ObservableObject {
     nextCursor = nil
     loadTask?.cancel()
     paginationTask?.cancel()
+    // Time-boxed: one stalled request would keep reload() loading forever.
     let settingsService = self.settingsService
     let settings = (try? await Self.withTimeout(seconds: 4) {
       try await settingsService.settings()
@@ -129,6 +130,7 @@ final class LiveHomeViewModel: ObservableObject {
       return
     }
     if Task.isCancelled {
+      // A restarted view task cancels reload() mid-flight, and loadIfNeeded() only starts from .idle.
       if state == .loading {
         state = .idle
       }

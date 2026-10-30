@@ -23,6 +23,7 @@ struct LiveSearchFilterBar: View {
     .accessibilityIdentifier("live.search.filters")
   }
 
+  // Popovers, not Menu: the iOS 26 glass menu crashes on item taps (`setEffect:`).
   private var serviceMenu: some View {
     Button {
       presentsService = true

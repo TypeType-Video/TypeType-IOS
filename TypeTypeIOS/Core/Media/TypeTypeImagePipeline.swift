@@ -20,6 +20,7 @@ actor TypeTypeImagePipeline {
     if let cached = memory.image(for: key) { return cached }
     if let running = inFlight[key] { return await running.value }
     let session = session
+    // Utility priority: image fetches must never compete with media.
     let task = Task.detached(priority: .utility) {
       await Self.load(url, maxPixelSize: Self.bucket(maxPixelSize), session: session)
     }
@@ -75,6 +76,7 @@ actor TypeTypeImagePipeline {
   }
 }
 
+// NSCache is thread-safe; this wrapper states it to Swift.
 private final class ImageMemoryCache: @unchecked Sendable {
   private let storage: NSCache<NSString, UIImage> = {
     let cache = NSCache<NSString, UIImage>()

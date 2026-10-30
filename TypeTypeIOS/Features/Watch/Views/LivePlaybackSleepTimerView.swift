@@ -1,5 +1,6 @@
 import SwiftUI
 
+// A List inside a popover clips its rows, so this one is sized to its content.
 struct LivePlaybackSleepTimerPopover: View {
   @Environment(\.themePalette) private var palette
   @ObservedObject var coordinator: LivePlaybackCoordinator

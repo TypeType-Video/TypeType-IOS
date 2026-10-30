@@ -32,6 +32,7 @@ final class LivePlayerController: ObservableObject {
   @Published var lastStartupMilliseconds: Int?
   var startupTrace = LivePlaybackStartupTrace()
   var metadataTask: Task<Void, Never>?
+  // Bumped by each load or restart; an older, slower load never installs.
   var loadGeneration = 0
   var startupWatchdog: Task<Void, Never>?
   var startupRetryUsed = false
@@ -74,6 +75,7 @@ final class LivePlayerController: ObservableObject {
   let initialAutoplay: Bool
   let pictureInPicture = LivePictureInPictureDriver()
   var isPlayerSurfaceFullyVisible = true
+  // Set on stop or close: pending async work must never start playback afterwards.
   var isTornDown = false
   let service: LivePlaybackServiceProtocol?
   let settingsService: LiveSettingsServiceProtocol

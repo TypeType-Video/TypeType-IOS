@@ -1,5 +1,7 @@
 import UIKit
 
+// Presented from UIKit: UIActivityViewController inside a SwiftUI .sheet renders a plain page instead of the system
+// sheet.
 enum LiveSystemSharePresenter {
   @MainActor
   static func present(_ url: URL) {

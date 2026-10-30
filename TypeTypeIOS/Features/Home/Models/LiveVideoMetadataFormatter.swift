@@ -36,6 +36,7 @@ enum LiveVideoMetadataFormatter {
     count.formatted(.number.notation(.compactName))
   }
 
+  // From the timestamp only: the upstream text can be in any locale.
   static func publication(_ video: LiveVideoItem) -> String {
     guard let date = video.publicationDate else {
       return ""

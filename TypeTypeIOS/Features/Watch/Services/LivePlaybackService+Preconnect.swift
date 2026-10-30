@@ -1,5 +1,6 @@
 import Foundation
 
+// The instance keeps an idle connection for about a minute: one preconnect per window.
 actor LiveMediaPreconnector {
   static let window: Duration = .seconds(30)
   private var lastAt: ContinuousClock.Instant?

@@ -1,5 +1,7 @@
 import Foundation
 
+// Same numbers as the web player: both talk to the same SABR pump, which repositions on every request it has to wait
+// for.
 enum BufferPolicy {
   static let maximumRateAwareGoal: TimeInterval = 60
 

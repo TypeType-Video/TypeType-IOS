@@ -20,11 +20,13 @@ extension LivePlaybackCoordinator {
 
   func startSystemPictureInPicture() {
     guard let controller else { return }
+    // Audio-only has no video layer: the PiP window would come up empty and without its close button.
     guard !controller.audioOnly else { return }
     let posterURL = currentVideo?.thumbnail
     controller.pictureInPicture.onChange = { [weak self] in
       self?.objectWillChange.send()
     }
+    // The placeholder goes in the layer before the start: the system refuses PiP on an empty layer.
     Task { [weak self] in
       guard let self else { return }
       await controller.pictureInPicture.loadPoster(url: posterURL)

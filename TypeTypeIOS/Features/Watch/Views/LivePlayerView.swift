@@ -42,6 +42,7 @@ struct LivePlayerView: View {
 
         if controller.audioOnly {
           ZStack {
+            // No .scaledToFill: LiveRemoteImage is GeometryReader-based and the wrapper inflates the stage.
             LiveRemoteImage(url: posterURL)
               .blur(radius: 28)
               .opacity(0.48)
@@ -76,6 +77,7 @@ struct LivePlayerView: View {
         }
         seekFeedbackOverlay
         horizontalSeekOverlay
+        // Above the transport controls: below them the UIKit overlay never gets taps.
         LiveSponsorBlockOverlay(
           controller: controller,
           fillsAvailableSpace: false

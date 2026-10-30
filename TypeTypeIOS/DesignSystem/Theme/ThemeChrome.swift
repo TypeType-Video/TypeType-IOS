@@ -1,6 +1,8 @@
 import SwiftUI
 import UIKit
 
+// Navigation bars, tab bars and list cells are UIKit views: they read the palette from a window trait, not the
+// SwiftUI environment.
 struct ThemeChrome: Equatable {
   var background: UIColor
   var row: UIColor

@@ -20,6 +20,7 @@ final class LiveHistoryViewModel: ObservableObject {
   private let service: LiveHistoryServiceProtocol
   private let pageSize = 20
   private var queryTask: Task<Void, Never>?
+  // Raw count: the display collapses duplicates, so pagination must never advance by the visible count.
   private var fetchedCount = 0
 
   private let watchProgress: LiveWatchProgressStore

@@ -268,5 +268,6 @@ extension LivePlayerController {
     guard !isTornDown else { return }
     player.replaceCurrentItem(with: item)
     player.defaultRate = playbackRate
+  // Do not reconfigure the audio session here: on the main thread it trips the unresponsiveness warnings.
   }
 }

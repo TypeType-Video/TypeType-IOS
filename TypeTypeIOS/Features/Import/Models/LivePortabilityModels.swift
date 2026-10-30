@@ -135,6 +135,7 @@ struct LivePortabilityJob: Codable, Equatable, Identifiable {
   let errorCode: String?
   let errorMessage: String?
 
+  // Tolerant: `result` is nullable and the enums may carry values this build does not know.
   init(from decoder: Decoder) throws {
     let values = try decoder.container(keyedBy: CodingKeys.self)
     id = try values.decode(String.self, forKey: .id)

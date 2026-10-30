@@ -43,6 +43,8 @@ struct LiveVideoCard: View {
     .contentShape(Rectangle())
   }
 
+  // Prewarm from the button style's isPressed: a zero-distance DragGesture fights the ScrollView pan and stops
+  // scrolling.
   private func triggerPrewarm() {
     guard !didPrewarm else { return }
     didPrewarm = true
@@ -135,6 +137,7 @@ struct LiveVideoCard: View {
         .lineLimit(1)
     }
     .frame(maxWidth: .infinity, alignment: .leading)
+    // Anchored to the corner, not the title: DeArrow swaps titles after load.
     .overlay(alignment: .topTrailing) {
       if let quickActionsMenu {
         LiveDotMenu {

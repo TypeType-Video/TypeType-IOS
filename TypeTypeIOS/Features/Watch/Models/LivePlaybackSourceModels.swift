@@ -128,6 +128,7 @@ struct LivePlaybackAudioSource: Decodable, Hashable, Identifiable {
       || isHLSPlaylist {
       return true
     }
+    // MP4 audio without a declared codec (NicoNico) is AAC in practice.
     guard let codec = codec?.lowercased() else { return true }
     return codec.hasPrefix("mp4a") || codec == "aac"
   }

@@ -120,6 +120,7 @@ final class LiveDanmakuCanvasView: UIView {
       label.layer.shadowOpacity = 0.9
       label.layer.shadowRadius = 2
       label.layer.shadowOffset = CGSize(width: 1, height: 1)
+      // Render the shadow once per label, not on every frame.
       label.layer.shouldRasterize = true
       label.layer.rasterizationScale = UIScreen.main.scale
       addSubview(label)
@@ -132,6 +133,7 @@ final class LiveDanmakuCanvasView: UIView {
       target: self,
       selector: #selector(renderFrame)
     )
+    // 30 fps: bullets drift slowly, and it halves the canvas work.
     link.preferredFrameRateRange = CAFrameRateRange(
       minimum: 30,
       maximum: 30,

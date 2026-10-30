@@ -35,6 +35,7 @@ struct LivePlayerLayerView: UIViewControllerRepresentable {
     playerController.player = player
     playerController.showsPlaybackControls = showsSystemControls
     playerController.allowsPictureInPicturePlayback = true
+    // No auto-PiP while the native player shows the landscape full screen.
     playerController.canStartPictureInPictureAutomaticallyFromInline = false
     playerController.entersFullScreenWhenPlaybackBegins = false
     playerController.exitsFullScreenWhenPlaybackEnds = false

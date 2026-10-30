@@ -17,6 +17,7 @@ struct LiveSponsorBlockOverlay: View {
         timeline
       }
     }
+    // Keep a minimal size: Auto Layout collapses the host to 0 x 0 and the next banner cannot appear.
     .padding(1)
   }
 

@@ -1,6 +1,7 @@
 import Foundation
 
 extension LivePlayerController {
+  // The server keeps a prewarm for 60 s and the countdown takes about 10: prewarm inside that window.
   static let nearEndLead: TimeInterval = 40
 
   func notifyNearEndIfNeeded(at position: TimeInterval) {

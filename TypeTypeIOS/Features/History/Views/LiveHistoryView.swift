@@ -62,6 +62,7 @@ struct LiveHistoryView: View {
 }
 
 private extension View {
+  // .searchable attaches to the library's shared bar: attach it only while this section is active.
   @ViewBuilder
   func searchableWhenActive(
     _ active: Bool,

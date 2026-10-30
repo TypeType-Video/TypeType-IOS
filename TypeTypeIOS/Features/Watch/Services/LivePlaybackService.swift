@@ -97,6 +97,7 @@ final class LivePlaybackService: LivePlaybackServiceProtocol {
     let loaded = try await requests.value(for: "full|" + videoURL) { [self] in
       try await loadStream(for: videoURL)
     }
+    // Live manifests are short-lived and the edge moves: never reuse them.
     if !loaded.isLive {
       streamCache.store(loaded, for: videoURL)
     }
@@ -158,6 +159,7 @@ final class LivePlaybackService: LivePlaybackServiceProtocol {
     attempt: Int
   ) async throws -> LivePlaybackStream {
     do {
+      // This loop owns the retries: client retries inside it multiply the requests.
       return try await requestStream(
         path: path,
         videoURL: videoURL,

@@ -11,6 +11,7 @@ struct LivePlayerSizing: ViewModifier {
       content
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .ignoresSafeArea()
+        // Outermost: a layout priority buried in another modifier never reaches the parent VStack.
         .layoutPriority(1)
     } else {
       content

@@ -19,6 +19,7 @@ extension LivePlaybackService {
     }
     do {
       let ready = try await requests.value(for: "bootstrap|" + videoURL) { [self] in
+        // A refused bootstrap (503 for lives) is an answer: fall back now.
         try await requestStream(
           path: "/streams/youtube/sabr/bootstrap",
           videoURL: videoURL,
@@ -34,6 +35,7 @@ extension LivePlaybackService {
     }
   }
 
+  // A startup retry must ask again: joining the request that blew the budget only waits longer.
   func discardPendingStreams(for videoURL: String) async {
     await requests.discard("full|" + videoURL)
     await requests.discard("bootstrap|" + videoURL)

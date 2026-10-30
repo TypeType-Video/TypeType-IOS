@@ -21,6 +21,7 @@ actor LiveSABRPrewarms {
     }
   }
 
+  // Under the server's 60 s so a handoff is never assumed after it expired.
   static let lifetime: Duration = .seconds(50)
   private var inFlight: [Key: Task<Void, Never>] = [:]
   private var settled: [Key: ContinuousClock.Instant] = [:]

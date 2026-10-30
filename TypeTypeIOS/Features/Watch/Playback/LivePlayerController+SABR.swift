@@ -59,6 +59,7 @@ extension LivePlayerController {
         return
       }
       sabrStallRecoveryTask = nil
+      // Offline: the player resumes on its own when the network is back; a new session only adds a slow round trip.
       if playbackServer?.isWaitingForNetwork() == true {
         scheduleSABRStallRecovery(for: item)
         return

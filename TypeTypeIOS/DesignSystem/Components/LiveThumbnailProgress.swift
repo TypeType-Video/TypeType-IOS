@@ -1,5 +1,6 @@
 import SwiftUI
 
+// Apply before `clipShape` so the bar follows the corners.
 extension View {
   @ViewBuilder
   func liveThumbnailProgress(_ fraction: Double?) -> some View {

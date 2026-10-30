@@ -25,6 +25,7 @@ struct LiveVideoLibraryActionsView: View {
   }
 
   var body: some View {
+    // Fixed 44 pt buttons: wider gaps overflow a 375 pt screen.
     ViewThatFits(in: .horizontal) {
       actionsRow(spacing: 18)
       actionsRow(spacing: 10)

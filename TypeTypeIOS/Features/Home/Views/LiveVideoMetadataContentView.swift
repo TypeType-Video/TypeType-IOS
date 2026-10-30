@@ -34,6 +34,7 @@ struct LiveVideoMetadataContentView: View {
     )
   }
 
+  // No negative inset: nothing around the player has a margin to cancel.
   private var playerInset: CGFloat {
     showsFullscreenLayout || cinemaMode ? 0 : 16
   }
@@ -79,6 +80,7 @@ struct LiveVideoMetadataContentView: View {
 
         LivePlaybackQueueView(coordinator: playbackCoordinator)
 
+        // The stream arrives with an empty relatedStreams before the real list: empty means still loading.
         let relatedReady = !(
           playerController.stream?.relatedStreams.isEmpty ?? true
         )
@@ -214,6 +216,8 @@ struct LiveVideoMetadataContentView: View {
       )
     }
     .onAppear {
+      // Back from a push the system may have promoted the layer to PiP while the page was covered: hand it back to
+      // the stage.
       if playbackCoordinator.presentation == .mini {
         playbackCoordinator.expand()
       }
@@ -245,6 +249,7 @@ private struct LiveWatchScrollOffsetKey: PreferenceKey {
 }
 
 private extension View {
+  // iOS 18 and later read the scroll geometry directly: the preference measurement never fires on iOS 26.
   @ViewBuilder
   func liveScrolledState(_ onChange: @escaping (Bool) -> Void) -> some View {
     if #available(iOS 18.0, *) {

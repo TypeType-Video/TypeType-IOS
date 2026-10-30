@@ -1,5 +1,6 @@
 import Foundation
 
+// The instance relays provider bytes slowly per connection: ranges load as parallel chunks.
 struct LiveProviderRangeLoader {
   static let chunkByteCount = 128 * 1_024
   static let minimumRetryByteCount = 16 * 1_024

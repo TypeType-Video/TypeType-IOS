@@ -12,6 +12,8 @@ struct LiveAuthenticatedAppView: View {
     Binding(
       get: { coordinator.selectedTab },
       set: { newValue in
+        // TabView writes the binding even when the active tab is tapped again; that re-tap means back to this tab's
+        // input.
         if newValue == coordinator.selectedTab {
           coordinator.handleTabReselection(newValue)
         } else {
@@ -59,6 +61,8 @@ struct LiveAuthenticatedAppView: View {
       guard let controller = playbackCoordinator.controller,
         controller.nativePlayback != nil
       else { return }
+      // Start PiP on .active to .inactive: at .background it is too late. .background to .inactive is a return, not a
+      // leave.
       if phase == .inactive,
         previousPhase == .active,
         !controller.pictureInPicture.isEngaged,
@@ -69,6 +73,7 @@ struct LiveAuthenticatedAppView: View {
         controller.pictureInPicture.isEngaged
           || controller.pictureInPicture.isSystemActive {
         controller.pictureInPicture.bringInline()
+        // A programmatic stop does not always fire the system restore callback: restore the presentation here.
         playbackCoordinator.expand()
       }
     }
@@ -174,6 +179,7 @@ struct LiveAuthenticatedAppView: View {
     else {
       return
     }
+    // Video links go to the player cover only: also pushing the link page opens the video twice.
     if case let .video(video) = link.destination {
       playbackCoordinator.open(video)
       return

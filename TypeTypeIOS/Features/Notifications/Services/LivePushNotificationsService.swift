@@ -104,6 +104,7 @@ private struct LiveChannelNotificationPreferencesBulkPayload: Encodable {
   }
 }
 
+// The server allows 120 requests per second; stay near 60.
 private actor LiveNotificationRequestGate {
   private var nextSlot: ContinuousClock.Instant = .now
   private let spacing: Duration = .milliseconds(17)

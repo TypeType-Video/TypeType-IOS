@@ -90,6 +90,7 @@ extension URLSessionAPIClient {
     return URLSession(configuration: configuration)
   }
 
+  // Segments are read once: no disk cache. A separate session so API bursts never queue ahead of video.
   static func makeMediaSession() -> URLSession {
     let configuration = URLSessionConfiguration.default
     configuration.httpCookieAcceptPolicy = .always

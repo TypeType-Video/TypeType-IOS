@@ -1,6 +1,7 @@
 import Foundation
 import TypeTypePlayerKit
 
+// A failed load is forgotten, not cached: one network blip would fail every later segment.
 actor LiveProviderSegmentIndexes {
   typealias Loader = @Sendable (MP4TrackKind) async throws -> [MP4IndexEntry]
 

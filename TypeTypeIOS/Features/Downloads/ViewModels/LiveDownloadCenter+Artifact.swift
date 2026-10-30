@@ -34,6 +34,8 @@ extension LiveDownloadCenter {
         ],
         ofItemAtPath: destination.path
       )
+      // Ready as soon as the file is in place; validation and checksum finish later and demote the record only if
+      // they fail.
       record.localFileName = fileName
       record.state = .ready
       record.failureMessage = nil

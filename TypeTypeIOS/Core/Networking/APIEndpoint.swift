@@ -8,6 +8,7 @@ struct APIEndpoint {
   let body: Data?
   let requiresAuth: Bool
   let timeoutInterval: TimeInterval?
+  // False when a failure is an answer (a route that refuses some videos): fall back at once, no retries.
   let retriesTransientFailures: Bool
   let isMedia: Bool
   let handlesCookies: Bool

@@ -2,6 +2,7 @@ import SwiftUI
 
 struct LiveCollectionView: View {
   let dependencies: AppDependencies
+  // StateObject: an ObservedObject created inline is replaced on every parent render after its .task ran.
   @StateObject var viewModel: LiveCollectionViewModel
   @State private var selectedVideo: LiveVideoItem?
   @State private var selectedChannelURL: String?
