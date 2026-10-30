@@ -100,7 +100,7 @@ struct LiveVideoCard: View {
 
   @ViewBuilder
   private var channelAvatar: some View {
-    if let onChannel {
+    if let onChannel, !video.uploaderURL.isEmpty {
       Button(action: onChannel) {
         avatar
       }
@@ -177,7 +177,7 @@ struct LiveVideoCard: View {
 
   @ViewBuilder
   private var durationBadge: some View {
-    if !video.isLive {
+    if !video.isLive, video.duration > 0 {
       Text(LiveVideoMetadataFormatter.duration(video.duration))
         .font(.caption2.monospacedDigit().weight(.semibold))
         .foregroundStyle(.white)
