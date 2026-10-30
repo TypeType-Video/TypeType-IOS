@@ -207,4 +207,11 @@ final class MediaLinkResolverTests: XCTestCase {
       3_723
     )
   }
+
+  func testTextWithoutAPlayerKeepsLinksButNotTimestamps() {
+    let attributed = RichTextParser.attributed("Live at 10:00, shop on https://example.org", timestamps: false)
+    let links = attributed.runs.compactMap(\.link)
+
+    XCTAssertEqual(links.map(\.host), ["example.org"])
+  }
 }

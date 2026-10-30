@@ -90,9 +90,7 @@ extension LiveAccountView {
     ) {
       LiveDownloadsView(
         dependencies: coordinator.dependencies,
-        center: downloadCenter,
-        onlinePlaybackCoordinator:
-          coordinator.dependencies.playbackCoordinator
+        center: downloadCenter
       )
     }
   }

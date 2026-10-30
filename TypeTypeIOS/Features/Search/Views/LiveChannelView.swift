@@ -6,6 +6,8 @@ struct LiveChannelView: View {
   @State var selectedVideo: LiveVideoItem?
   @State var selectedPlaylist: LivePlaylistResult?
   @State var selectedPodcast: LivePodcastItem?
+  @State var selectedChannelURL: String?
+  @State var pendingExternalURL: URL?
 
   init(
     channelURL: String,
@@ -49,6 +51,10 @@ struct LiveChannelView: View {
           dependencies: dependencies
         )
       }
+      .navigationDestination(item: $selectedChannelURL) { channelURL in
+        LiveChannelView(channelURL: channelURL, dependencies: dependencies)
+      }
+      .externalLinkAlert(pendingURL: $pendingExternalURL)
       .alert(
         "Subscription unavailable",
         isPresented: subscriptionErrorBinding
@@ -58,6 +64,15 @@ struct LiveChannelView: View {
         Text(viewModel.subscriptionError ?? "")
       }
       .accessibilityIdentifier("live.channel.screen")
+  }
+
+  func routeLink(_ url: URL) {
+    switch LiveMediaLinkResolver.destination(for: url, serverURL: dependencies.serverStore.selectedServer()?.baseURL) {
+    case let .video(video): selectedVideo = video
+    case let .channel(channelURL): selectedChannelURL = channelURL
+    case let .playlist(playlist): selectedPlaylist = playlist
+    case nil: pendingExternalURL = url
+    }
   }
 
   private var subscriptionErrorBinding: Binding<Bool> {

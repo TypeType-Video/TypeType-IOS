@@ -72,7 +72,7 @@ struct LivePlayerView: View {
         swipeAdjustmentOverlay
         statusOverlay
         if controller.nativePlayback != nil || controller.isOfflineContent {
-          LiveNativeSubtitleOverlay(controller: controller)
+          LiveNativeSubtitleOverlay(controller: controller, subtitles: controller.nativeSubtitles)
           LiveNativePlayerControls(
             controller: controller,
             controls: nativeControls,
@@ -166,7 +166,6 @@ struct LivePlayerView: View {
   }
 
   private var followsDeviceRotation: Bool {
-    coordinator.presentation == .expanded
-      && (controller.nativePlayback != nil || controller.isOfflineContent)
+    coordinator.presentation == .expanded && controller.drawsOwnPlayer
   }
 }

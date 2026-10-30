@@ -429,7 +429,7 @@ final class LiveHomeUITests: XCTestCase {
 
     element(in: app, labelled: "Watch").tap()
     XCTAssertTrue(
-      app.descendants(matching: .any)["live.offline-player"]
+      app.descendants(matching: .any)["live.player.surface"]
         .waitForExistence(timeout: 10)
     )
     capture(app, named: "Live downloads · Local video playback")
@@ -449,7 +449,7 @@ final class LiveHomeUITests: XCTestCase {
     )
     element(in: app, labelled: "Watch").tap()
     XCTAssertTrue(
-      app.descendants(matching: .any)["live.offline-player"]
+      app.descendants(matching: .any)["live.player.surface"]
         .waitForExistence(timeout: 5)
     )
     capture(app, named: "Live downloads · Playback after offline restart")

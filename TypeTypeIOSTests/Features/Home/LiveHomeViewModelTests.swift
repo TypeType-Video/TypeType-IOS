@@ -189,11 +189,33 @@ final class LiveHomeViewModelTests: XCTestCase {
     }
   }
 
+  func testRefusedServiceChoiceBringsThePreviousFeedBack() async {
+    let service = HomeFeedStub(results: [
+      .success(HomeRecommendationsPage(items: [], nextCursor: nil, hasMore: false)),
+      .success(HomeRecommendationsPage(items: [], nextCursor: nil, hasMore: false)),
+      .success(HomeRecommendationsPage(items: [], nextCursor: nil, hasMore: false)),
+    ])
+    let selection = makeSelection(supported: [0, 5], settings: HomeSettingsStub(refusesUpdates: true))
+    let viewModel = LiveHomeViewModel(
+      service: service,
+      historyService: HomeHistoryStub(),
+      settingsService: HomeSettingsStub(),
+      serviceSelection: selection
+    )
+
+    await viewModel.selectService(5)
+
+    XCTAssertEqual(viewModel.selectedServiceID, 0)
+    XCTAssertEqual(selection.selectedID, 0)
+    XCTAssertNotNil(selection.errorMessage)
+  }
+
   private func makeSelection(
-    supported serviceIDs: [Int]
+    supported serviceIDs: [Int],
+    settings: HomeSettingsStub = HomeSettingsStub()
   ) -> LiveServiceSelection {
     let selection = LiveServiceSelection(
-      settingsService: HomeSettingsStub(),
+      settingsService: settings,
       defaults: UserDefaults(
         suiteName: "LiveHomeViewModelTests.\(UUID().uuidString)"
       )!
@@ -233,12 +255,18 @@ private final class HomeHistoryStub: LiveHistoryServiceProtocol {
 
 private final class HomeSettingsStub: LiveSettingsServiceProtocol {
   private var value = LiveSettings()
+  private let refusesUpdates: Bool
+
+  init(refusesUpdates: Bool = false) {
+    self.refusesUpdates = refusesUpdates
+  }
 
   func settings() async throws -> LiveSettings {
     value
   }
 
   func update(_ settings: LiveSettings) async throws -> LiveSettings {
+    if refusesUpdates { throw NetworkError.statusCode(500, nil) }
     value = settings
     return value
   }

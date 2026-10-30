@@ -2,19 +2,13 @@ import Foundation
 
 extension LivePlayerController {
   func reloadNativeSubtitles() {
-    nativeSubtitlesTask?.cancel()
     guard let playback = nativePlayback, let service, subtitlesEnabled,
       let subtitle = Self.subtitle(for: selectedSubtitleLanguage, in: playback.preparation.subtitles)
     else {
-      if !nativeSubtitleCues.isEmpty { nativeSubtitleCues = [] }
+      nativeSubtitles.clear()
       return
     }
-    nativeSubtitlesTask = Task { [weak self, weak playback] in
-      guard let data = try? await service.subtitleData(for: subtitle), !Task.isCancelled else { return }
-      let cues = LiveWebVTT.cues(in: String(decoding: data, as: UTF8.self))
-      guard let self, let playback, nativePlayback === playback else { return }
-      nativeSubtitleCues = cues
-    }
+    nativeSubtitles.load(subtitle, using: service)
   }
 
   static func subtitle(for language: String, in subtitles: [LivePlaybackSubtitle]) -> LivePlaybackSubtitle? {

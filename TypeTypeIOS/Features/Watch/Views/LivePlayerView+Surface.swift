@@ -38,24 +38,13 @@ extension LivePlayerView {
       .onChange(of: isSpeedRamping) { _, ramping in
         if !ramping { endSpeedRamp() }
       }
-      .simultaneousGesture(
-        DragGesture(minimumDistance: 30)
-          .onEnded { value in
-            guard showsFullscreenLayout || controller.isPresentingFullscreen,
-              value.translation.height > 120,
-              abs(value.translation.width) < value.translation.height,
-              abs(value.startLocation.x - width / 2) < width / 6
-            else { return }
-            controller.exitNativeFullscreen("surface-drag", byUser: true)
-          }
-      )
   }
 
   // One gesture owns the speed ramp: a separate long press and drag let the drag win before the hold.
   // `.first(true)` arrives on touch down, before the hold: starting there left every plain tap stuck at 2x, since a
   // failed long press never reaches onEnded. The GestureState resets on end, failure and cancel alike.
   private var speedRampGesture: some Gesture {
-    LongPressGesture(minimumDuration: 0.35)
+    LongPressGesture(minimumDuration: PlayerFullscreenExitRules.speedRampHold)
       .sequenced(before: DragGesture(minimumDistance: 0))
       .updating($isSpeedRamping) { value, ramping, _ in
         if case .second(true, _) = value { ramping = true }
@@ -72,6 +61,11 @@ extension LivePlayerView {
       }
   }
 
+  private var fullscreenExitAction: (() -> Void)? {
+    guard showsFullscreenLayout || controller.isPresentingFullscreen else { return nil }
+    return { controller.exitNativeFullscreen("surface-drag", byUser: true) }
+  }
+
   @ViewBuilder
   private func surfaceContent(
     surface: LiveNativeVideoView.Surface
@@ -82,7 +76,8 @@ extension LivePlayerView {
         controller: controller,
         surface: surface,
         onSwipeAdjustment: { handleSwipeAdjustment($0) },
-        onHorizontalSeek: { handleHorizontalSeek($0) }
+        onHorizontalSeek: { handleHorizontalSeek($0) },
+        onFullscreenExit: fullscreenExitAction
       )
     } else {
       LivePlayerLayerView(
@@ -90,6 +85,7 @@ extension LivePlayerView {
         controller: controller,
         onSwipeAdjustment: { handleSwipeAdjustment($0) },
         onHorizontalSeek: { handleHorizontalSeek($0) },
+        onFullscreenExit: fullscreenExitAction,
         onPictureInPictureUIRestore: { completion in
           PictureInPictureRestore.restore(
             canRestore: coordinator.hasActivePlayback,

@@ -19,43 +19,65 @@ struct LiveAccountProfilesView: View {
 
   var body: some View {
     List {
-      if let profiles = viewModel.profiles {
-        ForEach(profiles.profiles) { profile in
-          row(profile)
-        }
+      if viewModel.isUnavailable {
+        ContentUnavailableView(
+          "Profiles unavailable",
+          systemImage: "person.2.slash",
+          description: Text("This instance does not offer account profiles.")
+        )
+        .listRowBackground(Color.clear)
+      } else if let profiles = viewModel.profiles {
+        LiveSection {
+          ForEach(profiles.profiles) { profile in
+            LiveAccountProfileRow(
+              profile: profile,
+              isSwitching: isSwitching,
+              onSwitch: { Task { await switchProfile(profile) } },
+              onSetDefault: { Task { await viewModel.setDefault(profile) } },
+              onRename: {
+                renameText = profile.name
+                renamingProfile = profile
+              },
+              onDelete: { Task { await viewModel.delete(profile) } }
+            )
+          }
+        } header: { Text("Profiles").liveSectionHeader() }
       } else if viewModel.errorMessage == nil {
         HStack {
           Spacer()
           ProgressView()
           Spacer()
         }
+        .listRowBackground(Color.clear)
       }
 
-      Section {
-        TextField("Name", text: $viewModel.newName)
-          .textInputAutocapitalization(.words)
-          .submitLabel(.done)
-          .onSubmit {
+      if !viewModel.isUnavailable {
+        LiveSection {
+          TextField("Name", text: $viewModel.newName)
+            .textInputAutocapitalization(.words)
+            .submitLabel(.done)
+            .onSubmit {
+              Task { await viewModel.create() }
+            }
+          Button {
             Task { await viewModel.create() }
+          } label: {
+            if viewModel.isBusy {
+              ProgressView()
+            } else {
+              Label("Create profile", systemImage: "plus")
+            }
           }
-        Button {
-          Task { await viewModel.create() }
-        } label: {
-          if viewModel.isBusy {
-            ProgressView()
-          } else {
-            Label("Create profile", systemImage: "plus")
-          }
-        }
-        .disabled(
-          viewModel.isBusy
-            || viewModel.newName.trimmingCharacters(
-              in: .whitespacesAndNewlines
-            ).isEmpty
-        )
-      } header: { Text("New profile").liveSectionHeader() }
+          .disabled(
+            viewModel.isBusy
+              || viewModel.newName.trimmingCharacters(
+                in: .whitespacesAndNewlines
+              ).isEmpty
+          )
+        } header: { Text("New profile").liveSectionHeader() }
+      }
     }
-      .liveGroupedList()
+    .liveGroupedList()
     .navigationTitle("Profiles")
     .overlay(alignment: .bottom) {
       if let error = viewModel.errorMessage ?? switchError {
@@ -105,94 +127,6 @@ struct LiveAccountProfilesView: View {
     .accessibilityIdentifier("live.account-profiles.screen")
   }
 
-  @ViewBuilder
-  private func row(_ profile: AccountProfileItem) -> some View {
-    HStack(spacing: 12) {
-      Image(systemName: profile.isActive ? "checkmark.circle.fill" : "person.crop.circle")
-        .font(.title3)
-        .foregroundStyle(profile.isActive ? Color.accentColor : Color.secondary)
-      VStack(alignment: .leading, spacing: 3) {
-        Text(profile.name)
-          .font(.body.weight(.semibold))
-        HStack(spacing: 6) {
-          if profile.isDefault {
-            tag("Default", fill: Color.secondary.opacity(0.2))
-          }
-          if profile.isActive {
-            tag("Active", fill: Color.accentColor.opacity(0.16))
-          }
-        }
-      }
-      Spacer()
-      if isSwitching && !profile.isActive {
-        ProgressView()
-      }
-    }
-    .padding(.vertical, 2)
-    .contentShape(Rectangle())
-    .onTapGesture {
-      Task { await switchProfile(profile) }
-    }
-    .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-      if !profile.isActive {
-        Button(role: .destructive) {
-          Task { await viewModel.delete(profile) }
-        } label: {
-          Label("Delete", systemImage: "trash")
-        }
-      }
-      Button {
-        Task { await viewModel.setDefault(profile) }
-      } label: {
-        Label("Default", systemImage: "star")
-      }
-      .tint(.orange)
-      Button {
-        renameText = profile.name
-        renamingProfile = profile
-      } label: {
-        Label("Rename", systemImage: "pencil")
-      }
-      .tint(.blue)
-    }
-    .contextMenu {
-      if !profile.isActive {
-        Button {
-          Task { await switchProfile(profile) }
-        } label: {
-          Label("Switch to profile", systemImage: "arrow.left.arrow.right.circle")
-        }
-      }
-      Button {
-        Task { await viewModel.setDefault(profile) }
-      } label: {
-        Label("Set as default", systemImage: "star")
-      }
-      Button {
-        renameText = profile.name
-        renamingProfile = profile
-      } label: {
-        Label("Rename", systemImage: "pencil")
-      }
-      if !profile.isActive {
-        Button(role: .destructive) {
-          Task { await viewModel.delete(profile) }
-        } label: {
-          Label("Delete profile", systemImage: "trash")
-        }
-      }
-    }
-    .accessibilityElement(children: .combine)
-    .accessibilityLabel(profile.name)
-    .accessibilityValue("Profile")
-    .accessibilityHint(
-      profile.isActive
-        ? LocalizedStringKey("This profile is active.")
-        : LocalizedStringKey("Switch to profile")
-    )
-    .accessibilityAddTraits(profile.isActive ? [] : .isButton)
-  }
-
   private func switchProfile(_ profile: AccountProfileItem) async {
     guard !profile.isActive, !isSwitching else { return }
     isSwitching = true
@@ -204,13 +138,5 @@ struct LiveAccountProfilesView: View {
     }
     await viewModel.load()
     isSwitching = false
-  }
-
-  private func tag(_ title: LocalizedStringKey, fill: Color) -> some View {
-    Text(title)
-      .font(.caption.weight(.semibold))
-      .padding(.horizontal, 6)
-      .padding(.vertical, 2)
-      .background(fill, in: Capsule())
   }
 }

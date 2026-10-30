@@ -122,6 +122,9 @@ extension LivePlayerController {
       return
     }
     lastHistoryProgress = progress
+    if isOfflineContent {
+      LiveOfflineResumeStore(defaults: .standard).save(position, duration: duration, for: video.url)
+    }
     let historyVideo = video.resolving(with: stream)
     let recordsEvent = !didRecordHistoryEvent
     didRecordHistoryEvent = true

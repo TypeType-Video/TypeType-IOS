@@ -168,8 +168,7 @@ extension LiveAuthenticatedAppView {
     NavigationStack {
       LiveDownloadsView(
         dependencies: coordinator.dependencies,
-        center: downloadCenter,
-        onlinePlaybackCoordinator: playbackCoordinator
+        center: downloadCenter
       )
       .toolbar {
         ToolbarItem(placement: .topBarLeading) {

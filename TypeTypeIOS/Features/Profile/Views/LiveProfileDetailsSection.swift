@@ -4,7 +4,7 @@ struct LiveProfileDetailsSection: View {
   @ObservedObject var viewModel: LiveProfileViewModel
 
   var body: some View {
-    Section {
+    LiveSection {
       TextField("Public username", text: $viewModel.publicUsername)
         .textInputAutocapitalization(.never)
         .autocorrectionDisabled()

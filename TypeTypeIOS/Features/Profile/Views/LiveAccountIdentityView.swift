@@ -36,14 +36,14 @@ struct LiveAccountIdentityView: View {
     case .loaded:
       Form {
         if viewModel.managedByOIDC {
-          Section {
+          LiveSection {
             Label(
               "This identity is managed by your OIDC provider.",
               systemImage: "building.2"
             )
           }
         }
-        Section {
+        LiveSection {
           TextField("Name", text: $viewModel.name)
             .textContentType(.name)
           TextField("Email", text: $viewModel.email)
@@ -56,7 +56,7 @@ struct LiveAccountIdentityView: View {
           )
           .textContentType(.password)
         } header: { Text("Identity").liveSectionHeader() }
-        Section {
+        LiveSection {
           Button {
             Task { await viewModel.save() }
           } label: {
@@ -76,7 +76,7 @@ struct LiveAccountIdentityView: View {
           )
         }
         if let message = viewModel.message {
-          Section {
+          LiveSection {
             Label(message, systemImage: "checkmark.circle.fill")
               .foregroundStyle(.green)
           }

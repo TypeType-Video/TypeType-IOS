@@ -20,6 +20,7 @@ struct LivePlayerLayerView: UIViewControllerRepresentable {
   let controller: LivePlayerController
   var onSwipeAdjustment: ((PlayerSwipeAdjustmentEvent) -> Void)? = nil
   var onHorizontalSeek: ((PlayerHorizontalSeekEvent) -> Void)? = nil
+  var onFullscreenExit: (() -> Void)? = nil
   var onPictureInPictureUIRestore:
     (((@escaping (Bool) -> Void)) -> Void)? = nil
   var showsSystemControls = true
@@ -42,16 +43,10 @@ struct LivePlayerLayerView: UIViewControllerRepresentable {
     playerController.videoGravity = controller.imageMode.videoGravity
     playerController.view.backgroundColor = .black
     playerController.delegate = context.coordinator
-    context.coordinator.swipeGestureHandler = onSwipeAdjustment
-    context.coordinator.horizontalSeekHandler = onHorizontalSeek
-    context.coordinator.installHorizontalSeekGesture(
-      in: playerController.view
-    )
+    updateGestures(context.coordinator.surfaceGestures)
+    context.coordinator.surfaceGestures.install(in: playerController.view)
     context.coordinator.pictureInPictureUIRestoreHandler =
       onPictureInPictureUIRestore
-    context.coordinator.installSwipeGesture(
-      in: playerController.view
-    )
     playerController.onWillTransition = {
       [weak coordinator = context.coordinator] transitionCoordinator in
       coordinator?.preservePlayback(across: transitionCoordinator)
@@ -85,10 +80,15 @@ struct LivePlayerLayerView: UIViewControllerRepresentable {
         playerController.showsPlaybackControls = showsSystemControls
       }
     }
-    context.coordinator.swipeGestureHandler = onSwipeAdjustment
-    context.coordinator.horizontalSeekHandler = onHorizontalSeek
+    updateGestures(context.coordinator.surfaceGestures)
     context.coordinator.pictureInPictureUIRestoreHandler =
       onPictureInPictureUIRestore
+  }
+
+  private func updateGestures(_ gestures: LivePlayerSurfaceGestures) {
+    gestures.swipeHandler = onSwipeAdjustment
+    gestures.horizontalSeekHandler = onHorizontalSeek
+    gestures.fullscreenExitHandler = onFullscreenExit
   }
 
   static func dismantleUIViewController(

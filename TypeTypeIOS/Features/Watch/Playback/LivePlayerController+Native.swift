@@ -205,9 +205,7 @@ extension LivePlayerController {
   }
 
   func stopNative() {
-    nativeSubtitlesTask?.cancel()
-    nativeSubtitlesTask = nil
-    if !nativeSubtitleCues.isEmpty { nativeSubtitleCues = [] }
+    nativeSubtitles.clear()
     nativePlayback?.stop()
     nativePlayback = nil
   }

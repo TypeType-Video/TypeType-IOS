@@ -95,8 +95,7 @@ extension LiveChannelView {
       Text("About")
         .font(.headline)
       if let channel = viewModel.channel, !channel.description.isEmpty {
-        Text(channel.description)
-          .font(.subheadline)
+        InteractiveText(text: channel.description, font: .subheadline, lineLimit: nil, onOpenURL: routeLink)
           .foregroundStyle(.secondary)
           .textSelection(.enabled)
       } else {

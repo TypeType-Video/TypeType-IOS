@@ -5,11 +5,11 @@ struct InteractiveText: View {
   let text: String
   let font: Font
   let lineLimit: Int?
-  let onSeekTimestamp: (Double) -> Void
+  var onSeekTimestamp: ((Double) -> Void)?
   let onOpenURL: (URL) -> Void
 
   var body: some View {
-    Text(RichTextParser.attributed(text))
+    Text(RichTextParser.attributed(text, timestamps: onSeekTimestamp != nil))
       .font(font)
       .lineLimit(lineLimit)
       .fixedSize(horizontal: false, vertical: true)
@@ -17,7 +17,7 @@ struct InteractiveText: View {
         \.openURL,
         OpenURLAction { url in
           if let seconds = RichTextParser.seekSeconds(from: url) {
-            onSeekTimestamp(seconds)
+            onSeekTimestamp?(seconds)
           } else {
             onOpenURL(url)
           }
@@ -47,18 +47,19 @@ enum RichTextParser {
     pattern: #"(?<![0-9])(?:(\d{1,2}):)?([0-5]?[0-9]):([0-5][0-9])(?![0-9])"#
   )
 
-  static func attributed(_ text: String) -> AttributedString {
-    if let cached = parsed.object(forKey: text as NSString) {
+  static func attributed(_ text: String, timestamps: Bool = true) -> AttributedString {
+    let key = "\(timestamps ? "t" : "n")|\(text)" as NSString
+    if let cached = parsed.object(forKey: key) {
       return cached.value
     }
-    let value = parse(text)
-    parsed.setObject(Parsed(value), forKey: text as NSString)
+    let value = parse(text, timestamps: timestamps)
+    parsed.setObject(Parsed(value), forKey: key)
     return value
   }
 
-  private static func parse(_ text: String) -> AttributedString {
+  private static func parse(_ text: String, timestamps: Bool) -> AttributedString {
     let source = text as NSString
-    let tokens = detectedTokens(in: text)
+    let tokens = detectedTokens(in: text, timestamps: timestamps)
     var result = AttributedString()
     var cursor = 0
 
@@ -100,10 +101,10 @@ enum RichTextParser {
     return Double(value)
   }
 
-  private static func detectedTokens(in text: String) -> [Token] {
+  private static func detectedTokens(in text: String, timestamps: Bool) -> [Token] {
     let fullRange = NSRange(location: 0, length: (text as NSString).length)
     var tokens = detectedLinks(in: text, range: fullRange)
-    guard let regex = timestampPattern else { return tokens }
+    guard timestamps, let regex = timestampPattern else { return tokens }
 
     for match in regex.matches(in: text, range: fullRange) {
       guard !tokens.contains(where: { NSIntersectionRange($0.range, match.range).length > 0 }),

@@ -2,7 +2,7 @@ import SwiftUI
 
 extension LiveImportView {
   var typeTypeBackupSection: some View {
-    Section {
+    LiveSection {
       ForEach(LiveTypeTypeBackupCategory.allCases) { category in
         Toggle(category.title, isOn: categoryBinding(category)).liveRowFill()
           .disabled(viewModel.isRunning)
@@ -91,7 +91,7 @@ extension LiveImportView {
   }
 
   var pipePipeSection: some View {
-    Section {
+    LiveSection {
       Picker("Timestamp handling", selection: $timeMode) {
         Text("Normalized").tag("normalized")
         Text("Raw").tag("raw")
@@ -107,7 +107,7 @@ extension LiveImportView {
   }
 
   var youTubeSection: some View {
-    Section {
+    LiveSection {
       Button {
         importsYouTube = true
       } label: {
