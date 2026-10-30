@@ -30,10 +30,8 @@ struct LiveVideoMetadataHeader: View {
 
       if isExpanded {
         expandedDetails
-          .padding(14)
           .frame(maxWidth: .infinity, alignment: .leading)
-          .liveGlassCard(cornerRadius: 16)
-          .padding(.top, 10)
+          .padding(.top, 14)
           .transition(.opacity)
       }
     }

@@ -24,7 +24,7 @@ struct LiveChipButtonStyle: ButtonStyle {
       .padding(.vertical, 6)
       .frame(minHeight: 38)
       .background {
-        if #available(iOS 26.0, *) {
+        if #available(iOS 26.0, *), !isFilled {
           Capsule(style: .continuous)
             .fill(background.opacity(0.28))
             .glassEffect(.regular.tint(background), in: .capsule)
@@ -47,7 +47,7 @@ struct LiveChipButtonStyle: ButtonStyle {
 
   private var foreground: Color {
     if isFilled {
-      return palette.background
+      return isActive ? .white : palette.background
     }
     return isActive ? palette.accent : .primary
   }

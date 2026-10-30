@@ -689,3 +689,9 @@
 "Sleep timer" = "Sleep timer";
 "More actions" = "More actions";
 "More actions for %@" = "More actions for %@";
+"Subscribe" = "Subscribe";
+"Subscribed" = "Subscribed";
+"Unsubscribe" = "Unsubscribe";
+"Turn off notifications" = "Turn off notifications";
+"Turn on notifications" = "Turn on notifications";
+"Shows notification and unsubscribe options" = "Shows notification and unsubscribe options";

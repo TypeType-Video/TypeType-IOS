@@ -108,19 +108,38 @@ struct LiveVideoEngagementView: View {
 
   @ViewBuilder private var subscribeButton: some View {
     if viewModel.canSubscribe {
-      Button {
-        Task { await viewModel.toggleSubscription() }
-      } label: {
-        if viewModel.isChanging {
-          ProgressView()
-            .controlSize(.small)
-        } else {
-          Text(viewModel.isSubscribed ? "Subscribed" : "Subscribe")
+      if viewModel.isChanging {
+        ProgressView()
+          .controlSize(.small)
+          .frame(width: 44, height: 34)
+      } else if viewModel.isSubscribed {
+        Menu {
+          Button("Unsubscribe", systemImage: "person.badge.minus", role: .destructive) {
+            Task { await viewModel.toggleSubscription() }
+          }
+        } label: {
+          HStack(spacing: 6) {
+            Image(systemName: "checkmark")
+            Image(systemName: "chevron.down")
+              .font(.caption.weight(.bold))
+          }
+          .font(.body.weight(.semibold))
+          .foregroundStyle(.primary)
+          .padding(.horizontal, 14)
+          .frame(height: 34)
+          .background(.quaternary, in: Capsule())
         }
+        .disabled(viewModel.isLoading)
+        .accessibilityLabel(Text("Subscribed"))
+        .accessibilityIdentifier("live.video.subscribe")
+      } else {
+        Button("Subscribe") {
+          Task { await viewModel.toggleSubscription() }
+        }
+        .buttonStyle(LiveChipButtonStyle(isFilled: true, isActive: true))
+        .disabled(viewModel.isLoading)
+        .accessibilityIdentifier("live.video.subscribe")
       }
-      .buttonStyle(LiveChipButtonStyle(isFilled: true))
-      .disabled(viewModel.isLoading || viewModel.isChanging)
-      .accessibilityIdentifier("live.video.subscribe")
     }
   }
 

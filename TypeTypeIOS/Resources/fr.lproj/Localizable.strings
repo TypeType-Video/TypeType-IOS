@@ -689,3 +689,9 @@
 "Sleep timer" = "Minuterie de mise en veille";
 "More actions" = "Plus d’actions";
 "More actions for %@" = "Plus d’actions pour %@";
+"Subscribe" = "S’abonner";
+"Subscribed" = "Abonné";
+"Unsubscribe" = "Se désabonner";
+"Turn off notifications" = "Couper les notifications";
+"Turn on notifications" = "Activer les notifications";
+"Shows notification and unsubscribe options" = "Affiche les notifications et le désabonnement";
