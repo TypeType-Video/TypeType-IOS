@@ -82,5 +82,37 @@
 			<string>%lld unread</string>
 		</dict>
 	</dict>
+	<key>Back %lld seconds</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@count@</string>
+		<key>count</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>one</key>
+			<string>Back %lld second</string>
+			<key>other</key>
+			<string>Back %lld seconds</string>
+		</dict>
+	</dict>
+	<key>Forward %lld seconds</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@count@</string>
+		<key>count</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>lld</string>
+			<key>one</key>
+			<string>Forward %lld second</string>
+			<key>other</key>
+			<string>Forward %lld seconds</string>
+		</dict>
+	</dict>
 </dict>
 </plist>

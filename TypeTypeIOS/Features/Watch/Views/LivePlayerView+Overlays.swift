@@ -4,12 +4,14 @@ extension LivePlayerView {
   @ViewBuilder
   var seekFeedbackOverlay: some View {
     if let activeFeedback = seekFeedback {
-      LivePlayerSeekWave(feedback: activeFeedback)
-      .allowsHitTesting(false)
-      .transition(.opacity)
+      LivePlayerSeekHint(feedback: activeFeedback)
+      .transition(.asymmetric(
+        insertion: .opacity.animation(.easeOut(duration: 0.09)),
+        removal: .opacity.animation(.easeOut(duration: 0.22))
+      ))
       .task(id: activeFeedback.id) {
-        try? await Task.sleep(for: .milliseconds(650))
-        withAnimation(.easeOut(duration: 0.12)) {
+        try? await Task.sleep(for: .milliseconds(700))
+        withAnimation(.easeOut(duration: 0.22)) {
           let pulse = activeFeedback.pulse
           if seekFeedback?.pulse == pulse {
             seekFeedback = nil
