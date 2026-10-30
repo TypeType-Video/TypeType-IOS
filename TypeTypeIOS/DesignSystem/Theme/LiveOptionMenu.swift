@@ -2,12 +2,12 @@ import SwiftUI
 
 enum LiveOptionIcon {
   case system(String)
-  case asset(String)
+  case service(VideoService)
 
   var image: Image {
     switch self {
     case let .system(name): Image(systemName: name)
-    case let .asset(name): Image(name)
+    case let .service(service): service.logo
     }
   }
 }

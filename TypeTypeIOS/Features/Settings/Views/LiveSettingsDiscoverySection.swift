@@ -23,7 +23,7 @@ struct LiveSettingsDiscoverySection: View {
         LiveOptionMenu(
           "Default service",
           selection: $settings.defaultService,
-          options: services.map { ($0.id, $0.name, $0.assetName.map(LiveOptionIcon.asset) ?? .system($0.systemImage)) },
+          options: services.map { ($0.id, $0.name, .service($0)) },
           help: "Where Home, Search and links open first."
         )
       }
