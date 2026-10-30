@@ -105,9 +105,7 @@ struct LiveSearchFilterBar: View {
           }
       ) { index in
         presentsSort = false
-        let value = index == 0
-          ? nil
-          : viewModel.filters.sortFilters[index - 1].value
+        let value: String? = index == 0 ? nil : viewModel.filters.sortFilters[index - 1].value
         Task { await viewModel.selectSortFilter(value) }
       }
     }

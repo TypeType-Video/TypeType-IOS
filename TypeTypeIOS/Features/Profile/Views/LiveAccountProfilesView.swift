@@ -110,24 +110,16 @@ struct LiveAccountProfilesView: View {
     HStack(spacing: 12) {
       Image(systemName: profile.isActive ? "checkmark.circle.fill" : "person.crop.circle")
         .font(.title3)
-        .foregroundStyle(profile.isActive ? Color.accentColor : .secondary)
+        .foregroundStyle(profile.isActive ? Color.accentColor : Color.secondary)
       VStack(alignment: .leading, spacing: 3) {
         Text(profile.name)
           .font(.body.weight(.semibold))
         HStack(spacing: 6) {
           if profile.isDefault {
-            Text("Default")
-              .font(.caption.weight(.semibold))
-              .padding(.horizontal, 6)
-              .padding(.vertical, 2)
-              .background(.quaternary, in: Capsule())
+            tag("Default", fill: Color.secondary.opacity(0.2))
           }
           if profile.isActive {
-            Text("Active")
-              .font(.caption.weight(.semibold))
-              .padding(.horizontal, 6)
-              .padding(.vertical, 2)
-              .background(Color.accentColor.opacity(0.16), in: Capsule())
+            tag("Active", fill: Color.accentColor.opacity(0.16))
           }
         }
       }
@@ -212,5 +204,13 @@ struct LiveAccountProfilesView: View {
     }
     await viewModel.load()
     isSwitching = false
+  }
+
+  private func tag(_ title: LocalizedStringKey, fill: Color) -> some View {
+    Text(title)
+      .font(.caption.weight(.semibold))
+      .padding(.horizontal, 6)
+      .padding(.vertical, 2)
+      .background(fill, in: Capsule())
   }
 }

@@ -163,23 +163,22 @@ struct LiveNativePlayerControls: View {
   private var sponsorSegmentBands: some View {
     GeometryReader { proxy in
       ForEach(controller.visibleSponsorBlockWindows) { window in
-        let span = max(controller.duration, 1)
-        let start = min(max(window.start / span, 0), 1)
-        let end = min(max(window.end / span, 0), 1)
+        let band = bandSpan(window, width: proxy.size.width)
         Capsule()
           .fill(sponsorBandColor(window.segment.category).opacity(0.55))
-          .frame(
-            width: max(proxy.size.width * (end - start), 3),
-            height: 5
-          )
-          .position(
-            x: proxy.size.width * (start + end) / 2,
-            y: proxy.size.height / 2
-          )
+          .frame(width: band.width, height: 5)
+          .position(x: band.center, y: proxy.size.height / 2)
       }
     }
     .allowsHitTesting(false)
     .accessibilityHidden(true)
+  }
+
+  private func bandSpan(_ window: LiveSponsorBlockWindow, width: CGFloat) -> (width: CGFloat, center: CGFloat) {
+    let span: Double = max(controller.duration, 1)
+    let start: Double = min(max(window.start / span, 0), 1)
+    let end: Double = min(max(window.end / span, 0), 1)
+    return (max(width * CGFloat(end - start), 3), width * CGFloat(start + end) / 2)
   }
 
   private func sponsorBandColor(_ category: String) -> Color {

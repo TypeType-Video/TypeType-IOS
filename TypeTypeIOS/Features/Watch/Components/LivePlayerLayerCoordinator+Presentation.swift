@@ -8,10 +8,9 @@ extension LivePlayerLayerCoordinator {
   ) {
     isEndingFullScreen = false
     isFullScreenPresented = true
-    fullScreenPlaybackWasIntended =
-      playbackWasIntended
-      || controller.player.timeControlStatus == .playing
-      || controller.state == .playing
+    let playerIsPlaying: Bool = controller.player.timeControlStatus == .playing
+    let stateIsPlaying: Bool = controller.state == .playing
+    fullScreenPlaybackWasIntended = playbackWasIntended || playerIsPlaying || stateIsPlaying
     transition(
       playerViewController,
       toFullScreen: true,

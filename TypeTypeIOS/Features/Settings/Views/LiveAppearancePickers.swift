@@ -1,7 +1,6 @@
 import SwiftUI
 
 struct LiveAppearanceThemeTiles: View {
-  @Environment(\.themePalette) private var palette
   @Binding var selection: LiveAppearanceTheme
   let isDark: Bool
 
@@ -9,37 +8,44 @@ struct LiveAppearanceThemeTiles: View {
     ScrollView(.horizontal) {
       HStack(alignment: .top, spacing: 12) {
         ForEach(LiveAppearanceTheme.allCases) { theme in
-          Button {
+          LiveAppearanceThemeTile(theme: theme, isDark: isDark, isSelected: selection == theme) {
             selection = theme
-          } label: {
-            VStack(spacing: 6) {
-              LiveAppearanceMiniScreen(theme: theme, isDark: isDark)
-                .frame(width: 66, height: 96)
-                .overlay {
-                  RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .strokeBorder(
-                      palette.accent,
-                      lineWidth: selection == theme ? 2.5 : 0
-                    )
-                }
-              Text(theme.title)
-                .font(
-                  .caption2.weight(selection == theme ? .semibold : .regular)
-                )
-                .foregroundStyle(selection == theme ? palette.accent : .primary)
-            }
-            .contentShape(Rectangle())
           }
-          .buttonStyle(.plain)
-          .accessibilityLabel(theme.title)
-          .accessibilityAddTraits(selection == theme ? .isSelected : [])
-          .accessibilityIdentifier("live.settings.appearance.theme.\(theme.id)")
         }
       }
       .padding(.vertical, 8)
     }
     .scrollIndicators(.hidden)
     .accessibilityIdentifier("live.settings.appearance.themes")
+  }
+}
+
+struct LiveAppearanceThemeTile: View {
+  let theme: LiveAppearanceTheme
+  let isDark: Bool
+  let isSelected: Bool
+  let select: () -> Void
+  @Environment(\.themePalette) private var palette
+
+  var body: some View {
+    Button(action: select) {
+      VStack(spacing: 6) {
+        LiveAppearanceMiniScreen(theme: theme, isDark: isDark)
+          .frame(width: 66, height: 96)
+          .overlay {
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+              .strokeBorder(palette.accent, lineWidth: isSelected ? 2.5 : 0)
+          }
+        Text(theme.title)
+          .font(isSelected ? Font.caption2.weight(.semibold) : Font.caption2)
+          .foregroundStyle(isSelected ? palette.accent : Color.primary)
+      }
+      .contentShape(Rectangle())
+    }
+    .buttonStyle(.plain)
+    .accessibilityLabel(theme.title)
+    .accessibilityAddTraits(isSelected ? .isSelected : [])
+    .accessibilityIdentifier("live.settings.appearance.theme.\(theme.id)")
   }
 }
 
