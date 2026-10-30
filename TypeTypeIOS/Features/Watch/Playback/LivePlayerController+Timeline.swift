@@ -45,11 +45,6 @@ extension LivePlayerController {
     nativePlayback?.player.isMuted = value
   }
 
-  func setOutputVolume(_ value: Float) {
-    player.volume = value
-    nativePlayback?.player.volume = value
-  }
-
   static func timelinePosition(
     playbackSeconds: TimeInterval,
     offset: TimeInterval,

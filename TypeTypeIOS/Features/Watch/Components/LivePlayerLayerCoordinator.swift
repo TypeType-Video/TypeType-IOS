@@ -226,7 +226,7 @@ extension LivePlayerLayerCoordinator: UIGestureRecognizerDelegate {
     case .brightness:
       CGFloat(UIScreen.main.brightness)
     case .volume:
-      CGFloat(controller.nativePlayback?.player.volume ?? controller.player.volume)
+      CGFloat(AVAudioSession.sharedInstance().outputVolume)
     }
     return true
   }

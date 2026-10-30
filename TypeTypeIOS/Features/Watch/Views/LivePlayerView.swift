@@ -27,6 +27,7 @@ struct LivePlayerView: View {
   @State var longPressBaseRate: Float?
   @GestureState var isSpeedRamping = false
   @State var horizontalSeekPreview: (position: TimeInterval, isFine: Bool)?
+  @StateObject var systemVolume = LiveSystemVolume()
   @State var autoPictureInPictureArmed = true
   @State var autoPictureInPictureActive = false
   @StateObject var nativeControls = LiveNativeControlsState()
@@ -41,6 +42,10 @@ struct LivePlayerView: View {
   var body: some View {
     GeometryReader { proxy in
       ZStack {
+        LiveSystemVolumeView(volume: systemVolume)
+          .frame(width: 1, height: 1)
+          .allowsHitTesting(false)
+          .accessibilityHidden(true)
         Color.black
 
         videoSurface(width: proxy.size.width)

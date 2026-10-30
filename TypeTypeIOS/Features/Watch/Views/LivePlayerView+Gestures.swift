@@ -142,7 +142,7 @@ extension LivePlayerView {
     case .brightness:
       UIScreen.main.brightness = fraction
     case .volume:
-      controller.setOutputVolume(Float(fraction))
+      systemVolume.set(fraction)
     }
   }
 
