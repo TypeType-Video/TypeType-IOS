@@ -9,7 +9,7 @@ struct LiveSettingsPlaybackSection: View {
   ]
 
   var body: some View {
-    Section {
+    LiveSection {
       Toggle("Autoplay next video", isOn: $settings.autoplay).liveRowFill()
       Toggle(
         "Skip playlist autoplay screen",
@@ -29,6 +29,12 @@ struct LiveSettingsPlaybackSection: View {
         "High-quality playback",
         isOn: $settings.enableHighQualityPlayback
       ).liveRowFill()
+    } header: {
+      Text("Video").liveSettingsHeader()
+    } footer: {
+      Text("Saved to your account and used on every device signed in to it.").liveSettingsFooter()
+    }
+    LiveSection {
       Toggle("Start muted", isOn: $settings.muted).liveRowFill()
       VStack(alignment: .leading, spacing: 8) {
         HStack {
@@ -39,8 +45,11 @@ struct LiveSettingsPlaybackSection: View {
             .monospacedDigit()
         }
         Slider(value: $settings.volume, in: 0...1)
+          .accessibilityLabel(Text("Default volume"))
       }
-    } header: { Text("Playback").liveSettingsHeader() }
+    } header: {
+      Text("Sound").liveSettingsHeader()
+    }
   }
 
   private static let speeds: [Double] = [0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 2.0]

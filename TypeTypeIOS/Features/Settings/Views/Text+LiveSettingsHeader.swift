@@ -10,4 +10,11 @@ extension Text {
       .padding(.top, 4)
       .padding(.bottom, 6)
   }
+
+  func liveSettingsFooter() -> some View {
+    self
+      .font(.footnote)
+      .foregroundStyle(.secondary)
+      .frame(maxWidth: .infinity, alignment: .leading)
+  }
 }
