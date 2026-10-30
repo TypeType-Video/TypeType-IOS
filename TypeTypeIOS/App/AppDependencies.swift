@@ -39,6 +39,7 @@ final class AppDependencies {
   let importService: LiveImportServiceProtocol
   let portabilityService: LivePortabilityServiceProtocol
   let versionService: LiveVersionServiceProtocol
+  let youtubeSessionService: LiveYouTubeSessionServiceProtocol?
   let playbackService: LivePlaybackServiceProtocol?
   let watchProgress: LiveWatchProgressStore
   let imagePipeline: TypeTypeImagePipeline
@@ -140,6 +141,7 @@ final class AppDependencies {
     importService: LiveImportServiceProtocol,
     portabilityService: LivePortabilityServiceProtocol = LivePortabilityNoopService(),
     versionService: LiveVersionServiceProtocol = LiveVersionUnavailableService(),
+    youtubeSessionService: LiveYouTubeSessionServiceProtocol? = nil,
     playbackService: LivePlaybackServiceProtocol? = nil,
     watchProgress: LiveWatchProgressStore = LiveWatchProgressStore(),
     imagePipeline: TypeTypeImagePipeline = TypeTypeImagePipeline(),
@@ -181,6 +183,7 @@ final class AppDependencies {
     self.importService = importService
     self.portabilityService = portabilityService
     self.versionService = versionService
+    self.youtubeSessionService = youtubeSessionService
     self.playbackService = playbackService
     self.watchProgress = watchProgress
     self.imagePipeline = imagePipeline
