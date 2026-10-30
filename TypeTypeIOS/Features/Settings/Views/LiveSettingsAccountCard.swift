@@ -36,7 +36,10 @@ struct LiveSettingsAccountCard: View {
     guard let user = coordinator.currentUser, !user.id.hasPrefix("guest:") else {
       return String(localized: "Guest")
     }
-    return user.publicUsername ?? String(localized: "Guest")
+    if let name = user.publicUsername, !name.isEmpty { return name }
+    let serverID = coordinator.selectedServer?.id ?? ""
+    return coordinator.dependencies.sessionStore.session(forServerID: serverID)?.accountIdentifier
+      ?? user.role.title
   }
 
   private var instanceLine: String {

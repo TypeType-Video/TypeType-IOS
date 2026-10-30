@@ -73,6 +73,7 @@ struct LiveSettingsAccountsView: View {
               }
             }
           }
+          .tint(Color.primary)
           .accessibilityAddTraits(coordinator.selectedServer?.id == server.id ? .isSelected : [])
         }
 
@@ -100,7 +101,7 @@ struct LiveSettingsAccountsView: View {
       if let user = coordinator.currentUser {
         LiveSection {
           LabeledContent("Username") {
-            Text(user.publicUsername ?? String(localized: "Guest"))
+            Text(user.id.hasPrefix("guest:") ? String(localized: "Guest") : user.publicUsername ?? String(localized: "Not set"))
           }
           if !user.id.hasPrefix("guest:") {
             NavigationLink("Profile") {

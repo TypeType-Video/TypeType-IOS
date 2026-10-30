@@ -22,7 +22,7 @@ struct LiveDiagnosticsView: View {
       }
 
       if isLoading {
-        Section {
+        LiveSection {
           HStack {
             Spacer()
             TypeTypeSkeletonList(layout: .settings, count: 6, scrolls: false)
@@ -30,7 +30,7 @@ struct LiveDiagnosticsView: View {
           }
         }
       } else if entries.isEmpty {
-        Section {
+        LiveSection {
           ContentUnavailableView(
             "No diagnostics yet",
             systemImage: "checkmark.shield",
@@ -40,14 +40,14 @@ struct LiveDiagnosticsView: View {
           ).liveThemedEmptyState()
         }
       } else {
-        Section {
+        LiveSection {
           ForEach(entries) { entry in
             LiveDiagnosticRow(
               entry: entry,
               copiedRequestID: $copiedRequestID
             )
           }
-        } header: { Text("Recent requests").liveSectionHeader() }
+        } header: { Text("Recent requests").liveSettingsHeader() }
       }
     }
       .liveGroupedList()

@@ -28,6 +28,7 @@ struct LiveSavedAccountsSection: View {
           }
           .foregroundStyle(.primary)
         }
+        .tint(Color.primary)
         .disabled(switchingID != nil)
         .accessibilityAddTraits(account.userID == coordinator.currentUser?.id ? .isSelected : [])
         .swipeActions(edge: .trailing, allowsFullSwipe: false) {
