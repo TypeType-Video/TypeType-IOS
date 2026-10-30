@@ -7,8 +7,8 @@ struct LiveNativePlayerControls: View {
   var isFullscreen = false
   var onFullscreen: () -> Void
   var onOptions: () -> Void
+  var onChapters: () -> Void
   @State private var scrubPosition: TimeInterval?
-  @State private var presentsChapters = false
 
   var body: some View {
     ZStack {
@@ -108,7 +108,7 @@ struct LiveNativePlayerControls: View {
         .contentShape(Rectangle())
       if !controller.displayedChapters.isEmpty {
         Button {
-          presentsChapters = true
+          onChapters()
         } label: {
           Image(systemName: "list.bullet.rectangle")
             .font(.system(size: 15, weight: .semibold))
@@ -118,24 +118,6 @@ struct LiveNativePlayerControls: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .popover(
-          isPresented: $presentsChapters,
-          attachmentAnchor: .point(.init(x: 0.5, y: isFullscreen ? 0.0 : 1.0)),
-          arrowEdge: isFullscreen ? .bottom : .top
-        ) {
-          LivePlayerChaptersView(controller: controller) {
-            presentsChapters = false
-          }
-          .frame(width: 320, height: 380)
-          .presentationCompactAdaptation(.popover)
-        }
-        .onChange(of: presentsChapters) {
-          if presentsChapters {
-            controls.keepVisible()
-          } else {
-            controls.scheduleHide()
-          }
-        }
         .accessibilityLabel("Chapters")
         .accessibilityIdentifier("live.player.chapters.open")
       }

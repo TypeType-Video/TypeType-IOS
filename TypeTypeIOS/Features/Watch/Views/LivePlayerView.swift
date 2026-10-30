@@ -8,6 +8,7 @@ struct LivePlayerView: View {
   let posterURL: URL?
   @Binding var cinemaMode: Bool
   @State var showsOptions = false
+  @State var showsChapters = false
 
   @State var seekFeedback: PlayerDoubleTapSeekFeedback?
   @State var doubleTapSeek: (target: TimeInterval, seconds: Int, direction: PlayerDoubleTapSeekDirection, at: Date)?
@@ -85,7 +86,8 @@ struct LivePlayerView: View {
                 controller.enterNativeFullscreen("player-toggle")
               }
             },
-            onOptions: { showsOptions = true }
+            onOptions: { showsOptions = true },
+            onChapters: { showsChapters = true }
           )
           .opacity(horizontalSeekPreview == nil ? 1 : 0)
           .allowsHitTesting(horizontalSeekPreview == nil)
@@ -145,6 +147,11 @@ struct LivePlayerView: View {
       controller.fullscreen.isPageActive = false
     }
 
+    .sheet(isPresented: $showsChapters) {
+      LivePlayerChaptersView(controller: controller) { showsChapters = false }
+        .presentationDetents([.medium, .large])
+        .presentationDragIndicator(.visible)
+    }
     .sheet(isPresented: $showsOptions) {
       LivePlayerOptionsSheet(
         controller: controller,
