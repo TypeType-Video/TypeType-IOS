@@ -63,6 +63,7 @@ struct LiveAuthenticatedAppView: View {
       } message: {
         Text(serviceSelection.errorMessage ?? String(localized: "The default service could not be updated."))
       }
+      .modifier(LiveSettingsPresentation(coordinator: coordinator))
       .accessibilityIdentifier("live.authenticated.shell")
   }
 }

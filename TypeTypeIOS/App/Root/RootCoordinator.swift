@@ -8,6 +8,7 @@ final class RootCoordinator: ObservableObject {
   @Published var selectedServer: ServerProfile?
   @Published var instance: InstanceMetadata?
   @Published var currentUser: AuthUser?
+  @Published var presentsSettings = false
   @Published var selectedTab: LiveAuthenticatedTab = .home
   @Published var searchTabRetaps = 0
 

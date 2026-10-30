@@ -61,11 +61,8 @@ extension LiveAccountView {
   }
   var preferencesSection: some View {
     Section {
-      LiveSettingsLinkRow(
-        title: "Settings",
-        icon: "gearshape.fill"
-      ) {
-        LiveSettingsView(coordinator: coordinator)
+      LiveSettingsEntry(coordinator: coordinator) {
+        LiveSettingsRowLabel(title: "Settings", icon: "gearshape.fill")
       }
       downloadsLink
       NavigationLink {

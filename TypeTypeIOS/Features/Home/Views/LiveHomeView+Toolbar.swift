@@ -66,9 +66,7 @@ extension LiveHomeView {
         )
         .accessibilityIdentifier("live.home.notifications")
       }
-      NavigationLink {
-        LiveSettingsView(coordinator: coordinator)
-      } label: {
+      LiveSettingsEntry(coordinator: coordinator) {
         Image(systemName: "gearshape")
       }
       .accessibilityLabel("Settings")
