@@ -42,9 +42,10 @@ final class LiveNativeFullscreenPresenter {
     cancelPortraitExit()
     controller.isPresentingFullscreen = false
     if isPageActive {
-      orientationLock.refresh()
+      orientationLock.refresh(turningTo: byUser ? .portrait : nil)
     } else {
       orientationLock.release(by: self)
+      if byUser { orientationLock.refresh(turningTo: .portrait) }
     }
   }
 

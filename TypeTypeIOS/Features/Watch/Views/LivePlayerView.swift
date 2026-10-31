@@ -73,8 +73,11 @@ struct LivePlayerView: View {
             controls: nativeControls,
             isFullscreen: showsFullscreenLayout,
             onFullscreen: {
-              AppLogger.playback.info("fullscreen: toggle pressed flag=\(controller.isPresentingFullscreen, privacy: .public)")
-              if controller.isPresentingFullscreen {
+              AppLogger.playback.info(
+                "fullscreen: toggle pressed flag=\(controller.isPresentingFullscreen, privacy: .public) layout=\(showsFullscreenLayout, privacy: .public)"
+              )
+              // The layout follows the window, not the flag: a landscape window without the flag must still exit.
+              if controller.isPresentingFullscreen || showsFullscreenLayout {
                 controller.exitNativeFullscreen("player-toggle", byUser: true)
               } else {
                 controller.enterNativeFullscreen("player-toggle")
