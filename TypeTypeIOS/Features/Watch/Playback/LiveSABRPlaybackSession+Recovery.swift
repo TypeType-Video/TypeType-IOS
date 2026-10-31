@@ -4,6 +4,9 @@ extension LiveSABRPlaybackSession {
   func recover(
     from response: LiveSABRWindowResponse
   ) async throws -> LiveSABRPlaybackSnapshot {
+    AppLogger.playback.notice(
+      "sabr terminal error=\(response.terminalError ?? "", privacy: .public) action=\(response.recoveryAction ?? "none", privacy: .public) recoveries=\(self.recoveryCount) audioOnly=\(self.preparation.audioOnly)"
+    )
     guard recoveryCount < Self.maximumRecoveries,
       let current = control
     else {

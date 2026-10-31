@@ -70,6 +70,7 @@ extension LivePlayerLayerCoordinator {
     completePictureInPictureTransition()
     // AVKit can leave its controls hidden after a hand-back; the toggle must cross a run loop tick.
     playerViewController.showsPlaybackControls = false
+    guard showsSystemControls else { return }
     DispatchQueue.main.async {
       playerViewController.showsPlaybackControls = true
     }
@@ -87,8 +88,9 @@ extension LivePlayerLayerCoordinator {
       completionHandler: @escaping (Bool) -> Void
   ) {
     playerViewController.showsPlaybackControls = false
+    let showsSystemControls = showsSystemControls
     DispatchQueue.main.async {
-      playerViewController.showsPlaybackControls = true
+      playerViewController.showsPlaybackControls = showsSystemControls
       playerViewController.view.setNeedsLayout()
     }
     guard let handler = pictureInPictureUIRestoreHandler else {

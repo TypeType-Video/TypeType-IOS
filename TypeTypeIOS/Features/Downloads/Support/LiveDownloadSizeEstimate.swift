@@ -1,9 +1,14 @@
 import Foundation
 
-// Same choice as the server's downloader (MP4: best avc1 video up to the height, best mp4a audio favouring the
-// default then original track): the estimate then matches the file it builds.
+// Same choice as the server's downloader (MP4: best video of the requested codec up to the height, best mp4a audio
+// favouring the default then original track): the estimate then matches the file it builds.
 enum LiveDownloadSizeEstimate {
-  static func bytes(for stream: LivePlaybackStream, mode: LiveDownloadMode, quality: String) -> Int64? {
+  static func bytes(
+    for stream: LivePlaybackStream,
+    mode: LiveDownloadMode,
+    quality: String,
+    videoCodecPrefix: String = "avc1"
+  ) -> Int64? {
     let audio = bestAudio(in: stream).flatMap { size(of: $0.contentLength, bitrate: $0.bitrate, duration: stream.duration) }
     switch mode {
     case .thumbnail:
@@ -12,16 +17,20 @@ enum LiveDownloadSizeEstimate {
       return audio
     case .video:
       let maxHeight = Int(quality.trimmingCharacters(in: CharacterSet.decimalDigits.inverted)) ?? 1080
-      guard let video = bestVideo(in: stream, maxHeight: maxHeight),
+      guard let video = bestVideo(in: stream, maxHeight: maxHeight, codecPrefix: videoCodecPrefix),
         let videoBytes = size(of: video.contentLength, bitrate: video.bitrate, duration: stream.duration)
       else { return nil }
       return videoBytes + (audio ?? 0)
     }
   }
 
-  private static func bestVideo(in stream: LivePlaybackStream, maxHeight: Int) -> LivePlaybackVideoSource? {
+  private static func bestVideo(
+    in stream: LivePlaybackStream,
+    maxHeight: Int,
+    codecPrefix: String
+  ) -> LivePlaybackVideoSource? {
     stream.videoOnlyStreams
-      .filter { $0.mimeType.contains("mp4") && ($0.codec ?? "").isEmptyOrPrefixed("avc1") && $0.height <= maxHeight }
+      .filter { $0.mimeType.contains("mp4") && ($0.codec ?? "").isEmptyOrPrefixed(codecPrefix) && $0.height <= maxHeight }
       .max { ($0.height, $0.bitrate ?? 0) < ($1.height, $1.bitrate ?? 0) }
   }
 

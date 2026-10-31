@@ -38,13 +38,14 @@ final class LiveOrientationLock {
       controller = current.presentedViewController
     }
     let mask = mask
-    let side: UIInterfaceOrientationMask? = switch orientation {
+    let target: UIInterfaceOrientationMask? = switch orientation {
     case .landscapeLeft: .landscapeLeft
     case .landscapeRight: .landscapeRight
+    case .portrait: .portrait
     default: nil
     }
-    if let side, mask.contains(side), scene.interfaceOrientation != orientation {
-      scene.requestGeometryUpdate(.iOS(interfaceOrientations: side))
+    if let target, mask.contains(target), scene.interfaceOrientation != orientation {
+      scene.requestGeometryUpdate(.iOS(interfaceOrientations: target))
       return
     }
     let current: UIInterfaceOrientationMask = scene.interfaceOrientation.isLandscape ? .landscape : .portrait

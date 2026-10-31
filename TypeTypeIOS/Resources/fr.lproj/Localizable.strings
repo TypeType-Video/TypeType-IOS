@@ -738,6 +738,7 @@
 "Download again" = "Télécharger à nouveau";
 "Format" = "Format";
 "Best audio quality" = "Meilleure qualité audio";
+"Higher qualities use a video format this device cannot play." = "Les qualités supérieures utilisent un format vidéo que cet appareil ne sait pas lire.";
 "Image" = "Image";
 "Starting the download" = "Démarrage du téléchargement";
 "Share the file" = "Partager le fichier";

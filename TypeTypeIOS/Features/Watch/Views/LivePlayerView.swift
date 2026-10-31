@@ -54,18 +54,12 @@ struct LivePlayerView: View {
           }
 
         if controller.audioOnly {
-          ZStack {
-            // No .scaledToFill: LiveRemoteImage is GeometryReader-based and the wrapper inflates the stage.
-            LiveRemoteImage(url: posterURL)
-              .blur(radius: 28)
-              .opacity(0.48)
-              .clipped()
-            Image(systemName: "waveform")
-              .font(.system(size: 44, weight: .medium))
-              .foregroundStyle(.white)
-          }
-          .clipped()
-          .allowsHitTesting(false)
+          LiveAudioOnlyPoster(
+            posterURL: posterURL,
+            title: controller.stream?.title ?? controller.video.title,
+            isPlaying: controller.state == .playing,
+            showsDetails: showsAudioOnlyDetails
+          )
         }
 
         speedBoostOverlay
@@ -78,8 +72,11 @@ struct LivePlayerView: View {
             controls: nativeControls,
             isFullscreen: showsFullscreenLayout,
             onFullscreen: {
-              AppLogger.playback.info("fullscreen: toggle pressed flag=\(controller.isPresentingFullscreen, privacy: .public)")
-              if controller.isPresentingFullscreen {
+              AppLogger.playback.info(
+                "fullscreen: toggle pressed flag=\(controller.isPresentingFullscreen, privacy: .public) layout=\(showsFullscreenLayout, privacy: .public)"
+              )
+              // The layout follows the window, not the flag: a landscape window without the flag must still exit.
+              if controller.isPresentingFullscreen || showsFullscreenLayout {
                 controller.exitNativeFullscreen("player-toggle", byUser: true)
               } else {
                 controller.enterNativeFullscreen("player-toggle")
