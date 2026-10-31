@@ -54,12 +54,11 @@ struct LivePlayerView: View {
           }
 
         if controller.audioOnly {
-          // Details step aside while the controls show: both centre on the play button.
           LiveAudioOnlyPoster(
             posterURL: posterURL,
             title: controller.stream?.title ?? controller.video.title,
             isPlaying: controller.state == .playing,
-            showsDetails: !nativeControls.visible || controller.nativePlayback == nil
+            showsDetails: showsAudioOnlyDetails
           )
         }
 

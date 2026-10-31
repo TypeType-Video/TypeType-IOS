@@ -124,6 +124,16 @@ extension LivePlayerView {
       )
   }
 
+  // The details centre where the play button, the spinner and the error card also sit.
+  var showsAudioOnlyDetails: Bool {
+    switch controller.state {
+    case .ready, .playing, .paused:
+      !nativeControls.visible || controller.nativePlayback == nil
+    case .idle, .loading, .failed:
+      false
+    }
+  }
+
   @ViewBuilder
   var statusOverlay: some View {
     switch controller.state {
