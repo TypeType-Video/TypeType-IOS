@@ -42,6 +42,8 @@ struct LiveNativePlayerControls: View {
           .accessibilityLabel("Player options")
           .accessibilityIdentifier("live.player.options")
         }
+      } else {
+        LivePlayerAirPlayBadge(sendsSoundOnly: controller.nativePlayback != nil)
       }
     }
     .animation(.easeOut(duration: 0.18), value: showsControls)

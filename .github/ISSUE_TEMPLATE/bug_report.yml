@@ -1,0 +1,69 @@
+name: Bug report
+description: Report something that isn't working in the iOS app
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report! Every bug you flag makes TypeType better for everyone :)
+
+        Server, extraction, web app, or downloader problems belong in the [main TypeType tracker](https://github.com/TypeType-Video/TypeType/issues).
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What went wrong, and what did you expect instead?
+      placeholder: When I ..., I expected ..., but ...
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open ...
+        2. Tap ...
+        3. See ...
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      description: Which part is affected? Pick "Not sure" if you don't know.
+      options:
+        - Not sure
+        - Player (playback, full screen, Picture in Picture, AirPlay)
+        - Home, search, or channels
+        - Library, history, or downloads
+        - Settings, account, or profiles
+        - Notifications
+    validations:
+      required: true
+  - type: dropdown
+    id: version
+    attributes:
+      label: App version
+      description: The exact version is in Settings, About.
+      options:
+        - Latest release
+        - main
+        - dev
+        - beta
+    validations:
+      required: true
+  - type: input
+    id: device
+    attributes:
+      label: Device and iOS version
+      placeholder: iPhone 15, iOS 18.4
+    validations:
+      required: true
+  - type: textarea
+    id: more
+    attributes:
+      label: Anything else?
+      description: Screenshots, a screen recording, the video link, or the provider (YouTube, NicoNico, BiliBili).
+    validations:
+      required: false

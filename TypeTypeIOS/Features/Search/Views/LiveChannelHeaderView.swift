@@ -13,19 +13,9 @@ struct LiveChannelHeaderView: View {
 
   var body: some View {
     VStack(alignment: .leading, spacing: 14) {
-      if !channel.bannerURL.isEmpty {
-        LiveRemoteImage(url: channel.banner)
-          .frame(maxWidth: .infinity)
-          .aspectRatio(8, contentMode: .fit)
-          .clipped()
-          .clipShape(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-          )
-      }
-
       HStack(spacing: 13) {
         LiveRemoteImage(url: channel.avatar)
-          .frame(width: 58, height: 58)
+          .frame(width: 64, height: 64)
           .clipShape(Circle())
 
         VStack(alignment: .leading, spacing: 4) {

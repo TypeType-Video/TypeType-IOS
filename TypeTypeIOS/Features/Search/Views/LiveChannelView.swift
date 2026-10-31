@@ -6,7 +6,7 @@ struct LiveChannelView: View {
   @State var selectedVideo: LiveVideoItem?
   @State var selectedPlaylist: LivePlaylistResult?
   @State var selectedPodcast: LivePodcastItem?
-  @State var selectedChannelURL: String?
+  @State var linkedChannel: LiveChannelLink?
   @State var pendingExternalURL: URL?
 
   init(
@@ -51,8 +51,8 @@ struct LiveChannelView: View {
           dependencies: dependencies
         )
       }
-      .navigationDestination(item: $selectedChannelURL) { channelURL in
-        LiveChannelView(channelURL: channelURL, dependencies: dependencies)
+      .navigationDestination(item: $linkedChannel) { link in
+        LiveChannelView(channelURL: link.url, dependencies: dependencies)
       }
       .externalLinkAlert(pendingURL: $pendingExternalURL)
       .alert(
@@ -69,7 +69,7 @@ struct LiveChannelView: View {
   func routeLink(_ url: URL) {
     switch LiveMediaLinkResolver.destination(for: url, serverURL: dependencies.serverStore.selectedServer()?.baseURL) {
     case let .video(video): selectedVideo = video
-    case let .channel(channelURL): selectedChannelURL = channelURL
+    case let .channel(channelURL): linkedChannel = LiveChannelLink(url: channelURL)
     case let .playlist(playlist): selectedPlaylist = playlist
     case nil: pendingExternalURL = url
     }

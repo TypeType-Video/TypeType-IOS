@@ -4,6 +4,12 @@ extension LiveChannelView {
   var content: some View {
     ScrollView {
       LazyVStack(alignment: .leading, spacing: 20) {
+        if let channel = viewModel.channel, !channel.bannerURL.isEmpty {
+          LiveChannelBanner(url: channel.banner)
+            .padding(.horizontal, -16)
+            .padding(.top, -16)
+            .padding(.bottom, -28)
+        }
         if let channel = viewModel.channel {
           LiveChannelHeaderView(
             channel: channel,
