@@ -56,11 +56,14 @@ struct LiveDownloadSheet: View {
     let playback = dependencies.playbackCoordinator
     if playback.currentVideo?.url == viewModel.video.url, let current = playback.controller?.stream {
       stream = current
+      viewModel.adopt(current)
       return
     }
     guard let service = dependencies.playbackService else { return }
     do {
-      stream = try await service.stream(for: viewModel.video.url)
+      let loaded = try await service.stream(for: viewModel.video.url)
+      stream = loaded
+      viewModel.adopt(loaded)
     } catch {
       AppLogger.network.failure("Loading streams for the download size", error)
     }

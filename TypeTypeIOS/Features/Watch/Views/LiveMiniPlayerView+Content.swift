@@ -4,17 +4,12 @@ extension LiveMiniPlayerView {
   @ViewBuilder
   func videoLayer(_ video: LiveVideoItem, controller: LivePlayerController) -> some View {
     if controller.audioOnly {
-      ZStack {
-        // No .scaledToFill on LiveRemoteImage: it inflates the card and pushes the controls out of reach.
-        LiveRemoteImage(url: video.thumbnail)
-          .blur(radius: 18)
-          .opacity(0.5)
-          .clipped()
-        Image(systemName: "waveform")
-          .font(.system(size: 26, weight: .medium))
-          .foregroundStyle(.white)
-      }
-      .clipped()
+      LiveAudioOnlyPoster(
+        posterURL: video.thumbnail,
+        title: video.title,
+        isPlaying: controller.state == .playing,
+        showsArtwork: false
+      )
     } else if let playback = controller.nativePlayback {
       LiveNativeVideoView(playback: playback, controller: controller, surface: .mini)
     } else if controller.state == .playing || controller.state == .paused {

@@ -8,7 +8,7 @@ extension LiveDownloadViewModel {
       quality: quality,
       format: format,
       height: mode == .video ? selectedHeight : nil,
-      videoCodec: mode == .video ? "h264" : nil,
+      videoCodec: mode == .video ? selectedVideoQuality?.requestCodec ?? "h264" : nil,
       audioCodec: mode == .video || mode == .audio ? "aac" : nil,
       allowQualityFallback: true,
       sponsorBlock: false,
@@ -22,6 +22,10 @@ extension LiveDownloadViewModel {
         format: "srt"
       )
     )
+  }
+
+  var selectedVideoQuality: LiveDownloadVideoQuality? {
+    videoQualities.option(for: quality)
   }
 
   private var selectedHeight: Int? {

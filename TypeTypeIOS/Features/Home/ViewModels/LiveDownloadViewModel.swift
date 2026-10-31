@@ -25,6 +25,7 @@ final class LiveDownloadViewModel: ObservableObject {
   @Published private(set) var job: LiveDownloadJob?
   @Published private(set) var isCancelling = false
   @Published private(set) var isClearing = false
+  @Published private(set) var videoQualities = LiveDownloadVideoQualities()
 
   let video: LiveVideoItem
   private let center: LiveDownloadCenter
@@ -58,26 +59,11 @@ final class LiveDownloadViewModel: ObservableObject {
     }
   }
 
-  var canStart: Bool {
-    state == .idle || isTerminal
-  }
-
-  var isWorking: Bool {
-    state == .creating || state == .tracking
-  }
-
-  var isTerminal: Bool {
-    switch state {
-    case .done, .failed:
-      return true
-    default:
-      return false
+  func adopt(_ stream: LivePlaybackStream) {
+    videoQualities = LiveDownloadVideoQualities(stream: stream)
+    if mode == .video, videoQualities.option(for: quality) == nil {
+      quality = videoQualities.defaultValue
     }
-  }
-
-  var progress: Double? {
-    guard let value = job?.progressPercent else { return nil }
-    return Double(min(max(value, 0), 100)) / 100
   }
 
   func start() async {
@@ -184,7 +170,7 @@ final class LiveDownloadViewModel: ObservableObject {
     switch mode {
     case .video:
       format = "mp4"
-      quality = "1080p"
+      quality = videoQualities.defaultValue
     case .audio:
       format = "m4a"
       quality = "best"
