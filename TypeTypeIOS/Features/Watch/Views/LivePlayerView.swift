@@ -54,18 +54,13 @@ struct LivePlayerView: View {
           }
 
         if controller.audioOnly {
-          ZStack {
-            // No .scaledToFill: LiveRemoteImage is GeometryReader-based and the wrapper inflates the stage.
-            LiveRemoteImage(url: posterURL)
-              .blur(radius: 28)
-              .opacity(0.48)
-              .clipped()
-            Image(systemName: "waveform")
-              .font(.system(size: 44, weight: .medium))
-              .foregroundStyle(.white)
-          }
-          .clipped()
-          .allowsHitTesting(false)
+          // Details step aside while the controls show: both centre on the play button.
+          LiveAudioOnlyPoster(
+            posterURL: posterURL,
+            title: controller.stream?.title ?? controller.video.title,
+            isPlaying: controller.state == .playing,
+            showsDetails: !nativeControls.visible || controller.nativePlayback == nil
+          )
         }
 
         speedBoostOverlay
