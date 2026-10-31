@@ -17,6 +17,7 @@ final class LivePlayerLayerCoordinator:
   var isFullScreenPresented = false
   var isEndingFullScreen = false
   var presentationTransitionInProgress = false
+  var showsSystemControls = true
   var sponsorCenterConstraint: NSLayoutConstraint?
   var sponsorTrailingConstraint: NSLayoutConstraint?
   let surfaceGestures: LivePlayerSurfaceGestures

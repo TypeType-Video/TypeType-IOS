@@ -43,6 +43,7 @@ struct LivePlayerLayerView: UIViewControllerRepresentable {
     playerController.videoGravity = controller.imageMode.videoGravity
     playerController.view.backgroundColor = .black
     playerController.delegate = context.coordinator
+    context.coordinator.showsSystemControls = showsSystemControls
     updateGestures(context.coordinator.surfaceGestures)
     context.coordinator.surfaceGestures.install(in: playerController.view)
     context.coordinator.pictureInPictureUIRestoreHandler =
@@ -68,6 +69,11 @@ struct LivePlayerLayerView: UIViewControllerRepresentable {
     }
     playerController.videoGravity = controller.imageMode.videoGravity
     context.coordinator.update(controller, in: playerController)
+    context.coordinator.showsSystemControls = showsSystemControls
+    // The surface can be built before the item is known to be offline; AVKit's controls would then stack on ours.
+    if !showsSystemControls, playerController.showsPlaybackControls {
+      playerController.showsPlaybackControls = false
+    }
     playerController.canStartPictureInPictureAutomaticallyFromInline =
       controller.nativePlayback == nil && !controller.isPresentingFullscreen
     controller.pictureInPicture.installContentLayer(
