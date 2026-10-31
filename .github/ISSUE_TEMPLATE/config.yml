@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Server, web app, and downloader issues
+    url: https://github.com/TypeType-Video/TypeType/issues
+    about: Report server, extraction, web app, and downloader problems here.
+  - name: Question or help
+    url: https://github.com/TypeType-Video/TypeType/discussions
+    about: "Ask questions and get help in Discussions ;)"
