@@ -997,3 +997,5 @@
 "^[%@ item](inflect: true)" = "^[%@ item](inflect: true)";
 "^[%@ unread notification](inflect: true)" = "^[%@ unread notification](inflect: true)";
 "or" = "or";
+"Sound on %@" = "Sound on %@";
+"Changes or stops AirPlay" = "Changes or stops AirPlay";

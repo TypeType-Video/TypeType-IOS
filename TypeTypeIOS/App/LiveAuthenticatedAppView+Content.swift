@@ -16,6 +16,9 @@ extension LiveAuthenticatedAppView {
         } else {
           presentsExpandedPlayback = true
         }
+      } else if presentsExpandedPlayback {
+        // Any minimise or close drops the cover: left up, it shows an empty black page once the video ends.
+        presentsExpandedPlayback = false
       }
     }
     .fullScreenCover(
