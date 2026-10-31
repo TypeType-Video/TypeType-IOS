@@ -9,8 +9,13 @@ extension LiveDownloadSheet {
         switch viewModel.mode {
         case .video:
           menuRow("Quality", icon: "sparkles.tv", selection: $viewModel.quality,
-                  values: ["2160p", "1440p", "1080p", "720p", "480p", "360p"].map { ($0, $0) })
+                  values: viewModel.videoQualities.options.map { ($0.value, $0.value) })
             .accessibilityIdentifier("live.download.quality")
+          if viewModel.videoQualities.hidesUnplayableHigherQualities {
+            Text("Higher qualities use a video format this device cannot play.")
+              .font(.footnote)
+              .foregroundStyle(.secondary)
+          }
         case .thumbnail:
           menuRow("Format", icon: "photo", selection: $viewModel.format,
                   values: [("jpg", "JPEG"), ("png", "PNG"), ("webp", "WebP")])
@@ -45,7 +50,14 @@ extension LiveDownloadSheet {
   }
 
   private var estimatedBytes: Int64? {
-    stream.flatMap { LiveDownloadSizeEstimate.bytes(for: $0, mode: viewModel.mode, quality: viewModel.quality) }
+    stream.flatMap {
+      LiveDownloadSizeEstimate.bytes(
+        for: $0,
+        mode: viewModel.mode,
+        quality: viewModel.quality,
+        videoCodecPrefix: viewModel.selectedVideoQuality?.codecPrefix ?? "avc1"
+      )
+    }
   }
 
   private var typePicker: some View {

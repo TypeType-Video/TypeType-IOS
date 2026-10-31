@@ -738,6 +738,7 @@
 "Download again" = "Download again";
 "Format" = "Format";
 "Best audio quality" = "Best audio quality";
+"Higher qualities use a video format this device cannot play." = "Higher qualities use a video format this device cannot play.";
 "Image" = "Image";
 "Starting the download" = "Starting the download";
 "Share the file" = "Share the file";
