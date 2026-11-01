@@ -82,7 +82,7 @@ extension LivePlaybackHTTPServer {
   ) -> URL? {
     guard let port = localPort else { return nil }
     return URL(
-      string: "http://127.0.0.1:\(port.rawValue)"
+      string: "http://\(host):\(port.rawValue)"
         + "/resource/\(routeID).\(pathExtension)"
     )
   }

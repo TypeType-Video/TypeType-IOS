@@ -101,10 +101,10 @@ extension LivePlayerController {
     }
   }
 
-  func restartAtCurrentPosition() {
+  func restartAtCurrentPosition(autoplay: Bool? = nil) {
     guard let service, let stream else { return }
     let restartTime = position
-    let wasPlaying = player.timeControlStatus == .playing
+    let wasPlaying = autoplay ?? (player.timeControlStatus == .playing)
     state = .loading
     loadGeneration += 1
     loadTask?.cancel()
@@ -128,6 +128,7 @@ extension LivePlayerController {
         )
       } catch {
         Self.logPreparationFailure(error)
+        if abandonAirPlayHandoff(reason: String(describing: error)) { return }
         state = .failed(Self.message(for: error))
         stopPlaybackSession()
       }
@@ -197,6 +198,7 @@ extension LivePlayerController {
         service: service,
         preparation: installedPreparation,
         preferredSubtitleLanguage: settings.defaultSubtitleLanguage,
+        host: playbackServerHost,
         providerFailureHandler: { [weak self] server, kind in
           Task { @MainActor [weak self] in
             self?.recoverProviderPlayback(

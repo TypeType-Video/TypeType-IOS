@@ -37,8 +37,11 @@ final class RecoveryPlaybackService:
     throw LivePlaybackFailure.unavailableService
   }
 
+  var subtitlePayload: Data?
+
   func subtitleData(for source: LivePlaybackSubtitle) async throws -> Data {
-    throw LivePlaybackFailure.unavailableService
+    guard let subtitlePayload else { throw LivePlaybackFailure.unavailableService }
+    return subtitlePayload
   }
 
   func createSABRPlayback(

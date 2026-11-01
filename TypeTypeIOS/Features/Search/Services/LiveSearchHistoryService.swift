@@ -7,6 +7,7 @@ protocol LiveSearchHistoryServiceProtocol {
   ) async throws -> [LiveSearchHistoryItem]
   func add(term: String) async throws -> LiveSearchHistoryItem
   func clear() async throws
+  func delete(id: String) async throws
 }
 
 final class LiveSearchHistoryService:
@@ -60,6 +61,19 @@ final class LiveSearchHistoryService:
         requiresAuth: true
       )
     )
+  }
+}
+
+extension LiveSearchHistoryService {
+  func delete(id: String) async throws {
+    let encoded = id.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed.subtracting(["/"])) ?? id
+    do {
+      try await apiClient.request(
+        APIEndpoint(path: "/search-history/\(encoded)", method: .delete, requiresAuth: true)
+      )
+    } catch NetworkError.statusCode(404, _) {
+      return
+    }
   }
 }
 

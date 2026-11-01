@@ -165,6 +165,36 @@ final class LiveSearchViewModelTests: XCTestCase {
     XCTAssertEqual(search.filterServices.last, 5)
   }
 
+  func testDeletingAHistoryRowRemovesEveryCopyOfTheTerm() async {
+    let history = SearchHistoryStub(items: [
+      LiveSearchHistoryItem(id: "a", term: "Minecraft", searchedAt: 3),
+      LiveSearchHistoryItem(id: "b", term: "cats", searchedAt: 2),
+      LiveSearchHistoryItem(id: "c", term: "minecraft", searchedAt: 1),
+    ])
+    let viewModel = makeViewModel(search: SearchServiceStub(pages: []), history: history)
+    await viewModel.loadHistory()
+    XCTAssertEqual(viewModel.history.map(\.term), ["Minecraft", "cats"])
+
+    await viewModel.deleteHistory(viewModel.history[0])
+
+    XCTAssertEqual(history.deletedIDs, ["a", "c"])
+    XCTAssertEqual(viewModel.history.map(\.term), ["cats"])
+  }
+
+  func testFailedHistoryDeleteRestoresTheRow() async {
+    let history = SearchHistoryStub(items: [
+      LiveSearchHistoryItem(id: "a", term: "cats", searchedAt: 2),
+      LiveSearchHistoryItem(id: "b", term: "dogs", searchedAt: 1),
+    ])
+    history.failsDelete = true
+    let viewModel = makeViewModel(search: SearchServiceStub(pages: []), history: history)
+    await viewModel.loadHistory()
+
+    await viewModel.deleteHistory(viewModel.history[0])
+
+    XCTAssertEqual(viewModel.history.map(\.term), ["cats", "dogs"])
+  }
+
   func testNearbyRowsLoadTheNextHistoryPageOnce() async {
     let items = (0..<8).map { LiveSearchHistoryItem(id: "\($0)", term: "term \($0)", searchedAt: Int64($0)) }
     let history = SearchHistoryStub(items: items)
@@ -309,6 +339,7 @@ private final class SearchHistoryStub:
   private var items: [LiveSearchHistoryItem]
   private var terms: [String] = []
   private var pages: [Int] = []
+  private var deleted: [String] = []
   private let addDelay: Duration?
 
   init(
@@ -334,6 +365,20 @@ private final class SearchHistoryStub:
     lock.withLock { pages.append(page) }
     await Task.yield()
     return lock.withLock { items }
+  }
+
+  var failsDelete = false
+
+  var deletedIDs: [String] {
+    lock.withLock { deleted }
+  }
+
+  func delete(id: String) async throws {
+    if failsDelete { throw SearchViewModelTestError.unavailable }
+    lock.withLock {
+      deleted.append(id)
+      items.removeAll { $0.id == id }
+    }
   }
 
   func add(term: String) async throws -> LiveSearchHistoryItem {

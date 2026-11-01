@@ -2,6 +2,7 @@ import SwiftUI
 
 struct LiveSearchHistoryView: View {
   @ObservedObject var viewModel: LiveSearchViewModel
+  let onSubmit: (String) -> Void
   @State private var confirmsClear = false
 
   var body: some View {
@@ -18,6 +19,11 @@ struct LiveSearchHistoryView: View {
           LiveSection {
             ForEach(Array(viewModel.history.enumerated()), id: \.element.id) { index, item in
               row(item.term)
+                .swipeActions {
+                  Button("Delete", role: .destructive) {
+                    Task { await viewModel.deleteHistory(item) }
+                  }
+                }
                 .onAppear {
                   guard viewModel.canLoadMoreHistory, index >= viewModel.history.count - 3 else { return }
                   Task { await viewModel.loadMoreHistory() }
@@ -56,7 +62,7 @@ struct LiveSearchHistoryView: View {
   private func row(_ term: String) -> some View {
     HStack(spacing: 12) {
       Button {
-        Task { await viewModel.submit(term) }
+        onSubmit(term)
       } label: {
         Label {
           Text(term)

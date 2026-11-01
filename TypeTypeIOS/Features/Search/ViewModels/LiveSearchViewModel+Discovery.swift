@@ -19,6 +19,10 @@ extension LiveSearchViewModel {
       }
       return
     }
+    guard LiveSearchLink.destination(for: term, serverURL: nil) == nil else {
+      suggestions = []
+      return
+    }
     let serviceID = selectedServiceID
     let task = Task {
       try await Task.sleep(for: .milliseconds(300))

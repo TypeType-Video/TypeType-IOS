@@ -44,6 +44,7 @@ final class LivePlaybackHTTPServer: @unchecked Sendable {
 
   let service: LivePlaybackServiceProtocol
   let preparation: LivePlaybackPreparation
+  let host: String
   let preferredSubtitleLanguage: String
   let providerFailureHandler: ProviderFailureHandler?
   let sabrFailureHandler: SABRFailureHandler?
@@ -76,11 +77,13 @@ final class LivePlaybackHTTPServer: @unchecked Sendable {
     service: LivePlaybackServiceProtocol,
     preparation: LivePlaybackPreparation,
     preferredSubtitleLanguage: String,
+    host: String = LivePlaybackHTTPServer.loopbackHost,
     providerFailureHandler: ProviderFailureHandler? = nil,
     sabrFailureHandler: SABRFailureHandler? = nil
   ) {
     self.service = service
     self.preparation = preparation
+    self.host = host
     self.preferredSubtitleLanguage = preferredSubtitleLanguage
     self.providerFailureHandler = providerFailureHandler
     self.sabrFailureHandler = sabrFailureHandler
@@ -117,7 +120,7 @@ final class LivePlaybackHTTPServer: @unchecked Sendable {
   func start() async throws -> URL {
     let listener = try NWListener(using: .tcp, on: .any)
     listener.parameters.requiredLocalEndpoint = .hostPort(
-      host: "127.0.0.1",
+      host: NWEndpoint.Host(host),
       port: .any
     )
     listener.newConnectionHandler = { [weak self] connection in
@@ -251,6 +254,7 @@ final class LivePlaybackHTTPServer: @unchecked Sendable {
     return url
   }
 
+  static let loopbackHost = "127.0.0.1"
   static let playlistMIME = "application/vnd.apple.mpegurl"
   static let maximumUpstreamMediaRoutes = 1_024
 }

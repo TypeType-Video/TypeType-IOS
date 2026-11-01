@@ -28,12 +28,12 @@ struct LiveSearchView: View {
       VStack(spacing: 0) {
         LiveSearchBar(viewModel: viewModel, isFocused: $searchIsFocused) {
           searchIsFocused = false
-          Task { await viewModel.submit() }
+          submitSearch()
         }
         if showsSuggestions {
           LiveSearchSuggestionsList(suggestions: viewModel.suggestions) { suggestion in
             searchIsFocused = false
-            Task { await viewModel.submit(suggestion) }
+            submitSearch(suggestion)
           } onFill: { suggestion in
             viewModel.query = suggestion
             viewModel.queryDidChange()

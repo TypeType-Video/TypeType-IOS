@@ -622,6 +622,8 @@ private final class RootSearchHistoryStub:
     throw RootCoordinatorTestError.unexpectedCall
   }
 
+  func delete(id: String) async throws {}
+
   func clear() async throws {}
 }
 

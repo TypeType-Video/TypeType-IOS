@@ -7,6 +7,7 @@ extension LivePlayerController {
   func playsNatively(_ preparation: LivePlaybackPreparation) -> Bool {
     guard !preparation.stream.isLive,
       !nativeFallbackUsed,
+      !airPlay.isActive,
       UserDefaults.standard.object(forKey: Self.nativePlaybackKey) as? Bool ?? true
     else {
       return false
