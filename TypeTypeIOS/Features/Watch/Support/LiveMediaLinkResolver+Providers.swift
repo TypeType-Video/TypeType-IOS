@@ -56,6 +56,9 @@ extension LiveMediaLinkResolver {
       }) == true {
       return playlistDestination(for: url)
     }
+    if let channelID = mentionedChannelID(in: url.path) {
+      return .channel("https://www.youtube.com/channel/\(channelID)")
+    }
     if path.hasPrefix("/channel/")
       || path.hasPrefix("/user/")
       || path.hasPrefix("/c/")
@@ -63,6 +66,14 @@ extension LiveMediaLinkResolver {
       return .channel(url.absoluteString)
     }
     return nil
+  }
+
+  // Descriptions can mention a channel as "/@" plus its ID; YouTube answers 404 there, but /channel/ID works.
+  private static func mentionedChannelID(in path: String) -> String? {
+    guard path.range(of: #"^/@UC[A-Za-z0-9_-]{22}/?$"#, options: .regularExpression) != nil else {
+      return nil
+    }
+    return String(path.dropFirst(2).prefix(24))
   }
 
   private static func nicoNicoDestination(
