@@ -7,6 +7,10 @@ enum PlayerFullscreenExitRules {
   static let edgeDeadzone: CGFloat = 48
   static let completionDistance: CGFloat = 64
 
+  static func belongsToSpeedRamp(heldFor held: TimeInterval, speedRampEnabled: Bool) -> Bool {
+    speedRampEnabled && held >= speedRampHold
+  }
+
   static func canBegin(startLocation: CGPoint, size: CGSize, translation: CGSize) -> Bool {
     guard size.width > 0, size.height > 0 else { return false }
     guard startLocation.y >= edgeDeadzone, startLocation.y <= size.height - edgeDeadzone else { return false }

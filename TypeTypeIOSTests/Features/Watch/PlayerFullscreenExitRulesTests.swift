@@ -44,4 +44,10 @@ final class PlayerFullscreenExitRulesTests: XCTestCase {
     XCTAssertFalse(PlayerFullscreenExitRules.completes(translationHeight: 63))
     XCTAssertTrue(PlayerFullscreenExitRules.completes(translationHeight: 64))
   }
+
+  func testAHeldTouchBelongsToTheSpeedRampOnlyWhenItIsOn() {
+    XCTAssertFalse(PlayerFullscreenExitRules.belongsToSpeedRamp(heldFor: 0.2, speedRampEnabled: true))
+    XCTAssertTrue(PlayerFullscreenExitRules.belongsToSpeedRamp(heldFor: 0.35, speedRampEnabled: true))
+    XCTAssertFalse(PlayerFullscreenExitRules.belongsToSpeedRamp(heldFor: 2, speedRampEnabled: false))
+  }
 }

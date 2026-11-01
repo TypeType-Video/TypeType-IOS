@@ -61,7 +61,7 @@ extension LivePlayerView {
   }
 
   private var ownTapGestures: GestureMask {
-    controller.nativePlayback != nil || controller.isOfflineContent ? .all : .subviews
+    controller.drawsOwnControls ? .all : .subviews
   }
 
   private var fullscreenExitAction: (() -> Void)? {
@@ -98,7 +98,7 @@ extension LivePlayerView {
             completion: completion
           )
         },
-        showsSystemControls: !controller.isOfflineContent
+        showsSystemControls: !controller.drawsOwnControls
       )
     }
   }
