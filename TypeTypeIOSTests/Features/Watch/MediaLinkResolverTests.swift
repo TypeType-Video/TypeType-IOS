@@ -63,6 +63,14 @@ final class MediaLinkResolverTests: XCTestCase {
     XCTAssertEqual(playlist.url, playlistURL.absoluteString)
   }
 
+  func testChannelIDMentionOpensTheChannelByID() throws {
+    let url = try XCTUnwrap(URL(string: "https://www.youtube.com/@UCX6OQ3DkcsbYNE6H8uQQuVA"))
+    guard case let .channel(channel) = LiveMediaLinkResolver.destination(for: url) else {
+      return XCTFail("The channel mention should resolve inside TypeType.")
+    }
+    XCTAssertEqual(channel, "https://www.youtube.com/channel/UCX6OQ3DkcsbYNE6H8uQQuVA")
+  }
+
   func testLiveUnrelatedWebsiteRemainsExternal() throws {
     let url = try XCTUnwrap(
       URL(string: "https://peach.blender.org/")
