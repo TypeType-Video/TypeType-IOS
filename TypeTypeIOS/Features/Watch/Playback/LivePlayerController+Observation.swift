@@ -114,6 +114,7 @@ extension LivePlayerController {
       configureSubtitles(for: item)
       resume(item, autoplay: autoplay)
     case .failed:
+      if abandonAirPlayHandoff(reason: String(describing: item.error)) { return }
       let failure = State.failed(
         PlaybackErrorFormatter.message(for: item.error)
       )
