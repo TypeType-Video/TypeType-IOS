@@ -275,6 +275,11 @@
 "Add to playlist" = "Add to playlist";
 "Block video" = "Block video";
 "Block channel" = "Block channel";
+"Not interested" = "Not interested";
+"Removes this video from your recommendations" = "Removes this video from your recommendations";
+"Removed from your recommendations" = "Removed from your recommendations";
+"Undo" = "Undo";
+"Puts this video back in your recommendations" = "Puts this video back in your recommendations";
 "Removed from playback queue" = "Removed from playback queue";
 "Playback progress" = "Playback progress";
 "Search history" = "Search history";

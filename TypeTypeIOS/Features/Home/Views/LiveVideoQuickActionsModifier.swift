@@ -11,13 +11,15 @@ struct LiveVideoQuickActionsModifier: ViewModifier {
   let onOpenChannel: (() -> Void)?
   let removeLabel: String?
   let onRemove: (() -> Void)?
+  let onNotInterested: (() -> Void)?
 
   init(
     video: LiveVideoItem,
     dependencies: AppDependencies,
     onOpenChannel: (() -> Void)?,
     removeLabel: String?,
-    onRemove: (() -> Void)?
+    onRemove: (() -> Void)?,
+    onNotInterested: (() -> Void)?
   ) {
     self.dependencies = dependencies
     deArrowStore = dependencies.deArrowStore
@@ -31,6 +33,7 @@ struct LiveVideoQuickActionsModifier: ViewModifier {
     self.onOpenChannel = onOpenChannel
     self.removeLabel = removeLabel
     self.onRemove = onRemove
+    self.onNotInterested = onNotInterested
   }
 
   func body(content: Content) -> some View {
@@ -105,7 +108,8 @@ extension View {
     dependencies: AppDependencies,
     onOpenChannel: (() -> Void)? = nil,
     removeLabel: String? = nil,
-    onRemove: (() -> Void)? = nil
+    onRemove: (() -> Void)? = nil,
+    onNotInterested: (() -> Void)? = nil
   ) -> some View {
     modifier(
       LiveVideoQuickActionsModifier(
@@ -113,7 +117,8 @@ extension View {
         dependencies: dependencies,
         onOpenChannel: onOpenChannel,
         removeLabel: removeLabel,
-        onRemove: onRemove
+        onRemove: onRemove,
+        onNotInterested: onNotInterested
       )
     )
   }

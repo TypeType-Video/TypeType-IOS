@@ -8,6 +8,7 @@ final class AppDependencies {
   let oidcService: OIDCServiceProtocol
   let resetPasswordService: ResetPasswordServiceProtocol
   let homeFeedService: HomeFeedServiceProtocol
+  let recommenderFeedbackService: LiveRecommenderFeedbackServiceProtocol?
   let commentsService: LiveCommentsServiceProtocol
   let downloaderService: LiveDownloaderServiceProtocol
   let deArrowStore: LiveDeArrowStore
@@ -117,6 +118,7 @@ final class AppDependencies {
     oidcService: OIDCServiceProtocol,
     resetPasswordService: ResetPasswordServiceProtocol,
     homeFeedService: HomeFeedServiceProtocol,
+    recommenderFeedbackService: LiveRecommenderFeedbackServiceProtocol? = nil,
     commentsService: LiveCommentsServiceProtocol,
     downloaderService: LiveDownloaderServiceProtocol,
     deArrowStore: LiveDeArrowStore,
@@ -159,6 +161,7 @@ final class AppDependencies {
     self.oidcService = oidcService
     self.resetPasswordService = resetPasswordService
     self.homeFeedService = homeFeedService
+    self.recommenderFeedbackService = recommenderFeedbackService
     self.commentsService = commentsService
     self.downloaderService = downloaderService
     self.deArrowStore = deArrowStore
