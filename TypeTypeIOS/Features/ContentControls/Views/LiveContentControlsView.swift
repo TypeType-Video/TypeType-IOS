@@ -3,6 +3,7 @@ import SwiftUI
 struct LiveContentControlsView: View {
   let service: LiveContentControlsServiceProtocol
   let canCreateGlobal: Bool
+  var hiddenVideos: LiveHiddenVideos?
 
   var body: some View {
     List {
@@ -14,7 +15,12 @@ struct LiveContentControlsView: View {
                 .navigationTitle("Blocked keywords")
                 .navigationBarTitleDisplayMode(.inline)
             } else {
-              LiveContentControlListView(kind: kind, service: service, canCreateGlobal: canCreateGlobal)
+              LiveContentControlListView(
+                kind: kind,
+                service: service,
+                canCreateGlobal: canCreateGlobal,
+                hiddenVideos: hiddenVideos
+              )
             }
           } label: {
             LiveSettingsRowLabel(title: kind.title, subtitle: kind.summary, icon: kind.icon)
@@ -35,10 +41,17 @@ struct LiveContentControlListView: View {
   @State private var addsItem = false
   @Environment(\.themePalette) private var palette
 
-  init(kind: LiveContentControlKind, service: LiveContentControlsServiceProtocol, canCreateGlobal: Bool) {
+  init(
+    kind: LiveContentControlKind,
+    service: LiveContentControlsServiceProtocol,
+    canCreateGlobal: Bool,
+    hiddenVideos: LiveHiddenVideos? = nil
+  ) {
     self.kind = kind
     self.canCreateGlobal = canCreateGlobal
-    _viewModel = StateObject(wrappedValue: LiveContentControlsViewModel(service: service, kind: kind))
+    _viewModel = StateObject(
+      wrappedValue: LiveContentControlsViewModel(service: service, kind: kind, hiddenVideos: hiddenVideos)
+    )
   }
 
   var body: some View {

@@ -1,7 +1,6 @@
 import SwiftUI
 
 struct LiveVideoQuickActionsModifier: ViewModifier {
-  @Environment(\.liveToasts) private var toasts
   @StateObject var viewModel: LiveVideoQuickActionsViewModel
   @State var presentsDownload = false
   @State var presentsShareChoice = false
@@ -49,11 +48,6 @@ struct LiveVideoQuickActionsModifier: ViewModifier {
             }
         )
       )
-      .onChange(of: viewModel.message) { _, message in
-        guard let message else { return }
-        toasts?.show(message)
-        viewModel.dismissMessage()
-      }
       .sheet(isPresented: $presentsDownload) {
         LiveDownloadSheet(
           video: viewModel.video,

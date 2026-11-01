@@ -16,6 +16,13 @@ struct LiveRelatedVideosSection: View {
   }
 
   var body: some View {
+    LiveHiddenVideosReader(dependencies.hiddenVideos) { hidden in
+      list(hidden.visible(videos))
+    }
+  }
+
+  @ViewBuilder
+  private func list(_ videos: [LiveVideoItem]) -> some View {
     if !videos.isEmpty {
       VStack(alignment: .leading, spacing: 14) {
         HStack(alignment: .center) {
@@ -49,7 +56,7 @@ struct LiveRelatedVideosSection: View {
             .task(id: video.canonicalID) {
               await Task.yield()
               guard !Task.isCancelled else { return }
-              loadMoreIfNeeded(after: video)
+              loadMoreIfNeeded(after: video, in: videos)
             }
           }
         }
@@ -58,7 +65,7 @@ struct LiveRelatedVideosSection: View {
     }
   }
 
-  private func loadMoreIfNeeded(after video: LiveVideoItem) {
+  private func loadMoreIfNeeded(after video: LiveVideoItem, in videos: [LiveVideoItem]) {
     guard video.canonicalID
       == videos.prefix(visibleCount).last?.canonicalID,
       visibleCount < videos.count

@@ -25,8 +25,10 @@ extension LiveSearchView {
           alignment: .leading,
           spacing: 24
         ) {
-          ForEach(viewModel.results) { result in
-            resultView(result)
+          LiveHiddenVideosReader(coordinator.dependencies.hiddenVideos) { hidden in
+            ForEach(viewModel.results.filter { !hidden.hides($0) }) { result in
+              resultView(result)
+            }
           }
           LiveIncrementalLoadingTrigger(
             canLoadMore: viewModel.canLoadMore,
@@ -74,5 +76,12 @@ extension LiveSearchView {
         }
       )
     }
+  }
+}
+
+extension LiveHiddenVideos {
+  func hides(_ result: LiveSearchResult) -> Bool {
+    guard case let .video(video) = result else { return false }
+    return hides(video)
   }
 }

@@ -16,10 +16,16 @@ final class LiveContentControlsViewModel: ObservableObject {
   @Published private(set) var errorMessage: String?
 
   let service: LiveContentControlsServiceProtocol
+  private let hiddenVideos: LiveHiddenVideos?
 
-  init(service: LiveContentControlsServiceProtocol, kind: LiveContentControlKind = .blockedChannels) {
+  init(
+    service: LiveContentControlsServiceProtocol,
+    kind: LiveContentControlKind = .blockedChannels,
+    hiddenVideos: LiveHiddenVideos? = nil
+  ) {
     self.service = service
     self.kind = kind
+    self.hiddenVideos = hiddenVideos
   }
 
   func prepare() async {
@@ -67,6 +73,7 @@ final class LiveContentControlsViewModel: ObservableObject {
     do {
       try await service.remove(kind: kind, url: item.url)
       items.removeAll { $0.id == item.id }
+      hiddenVideos?.show(kind, url: item.url)
     } catch {
       errorMessage = text(for: error)
     }

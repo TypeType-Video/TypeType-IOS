@@ -68,6 +68,7 @@ final class AppDependencies {
   @MainActor
   lazy var appPreferences = LiveAppPreferencesStore()
   @MainActor lazy var toasts = LiveToastCenter()
+  @MainActor lazy var hiddenVideos = LiveHiddenVideos()
   @MainActor
   lazy var playbackPrewarmer: LivePlaybackPrewarmer? = playbackService.map {
     LivePlaybackPrewarmer(
@@ -103,6 +104,7 @@ final class AppDependencies {
       }
     )
     coordinator.prewarmer = playbackPrewarmer
+    coordinator.hiddenVideos = hiddenVideos
     return coordinator
   }()
 
@@ -213,5 +215,6 @@ extension AppDependencies {
     notificationCenter.clear()
     deArrowStore.invalidatePreferences()
     downloadCenter.cancelTracking()
+    hiddenVideos.clear()
   }
 }
