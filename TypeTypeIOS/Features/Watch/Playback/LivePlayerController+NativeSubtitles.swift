@@ -2,8 +2,12 @@ import Foundation
 
 extension LivePlayerController {
   func reloadNativeSubtitles() {
+    // The fast start answer lists no tracks; the full metadata that follows does.
     guard let playback = nativePlayback, let service, subtitlesEnabled,
-      let subtitle = Self.subtitle(for: selectedSubtitleLanguage, in: playback.preparation.subtitles)
+      let subtitle = Self.subtitle(
+        for: selectedSubtitleLanguage,
+        in: availableSubtitles.isEmpty ? playback.preparation.subtitles : availableSubtitles
+      )
     else {
       nativeSubtitles.clear()
       return
