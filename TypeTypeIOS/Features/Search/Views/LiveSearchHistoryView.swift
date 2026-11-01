@@ -19,6 +19,11 @@ struct LiveSearchHistoryView: View {
           LiveSection {
             ForEach(Array(viewModel.history.enumerated()), id: \.element.id) { index, item in
               row(item.term)
+                .swipeActions {
+                  Button("Delete", role: .destructive) {
+                    Task { await viewModel.deleteHistory(item) }
+                  }
+                }
                 .onAppear {
                   guard viewModel.canLoadMoreHistory, index >= viewModel.history.count - 3 else { return }
                   Task { await viewModel.loadMoreHistory() }
