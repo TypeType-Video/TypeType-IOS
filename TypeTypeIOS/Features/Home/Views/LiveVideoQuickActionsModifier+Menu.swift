@@ -77,6 +77,12 @@ extension LiveVideoQuickActionsModifier {
     }
 
     Divider()
+    if let onNotInterested {
+      Button(action: onNotInterested) {
+        Label("Not interested", systemImage: "hand.thumbsdown")
+      }
+      .accessibilityHint("Removes this video from your recommendations")
+    }
     blockingActions
   }
 

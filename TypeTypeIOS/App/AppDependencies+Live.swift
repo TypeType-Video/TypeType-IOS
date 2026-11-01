@@ -107,6 +107,7 @@ extension AppDependencies {
       oidcService: OIDCService(apiClient: client),
       resetPasswordService: ResetPasswordService(apiClient: client),
       homeFeedService: HomeFeedService(apiClient: client),
+      recommenderFeedbackService: LiveRecommenderFeedbackService(apiClient: client),
       commentsService: LiveCommentsService(apiClient: client),
       downloaderService: LiveDownloaderService(apiClient: client),
       deArrowStore: LiveDeArrowStore(

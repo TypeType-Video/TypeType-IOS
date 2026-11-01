@@ -8,13 +8,14 @@ final class LiveVideoQuickActionsViewModel: ObservableObject {
   @Published private(set) var isWatched = false
   @Published private(set) var playlists: [LivePlaylist] = []
   @Published private(set) var isBusy = false
-  @Published private(set) var message: String?
 
   let video: LiveVideoItem
   private let library: LiveLibraryServiceProtocol
   private let history: LiveHistoryServiceProtocol
   private let playlistsService: LivePlaylistsServiceProtocol
   private let contentControls: LiveContentControlsServiceProtocol
+  private let hiddenVideos: LiveHiddenVideos
+  private let toasts: LiveToastCenter
   private var historyItem: LiveHistoryItem?
 
   init(video: LiveVideoItem, dependencies: AppDependencies) {
@@ -23,6 +24,8 @@ final class LiveVideoQuickActionsViewModel: ObservableObject {
     history = dependencies.historyService
     playlistsService = dependencies.playlistsService
     contentControls = dependencies.contentControlsService
+    hiddenVideos = dependencies.hiddenVideos
+    toasts = dependencies.toasts
   }
 
   func prepare() async {
@@ -53,7 +56,7 @@ final class LiveVideoQuickActionsViewModel: ObservableObject {
     } catch is CancellationError {
       return
     } catch {
-      message = text(for: error)
+      presentFailure(error)
     }
   }
 
@@ -65,7 +68,7 @@ final class LiveVideoQuickActionsViewModel: ObservableObject {
         _ = try await library.addFavorite(videoURL: video.url)
       }
       isFavorite.toggle()
-      message = isFavorite ? "Added to Favorites" : "Removed from Favorites"
+      presentMessage(isFavorite ? "Added to Favorites" : "Removed from Favorites")
     }
   }
 
@@ -77,9 +80,11 @@ final class LiveVideoQuickActionsViewModel: ObservableObject {
         _ = try await library.addWatchLater(video: video)
       }
       isInWatchLater.toggle()
-      message = isInWatchLater
-        ? "Added to Watch later"
-        : "Removed from Watch later"
+      presentMessage(
+        isInWatchLater
+          ? "Added to Watch later"
+          : "Removed from Watch later"
+      )
     }
   }
 
@@ -87,11 +92,11 @@ final class LiveVideoQuickActionsViewModel: ObservableObject {
     await perform {
       let detail = try await playlistsService.playlist(id: playlist.id)
       guard !detail.videos.contains(where: { $0.url == video.url }) else {
-        message = "Already in \(playlist.name)"
+        presentMessage("Already in \(playlist.name)")
         return
       }
       _ = try await playlistsService.addVideo(id: playlist.id, video: video)
-      message = "Added to \(playlist.name)"
+      presentMessage("Added to \(playlist.name)")
     }
   }
 
@@ -101,7 +106,7 @@ final class LiveVideoQuickActionsViewModel: ObservableObject {
         try await history.remove(id: historyItem.id)
         self.historyItem = nil
         isWatched = false
-        message = "Marked as unwatched"
+        presentMessage("Marked as unwatched")
       } else {
         let item = try await history.add(
           video: video,
@@ -109,42 +114,45 @@ final class LiveVideoQuickActionsViewModel: ObservableObject {
         )
         self.historyItem = item
         isWatched = true
-        message = "Marked as watched"
+        presentMessage("Marked as watched")
       }
     }
   }
 
   func blockVideo() async {
-    await perform {
-      _ = try await contentControls.add(
-        kind: .blockedVideos,
-        item: LiveContentControlItem(url: video.url)
-      )
-      message = "Video blocked"
-    }
+    await block(.blockedVideos, item: LiveContentControlItem(url: video.url), done: "Video blocked")
   }
 
   func blockChannel() async {
     guard !video.uploaderURL.isEmpty else { return }
-    await perform {
-      _ = try await contentControls.add(
-        kind: .blockedChannels,
-        item: LiveContentControlItem(
-          url: video.uploaderURL,
-          name: video.uploaderName,
-          thumbnailURL: video.uploaderAvatarURL
-        )
-      )
-      message = "Channel blocked"
-    }
+    await block(
+      .blockedChannels,
+      item: LiveContentControlItem(
+        url: video.uploaderURL,
+        name: video.uploaderName,
+        thumbnailURL: video.uploaderAvatarURL
+      ),
+      done: "Channel blocked"
+    )
   }
 
-  func dismissMessage() {
-    message = nil
-  }
-
+  // Toasts go straight to the center: hiding the card removes this view model's view before the request ends.
   func presentMessage(_ value: String) {
-    message = value
+    toasts.show(value)
+  }
+
+  private func block(_ kind: LiveContentControlKind, item: LiveContentControlItem, done: String) async {
+    guard !isBusy else { return }
+    hiddenVideos.hide(kind, url: item.url)
+    await perform {
+      do {
+        _ = try await contentControls.add(kind: kind, item: item)
+        presentMessage(done)
+      } catch {
+        hiddenVideos.show(kind, url: item.url)
+        throw error
+      }
+    }
   }
 
   private func perform(
@@ -156,12 +164,15 @@ final class LiveVideoQuickActionsViewModel: ObservableObject {
     do {
       try await operation()
     } catch {
-      message = text(for: error)
+      presentFailure(error)
     }
   }
 
-  private func text(for error: Error) -> String {
-    (error as? LocalizedError)?.errorDescription
-      ?? "The action could not be completed."
+  private func presentFailure(_ error: Error) {
+    toasts.show(
+      (error as? LocalizedError)?.errorDescription
+        ?? "The action could not be completed.",
+      tone: .failure
+    )
   }
 }

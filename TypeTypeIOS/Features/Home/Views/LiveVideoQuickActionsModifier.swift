@@ -1,7 +1,6 @@
 import SwiftUI
 
 struct LiveVideoQuickActionsModifier: ViewModifier {
-  @Environment(\.liveToasts) private var toasts
   @StateObject var viewModel: LiveVideoQuickActionsViewModel
   @State var presentsDownload = false
   @State var presentsShareChoice = false
@@ -12,13 +11,15 @@ struct LiveVideoQuickActionsModifier: ViewModifier {
   let onOpenChannel: (() -> Void)?
   let removeLabel: String?
   let onRemove: (() -> Void)?
+  let onNotInterested: (() -> Void)?
 
   init(
     video: LiveVideoItem,
     dependencies: AppDependencies,
     onOpenChannel: (() -> Void)?,
     removeLabel: String?,
-    onRemove: (() -> Void)?
+    onRemove: (() -> Void)?,
+    onNotInterested: (() -> Void)?
   ) {
     self.dependencies = dependencies
     deArrowStore = dependencies.deArrowStore
@@ -32,6 +33,7 @@ struct LiveVideoQuickActionsModifier: ViewModifier {
     self.onOpenChannel = onOpenChannel
     self.removeLabel = removeLabel
     self.onRemove = onRemove
+    self.onNotInterested = onNotInterested
   }
 
   func body(content: Content) -> some View {
@@ -49,11 +51,6 @@ struct LiveVideoQuickActionsModifier: ViewModifier {
             }
         )
       )
-      .onChange(of: viewModel.message) { _, message in
-        guard let message else { return }
-        toasts?.show(message)
-        viewModel.dismissMessage()
-      }
       .sheet(isPresented: $presentsDownload) {
         LiveDownloadSheet(
           video: viewModel.video,
@@ -111,7 +108,8 @@ extension View {
     dependencies: AppDependencies,
     onOpenChannel: (() -> Void)? = nil,
     removeLabel: String? = nil,
-    onRemove: (() -> Void)? = nil
+    onRemove: (() -> Void)? = nil,
+    onNotInterested: (() -> Void)? = nil
   ) -> some View {
     modifier(
       LiveVideoQuickActionsModifier(
@@ -119,7 +117,8 @@ extension View {
         dependencies: dependencies,
         onOpenChannel: onOpenChannel,
         removeLabel: removeLabel,
-        onRemove: onRemove
+        onRemove: onRemove,
+        onNotInterested: onNotInterested
       )
     )
   }

@@ -133,16 +133,18 @@ extension LiveChannelView {
           }
         }
       } else {
-        ForEach(viewModel.videos) { video in
-          LiveVideoCard(
-            video: video,
-            deArrowStore: dependencies.deArrowStore,
-            action: { selectedVideo = video }
-          )
-          .liveVideoQuickActions(
-            video: video,
-            dependencies: dependencies
-          )
+        LiveHiddenVideosReader(dependencies.hiddenVideos) { hidden in
+          ForEach(hidden.visible(viewModel.videos)) { video in
+            LiveVideoCard(
+              video: video,
+              deArrowStore: dependencies.deArrowStore,
+              action: { selectedVideo = video }
+            )
+            .liveVideoQuickActions(
+              video: video,
+              dependencies: dependencies
+            )
+          }
         }
       }
       LiveIncrementalLoadingTrigger(

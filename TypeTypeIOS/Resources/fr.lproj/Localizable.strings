@@ -275,6 +275,11 @@
 "Add to playlist" = "Ajouter à une playlist";
 "Block video" = "Bloquer la vidéo";
 "Block channel" = "Bloquer la chaîne";
+"Not interested" = "Pas intéressé";
+"Removes this video from your recommendations" = "Retire cette vidéo de vos recommandations";
+"Removed from your recommendations" = "Retirée de vos recommandations";
+"Undo" = "Annuler";
+"Puts this video back in your recommendations" = "Remet cette vidéo dans vos recommandations";
 "Removed from playback queue" = "Retiré de la file de lecture";
 "Playback progress" = "Progression de lecture";
 "Search history" = "Historique de recherche";
