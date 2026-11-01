@@ -2,8 +2,15 @@ import AVKit
 import SwiftUI
 
 struct AirPlayRouteButton: UIViewRepresentable {
+  var onPresentingChange: ((Bool) -> Void)?
+
+  func makeCoordinator() -> Coordinator {
+    Coordinator()
+  }
+
   func makeUIView(context: Context) -> AVRoutePickerView {
     let view = AVRoutePickerView()
+    view.delegate = context.coordinator
     view.tintColor = .white
     view.activeTintColor = .white
     view.prioritizesVideoDevices = true
@@ -16,5 +23,19 @@ struct AirPlayRouteButton: UIViewRepresentable {
     return view
   }
 
-  func updateUIView(_ view: AVRoutePickerView, context: Context) {}
+  func updateUIView(_ view: AVRoutePickerView, context: Context) {
+    context.coordinator.onPresentingChange = onPresentingChange
+  }
+
+  final class Coordinator: NSObject, AVRoutePickerViewDelegate {
+    var onPresentingChange: ((Bool) -> Void)?
+
+    func routePickerViewWillBeginPresentingRoutes(_ routePickerView: AVRoutePickerView) {
+      onPresentingChange?(true)
+    }
+
+    func routePickerViewDidEndPresentingRoutes(_ routePickerView: AVRoutePickerView) {
+      onPresentingChange?(false)
+    }
+  }
 }
