@@ -108,6 +108,7 @@ extension LivePlayerView {
   }
 
   func applySpeedRamp(translationHeight: CGFloat) {
+    guard longPressBaseRate != nil else { return }
     let raw = 2.0 + (-translationHeight / 200.0) * 2.0
     let stepped = (raw * 2).rounded() / 2
     let rate = Float(min(max(stepped, 1), 4))
@@ -150,7 +151,7 @@ extension LivePlayerView {
 
   func beginSpeedRamp() {
     guard !accessibleControls, preferences.preferences.playerLongPressSpeedEnabled,
-      longPressBaseRate == nil
+      longPressBaseRate == nil, swipeAdjustment == nil, horizontalSeekPreview == nil
     else { return }
     LivePlayerView.logGesture("speedRamp ON")
     longPressBaseRate = controller.playbackRate

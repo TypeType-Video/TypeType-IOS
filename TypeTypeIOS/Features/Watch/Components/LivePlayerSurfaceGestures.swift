@@ -17,7 +17,7 @@ final class LivePlayerSurfaceGestures: NSObject, UIGestureRecognizerDelegate {
   private var seekBasePosition: TimeInterval = 0
   private var timelineSeek: PlayerTimelineSeekGesture?
   private var timelineSeekLastX: CGFloat = 0
-  private var exitTouchDown: TimeInterval = 0
+  private var touchDown: TimeInterval = 0
   private let seekHaptics = UISelectionFeedbackGenerator()
   private let exitHaptics = UIImpactFeedbackGenerator(style: .light)
 
@@ -103,7 +103,7 @@ final class LivePlayerSurfaceGestures: NSObject, UIGestureRecognizerDelegate {
   }
 
   func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
-    if gestureRecognizer === exitRecognizer { exitTouchDown = touch.timestamp }
+    touchDown = touch.timestamp
     return true
   }
 
@@ -119,11 +119,16 @@ final class LivePlayerSurfaceGestures: NSObject, UIGestureRecognizerDelegate {
     let translation = CGSize(width: moved.x, height: moved.y)
     let start = CGPoint(x: location.x - moved.x, y: location.y - moved.y)
     let preferences = controller.appPreferences.preferences
+    // A touch held this long already belongs to the 2x ramp: no pan may take its movement too.
+    if PlayerFullscreenExitRules.belongsToSpeedRamp(
+      heldFor: ProcessInfo.processInfo.systemUptime - touchDown,
+      speedRampEnabled: preferences.playerLongPressSpeedEnabled
+    ) {
+      return false
+    }
 
     if recognizer === exitRecognizer {
       guard fullscreenExitHandler != nil else { return false }
-      let held = ProcessInfo.processInfo.systemUptime - exitTouchDown
-      if preferences.playerLongPressSpeedEnabled, held >= PlayerFullscreenExitRules.speedRampHold { return false }
       return PlayerFullscreenExitRules.canBegin(startLocation: start, size: view.bounds.size, translation: translation)
     }
     if recognizer === seekRecognizer {
