@@ -121,7 +121,7 @@ struct LiveNativePlayerControls: View {
         }
       }
       Text(LivePlaybackChapterNavigator.clockText(seconds: Int(controller.duration)))
-      AirPlayRouteButton()
+      AirPlayRouteButton { controls.hold($0) }
         .frame(width: 32, height: 32)
         .contentShape(Rectangle())
       if !controller.displayedChapters.isEmpty {

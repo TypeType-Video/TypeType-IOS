@@ -8,6 +8,8 @@ final class LiveNativeControlsState: ObservableObject {
       if staysVisible { keepVisible() }
     }
   }
+  // The AirPlay menu closes with the button that opened it, so the controls wait for it.
+  private var isHeld = false
   private var hideTask: Task<Void, Never>?
   private var tapTask: Task<Void, Never>?
 
@@ -16,7 +18,7 @@ final class LiveNativeControlsState: ObservableObject {
     tapTask = Task { [weak self] in
       try? await Task.sleep(for: .milliseconds(260))
       guard !Task.isCancelled, let self else { return }
-      guard !staysVisible else { return }
+      guard !staysVisible, !isHeld else { return }
       visible.toggle()
       if visible { scheduleHide() }
     }
@@ -31,9 +33,14 @@ final class LiveNativeControlsState: ObservableObject {
     visible = true
   }
 
+  func hold(_ held: Bool) {
+    isHeld = held
+    if held { keepVisible() } else { scheduleHide() }
+  }
+
   func scheduleHide() {
     hideTask?.cancel()
-    guard !staysVisible else { return }
+    guard !staysVisible, !isHeld else { return }
     hideTask = Task { [weak self] in
       try? await Task.sleep(for: .seconds(3))
       guard !Task.isCancelled else { return }
