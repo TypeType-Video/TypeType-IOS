@@ -284,7 +284,7 @@
 "Already seen" = "Déjà vue";
 "Not this channel" = "Pas cette chaîne";
 "Not this topic" = "Pas ce sujet";
-"Noted, thank you" = "C’est noté, merci";
+"Noted: %@" = "C’est noté : %@";
 "Removed from playback queue" = "Retiré de la file de lecture";
 "Playback progress" = "Progression de lecture";
 "Search history" = "Historique de recherche";

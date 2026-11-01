@@ -20,13 +20,22 @@ extension LiveHomeView {
         LiveHiddenVideosReader(coordinator.dependencies.hiddenVideos) { hidden in
           ForEach(hidden.visible(viewModel.videos)) { video in
             if let refusal = refusals.state(for: video) {
-              LiveRefusedRecommendationCard(
-                state: refusal,
-                onExplain: { reason in Task { await explainRefusal(video, reason: reason) } },
-                onUndo: { Task { await undoRefusal(video) } }
-              )
+              // Drawn over an invisible copy of the card: the grid keeps its row heights and nothing jumps.
+              LiveVideoCard(video: video, deArrowStore: coordinator.dependencies.deArrowStore, action: {})
+                .hidden()
+                .accessibilityHidden(true)
+                .overlay {
+                  LiveRefusedRecommendationCard(
+                    state: refusal,
+                    videoTitle: coordinator.dependencies.deArrowStore.branding(for: video).title,
+                    onExplain: { reason in Task { await explainRefusal(video, reason: reason) } },
+                    onUndo: { Task { await undoRefusal(video) } }
+                  )
+                }
+                .transition(.opacity.combined(with: .scale(scale: 0.96)))
             } else {
               recommendationCard(video)
+                .transition(.opacity)
             }
           }
         }

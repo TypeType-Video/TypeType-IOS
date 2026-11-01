@@ -284,7 +284,7 @@
 "Already seen" = "Already seen";
 "Not this channel" = "Not this channel";
 "Not this topic" = "Not this topic";
-"Noted, thank you" = "Noted, thank you";
+"Noted: %@" = "Noted: %@";
 "Removed from playback queue" = "Removed from playback queue";
 "Playback progress" = "Playback progress";
 "Search history" = "Search history";
