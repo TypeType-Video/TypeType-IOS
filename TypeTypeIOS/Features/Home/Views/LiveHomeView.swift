@@ -4,6 +4,8 @@ struct LiveHomeView: View {
   @ObservedObject var coordinator: RootCoordinator
   @ObservedObject var notificationCenter: LiveNotificationCenter
   @StateObject var viewModel: LiveHomeViewModel
+  @StateObject var refusals: LiveRecommendationRefusals
+  @Environment(\.liveToasts) var toasts
   @State var selectedVideo: LiveVideoItem?
   @State var selectedChannelURL: String?
 
@@ -18,6 +20,9 @@ struct LiveHomeView: View {
         serviceSelection: coordinator.dependencies.serviceSelection,
         imagePipeline: coordinator.dependencies.imagePipeline
       )
+    )
+    _refusals = StateObject(
+      wrappedValue: LiveRecommendationRefusals(service: coordinator.dependencies.recommenderFeedbackService)
     )
   }
 

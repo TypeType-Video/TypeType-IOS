@@ -11,6 +11,7 @@ final class LiveHomeViewModel: ObservableObject {
   @Published private(set) var continueWatching: [LiveHistoryItem] = []
   @Published private(set) var showsRecommendations = true
   @Published private(set) var showsContinueWatching = true
+  @Published private(set) var offersNotInterested = false
 
   let services: [VideoService]
 
@@ -97,6 +98,7 @@ final class LiveHomeViewModel: ObservableObject {
       applyInitial(page)
     case let .failure(error):
       videos = []
+      offersNotInterested = false
       canLoadMore = false
       nextCursor = nil
       state = continueWatching.isEmpty
@@ -181,6 +183,7 @@ final class LiveHomeViewModel: ObservableObject {
 
   private func applyInitial(_ page: HomeRecommendationsPage) {
     videos = []
+    offersNotInterested = page.comesFromRecommender
     append(page)
   }
 

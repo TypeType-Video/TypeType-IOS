@@ -8,6 +8,7 @@ final class AppDependencies {
   let oidcService: OIDCServiceProtocol
   let resetPasswordService: ResetPasswordServiceProtocol
   let homeFeedService: HomeFeedServiceProtocol
+  let recommenderFeedbackService: LiveRecommenderFeedbackServiceProtocol?
   let commentsService: LiveCommentsServiceProtocol
   let downloaderService: LiveDownloaderServiceProtocol
   let deArrowStore: LiveDeArrowStore
@@ -68,6 +69,7 @@ final class AppDependencies {
   @MainActor
   lazy var appPreferences = LiveAppPreferencesStore()
   @MainActor lazy var toasts = LiveToastCenter()
+  @MainActor lazy var hiddenVideos = LiveHiddenVideos()
   @MainActor
   lazy var playbackPrewarmer: LivePlaybackPrewarmer? = playbackService.map {
     LivePlaybackPrewarmer(
@@ -103,6 +105,7 @@ final class AppDependencies {
       }
     )
     coordinator.prewarmer = playbackPrewarmer
+    coordinator.hiddenVideos = hiddenVideos
     return coordinator
   }()
 
@@ -115,6 +118,7 @@ final class AppDependencies {
     oidcService: OIDCServiceProtocol,
     resetPasswordService: ResetPasswordServiceProtocol,
     homeFeedService: HomeFeedServiceProtocol,
+    recommenderFeedbackService: LiveRecommenderFeedbackServiceProtocol? = nil,
     commentsService: LiveCommentsServiceProtocol,
     downloaderService: LiveDownloaderServiceProtocol,
     deArrowStore: LiveDeArrowStore,
@@ -157,6 +161,7 @@ final class AppDependencies {
     self.oidcService = oidcService
     self.resetPasswordService = resetPasswordService
     self.homeFeedService = homeFeedService
+    self.recommenderFeedbackService = recommenderFeedbackService
     self.commentsService = commentsService
     self.downloaderService = downloaderService
     self.deArrowStore = deArrowStore
@@ -213,5 +218,6 @@ extension AppDependencies {
     notificationCenter.clear()
     deArrowStore.invalidatePreferences()
     downloadCenter.cancelTracking()
+    hiddenVideos.clear()
   }
 }

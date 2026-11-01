@@ -35,7 +35,8 @@ struct LiveSettingsDestination: View {
     case .blocked:
       LiveContentControlsView(
         service: dependencies.contentControlsService,
-        canCreateGlobal: coordinator.currentUser?.role != .user
+        canCreateGlobal: coordinator.currentUser?.role != .user,
+        hiddenVideos: dependencies.hiddenVideos
       )
     case .diagnostics:
       LiveDiagnosticsView(

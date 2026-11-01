@@ -37,62 +37,6 @@ extension LiveHomeView {
     }
   }
 
-  private var recommendationsSection: some View {
-    VStack(alignment: .leading, spacing: 14) {
-      Text("Recommended")
-        .font(.headline)
-
-      LazyVGrid(
-        columns: [
-          GridItem(
-            .adaptive(minimum: 330, maximum: 520),
-            spacing: 22,
-            alignment: .top
-          ),
-        ],
-        alignment: .leading,
-        spacing: 24
-      ) {
-        ForEach(viewModel.videos) { video in
-          recommendationCard(video)
-        }
-
-        LiveIncrementalLoadingTrigger(
-          canLoadMore: viewModel.canLoadMore,
-          isLoading: viewModel.isLoadingMore,
-          label: "Loading more recommendations",
-          identifier: "live.home.loading-more"
-        ) {
-          Task { await viewModel.loadMore() }
-        }
-      }
-    }
-  }
-
-  private func recommendationCard(
-    _ video: LiveVideoItem
-  ) -> some View {
-    LiveVideoCard(
-      video: video,
-      deArrowStore: coordinator.dependencies.deArrowStore,
-      onChannel: {
-        guard !video.uploaderURL.isEmpty else { return }
-        selectedChannelURL = video.uploaderURL
-      },
-      action: {
-        selectedVideo = video
-      }
-    )
-    .liveVideoQuickActions(
-      video: video,
-      dependencies: coordinator.dependencies,
-      onOpenChannel: {
-        guard !video.uploaderURL.isEmpty else { return }
-        selectedChannelURL = video.uploaderURL
-      }
-    )
-  }
-
   private var continueWatchingSection: some View {
     VStack(alignment: .leading, spacing: 12) {
       Text("Continue watching")

@@ -91,24 +91,26 @@ struct LivePublicPlaylistView: View {
           .padding(.top, 50)
         } else {
           LazyVGrid(columns: columns, alignment: .leading, spacing: 24) {
-            ForEach(viewModel.videos) { video in
-              LiveVideoCard(
-                video: video,
-                deArrowStore: dependencies.deArrowStore,
-                onChannel: {
-                  guard !video.uploaderURL.isEmpty else { return }
-                  selectedChannelURL = video.uploaderURL
-                },
-                action: { selectedVideo = video }
-              )
-              .liveVideoQuickActions(
-                video: video,
-                dependencies: dependencies,
-                onOpenChannel: {
-                  guard !video.uploaderURL.isEmpty else { return }
-                  selectedChannelURL = video.uploaderURL
-                }
-              )
+            LiveHiddenVideosReader(dependencies.hiddenVideos) { hidden in
+              ForEach(hidden.visible(viewModel.videos)) { video in
+                LiveVideoCard(
+                  video: video,
+                  deArrowStore: dependencies.deArrowStore,
+                  onChannel: {
+                    guard !video.uploaderURL.isEmpty else { return }
+                    selectedChannelURL = video.uploaderURL
+                  },
+                  action: { selectedVideo = video }
+                )
+                .liveVideoQuickActions(
+                  video: video,
+                  dependencies: dependencies,
+                  onOpenChannel: {
+                    guard !video.uploaderURL.isEmpty else { return }
+                    selectedChannelURL = video.uploaderURL
+                  }
+                )
+              }
             }
             LiveIncrementalLoadingTrigger(
               canLoadMore: viewModel.canLoadMore,
