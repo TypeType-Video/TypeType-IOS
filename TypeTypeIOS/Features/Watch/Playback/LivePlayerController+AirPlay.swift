@@ -15,6 +15,12 @@ extension LivePlayerController {
       }
   }
 
+  // AVPlayer keeps the TypeType controls over an AirPlay route, as it does for downloads: AVKit's own would
+  // fight our gestures for every tap.
+  var drawsOwnControls: Bool {
+    nativePlayback != nil || isOfflineContent || airPlay.isActive
+  }
+
   var playbackServerHost: String {
     guard airPlay.isActive else { return LivePlaybackHTTPServer.loopbackHost }
     return LiveLocalNetworkAddress.wifiIPv4() ?? LivePlaybackHTTPServer.loopbackHost
@@ -24,7 +30,7 @@ extension LivePlayerController {
   func abandonAirPlayHandoff(reason: String) -> Bool {
     guard airPlay.isActive else { return false }
     AppLogger.playback.error("airplay: video handoff failed, back to sound only: \(reason, privacy: .public)")
-    airPlay.phase = .refused
+    setAirPlayPhase(.refused)
     airPlay.watchdog?.cancel()
     restartAtCurrentPosition(autoplay: true)
     return true
@@ -34,7 +40,7 @@ extension LivePlayerController {
     let routeIsAirPlay = AVAudioSession.sharedInstance().currentRoute.outputs.contains { $0.portType == .airPlay }
     guard routeIsAirPlay else {
       let wasActive = airPlay.isActive
-      airPlay.phase = .off
+      setAirPlayPhase(.off)
       airPlay.watchdog?.cancel()
       if wasActive {
         AppLogger.playback.info("airplay: route ended, back to the native player")
@@ -48,7 +54,7 @@ extension LivePlayerController {
       return
     }
     AppLogger.playback.info("airplay: moving playback to AVPlayer")
-    airPlay.phase = .active
+    setAirPlayPhase(.active)
     restartAtCurrentPosition(autoplay: state == .playing)
     armAirPlayWatchdog()
   }
@@ -65,5 +71,11 @@ extension LivePlayerController {
         _ = abandonAirPlayHandoff(reason: "the receiver did not start in time")
       }
     }
+  }
+
+  private func setAirPlayPhase(_ phase: LiveAirPlayHandoff.Phase) {
+    guard airPlay.phase != phase else { return }
+    objectWillChange.send()
+    airPlay.phase = phase
   }
 }
