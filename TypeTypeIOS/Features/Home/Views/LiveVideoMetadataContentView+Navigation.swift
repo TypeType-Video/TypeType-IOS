@@ -51,5 +51,10 @@ extension View {
       LivePublicPlaylistView(playlist: playlist, dependencies: page.dependencies)
     }
     .externalLinkAlert(pendingURL: page.$pendingExternalURL)
+    // The PiP window's restore button lands on the player: a channel or playlist pushed over it must go.
+    .onChange(of: page.playbackCoordinator.pictureInPictureRestores) {
+      page.selectedChannelURL = nil
+      page.selectedPublicPlaylist = nil
+    }
   }
 }

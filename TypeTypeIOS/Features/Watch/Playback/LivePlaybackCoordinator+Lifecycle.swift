@@ -31,7 +31,7 @@ extension LivePlaybackCoordinator {
       guard let self else { return }
       await controller.pictureInPicture.loadPoster(url: posterURL)
       controller.pictureInPicture.start(
-        onRestore: { [weak self] in self?.expand() },
+        onRestore: { [weak self] in self?.restoreFromPictureInPicture() },
         onClose: { [weak self] in self?.close() }
       )
     }
