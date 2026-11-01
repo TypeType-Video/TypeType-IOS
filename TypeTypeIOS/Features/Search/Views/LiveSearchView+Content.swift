@@ -36,7 +36,7 @@ extension LiveSearchView {
   }
 
   private var discovery: some View {
-    LiveSearchHistoryView(viewModel: viewModel)
+    LiveSearchHistoryView(viewModel: viewModel) { submitSearch($0) }
   }
 
   private var searchLoading: some View {
