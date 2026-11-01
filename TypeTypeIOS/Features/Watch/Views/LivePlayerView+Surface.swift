@@ -19,22 +19,21 @@ extension LivePlayerView {
         controller.pictureInPicture.markControlsRefresh()
       }
       // Seek and speed gestures on the video surface only: at container level a double tap on pause also seeks.
+      // With AVKit's own controls they stay off, or a tap on AVKit's buttons is taken from them.
       .simultaneousGesture(
         SpatialTapGesture(count: 2)
           .onEnded { value in
             nativeControls.cancelTap()
             handleDoubleTap(at: value.location, width: width)
-          }
+          },
+        including: ownTapGestures
       )
       .simultaneousGesture(
         TapGesture()
-          .onEnded {
-            if controller.nativePlayback != nil || controller.isOfflineContent {
-              nativeControls.tap()
-            }
-          }
+          .onEnded { nativeControls.tap() },
+        including: ownTapGestures
       )
-      .simultaneousGesture(speedRampGesture)
+      .simultaneousGesture(speedRampGesture, including: ownTapGestures)
       .onChange(of: isSpeedRamping) { _, ramping in
         if !ramping { endSpeedRamp() }
       }
@@ -59,6 +58,10 @@ extension LivePlayerView {
       .onEnded { _ in
         endSpeedRamp()
       }
+  }
+
+  private var ownTapGestures: GestureMask {
+    controller.nativePlayback != nil || controller.isOfflineContent ? .all : .subviews
   }
 
   private var fullscreenExitAction: (() -> Void)? {
