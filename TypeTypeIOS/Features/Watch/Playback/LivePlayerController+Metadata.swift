@@ -16,6 +16,7 @@ extension LivePlayerController {
           "chapters: full metadata resolved count=\(full.chapters.count, privacy: .public) sponsor=\(full.sponsorBlockSegments.count, privacy: .public)"
         )
         stream = full
+        reloadNativeSubtitles()
         onMetadataResolved?(video.resolving(with: full))
       } catch {
         guard !Task.isCancelled, let self else { return }

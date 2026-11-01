@@ -40,7 +40,7 @@ targets:
         CFBundleDisplayName: TypeType
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
-        NSLocalNetworkUsageDescription: TypeType connects to self-hosted instances on your local network.
+        NSLocalNetworkUsageDescription: TypeType connects to self-hosted instances on your local network and sends videos to AirPlay devices.
         NSAppTransportSecurity:
           NSAllowsLocalNetworking: true
         CFBundleURLTypes:
@@ -67,9 +67,9 @@ targets:
     settings:
       base:
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
-        CURRENT_PROJECT_VERSION: 13
+        CURRENT_PROJECT_VERSION: 14
         ENABLE_DEBUG_DYLIB: NO
-        MARKETING_VERSION: 0.4.2
+        MARKETING_VERSION: 0.5.0
         PRODUCT_BUNDLE_IDENTIFIER: dev.typetype.ios
         PRODUCT_NAME: TypeTypeIOS
         TARGETED_DEVICE_FAMILY: "1,2"

@@ -66,7 +66,7 @@ extension LivePlaybackHTTPServer {
   func isLocalURL(_ url: URL) -> Bool {
     guard let localPort else { return false }
     return url.scheme == "http"
-      && url.host == "127.0.0.1"
+      && url.host == host
       && url.port == Int(localPort.rawValue)
   }
 }
