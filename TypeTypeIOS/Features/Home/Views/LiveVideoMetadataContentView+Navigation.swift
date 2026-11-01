@@ -15,14 +15,24 @@ extension LiveVideoMetadataContentView {
     let pip = playerController.pictureInPicture
     if pip.isEngaged || pip.isSystemActive {
       AppLogger.playback.info("pip driver: restoring inline after navigation")
-      pip.bringInline()
+      // Stopping the window can pause the player: playback that ran in PiP keeps running inline.
+      let wasPlaying = playerController.state == .playing
+      pip.bringInline { [playerController] in
+        if wasPlaying { playerController.resume() }
+      }
     }
   }
 
   func leavePage() {
     playerController.flushHistory()
-    // A pushed channel or playlist only covers the page: minimizing here starts PiP, which pauses on the way back.
-    guard selectedChannelURL == nil, selectedPublicPlaylist == nil else { return }
+    // A pushed channel or playlist only covers the page: minimizing would drop the watch cover under the push, so
+    // the video goes to PiP alone and comes back inline on return.
+    guard selectedChannelURL == nil, selectedPublicPlaylist == nil else {
+      if playerController.state == .playing {
+        playbackCoordinator.startSystemPictureInPicture()
+      }
+      return
+    }
     let departingVideoURL = video.url
     Task { @MainActor in
       await Task.yield()
