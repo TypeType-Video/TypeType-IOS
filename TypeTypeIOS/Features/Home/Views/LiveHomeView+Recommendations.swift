@@ -20,9 +20,11 @@ extension LiveHomeView {
         LiveHiddenVideosReader(coordinator.dependencies.hiddenVideos) { hidden in
           ForEach(hidden.visible(viewModel.videos)) { video in
             if let refusal = refusals.state(for: video) {
-              LiveRefusedRecommendationCard(state: refusal) {
-                Task { await undoRefusal(video) }
-              }
+              LiveRefusedRecommendationCard(
+                state: refusal,
+                onExplain: { reason in Task { await explainRefusal(video, reason: reason) } },
+                onUndo: { Task { await undoRefusal(video) } }
+              )
             } else {
               recommendationCard(video)
             }
@@ -71,6 +73,12 @@ extension LiveHomeView {
 
   private func refuse(_ video: LiveVideoItem) async {
     if let failure = await refusals.refuse(video) {
+      toasts?.show(failure, tone: .failure)
+    }
+  }
+
+  private func explainRefusal(_ video: LiveVideoItem, reason: LiveRefusalReason) async {
+    if let failure = await refusals.explain(video, reason: reason) {
       toasts?.show(failure, tone: .failure)
     }
   }
