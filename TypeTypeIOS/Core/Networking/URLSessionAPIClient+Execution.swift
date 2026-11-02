@@ -99,12 +99,14 @@ extension URLSessionAPIClient {
   }
 
   func executeDownload(
-    _ request: URLRequest
+    _ request: URLRequest,
+    progress: (@Sendable (Double) -> Void)? = nil
   ) async throws -> URL {
     let startedAt = DispatchTime.now().uptimeNanoseconds
     do {
       let (fileURL, response) = try await downloadSession.download(
-        for: request
+        for: request,
+        delegate: progress.map(DownloadProgressReporter.init)
       )
       guard let http = response as? HTTPURLResponse else {
         await recordDiagnostic(
@@ -149,11 +151,13 @@ extension URLSessionAPIClient {
 
 extension URLSessionAPIClient {
   // No 120 s resource timeout here: it cuts large artifacts mid-transfer. `configuration` returns a copy.
+  // The request timeout is an idle timeout, so a stalled transfer fails instead of hanging. Waiting for
+  // connectivity would hold an offline transfer for the whole resource timeout; callers retry instead.
   static func makeDownloadSession(like session: URLSession) -> URLSession {
     let configuration = session.configuration
-    configuration.timeoutIntervalForRequest = 600
+    configuration.timeoutIntervalForRequest = 120
     configuration.timeoutIntervalForResource = 7_200
-    configuration.waitsForConnectivity = true
+    configuration.waitsForConnectivity = false
     return URLSession(
       configuration: configuration,
       delegate: DownloadRedirectCleaner(),

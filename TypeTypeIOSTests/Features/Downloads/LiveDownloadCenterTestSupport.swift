@@ -11,6 +11,7 @@ final class DownloadServiceStub: LiveDownloaderServiceProtocol {
   private var artifactRequestCount = 0
   private var requestedOptions: [LiveDownloadOptions] = []
   private let artifactDelay: Duration
+  private let artifactProgress: Double?
   private var jobFailuresRemaining: Int
   private var jobRequestCount = 0
   private let jobError: NetworkError
@@ -19,8 +20,10 @@ final class DownloadServiceStub: LiveDownloaderServiceProtocol {
     jobFailuresRemaining: Int = 0,
     jobError: NetworkError = .statusCode(503, nil),
     artifactFailuresRemaining: Int = 0,
-    artifactDelay: Duration = .zero
+    artifactDelay: Duration = .zero,
+    artifactProgress: Double? = nil
   ) {
+    self.artifactProgress = artifactProgress
     self.jobFailuresRemaining = jobFailuresRemaining
     self.jobError = jobError
     failuresRemaining = artifactFailuresRemaining
@@ -68,7 +71,13 @@ final class DownloadServiceStub: LiveDownloaderServiceProtocol {
 
   func delete(id: String) async throws {}
 
-  func artifact(id: String) async throws -> URL {
+  func artifact(
+    id: String,
+    progress: @escaping @Sendable (Double) -> Void
+  ) async throws -> URL {
+    if let artifactProgress {
+      progress(artifactProgress)
+    }
     if artifactDelay > .zero {
       try await Task.sleep(for: artifactDelay)
     }
