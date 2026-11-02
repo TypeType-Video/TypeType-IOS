@@ -1,21 +1,10 @@
 import SwiftUI
 
 extension LiveHomeView {
+  // One leading item: iOS 26 groups items sharing a placement into one glass capsule, and a second item there
+  // next to the brand logo did not open its menu.
   @ToolbarContentBuilder
   var brandToolbar: some ToolbarContent {
-    ToolbarItem(placement: .topBarLeading) {
-      Image("TypeTypeLogo")
-        .resizable()
-        .scaledToFit()
-        .frame(width: 25, height: 25)
-      .accessibilityLabel("TypeType home")
-    }
-  }
-
-  // Leading, next to the logo: four trailing items push settings and the account into the overflow menu on iPad,
-  // where the tab bar takes the middle of the bar, and cut the centred title on small iPhones.
-  @ToolbarContentBuilder
-  var serviceToolbar: some ToolbarContent {
     ToolbarItem(placement: .topBarLeading) {
       if viewModel.services.count > 1 {
         Menu {
@@ -36,15 +25,15 @@ extension LiveHomeView {
             )
           }
         } label: {
-          serviceLabel
+          brandLabel(showsChevron: true)
         }
         .accessibilityLabel("Video service")
+        .accessibilityValue(Text(verbatim: selectedService.name))
         .accessibilityIdentifier("live.home.service")
       } else {
-        serviceLabel
-          .accessibilityLabel(
-            viewModel.services[0].name
-          )
+        brandLabel(showsChevron: false)
+          .accessibilityElement(children: .ignore)
+          .accessibilityLabel(Text(verbatim: selectedService.name))
       }
     }
   }
@@ -103,8 +92,23 @@ extension LiveHomeView {
     } ?? viewModel.services[0]
   }
 
-  private var serviceLabel: some View {
-    LiveServiceLogo(service: selectedService, size: 25)
+  private func brandLabel(showsChevron: Bool) -> some View {
+    HStack(spacing: 8) {
+      Image("TypeTypeLogo")
+        .resizable()
+        .scaledToFit()
+        .frame(width: 25, height: 25)
+        .accessibilityHidden(true)
+      LiveServiceLogo(service: selectedService, size: 22)
+      if showsChevron {
+        Image(systemName: "chevron.down")
+          .font(.caption2.weight(.bold))
+          .foregroundStyle(.secondary)
+      }
+    }
+    .padding(.horizontal, 4)
+    .frame(minWidth: 44, minHeight: 44)
+    .contentShape(Rectangle())
   }
 }
 

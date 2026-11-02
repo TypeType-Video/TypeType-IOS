@@ -1,7 +1,7 @@
 import Foundation
 
 protocol LiveRecommenderFeedbackServiceProtocol {
-  func refuse(_ video: LiveVideoItem) async throws -> String
+  func refuse(_ video: LiveVideoItem, reason: LiveRefusalReason?) async throws -> String
   func withdraw(id: String) async throws
 }
 
@@ -12,9 +12,10 @@ final class LiveRecommenderFeedbackService: LiveRecommenderFeedbackServiceProtoc
     self.apiClient = apiClient
   }
 
-  func refuse(_ video: LiveVideoItem) async throws -> String {
+  func refuse(_ video: LiveVideoItem, reason: LiveRefusalReason?) async throws -> String {
     let payload = LiveRecommenderFeedbackPayload(
       videoUrl: video.url,
+      reason: reason?.rawValue,
       title: video.title.isEmpty ? nil : String(video.title.prefix(300)),
       channelName: video.uploaderName.isEmpty ? nil : String(video.uploaderName.prefix(300)),
       thumbnailUrl: video.thumbnailURL.isEmpty || video.thumbnailURL.count > 500 ? nil : video.thumbnailURL
@@ -46,6 +47,7 @@ private struct LiveRecommenderFeedbackPayload: Encodable {
   let kind = "video"
   let verdict = "not_for_me"
   let videoUrl: String
+  let reason: String?
   let title: String?
   let channelName: String?
   let thumbnailUrl: String?
@@ -53,4 +55,22 @@ private struct LiveRecommenderFeedbackPayload: Encodable {
 
 private struct LiveRecommenderFeedbackEntry: Decodable {
   let id: String
+}
+
+enum LiveRefusalReason: String, CaseIterable, Identifiable {
+  case seen
+  case channel
+  case topic
+  case other
+
+  var id: String { rawValue }
+
+  var title: LocalizedStringResource {
+    switch self {
+    case .seen: "Already seen"
+    case .channel: "Not this channel"
+    case .topic: "Not this topic"
+    case .other: "Other"
+    }
+  }
 }

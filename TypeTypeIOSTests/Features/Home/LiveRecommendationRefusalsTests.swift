@@ -10,7 +10,7 @@ final class LiveRecommendationRefusalsTests: XCTestCase {
 
     let refuseFailure = await refusals.refuse(video)
     XCTAssertNil(refuseFailure)
-    XCTAssertEqual(refusals.state(for: video), .saved(id: "feedback-1"))
+    XCTAssertEqual(refusals.state(for: video), .saved(id: "feedback-1", reason: nil))
     XCTAssertEqual(service.refused, [video.url])
 
     let undoFailure = await refusals.undo(video)
@@ -40,7 +40,23 @@ final class LiveRecommendationRefusalsTests: XCTestCase {
     let failure = await refusals.undo(video)
 
     XCTAssertNotNil(failure)
-    XCTAssertEqual(refusals.state(for: video), .saved(id: "feedback-1"))
+    XCTAssertEqual(refusals.state(for: video), .saved(id: "feedback-1", reason: nil))
+  }
+
+  func testReasonIsSentOnceAndKeptForUndo() async {
+    let service = RecommenderFeedbackStub(refuseResult: .success("feedback-1"))
+    let refusals = LiveRecommendationRefusals(service: service)
+    let video = LiveVideoItemFixture.make()
+
+    _ = await refusals.refuse(video)
+    let failure = await refusals.explain(video, reason: .seen)
+    _ = await refusals.explain(video, reason: .channel)
+
+    XCTAssertNil(failure)
+    XCTAssertEqual(service.reasons, [nil, .seen])
+    XCTAssertEqual(refusals.state(for: video), .saved(id: "feedback-1", reason: .seen))
+    _ = await refusals.undo(video)
+    XCTAssertEqual(service.withdrawn, ["feedback-1"])
   }
 
   func testPageWithRowsComesFromTheRecommender() throws {
@@ -75,13 +91,15 @@ private final class RecommenderFeedbackStub: LiveRecommenderFeedbackServiceProto
   var withdrawError: Error?
   private(set) var refused: [String] = []
   private(set) var withdrawn: [String] = []
+  private(set) var reasons: [LiveRefusalReason?] = []
 
   init(refuseResult: Result<String, Error>) {
     self.refuseResult = refuseResult
   }
 
-  func refuse(_ video: LiveVideoItem) async throws -> String {
+  func refuse(_ video: LiveVideoItem, reason: LiveRefusalReason?) async throws -> String {
     refused.append(video.url)
+    reasons.append(reason)
     return try refuseResult.get()
   }
 

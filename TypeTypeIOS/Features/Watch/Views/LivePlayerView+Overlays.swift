@@ -77,17 +77,6 @@ extension LivePlayerView {
   }
 
   @ViewBuilder
-  var swipeAdjustmentOverlay: some View {
-    if let adjustment = swipeAdjustment {
-      LivePlayerLevelOverlay(kind: adjustment.kind, fraction: adjustment.fraction)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-      .allowsHitTesting(false)
-      .transition(.opacity.combined(with: .scale(scale: 0.86)))
-      .accessibilityHidden(true)
-    }
-  }
-
-  @ViewBuilder
   var horizontalSeekOverlay: some View {
     if let preview = horizontalSeekPreview {
       LivePlayerSeekScrubOverlay(

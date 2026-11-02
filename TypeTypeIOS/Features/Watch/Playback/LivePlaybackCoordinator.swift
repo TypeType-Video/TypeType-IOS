@@ -19,6 +19,7 @@ final class LivePlaybackCoordinator: ObservableObject {
   @Published var queue = LivePlaybackQueueSnapshot.empty
   @Published var sleepTimer = LivePlaybackSleepTimerState()
   @Published var autoplayCountdownRemaining: Int?
+  @Published private(set) var pictureInPictureRestores = 0
 
   let settingsService: LiveSettingsServiceProtocol
   let appPreferences: LiveAppPreferencesStore
@@ -164,5 +165,10 @@ final class LivePlaybackCoordinator: ObservableObject {
       touchAndPersist()
     }
     return result
+  }
+
+  func restoreFromPictureInPicture() {
+    pictureInPictureRestores += 1
+    expand()
   }
 }

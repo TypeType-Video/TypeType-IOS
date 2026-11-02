@@ -280,6 +280,11 @@
 "Removed from your recommendations" = "Removed from your recommendations";
 "Undo" = "Undo";
 "Puts this video back in your recommendations" = "Puts this video back in your recommendations";
+"Why? (if you wish)" = "Why? (if you wish)";
+"Already seen" = "Already seen";
+"Not this channel" = "Not this channel";
+"Not this topic" = "Not this topic";
+"Noted: %@" = "Noted: %@";
 "Removed from playback queue" = "Removed from playback queue";
 "Playback progress" = "Playback progress";
 "Search history" = "Search history";
