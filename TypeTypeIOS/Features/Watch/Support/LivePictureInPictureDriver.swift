@@ -23,6 +23,7 @@ final class LivePictureInPictureDriver: NSObject, ObservableObject {
   private var pendingStartTask: Task<Void, Never>?
   private var onRestore: (() -> Void)?
   private var onClose: (() -> Void)?
+  private var onInline: (() -> Void)?
 
   var isAvailable: Bool {
     AVPictureInPictureController.isPictureInPictureSupported()
@@ -195,7 +196,7 @@ final class LivePictureInPictureDriver: NSObject, ObservableObject {
     pipController?.stopPictureInPicture()
   }
 
-  func bringInline() {
+  func bringInline(then onInline: (() -> Void)? = nil) {
     AppLogger.playback.info("pip driver: bring inline requested")
     // The system is the truth: a late-confirmed window can be up while the flag says otherwise.
     let systemActive = pipController?.isPictureInPictureActive ?? false
@@ -206,6 +207,7 @@ final class LivePictureInPictureDriver: NSObject, ObservableObject {
     isEngaged = false
     onChange?()
     isRestoring = true
+    self.onInline = onInline
     relayout()
     pipController?.stopPictureInPicture()
   }
@@ -272,7 +274,11 @@ extension LivePictureInPictureDriver: AVPictureInPictureControllerDelegate {
       AppLogger.playback
         .info("pip driver: did stop, restoring=\(wasRestoring, privacy: .public)")
       onChange?()
-      if !wasRestoring {
+      let onInline = self.onInline
+      self.onInline = nil
+      if wasRestoring {
+        onInline?()
+      } else {
         onClose?()
       }
     }

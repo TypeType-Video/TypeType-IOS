@@ -8,6 +8,7 @@ struct LivePlaylistVideoRow: View {
   let onOpen: () -> Void
   let onChannel: () -> Void
   let onRemove: () -> Void
+  @State private var showsActions = false
 
   init(
     video: LivePlaylistVideo,
@@ -26,19 +27,19 @@ struct LivePlaylistVideoRow: View {
 
   var body: some View {
     HStack(spacing: 12) {
-      Button(action: onOpen) {
-        LiveRemoteImage(url: branding.thumbnailURL)
-          .aspectRatio(16 / 9, contentMode: .fill)
-          .frame(width: 128, height: 72)
-          .clipped()
-          .liveThumbnailProgress(
-            watchProgress.fraction(forVideoID: video.url)
-          )
-          .clipShape(
-            RoundedRectangle(cornerRadius: 9, style: .continuous)
-          )
-      }
-      .buttonStyle(.plain)
+      LiveRemoteImage(url: branding.thumbnailURL)
+        .aspectRatio(16 / 9, contentMode: .fill)
+        .frame(width: 128, height: 72)
+        .clipped()
+        .liveThumbnailProgress(
+          watchProgress.fraction(forVideoID: video.url)
+        )
+        .clipShape(
+          RoundedRectangle(cornerRadius: 9, style: .continuous)
+        )
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Open video \(branding.title)")
+        .liveQuickActionsPress(showsActions: $showsActions, action: onOpen)
       VStack(alignment: .leading, spacing: 4) {
         Button(action: onOpen) {
           Text(branding.title)
@@ -61,6 +62,8 @@ struct LivePlaylistVideoRow: View {
           .foregroundStyle(.tertiary)
       }
       Spacer(minLength: 4)
+      LiveQuickActionsDotMenu(isPresented: $showsActions)
+        .accessibilityLabel("More actions for \(branding.title)")
     }
     .contentShape(Rectangle())
     .swipeActions {

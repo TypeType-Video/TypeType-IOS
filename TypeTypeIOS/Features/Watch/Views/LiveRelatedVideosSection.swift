@@ -43,15 +43,11 @@ struct LiveRelatedVideosSection: View {
 
         LazyVStack(spacing: 14) {
           ForEach(Array(videos.prefix(visibleCount))) { video in
-            Button {
-              onSelect(video)
-            } label: {
-              LiveRelatedVideoRow(
-                video: video,
-                deArrowStore: deArrowStore
-              )
-            }
-            .buttonStyle(.plain)
+            LiveRelatedVideoRow(
+              video: video,
+              deArrowStore: deArrowStore,
+              action: { onSelect(video) }
+            )
             .liveVideoQuickActions(video: video, dependencies: dependencies)
             .task(id: video.canonicalID) {
               await Task.yield()
@@ -79,9 +75,27 @@ struct LiveRelatedVideosSection: View {
 private struct LiveRelatedVideoRow: View {
   let video: LiveVideoItem
   @ObservedObject var deArrowStore: LiveDeArrowStore
+  let action: () -> Void
   @EnvironmentObject private var watchProgress: LiveWatchProgressStore
+  @Environment(\.liveQuickActionsMenu) private var quickActionsMenu
+  @State private var showsActions = false
 
   var body: some View {
+    content
+      .accessibilityElement(children: .combine)
+      .liveQuickActionsPress(showsActions: $showsActions, action: action)
+      .overlay(alignment: .topTrailing) {
+        if let quickActionsMenu {
+          LiveDotMenu(isPresented: $showsActions) {
+            quickActionsMenu
+          }
+          .accessibilityLabel("More actions for \(branding.title)")
+        }
+      }
+      .task { await deArrowStore.prepare(video) }
+  }
+
+  private var content: some View {
     HStack(alignment: .top, spacing: 12) {
       LiveRemoteImage(url: branding.thumbnailURL)
         .frame(width: 148, height: 148 * 9 / 16)
@@ -132,9 +146,8 @@ private struct LiveRelatedVideoRow: View {
         .lineLimit(1)
       }
       .frame(maxWidth: .infinity, alignment: .leading)
+      .padding(.trailing, quickActionsMenu == nil ? 0 : 28)
     }
-    .contentShape(Rectangle())
-    .task { await deArrowStore.prepare(video) }
   }
 
   private var branding: LiveVideoBranding {

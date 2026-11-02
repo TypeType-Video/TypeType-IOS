@@ -4,7 +4,7 @@ import Foundation
 final class LiveRecommendationRefusals: ObservableObject {
   enum State: Equatable {
     case sending
-    case saved(id: String)
+    case saved(id: String, reason: LiveRefusalReason?)
     case withdrawing(id: String)
   }
 
@@ -29,8 +29,8 @@ final class LiveRecommendationRefusals: ObservableObject {
     guard let service, states[key] == nil else { return nil }
     states[key] = .sending
     do {
-      let id = try await service.refuse(video)
-      states[key] = .saved(id: id)
+      let id = try await service.refuse(video, reason: nil)
+      states[key] = .saved(id: id, reason: nil)
       return nil
     } catch {
       states[key] = nil
@@ -38,16 +38,32 @@ final class LiveRecommendationRefusals: ObservableObject {
     }
   }
 
+  // The server keeps one opinion per video: sending it again with a reason only adds the reason.
+  func explain(_ video: LiveVideoItem, reason: LiveRefusalReason) async -> String? {
+    let key = video.canonicalID
+    guard let service, case let .saved(id, nil) = states[key] else { return nil }
+    states[key] = .saved(id: id, reason: reason)
+    do {
+      _ = try await service.refuse(video, reason: reason)
+      return nil
+    } catch {
+      if states[key] == .saved(id: id, reason: reason) {
+        states[key] = .saved(id: id, reason: nil)
+      }
+      return Self.message(for: error)
+    }
+  }
+
   func undo(_ video: LiveVideoItem) async -> String? {
     let key = video.canonicalID
-    guard let service, case let .saved(id) = states[key] else { return nil }
+    guard let service, case let .saved(id, reason) = states[key] else { return nil }
     states[key] = .withdrawing(id: id)
     do {
       try await service.withdraw(id: id)
       states[key] = nil
       return nil
     } catch {
-      states[key] = .saved(id: id)
+      states[key] = .saved(id: id, reason: reason)
       return Self.message(for: error)
     }
   }

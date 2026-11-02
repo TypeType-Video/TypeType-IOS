@@ -33,7 +33,6 @@ struct LiveHomeView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
           brandToolbar
-          serviceToolbar
           accountsToolbar
         }
         .onChange(of: selectedVideo) { _, video in

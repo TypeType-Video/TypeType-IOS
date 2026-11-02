@@ -55,6 +55,15 @@ extension LivePlayerController {
     }
   }
 
+  func resume() {
+    if nativePlayback != nil {
+      if state == .paused { togglePlayback() }
+      return
+    }
+    guard player.currentItem != nil, player.timeControlStatus != .playing else { return }
+    togglePlayback()
+  }
+
   func pause() {
     presentationResumeTask?.cancel()
     presentationResumeTask = nil

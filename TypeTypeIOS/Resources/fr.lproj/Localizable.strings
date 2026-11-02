@@ -280,6 +280,11 @@
 "Removed from your recommendations" = "Retirée de vos recommandations";
 "Undo" = "Annuler";
 "Puts this video back in your recommendations" = "Remet cette vidéo dans vos recommandations";
+"Why? (if you wish)" = "Pourquoi ? (si vous voulez)";
+"Already seen" = "Déjà vue";
+"Not this channel" = "Pas cette chaîne";
+"Not this topic" = "Pas ce sujet";
+"Noted: %@" = "C’est noté : %@";
 "Removed from playback queue" = "Retiré de la file de lecture";
 "Playback progress" = "Progression de lecture";
 "Search history" = "Historique de recherche";
