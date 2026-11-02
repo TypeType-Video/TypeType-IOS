@@ -23,16 +23,17 @@ extension LiveVideoMetadataContentView {
     }
   }
 
+  // A pushed channel or playlist only covers the page: minimizing would drop the watch cover under the push, so
+  // the video goes to PiP alone and comes back inline on return. It starts as the push begins: once the page is
+  // covered, the system no longer allows it.
+  func handOffToPictureInPicture() {
+    guard playerController.state == .playing else { return }
+    playbackCoordinator.startSystemPictureInPicture()
+  }
+
   func leavePage() {
     playerController.flushHistory()
-    // A pushed channel or playlist only covers the page: minimizing would drop the watch cover under the push, so
-    // the video goes to PiP alone and comes back inline on return.
-    guard selectedChannelURL == nil, selectedPublicPlaylist == nil else {
-      if playerController.state == .playing {
-        playbackCoordinator.startSystemPictureInPicture()
-      }
-      return
-    }
+    guard selectedChannelURL == nil, selectedPublicPlaylist == nil else { return }
     let departingVideoURL = video.url
     Task { @MainActor in
       await Task.yield()
@@ -51,6 +52,16 @@ extension View {
       LivePublicPlaylistView(playlist: playlist, dependencies: page.dependencies)
     }
     .externalLinkAlert(pendingURL: page.$pendingExternalURL)
+    .onChange(of: page.selectedChannelURL) { old, new in
+      if old == nil, new != nil { page.handOffToPictureInPicture() }
+    }
+    .onChange(of: page.selectedPublicPlaylist) { old, new in
+      if old == nil, new != nil { page.handOffToPictureInPicture() }
+    }
+    // Ready before any push, so the hand-off above can start on the same turn.
+    .task(id: page.playbackCoordinator.currentVideo?.thumbnail) {
+      await page.playerController.pictureInPicture.loadPoster(url: page.playbackCoordinator.currentVideo?.thumbnail)
+    }
     // The PiP window's restore button lands on the player: a channel or playlist pushed over it must go.
     .onChange(of: page.playbackCoordinator.pictureInPictureRestores) {
       page.selectedChannelURL = nil
