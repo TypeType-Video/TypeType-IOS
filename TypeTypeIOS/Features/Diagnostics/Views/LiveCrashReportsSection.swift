@@ -29,7 +29,7 @@ struct LiveCrashReportsSection: View {
         }
       }
     } header: {
-      Text("Crashes and freezes").liveSettingsHeader()
+      Text("Crashes and freezes").liveSectionHeader()
     } footer: {
       Text("Kept only on this device. Nothing is sent automatically: read a report, then copy it if you want to share it. Reports never contain messages, links, video IDs, account data or tokens.")
         .liveSettingsFooter()

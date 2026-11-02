@@ -39,7 +39,7 @@ struct LiveSavedAccountsSection: View {
         coordinator.addAccount()
       }
     } header: {
-      Text("Accounts on this instance").liveSettingsHeader()
+      Text("Accounts on this instance").liveSectionHeader()
     } footer: {
       Text("Tap an account to switch to it. Swipe left to forget it on this device.")
         .liveSettingsFooter()

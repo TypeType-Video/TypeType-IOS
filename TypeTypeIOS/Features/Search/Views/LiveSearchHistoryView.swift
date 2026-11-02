@@ -44,7 +44,7 @@ struct LiveSearchHistoryView: View {
 
   private var header: some View {
     HStack(alignment: .firstTextBaseline) {
-      Text("Recent searches").liveSettingsHeader()
+      Text("Recent searches").liveSectionHeader()
       Button("Clear") { confirmsClear = true }
         .font(.subheadline.weight(.semibold))
         .accessibilityHint(Text("Removes all saved searches"))

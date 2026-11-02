@@ -89,7 +89,7 @@ struct LiveBlockedKeywordsView: View {
               .disabled(viewModel.isBusy)
             }
           }
-        } header: { Text("Keywords").liveSettingsHeader() }
+        } header: { Text("Keywords").liveSectionHeader() }
       }
     }
       .liveGroupedList()

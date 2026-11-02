@@ -83,7 +83,7 @@ struct LiveSettingsAccountsView: View {
           coordinator.showServerSetup()
         }
       } header: {
-        Text("Instances").liveSettingsHeader()
+        Text("Instances").liveSectionHeader()
       }
 
       if coordinator.currentUser.map({ !$0.id.hasPrefix("guest:") }) == true {
@@ -116,7 +116,7 @@ struct LiveSettingsAccountsView: View {
             }
           }
         } header: {
-        Text("Account").liveSettingsHeader()
+        Text("Account").liveSectionHeader()
       }
       }
     }
@@ -162,7 +162,7 @@ struct LiveSettingsPrivacyView: View {
           LiveSettingText(title: "Manage stored data", detail: "Clear your history, searches or subscriptions.")
         }
       } header: {
-        Text("Stored activity").liveSettingsHeader()
+        Text("Stored activity").liveSectionHeader()
       }
     }
     .navigationTitle("Privacy")
