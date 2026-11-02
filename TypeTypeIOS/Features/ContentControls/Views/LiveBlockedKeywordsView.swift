@@ -16,7 +16,7 @@ struct LiveBlockedKeywordsView: View {
     Group {
       switch viewModel.state {
       case .idle, .loading:
-        ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
+        TypeTypeSkeletonGroupedList()
       case let .failed(message):
         ContentUnavailableView {
           Label("Blocked keywords unavailable", systemImage: "text.badge.xmark")
