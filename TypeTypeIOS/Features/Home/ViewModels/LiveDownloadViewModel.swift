@@ -28,7 +28,7 @@ final class LiveDownloadViewModel: ObservableObject {
   @Published private(set) var videoQualities = LiveDownloadVideoQualities()
 
   let video: LiveVideoItem
-  private let center: LiveDownloadCenter
+  let center: LiveDownloadCenter
 
   var isFinishing: Bool {
     guard let job else { return false }
@@ -38,7 +38,7 @@ final class LiveDownloadViewModel: ObservableObject {
   }
   private let likeCount: Int64
   private let dislikeCount: Int64
-  private var recordID: String?
+  private(set) var recordID: String?
   private var recordsObservation: AnyCancellable?
 
   init(
@@ -52,11 +52,13 @@ final class LiveDownloadViewModel: ObservableObject {
     self.dislikeCount = dislikeCount
     self.center = center
     adoptExistingRecord()
-    recordsObservation = center.$records.sink { [weak self] _ in
-      Task { @MainActor [weak self] in
-        self?.synchronize()
+    recordsObservation = center.$records.map { _ in () }
+      .merge(with: center.$savingProgress.map { _ in () })
+      .sink { [weak self] _ in
+        Task { @MainActor [weak self] in
+          self?.synchronize()
+        }
       }
-    }
   }
 
   func adopt(_ stream: LivePlaybackStream) {
@@ -116,13 +118,6 @@ final class LiveDownloadViewModel: ObservableObject {
     } catch {
       state = .failed(Self.message(for: error))
     }
-  }
-
-  var artifactURL: URL? {
-    guard let recordID, let record = center.record(id: recordID) else {
-      return nil
-    }
-    return center.artifactURL(for: record)
   }
 
   private func synchronize() {

@@ -77,6 +77,7 @@ struct LiveDownloadsView: View {
           LiveDownloadRow(
             record: record,
             artifactURL: center.artifactURL(for: record),
+            progress: center.progress(for: record),
             onPlay: { play(record) },
             onCancel: { run { try await center.cancel(id: record.id) } },
             onRetry: { run { try await center.retry(id: record.id) } },
