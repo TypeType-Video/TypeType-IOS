@@ -1010,3 +1010,9 @@
 "or" = "or";
 "Sound on %@" = "Sound on %@";
 "Changes or stops AirPlay" = "Changes or stops AirPlay";
+"Waiting for the network to finish saving this download." = "Waiting for the network to finish saving this download.";
+"The media is ready on the server, but could not be saved on this device." = "The media is ready on the server, but could not be saved on this device.";
+"The download did not pass validation." = "The download did not pass validation.";
+"Waiting for the network. This download will resume automatically." = "Waiting for the network. This download will resume automatically.";
+"Download paused after %lld attempts. The network is unavailable; try again later." = "Download paused after %lld attempts. The network is unavailable; try again later.";
+"Download failed." = "Download failed.";

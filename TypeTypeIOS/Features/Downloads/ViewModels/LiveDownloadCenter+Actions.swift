@@ -111,6 +111,15 @@ extension LiveDownloadCenter {
     }
     trackingTasks[id]?.cancel()
     trackingTasks[id] = nil
+    if record.state == .saving {
+      // The server job is finished: only the transfer to this device stops, and Retry starts it again.
+      savingProgress[id] = nil
+      record.state = .cancelled
+      record.failureMessage = nil
+      record.updatedAt = Date()
+      replace(record)
+      return
+    }
     let job = try await service.cancel(id: record.job.id)
     record.job = job
     record.updatedAt = Date()

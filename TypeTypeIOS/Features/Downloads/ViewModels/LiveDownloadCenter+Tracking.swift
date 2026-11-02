@@ -56,13 +56,16 @@ extension LiveDownloadCenter {
     }
     let job = try await service.job(id: record.job.id)
     guard record.scope == scopeProvider() else { return }
+    let wasSaving = record.state == .saving
     record.job = job
     record.state = state(for: job)
-    record.failureMessage = job.error
+    if !(wasSaving && record.state == .saving) {
+      record.failureMessage = job.error
+    }
     record.updatedAt = Date()
     replace(record)
     if record.state == .saving {
-      await saveArtifact(for: id)
+      try await saveArtifact(for: id)
     }
   }
 
@@ -70,8 +73,7 @@ extension LiveDownloadCenter {
     guard var record = record(id: id), record.state.isActive else {
       return
     }
-    record.failureMessage =
-      "Waiting for the network. This download will resume automatically."
+    record.failureMessage = String(localized: "Waiting for the network. This download will resume automatically.")
     record.updatedAt = Date()
     replace(record)
   }
@@ -107,10 +109,10 @@ extension LiveDownloadCenter {
       return
     }
     record.state = .failed
+    savingProgress[id] = nil
     record.failureMessage = transient
-      ? "Download paused after \(retryPolicy.maxAttempts) attempts. "
-        + "The network is unavailable; try again later."
-      : "Download failed. " + Self.message(for: error)
+      ? String(localized: "Download paused after \(retryPolicy.maxAttempts) attempts. The network is unavailable; try again later.")
+      : String(localized: "Download failed.") + " " + Self.message(for: error)
     record.updatedAt = Date()
     replace(record)
   }
