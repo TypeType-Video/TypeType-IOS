@@ -44,13 +44,13 @@ struct LiveAdminBugReportView: View {
     case .loaded:
       if let detail = viewModel.detail {
         Form {
-          Section {
+          LiveSection {
             LabeledContent("Category", value: detail.category)
             LabeledContent("User", value: detail.userEmail)
             Text(detail.description)
               .textSelection(.enabled)
           } header: { Text("Report").liveSectionHeader() }
-          Section {
+          LiveSection {
             LabeledContent("Route", value: detail.context.route)
             LabeledContent(
               "Language",
@@ -63,7 +63,7 @@ struct LiveAdminBugReportView: View {
                 .textSelection(.enabled)
             }
           } header: { Text("Context").liveSectionHeader() }
-          Section {
+          LiveSection {
             Picker("Status", selection: $viewModel.status) {
               Text("New").tag("new")
               Text("Triaged").tag("triaged")
@@ -76,7 +76,7 @@ struct LiveAdminBugReportView: View {
             }
             .disabled(viewModel.isBusy)
           } header: { Text("Workflow").liveSectionHeader() }
-          Section {
+          LiveSection {
             if let url = viewModel.githubURL {
               Link("Open GitHub issue", destination: url)
             } else if canCreateGitHubIssue {

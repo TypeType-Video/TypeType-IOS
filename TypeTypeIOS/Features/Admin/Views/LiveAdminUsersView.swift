@@ -53,7 +53,7 @@ struct LiveAdminUsersView: View {
       }
     case .loaded:
       List {
-        Section {
+        LiveSection {
           ForEach(viewModel.users) { user in
             Button {
               selectedUser = user

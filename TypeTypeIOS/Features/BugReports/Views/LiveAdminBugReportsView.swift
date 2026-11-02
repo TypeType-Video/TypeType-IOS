@@ -73,7 +73,7 @@ struct LiveAdminBugReportsView: View {
       ).liveThemedEmptyState()
     case .loaded:
       List {
-        Section {
+        LiveSection {
           ForEach(viewModel.reports) { report in
             Button {
               selected = report

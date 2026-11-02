@@ -46,7 +46,7 @@ struct LiveAdminUserAccessView: View {
 
   private var list: some View {
     List {
-      Section {
+      LiveSection {
         LabeledContent("Name", value: viewModel.list?.user.name ?? "")
         Toggle(
           "Use a personal allow list",
