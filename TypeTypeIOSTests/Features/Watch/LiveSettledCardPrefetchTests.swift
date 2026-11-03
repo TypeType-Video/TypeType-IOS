@@ -43,8 +43,8 @@ final class LiveSettledCardPrefetchTests: XCTestCase {
   }
 
   private func makePrefetch() -> LiveSettledCardPrefetch {
-    LiveSettledCardPrefetch(settleDelay: .milliseconds(50)) { [weak self] url in
-      self?.fetched.append(url)
+    LiveSettledCardPrefetch(settleDelay: .milliseconds(50)) { [weak self] video in
+      self?.fetched.append(video.url)
     }
   }
 

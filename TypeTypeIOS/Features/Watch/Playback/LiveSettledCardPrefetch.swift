@@ -1,6 +1,6 @@
 import Foundation
 
-// Once the scroll rests, fetches the playback stream of the cards in view, so a tap starts from the cache.
+// Once the scroll rests, prepares the cards in view, so a tap starts from what is already prepared.
 @MainActor
 final class LiveSettledCardPrefetch {
   struct Placement: Equatable {
@@ -13,15 +13,16 @@ final class LiveSettledCardPrefetch {
   static let maximumCards = 2
 
   private let settleDelay: Duration
-  private let prefetch: @MainActor (String) async -> Void
+  private let prefetch: @MainActor (LiveVideoItem) async -> Void
   private var cards: [UUID: Placement] = [:]
+  private var videos: [UUID: LiveVideoItem] = [:]
   private var movedAt = ContinuousClock.now
   private var settleTask: Task<Void, Never>?
   private var prefetchTask: Task<Void, Never>?
 
   init(
     settleDelay: Duration = .milliseconds(500),
-    prefetch: @escaping @MainActor (String) async -> Void
+    prefetch: @escaping @MainActor (LiveVideoItem) async -> Void
   ) {
     self.settleDelay = settleDelay
     self.prefetch = prefetch
@@ -33,12 +34,14 @@ final class LiveSettledCardPrefetch {
       return
     }
     let placement = Placement(videoURL: video.url, visibleFraction: visibleFraction, top: top)
+    videos[id] = video
     guard cards[id] != placement else { return }
     cards[id] = placement
     moved()
   }
 
   func remove(_ id: UUID) {
+    videos[id] = nil
     guard cards.removeValue(forKey: id) != nil else { return }
     moved()
   }
@@ -62,20 +65,21 @@ final class LiveSettledCardPrefetch {
   }
 
   private func prefetchMostVisible() {
-    var urls: [String] = []
-    for card in cards.values
-      .filter({ $0.visibleFraction >= Self.minimumVisibleFraction })
-      .sorted(by: { ($0.visibleFraction, -$0.top) > ($1.visibleFraction, -$1.top) })
-    where !urls.contains(card.videoURL) {
-      urls.append(card.videoURL)
-      if urls.count == Self.maximumCards { break }
+    var picked: [LiveVideoItem] = []
+    for (id, card) in cards
+      .filter({ $0.value.visibleFraction >= Self.minimumVisibleFraction })
+      .sorted(by: { ($0.value.visibleFraction, -$0.value.top) > ($1.value.visibleFraction, -$1.value.top) })
+    where !picked.contains(where: { $0.url == card.videoURL }) {
+      guard let video = videos[id] else { continue }
+      picked.append(video)
+      if picked.count == Self.maximumCards { break }
     }
-    guard !urls.isEmpty else { return }
+    guard !picked.isEmpty else { return }
     let prefetch = prefetch
     prefetchTask = Task {
-      for url in urls {
+      for video in picked {
         guard !Task.isCancelled else { return }
-        await prefetch(url)
+        await prefetch(video)
       }
     }
   }

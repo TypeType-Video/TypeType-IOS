@@ -105,6 +105,7 @@ final class AppDependencies {
       }
     )
     coordinator.prewarmer = playbackPrewarmer
+    playbackPrewarmer?.currentVideoURL = { [weak coordinator] in coordinator?.currentVideo?.url }
     coordinator.hiddenVideos = hiddenVideos
     return coordinator
   }()
