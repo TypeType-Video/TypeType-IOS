@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct LiveCommentsSectionView: View {
+struct LiveCommentsSectionView: View, Equatable {
   @Environment(\.themePalette) var palette
   let videoURL: String
   let dependencies: AppDependencies
@@ -33,6 +33,12 @@ struct LiveCommentsSectionView: View {
     _threads = StateObject(
       wrappedValue: LiveCommentThreads(videoURL: videoURL, service: dependencies.commentsService)
     )
+  }
+
+  // The watch page redraws on every player tick; the comments only change with their own state, so a redraw of
+  // the page must not walk every loaded comment again.
+  static func == (lhs: Self, rhs: Self) -> Bool {
+    lhs.videoURL == rhs.videoURL
   }
 
   var body: some View {

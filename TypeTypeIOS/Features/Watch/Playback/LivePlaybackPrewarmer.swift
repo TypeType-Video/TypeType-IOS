@@ -6,7 +6,14 @@ final class LivePlaybackPrewarmer {
   private let settingsService: LiveSettingsServiceProtocol
   private let historyService: LiveHistoryServiceProtocol
   private let appPreferences: LiveAppPreferencesStore
-  let settledCards: LiveSettledCardPrefetch
+  private var prewarmedAt: [String: ContinuousClock.Instant] = [:]
+  // The video already loaded in the player: preparing it again would only open a session nobody takes.
+  var currentVideoURL: (() -> String?)?
+  // Both cards the scroll rests on get a whole session: the reader may tap either, and only a prepared session
+  // removes the seconds the instance spends creating one.
+  lazy var settledCards = LiveSettledCardPrefetch { [weak self] video in
+    self?.prewarm(video)
+  }
 
   init(
     service: LivePlaybackServiceProtocol,
@@ -18,15 +25,18 @@ final class LivePlaybackPrewarmer {
     self.settingsService = settingsService
     self.historyService = historyService
     self.appPreferences = appPreferences
-    settledCards = LiveSettledCardPrefetch { url in
-      service.preconnectMedia()
-      _ = try? await service.playbackStream(for: url)
-    }
   }
 
+  // The instance keeps a prewarmed session for 60 s: asking again inside that window only opens a second one.
+  static let prewarmReuseWindow: Duration = .seconds(50)
+
   func prewarm(_ video: LiveVideoItem) {
-    guard !video.isLive else { return }
+    guard !video.isLive, currentVideoURL?() != video.url else { return }
     let url = video.url
+    let now = ContinuousClock.now
+    if let last = prewarmedAt[url], now - last < Self.prewarmReuseWindow { return }
+    prewarmedAt = prewarmedAt.filter { now - $0.value < Self.prewarmReuseWindow }
+    prewarmedAt[url] = now
     let service = service
     let settingsService = settingsService
     let historyService = historyService
