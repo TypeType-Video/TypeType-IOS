@@ -105,6 +105,49 @@ final class LiveDownloadCenterSavingTests: XCTestCase {
     XCTAssertEqual(center.savingProgress[record.id]?.fraction, 0.07)
   }
 
+  func testWaitingMessageClearsOnceBytesArriveAgain() async throws {
+    let service = DownloadServiceStub(artifactFailuresRemaining: 1, artifactDelay: .milliseconds(300))
+    let center = makeCenter(service)
+    _ = try await center.start(
+      video: LiveDownloadCenterDuplicateTests.video,
+      options: LiveDownloadCenterDuplicateTests.videoOptions
+    )
+    let id = try XCTUnwrap(center.visibleRecords.first?.id)
+    try await waitUntil { center.record(id: id)?.failureMessage != nil }
+
+    center.reportSaving(id: id, progress: DownloadProgress(receivedBytes: 4_096, expectedBytes: nil))
+
+    XCTAssertEqual(center.record(id: id)?.state, .saving)
+    XCTAssertNil(center.record(id: id)?.failureMessage)
+  }
+
+  func testUnreadableFileWithoutLengthIsFetchedOnceMore() async throws {
+    let service = DownloadServiceStub()
+    let center = makeCenter(service, validator: RejectingOnceMediaValidator())
+    let record = try await center.start(
+      video: LiveDownloadCenterDuplicateTests.video,
+      options: LiveDownloadCenterDuplicateTests.videoOptions
+    )
+
+    try await waitUntil { center.record(id: record.id)?.artifactChecksum != nil }
+
+    XCTAssertEqual(center.record(id: record.id)?.state, .ready)
+    XCTAssertEqual(service.artifactAttempts, 2)
+  }
+
+  func testUnreadableFileWithKnownLengthFailsAtOnce() async throws {
+    let service = DownloadServiceStub(artifactDelay: .milliseconds(100), artifactProgress: 1)
+    let center = makeCenter(service, validator: RejectingOnceMediaValidator())
+    let record = try await center.start(
+      video: LiveDownloadCenterDuplicateTests.video,
+      options: LiveDownloadCenterDuplicateTests.videoOptions
+    )
+
+    try await waitUntil { center.record(id: record.id)?.state == .failed }
+
+    XCTAssertEqual(service.artifactAttempts, 1)
+  }
+
   func testUnknownLengthShowsTheSizeReceivedInsteadOfAPercentage() {
     let progress = DownloadProgress(receivedBytes: 12_300_000, expectedBytes: nil)
 
@@ -114,13 +157,16 @@ final class LiveDownloadCenterSavingTests: XCTestCase {
     XCTAssertEqual(DownloadProgress(receivedBytes: 250, expectedBytes: 1_000).fraction, 0.25)
   }
 
-  private func makeCenter(_ service: DownloadServiceStub) -> LiveDownloadCenter {
+  private func makeCenter(
+    _ service: DownloadServiceStub,
+    validator: LiveOfflineMediaValidating = AcceptingMediaValidator()
+  ) -> LiveDownloadCenter {
     let scope = LiveDownloadScope(serverID: "https://example.test", accountID: "account-1")
     return LiveDownloadCenter(
       service: service,
       scopeProvider: { scope },
       rootURL: rootURL,
-      mediaValidator: AcceptingMediaValidator(),
+      mediaValidator: validator,
       retryPolicy: LiveDownloadRetryPolicy(maxAttempts: 5, delays: [.zero])
     )
   }

@@ -1,11 +1,18 @@
 import SwiftUI
 
-struct LiveRelatedVideosSection: View {
+struct LiveRelatedVideosSection: View, Equatable {
   let playerController: LivePlayerController
   let videos: [LiveVideoItem]
+  let autoplayEnabled: Bool
   let deArrowStore: LiveDeArrowStore
   let dependencies: AppDependencies
   let onSelect: (LiveVideoItem) -> Void
+
+  // Same reason as the comments below: a player tick redraws the page, not this list.
+  static func == (lhs: Self, rhs: Self) -> Bool {
+    lhs.autoplayEnabled == rhs.autoplayEnabled
+      && lhs.videos.map(\.canonicalID) == rhs.videos.map(\.canonicalID)
+  }
 
   private var autoplayBinding: Binding<Bool> {
     Binding(

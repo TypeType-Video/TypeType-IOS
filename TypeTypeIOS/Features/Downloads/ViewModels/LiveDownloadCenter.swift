@@ -10,6 +10,7 @@ final class LiveDownloadCenter: ObservableObject {
   // What already reached the device while saving. Not persisted.
   @Published var savingProgress: [String: DownloadProgress] = [:]
   var resumeData: [String: Data] = [:]
+  var incompleteRetries: Set<String> = []
 
   let service: LiveDownloaderServiceProtocol
   let scopeProvider: ScopeProvider

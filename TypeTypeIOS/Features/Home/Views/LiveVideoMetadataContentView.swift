@@ -89,10 +89,12 @@ struct LiveVideoMetadataContentView: View {
             LiveRelatedVideosSection(
               playerController: playerController,
               videos: related,
+              autoplayEnabled: playerController.autoplayEnabled,
               deArrowStore: deArrowStore,
               dependencies: dependencies,
               onSelect: { playbackCoordinator.open($0) }
             )
+            .equatable()
           } else {
             LiveWatchSectionPlaceholder(kind: .related)
           }
@@ -108,6 +110,7 @@ struct LiveVideoMetadataContentView: View {
               onSeekTimestamp: playerController.seek,
               onOpenURL: routeLink
             )
+            .equatable()
           } else {
             LiveWatchSectionPlaceholder(kind: .comments)
           }

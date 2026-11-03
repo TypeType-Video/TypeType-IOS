@@ -5,6 +5,24 @@ struct AcceptingMediaValidator: LiveOfflineMediaValidating {
   func validate(fileURL: URL, mode: String) async throws {}
 }
 
+final class RejectingOnceMediaValidator: LiveOfflineMediaValidating, @unchecked Sendable {
+  private let lock = NSLock()
+  private var rejectionsRemaining: Int
+
+  init(rejections: Int = 1) {
+    rejectionsRemaining = rejections
+  }
+
+  func validate(fileURL: URL, mode: String) async throws {
+    let reject = lock.withLock {
+      guard rejectionsRemaining > 0 else { return false }
+      rejectionsRemaining -= 1
+      return true
+    }
+    if reject { throw NetworkError.invalidResponse }
+  }
+}
+
 final class DownloadServiceStub: LiveDownloaderServiceProtocol {
   private let lock = NSLock()
   private var failuresRemaining: Int

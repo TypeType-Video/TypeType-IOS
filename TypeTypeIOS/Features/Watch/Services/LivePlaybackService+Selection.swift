@@ -68,12 +68,15 @@ extension LivePlaybackService {
     requestedTrackID: String?,
     requestedSourceID: String? = nil
   ) -> LivePlaybackAudioSource? {
+    // Dictionary order changes from one launch to the next: without a fixed order the prewarm and the start can
+    // pick two tracks of the same language, and the instance then builds a second session from scratch.
     let deduplicated = Dictionary(
       grouping: sources,
       by: \.id
     ).compactMap { $0.value.max(by: {
       ($0.bitrate ?? 0) < ($1.bitrate ?? 0)
     }) }
+    .sorted { ($0.bitrate ?? 0, -$0.itag) > ($1.bitrate ?? 0, -$1.itag) }
     if let requestedSourceID,
       let requested = deduplicated.first(where: {
         $0.id == requestedSourceID
