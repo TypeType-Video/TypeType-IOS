@@ -9,6 +9,7 @@ struct LiveCommentsSectionView: View {
   let onOpenURL: (URL) -> Void
 
   @StateObject private var viewModel: LiveCommentsViewModel
+  @StateObject private var threads: LiveCommentThreads
 
   init(
     videoURL: String,
@@ -28,6 +29,9 @@ struct LiveCommentsSectionView: View {
         commentsService: dependencies.commentsService,
         settingsService: dependencies.settingsService
       )
+    )
+    _threads = StateObject(
+      wrappedValue: LiveCommentThreads(videoURL: videoURL, service: dependencies.commentsService)
     )
   }
 
@@ -103,8 +107,7 @@ struct LiveCommentsSectionView: View {
           ForEach(viewModel.comments) { comment in
             LiveCommentRow(
               comment: comment,
-              videoURL: videoURL,
-              service: dependencies.commentsService,
+              threads: threads,
               onChannel: onChannel,
               onSeekTimestamp: onSeekTimestamp,
               onOpenURL: onOpenURL
