@@ -99,10 +99,19 @@ final class LiveDownloadCenterSavingTests: XCTestCase {
     )
     try await waitUntil { center.record(id: record.id)?.state == .saving }
 
-    center.reportSaving(id: record.id, fraction: 0.07)
-    center.reportSaving(id: record.id, fraction: 0.05)
+    center.reportSaving(id: record.id, progress: DownloadProgress(receivedBytes: 70, expectedBytes: 1_000))
+    center.reportSaving(id: record.id, progress: DownloadProgress(receivedBytes: 50, expectedBytes: 1_000))
 
-    XCTAssertEqual(center.savingProgress[record.id], 0.07)
+    XCTAssertEqual(center.savingProgress[record.id]?.fraction, 0.07)
+  }
+
+  func testUnknownLengthShowsTheSizeReceivedInsteadOfAPercentage() {
+    let progress = DownloadProgress(receivedBytes: 12_300_000, expectedBytes: nil)
+
+    XCTAssertNil(progress.fraction)
+    XCTAssertEqual(LiveDownloadTexts.saving(progress), LiveDownloadTexts.size(12_300_000))
+    XCTAssertNil(LiveDownloadTexts.saving(DownloadProgress(receivedBytes: 0, expectedBytes: nil)))
+    XCTAssertEqual(DownloadProgress(receivedBytes: 250, expectedBytes: 1_000).fraction, 0.25)
   }
 
   private func makeCenter(_ service: DownloadServiceStub) -> LiveDownloadCenter {

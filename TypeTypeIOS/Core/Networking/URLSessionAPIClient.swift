@@ -107,7 +107,7 @@ final class URLSessionAPIClient: APIClient {
   func download(
     _ endpoint: APIEndpoint,
     resumeData: Data?,
-    progress: @escaping @Sendable (Double) -> Void
+    progress: @escaping @Sendable (DownloadProgress) -> Void
   ) async throws -> URL {
     try await download(endpoint, resumeData: resumeData, reporting: progress)
   }
@@ -115,7 +115,7 @@ final class URLSessionAPIClient: APIClient {
   private func download(
     _ endpoint: APIEndpoint,
     resumeData: Data?,
-    reporting progress: (@Sendable (Double) -> Void)?
+    reporting progress: (@Sendable (DownloadProgress) -> Void)?
   ) async throws -> URL {
     let request = try makeURLRequest(endpoint)
     do {

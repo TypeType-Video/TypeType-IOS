@@ -14,8 +14,8 @@ extension LiveDownloadCenter {
     defer { background.end() }
     let temporaryURL: URL
     do {
-      temporaryURL = try await service.artifact(id: saving.job.id, resumeData: resume) { [weak self] fraction in
-        Task { @MainActor in self?.reportSaving(id: id, fraction: fraction) }
+      temporaryURL = try await service.artifact(id: saving.job.id, resumeData: resume) { [weak self] progress in
+        Task { @MainActor in self?.reportSaving(id: id, progress: progress) }
       }
     } catch {
       if let interruption = error as? DownloadInterruption {
@@ -53,9 +53,10 @@ extension LiveDownloadCenter {
   }
 
   // Never backwards: a resumed transfer may count only the bytes it adds.
-  func reportSaving(id: String, fraction: Double) {
+  func reportSaving(id: String, progress: DownloadProgress) {
     guard record(id: id)?.state == .saving else { return }
-    savingProgress[id] = max(fraction, savingProgress[id] ?? 0)
+    if let current = savingProgress[id], current.receivedBytes > progress.receivedBytes { return }
+    savingProgress[id] = progress
   }
 
   private func store(_ temporaryURL: URL, for saving: LiveManagedDownload) async {

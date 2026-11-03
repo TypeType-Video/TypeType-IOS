@@ -82,7 +82,7 @@ final class DownloadServiceStub: LiveDownloaderServiceProtocol {
   func artifact(
     id: String,
     resumeData: Data?,
-    progress: @escaping @Sendable (Double) -> Void
+    progress: @escaping @Sendable (DownloadProgress) -> Void
   ) async throws -> URL {
     let interrupted = lock.withLock {
       receivedResumeData.append(resumeData)
@@ -91,11 +91,11 @@ final class DownloadServiceStub: LiveDownloaderServiceProtocol {
       return true
     }
     if interrupted {
-      progress(0.07)
+      progress(DownloadProgress(receivedBytes: 70, expectedBytes: 1_000))
       throw DownloadInterruption(resumeData: Data("partial".utf8))
     }
     if let artifactProgress {
-      progress(artifactProgress)
+      progress(DownloadProgress(receivedBytes: Int64(artifactProgress * 1_000), expectedBytes: 1_000))
     }
     if artifactDelay > .zero {
       try await Task.sleep(for: artifactDelay)

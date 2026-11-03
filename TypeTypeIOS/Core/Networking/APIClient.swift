@@ -16,7 +16,7 @@ protocol APIClient {
   func download(
     _ endpoint: APIEndpoint,
     resumeData: Data?,
-    progress: @escaping @Sendable (Double) -> Void
+    progress: @escaping @Sendable (DownloadProgress) -> Void
   ) async throws -> URL
 }
 
@@ -49,7 +49,7 @@ extension APIClient {
   func download(
     _ endpoint: APIEndpoint,
     resumeData: Data?,
-    progress: @escaping @Sendable (Double) -> Void
+    progress: @escaping @Sendable (DownloadProgress) -> Void
   ) async throws -> URL {
     try await download(endpoint)
   }

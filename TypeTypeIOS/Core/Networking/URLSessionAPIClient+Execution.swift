@@ -101,7 +101,7 @@ extension URLSessionAPIClient {
   func executeDownload(
     _ request: URLRequest,
     resumeData: Data? = nil,
-    progress: (@Sendable (Double) -> Void)? = nil
+    progress: (@Sendable (DownloadProgress) -> Void)? = nil
   ) async throws -> URL {
     let startedAt = DispatchTime.now().uptimeNanoseconds
     let reporter = progress.map(DownloadProgressReporter.init)
