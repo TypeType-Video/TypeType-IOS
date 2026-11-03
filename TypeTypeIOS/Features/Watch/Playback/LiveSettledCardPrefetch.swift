@@ -20,7 +20,7 @@ final class LiveSettledCardPrefetch {
   private var prefetchTask: Task<Void, Never>?
 
   init(
-    settleDelay: Duration = .milliseconds(600),
+    settleDelay: Duration = .milliseconds(500),
     prefetch: @escaping @MainActor (String) async -> Void
   ) {
     self.settleDelay = settleDelay
