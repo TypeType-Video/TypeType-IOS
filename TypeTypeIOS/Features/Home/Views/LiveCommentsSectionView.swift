@@ -103,7 +103,8 @@ struct LiveCommentsSectionView: View {
           systemImage: "bubble.left"
         )
       } else {
-        LazyVStack(alignment: .leading, spacing: 18) {
+        // A plain stack: a lazy one rebuilds rows of different heights on the way back up and the page jumps.
+        VStack(alignment: .leading, spacing: 18) {
           ForEach(viewModel.comments) { comment in
             LiveCommentRow(
               comment: comment,
