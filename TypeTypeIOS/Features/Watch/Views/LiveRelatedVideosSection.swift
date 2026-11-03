@@ -6,7 +6,6 @@ struct LiveRelatedVideosSection: View {
   let deArrowStore: LiveDeArrowStore
   let dependencies: AppDependencies
   let onSelect: (LiveVideoItem) -> Void
-  @State private var visibleCount = 6
 
   private var autoplayBinding: Binding<Bool> {
     Binding(
@@ -41,34 +40,20 @@ struct LiveRelatedVideosSection: View {
           .accessibilityIdentifier("live.video.upnext.autoplay")
         }
 
-        LazyVStack(spacing: 14) {
-          ForEach(Array(videos.prefix(visibleCount))) { video in
+        // A plain stack, like the comments below it: lazy rows rebuilt above the reader move the whole page.
+        VStack(spacing: 14) {
+          ForEach(videos) { video in
             LiveRelatedVideoRow(
               video: video,
               deArrowStore: deArrowStore,
               action: { onSelect(video) }
             )
             .liveVideoQuickActions(video: video, dependencies: dependencies)
-            .task(id: video.canonicalID) {
-              await Task.yield()
-              guard !Task.isCancelled else { return }
-              loadMoreIfNeeded(after: video, in: videos)
-            }
           }
         }
       }
       .accessibilityIdentifier("live.player.related")
     }
-  }
-
-  private func loadMoreIfNeeded(after video: LiveVideoItem, in videos: [LiveVideoItem]) {
-    guard video.canonicalID
-      == videos.prefix(visibleCount).last?.canonicalID,
-      visibleCount < videos.count
-    else {
-      return
-    }
-    visibleCount = min(visibleCount + 6, videos.count)
   }
 }
 

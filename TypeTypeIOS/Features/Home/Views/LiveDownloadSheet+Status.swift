@@ -77,13 +77,13 @@ extension LiveDownloadSheet {
   }
 
   private var shownProgress: Double? {
-    viewModel.isFinishing ? viewModel.savingProgress : viewModel.progress
+    viewModel.isFinishing ? viewModel.savingProgress?.fraction : viewModel.progress
   }
 
   // While saving, the job's own numbers are stale: they describe the finished server download.
   private var progressDetail: String? {
     guard viewModel.isFinishing else { return viewModel.job.flatMap(LiveDownloadTexts.transfer) }
-    return viewModel.savingProgress.map(LiveDownloadTexts.percent)
+    return viewModel.savingProgress.flatMap(LiveDownloadTexts.saving)
   }
 
   private var stageTitle: String {

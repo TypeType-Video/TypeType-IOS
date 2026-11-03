@@ -5,6 +5,7 @@ struct LiveDownloadRow: View {
   let record: LiveManagedDownload
   let artifactURL: URL?
   var progress: Double?
+  var saved: DownloadProgress?
   let onPlay: () -> Void
   let onCancel: () -> Void
   let onRetry: () -> Void
@@ -92,7 +93,7 @@ struct LiveDownloadRow: View {
         } else {
           ProgressView().controlSize(.small)
         }
-        Text(LiveDownloadTexts.transfer(record, saved: progress))
+        Text(LiveDownloadTexts.transfer(record, saved: saved))
           .font(.caption.monospacedDigit())
           .foregroundStyle(.secondary)
         if let waiting = record.failureMessage, !waiting.isEmpty {

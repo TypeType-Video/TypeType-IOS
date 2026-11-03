@@ -114,6 +114,7 @@ extension LiveDownloadCenter {
     if record.state == .saving {
       // The server job is finished: only the transfer to this device stops, and Retry starts it again.
       savingProgress[id] = nil
+      resumeData[id] = nil
       record.state = .cancelled
       record.failureMessage = nil
       record.updatedAt = Date()
@@ -168,6 +169,7 @@ extension LiveDownloadCenter {
     }
     trackingTasks[id]?.cancel()
     trackingTasks[id] = nil
+    resumeData[id] = nil
     if let localURL = artifactURL(for: record) {
       try? fileManager.removeItem(at: localURL)
     }

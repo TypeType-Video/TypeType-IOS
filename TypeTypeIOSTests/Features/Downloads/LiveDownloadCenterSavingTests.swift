@@ -76,6 +76,44 @@ final class LiveDownloadCenterSavingTests: XCTestCase {
     XCTAssertNil(center.savingProgress[record.id])
   }
 
+  func testInterruptedSaveResumesWhereItStopped() async throws {
+    let service = DownloadServiceStub(artifactProgress: 0.05, artifactInterruptions: 1)
+    let center = makeCenter(service)
+    let record = try await center.start(
+      video: LiveDownloadCenterDuplicateTests.video,
+      options: LiveDownloadCenterDuplicateTests.videoOptions
+    )
+
+    try await waitUntil { center.record(id: record.id)?.state == .ready }
+
+    XCTAssertEqual(service.artifactResumeData, [nil, Data("partial".utf8)])
+    XCTAssertTrue(center.resumeData.isEmpty)
+  }
+
+  func testResumedProgressNeverGoesBackwards() async throws {
+    let service = DownloadServiceStub(artifactDelay: .milliseconds(300))
+    let center = makeCenter(service)
+    let record = try await center.start(
+      video: LiveDownloadCenterDuplicateTests.video,
+      options: LiveDownloadCenterDuplicateTests.videoOptions
+    )
+    try await waitUntil { center.record(id: record.id)?.state == .saving }
+
+    center.reportSaving(id: record.id, progress: DownloadProgress(receivedBytes: 70, expectedBytes: 1_000))
+    center.reportSaving(id: record.id, progress: DownloadProgress(receivedBytes: 50, expectedBytes: 1_000))
+
+    XCTAssertEqual(center.savingProgress[record.id]?.fraction, 0.07)
+  }
+
+  func testUnknownLengthShowsTheSizeReceivedInsteadOfAPercentage() {
+    let progress = DownloadProgress(receivedBytes: 12_300_000, expectedBytes: nil)
+
+    XCTAssertNil(progress.fraction)
+    XCTAssertEqual(LiveDownloadTexts.saving(progress), LiveDownloadTexts.size(12_300_000))
+    XCTAssertNil(LiveDownloadTexts.saving(DownloadProgress(receivedBytes: 0, expectedBytes: nil)))
+    XCTAssertEqual(DownloadProgress(receivedBytes: 250, expectedBytes: 1_000).fraction, 0.25)
+  }
+
   private func makeCenter(_ service: DownloadServiceStub) -> LiveDownloadCenter {
     let scope = LiveDownloadScope(serverID: "https://example.test", accountID: "account-1")
     return LiveDownloadCenter(
