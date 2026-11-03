@@ -4,6 +4,7 @@ struct LiveDownloadRow: View {
   @Environment(\.themePalette) private var palette
   let record: LiveManagedDownload
   let artifactURL: URL?
+  var progress: Double?
   let onPlay: () -> Void
   let onCancel: () -> Void
   let onRetry: () -> Void
@@ -86,14 +87,20 @@ struct LiveDownloadRow: View {
         .lineLimit(2)
     default:
       VStack(alignment: .leading, spacing: 4) {
-        if let progress = record.progress {
+        if let progress {
           ProgressView(value: progress).tint(palette.accent)
         } else {
           ProgressView().controlSize(.small)
         }
-        Text(LiveDownloadTexts.transfer(record))
+        Text(LiveDownloadTexts.transfer(record, saved: progress))
           .font(.caption.monospacedDigit())
           .foregroundStyle(.secondary)
+        if let waiting = record.failureMessage, !waiting.isEmpty {
+          Label(waiting, systemImage: "wifi.exclamationmark")
+            .font(.caption)
+            .foregroundStyle(.orange)
+            .lineLimit(2)
+        }
       }
       .padding(.top, 2)
     }

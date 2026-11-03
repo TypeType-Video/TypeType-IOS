@@ -24,7 +24,7 @@ struct LiveNotificationChannelsSection: View {
       }
     } header: {
       HStack(spacing: 12) {
-        Text("Channels").liveSettingsHeader()
+        Text("Channels").liveSectionHeader()
         bulkButton("Turn all on", enabled: viewModel.canEnableAll) {
           Task { await viewModel.setAllEnabled(true) }
         }
@@ -93,7 +93,7 @@ struct LiveNotificationPermissionSection: View {
         }
       }
     } header: {
-      Text("On this device").liveSettingsHeader()
+      Text("On this device").liveSectionHeader()
     }
   }
 }

@@ -6,6 +6,7 @@ final class LivePlaybackPrewarmer {
   private let settingsService: LiveSettingsServiceProtocol
   private let historyService: LiveHistoryServiceProtocol
   private let appPreferences: LiveAppPreferencesStore
+  let settledCards: LiveSettledCardPrefetch
 
   init(
     service: LivePlaybackServiceProtocol,
@@ -17,6 +18,10 @@ final class LivePlaybackPrewarmer {
     self.settingsService = settingsService
     self.historyService = historyService
     self.appPreferences = appPreferences
+    settledCards = LiveSettledCardPrefetch { url in
+      service.preconnectMedia()
+      _ = try? await service.playbackStream(for: url)
+    }
   }
 
   func prewarm(_ video: LiveVideoItem) {

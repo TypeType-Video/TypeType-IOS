@@ -7,6 +7,8 @@ final class LiveDownloadCenter: ObservableObject {
   @Published var records: [LiveManagedDownload] = []
   @Published var message: String?
   @Published var storageUsage: Int64 = 0
+  // Share of the file already on the device while saving, when the server sends its length. Not persisted.
+  @Published var savingProgress: [String: Double] = [:]
 
   let service: LiveDownloaderServiceProtocol
   let scopeProvider: ScopeProvider
@@ -102,6 +104,10 @@ final class LiveDownloadCenter: ObservableObject {
 
   func record(id: String) -> LiveManagedDownload? {
     records.first { $0.id == id }
+  }
+
+  func progress(for record: LiveManagedDownload) -> Double? {
+    record.state == .saving ? savingProgress[record.id] : record.progress
   }
 }
 

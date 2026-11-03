@@ -25,7 +25,7 @@ struct LiveAdminUserView: View {
 
   var body: some View {
     Form {
-      Section {
+      LiveSection {
         TextField("Name", text: $viewModel.name)
         TextField("Email", text: $viewModel.email)
           .keyboardType(.emailAddress)
@@ -36,7 +36,7 @@ struct LiveAdminUserView: View {
         .disabled(viewModel.isBusy)
       } header: { Text("Identity").liveSectionHeader() }
 
-      Section {
+      LiveSection {
         Picker("Role", selection: $viewModel.role) {
           Text("User").tag("user")
           Text("Moderator").tag("moderator")
@@ -64,7 +64,7 @@ struct LiveAdminUserView: View {
         }
       } header: { Text("Permissions").liveSectionHeader() }
 
-      Section {
+      LiveSection {
         Button(
           viewModel.user.suspended ? "Restore user" : "Suspend user",
           role: viewModel.user.suspended ? nil : .destructive
@@ -96,7 +96,7 @@ struct LiveAdminUserView: View {
       } header: { Text("Security").liveSectionHeader() }
 
       if let token = viewModel.resetToken {
-        Section {
+        LiveSection {
           Text(token)
             .font(.caption.monospaced())
             .textSelection(.enabled)
@@ -107,7 +107,7 @@ struct LiveAdminUserView: View {
       }
 
       if let message = viewModel.message {
-        Section {
+        LiveSection {
           Label(message, systemImage: "checkmark.circle.fill")
             .foregroundStyle(.green)
         }

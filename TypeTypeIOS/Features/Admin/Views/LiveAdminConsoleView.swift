@@ -6,7 +6,7 @@ struct LiveAdminConsoleView: View {
 
   var body: some View {
     List {
-      Section {
+      LiveSection {
         NavigationLink {
           LiveAdminSettingsView(service: dependencies.adminService)
         } label: {
@@ -19,7 +19,7 @@ struct LiveAdminConsoleView: View {
         }
       } header: { Text("Instance").liveSectionHeader() }
 
-      Section {
+      LiveSection {
         NavigationLink {
           LiveAdminAllowListView(
             admin: dependencies.adminService,
@@ -40,7 +40,7 @@ struct LiveAdminConsoleView: View {
         }
       } header: { Text("People and access").liveSectionHeader() }
 
-      Section {
+      LiveSection {
         NavigationLink {
           LiveAdminBugReportsView(
             service: dependencies.bugReportsService,

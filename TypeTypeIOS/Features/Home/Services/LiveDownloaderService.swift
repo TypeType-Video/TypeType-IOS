@@ -8,7 +8,10 @@ protocol LiveDownloaderServiceProtocol {
   func job(id: String) async throws -> LiveDownloadJob
   func cancel(id: String) async throws -> LiveDownloadJob
   func delete(id: String) async throws
-  func artifact(id: String) async throws -> URL
+  func artifact(
+    id: String,
+    progress: @escaping @Sendable (Double) -> Void
+  ) async throws -> URL
 }
 
 final class LiveDownloaderService: LiveDownloaderServiceProtocol {
@@ -61,15 +64,19 @@ final class LiveDownloaderService: LiveDownloaderServiceProtocol {
     }
   }
 
-  func artifact(id: String) async throws -> URL {
+  func artifact(
+    id: String,
+    progress: @escaping @Sendable (Double) -> Void
+  ) async throws -> URL {
     try await apiClient.download(
-      // Long timeout: the 90 s default cuts large transfers mid-flight.
+      // An idle timeout: a transfer that keeps receiving data runs as long as it needs.
       APIEndpoint(
         path: "/downloader/jobs/\(id)/artifact",
         method: .get,
         requiresAuth: true,
-        timeoutInterval: 600
-      )
+        timeoutInterval: 120
+      ),
+      progress: progress
     )
   }
 

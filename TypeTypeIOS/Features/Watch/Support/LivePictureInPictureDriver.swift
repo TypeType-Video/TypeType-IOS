@@ -13,17 +13,18 @@ final class LivePictureInPictureDriver: NSObject, ObservableObject {
   var onChange: (() -> Void)?
 
   private var pipController: AVPictureInPictureController?
-  private var contentLayer: AVPlayerLayer?
+  var contentLayer: AVPlayerLayer?
   private var nativeLayer: AVSampleBufferDisplayLayer?
   private weak var hostView: UIView?
-  private var isRestoring = false
-  private var controlsRefreshPending = false
-  private var didStartConfirmed = false
+  var poster: (url: URL, image: CGImage)?
+  var isRestoring = false
+  var controlsRefreshPending = false
+  var didStartConfirmed = false
   private var startVerificationTask: Task<Void, Never>?
   private var pendingStartTask: Task<Void, Never>?
-  private var onRestore: (() -> Void)?
-  private var onClose: (() -> Void)?
-  private var onInline: (() -> Void)?
+  var onRestore: (() -> Void)?
+  var onClose: (() -> Void)?
+  var onInline: (() -> Void)?
 
   var isAvailable: Bool {
     AVPictureInPictureController.isPictureInPictureSupported()
@@ -44,6 +45,7 @@ final class LivePictureInPictureDriver: NSObject, ObservableObject {
       pipController?.canStartPictureInPictureAutomaticallyFromInline = false
     }
     contentLayer?.player = player
+    applyPoster()
     contentLayer?.isHidden = !isEngaged
     if contentLayer?.superlayer !== view.layer {
       contentLayer?.removeFromSuperlayer()
@@ -53,34 +55,8 @@ final class LivePictureInPictureDriver: NSObject, ObservableObject {
     relayout()
   }
 
-  func loadPoster(url: URL?) async {
-    guard let url else { return }
-    let posterStart = DispatchTime.now()
-    defer {
-      let ms = Int(Double(DispatchTime.now().uptimeNanoseconds - posterStart.uptimeNanoseconds) / 1e6)
-      AppLogger.playback.info("pip timing: poster took \(ms, privacy: .public)ms")
-      Self.lastTimingLog = "poster \(ms)ms | " + Self.lastTimingLog
-    }
-    // A slow poster must not hold the PiP start: race the fetch against a short budget.
-    let image: UIImage? = await withTaskGroup(
-      of: UIImage?.self
-    ) { group in
-      group.addTask {
-        guard let (data, _) = try? await URLSession.shared.data(from: url)
-        else { return nil }
-        return UIImage(data: data)
-      }
-      group.addTask {
-        try? await Task.sleep(for: .milliseconds(1_200))
-        return nil
-      }
-      let first = await group.next() ?? nil
-      group.cancelAll()
-      return first
-    }
-    guard let image, let cgImage = image.cgImage else { return }
-    contentLayer?.contents = cgImage
-    contentLayer?.contentsGravity = .resizeAspect
+  var usesNativeContent: Bool {
+    nativeLayer != nil
   }
 
   func installNativeContent(
@@ -124,7 +100,7 @@ final class LivePictureInPictureDriver: NSObject, ObservableObject {
     return controlsRefreshPending
   }
 
-  private var startRequestedAt: DispatchTime?
+  var startRequestedAt: DispatchTime?
   nonisolated(unsafe) static var lastTimingLog = ""
 
   func start(
@@ -141,6 +117,9 @@ final class LivePictureInPictureDriver: NSObject, ObservableObject {
     }
     self.onRestore = onRestore
     self.onClose = onClose
+    AppLogger.playback.info(
+      "pip driver: start requested, possible=\(pipController.isPictureInPicturePossible, privacy: .public) window=\(self.hostView?.window != nil, privacy: .public)"
+    )
     if pipController.isPictureInPicturePossible {
       performStart()
     } else {
@@ -154,6 +133,7 @@ final class LivePictureInPictureDriver: NSObject, ObservableObject {
         if possible {
           performStart()
         } else {
+          AppLogger.playback.error("pip driver: start given up, the system never allowed it")
           onChange?()
         }
       }
@@ -185,6 +165,10 @@ final class LivePictureInPictureDriver: NSObject, ObservableObject {
     }
   }
 
+  func markEngaged(_ engaged: Bool) {
+    isEngaged = engaged
+  }
+
   func cancelPendingStart() {
     isPendingStart = false
     pendingStartTask?.cancel()
@@ -210,77 +194,5 @@ final class LivePictureInPictureDriver: NSObject, ObservableObject {
     self.onInline = onInline
     relayout()
     pipController?.stopPictureInPicture()
-  }
-}
-
-extension LivePictureInPictureDriver: AVPictureInPictureControllerDelegate {
-  nonisolated func pictureInPictureControllerDidStartPictureInPicture(
-    _ pictureInPictureController: AVPictureInPictureController
-  ) {
-    Task { @MainActor [weak self] in
-      guard let self else { return }
-      didStartConfirmed = true
-      // Late confirms arrive after verification gave up: the window is up and the return path needs the flag.
-      isEngaged = true
-      if let requestedAt = startRequestedAt {
-        let ms = Int(Double(DispatchTime.now().uptimeNanoseconds - requestedAt.uptimeNanoseconds) / 1e6)
-        AppLogger.playback
-          .info("pip timing: request to confirmed took \(ms, privacy: .public)ms")
-        Self.lastTimingLog = "confirm \(ms)ms | " + Self.lastTimingLog
-      }
-      onChange?()
-    }
-  }
-
-  nonisolated func pictureInPictureController(
-    _ pictureInPictureController: AVPictureInPictureController,
-    failedToStartPictureInPictureWithError error: Error
-  ) {
-    Task { @MainActor [weak self] in
-      guard let self else { return }
-      isEngaged = false
-      contentLayer?.isHidden = true
-      onChange?()
-    }
-  }
-
-  nonisolated func pictureInPictureController(
-    _ pictureInPictureController: AVPictureInPictureController,
-    restoreUserInterfaceForPictureInPictureStopWithCompletionHandler
-      completionHandler: @escaping (Bool) -> Void
-  ) {
-    Task { @MainActor [weak self] in
-      guard let self else {
-        completionHandler(false)
-        return
-      }
-      isRestoring = true
-      AppLogger.playback.info("pip driver: restore requested")
-      onRestore?()
-      completionHandler(true)
-    }
-  }
-
-  nonisolated func pictureInPictureControllerDidStopPictureInPicture(
-    _ pictureInPictureController: AVPictureInPictureController
-  ) {
-    Task { @MainActor [weak self] in
-      guard let self else { return }
-      isEngaged = false
-      contentLayer?.isHidden = true
-      controlsRefreshPending = true
-      let wasRestoring = isRestoring
-      isRestoring = false
-      AppLogger.playback
-        .info("pip driver: did stop, restoring=\(wasRestoring, privacy: .public)")
-      onChange?()
-      let onInline = self.onInline
-      self.onInline = nil
-      if wasRestoring {
-        onInline?()
-      } else {
-        onClose?()
-      }
-    }
   }
 }

@@ -19,7 +19,7 @@ extension LiveDownloadSheet {
         Button("Cancel download", systemImage: "xmark", role: .destructive) {
           Task { await viewModel.cancel() }
         }
-        .disabled(viewModel.isCancelling || viewModel.isFinishing)
+        .disabled(viewModel.isCancelling)
       }
     case .done:
       LiveSection {
@@ -56,19 +56,34 @@ extension LiveDownloadSheet {
     VStack(alignment: .leading, spacing: 8) {
       Text(stageTitle)
         .font(.headline)
-      if let progress = viewModel.progress, !viewModel.isFinishing {
+      if let progress = shownProgress {
         ProgressView(value: progress).tint(palette.accent)
       } else {
         ProgressView().frame(maxWidth: .infinity, alignment: .leading)
       }
-      if let job = viewModel.job, let detail = LiveDownloadTexts.transfer(job) {
+      if let detail = progressDetail {
         Text(detail)
           .font(.caption.monospacedDigit())
           .foregroundStyle(.secondary)
       }
+      if let waiting = viewModel.waitingMessage, !waiting.isEmpty {
+        Label(waiting, systemImage: "wifi.exclamationmark")
+          .font(.caption)
+          .foregroundStyle(.orange)
+      }
     }
     .padding(.vertical, 4)
     .accessibilityElement(children: .combine)
+  }
+
+  private var shownProgress: Double? {
+    viewModel.isFinishing ? viewModel.savingProgress : viewModel.progress
+  }
+
+  // While saving, the job's own numbers are stale: they describe the finished server download.
+  private var progressDetail: String? {
+    guard viewModel.isFinishing else { return viewModel.job.flatMap(LiveDownloadTexts.transfer) }
+    return viewModel.savingProgress.map(LiveDownloadTexts.percent)
   }
 
   private var stageTitle: String {

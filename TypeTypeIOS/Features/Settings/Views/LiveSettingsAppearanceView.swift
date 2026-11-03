@@ -29,7 +29,7 @@ struct LiveSettingsAppearanceView: View {
           customHex: preferences.binding(\.customAccentHex)
         )
       } header: {
-        Text("Theme").liveSettingsHeader()
+        Text("Theme").liveSectionHeader()
       }
 
       LiveSection {

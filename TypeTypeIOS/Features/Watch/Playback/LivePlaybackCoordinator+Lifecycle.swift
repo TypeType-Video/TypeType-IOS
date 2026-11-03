@@ -26,14 +26,23 @@ extension LivePlaybackCoordinator {
     controller.pictureInPicture.onChange = { [weak self] in
       self?.objectWillChange.send()
     }
-    // The placeholder goes in the layer before the start: the system refuses PiP on an empty layer.
-    Task { [weak self] in
-      guard let self else { return }
-      await controller.pictureInPicture.loadPoster(url: posterURL)
-      controller.pictureInPicture.start(
+    let pip = controller.pictureInPicture
+    let start = { [weak self] in
+      pip.start(
         onRestore: { [weak self] in self?.restoreFromPictureInPicture() },
         onClose: { [weak self] in self?.close() }
       )
+    }
+    // Started on the same turn when it can: a start that waits may find the player already off screen, and the
+    // system then refuses it without a word.
+    if pip.usesNativeContent || pip.hasPoster(for: posterURL) {
+      start()
+      return
+    }
+    // The placeholder goes in the layer before the start: the system refuses PiP on an empty layer.
+    Task {
+      await pip.loadPoster(url: posterURL)
+      start()
     }
   }
 

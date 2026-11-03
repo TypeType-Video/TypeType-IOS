@@ -59,7 +59,7 @@ struct LiveAboutView: View {
       LabeledContent("Name", value: "TypeType")
       LabeledContent("Version", value: appVersion)
       LabeledContent("License", value: "MPL 2.0")
-    } header: { Text("Application").liveSettingsHeader() }
+    } header: { Text("Application").liveSectionHeader() }
   }
 
   private var licensesSection: some View {
@@ -79,7 +79,7 @@ struct LiveAboutView: View {
         symbol: "heart.fill",
         urlString: "https://github.com/sponsors/Priveetee"
       )
-    } header: { Text("Open source").liveSettingsHeader() }
+    } header: { Text("Open source").liveSectionHeader() }
   }
 
   @ViewBuilder
@@ -100,7 +100,7 @@ struct LiveAboutView: View {
         Text("Component versions are unavailable.")
           .foregroundStyle(.secondary)
       }
-    } header: { Text("Versions").liveSettingsHeader() } footer: {
+    } header: { Text("Versions").liveSectionHeader() } footer: {
       Button("Refresh versions") {
         Task { await refreshVersions() }
       }
@@ -123,7 +123,7 @@ struct LiveAboutView: View {
         )
         LabeledContent("Role", value: user.role.title)
       }
-    } header: { Text("Server").liveSettingsHeader() }
+    } header: { Text("Server").liveSectionHeader() }
   }
 
   private func versionRow(

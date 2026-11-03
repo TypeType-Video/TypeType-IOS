@@ -101,10 +101,24 @@ final class URLSessionAPIClient: APIClient {
   }
 
   func download(_ endpoint: APIEndpoint) async throws -> URL {
+    try await download(endpoint, reporting: nil)
+  }
+
+  func download(
+    _ endpoint: APIEndpoint,
+    progress: @escaping @Sendable (Double) -> Void
+  ) async throws -> URL {
+    try await download(endpoint, reporting: progress)
+  }
+
+  private func download(
+    _ endpoint: APIEndpoint,
+    reporting progress: (@Sendable (Double) -> Void)?
+  ) async throws -> URL {
     let request = try makeURLRequest(endpoint)
     do {
       return try await executeRead(request) {
-        try await self.executeDownload(request)
+        try await self.executeDownload(request, progress: progress)
       }
     } catch let error as NetworkError {
       guard case .statusCode(401, _) = error else { throw error }
@@ -113,7 +127,7 @@ final class URLSessionAPIClient: APIClient {
         throw error
       }
       return try await executeRead(retryRequest) {
-        try await self.executeDownload(retryRequest)
+        try await self.executeDownload(retryRequest, progress: progress)
       }
     }
   }

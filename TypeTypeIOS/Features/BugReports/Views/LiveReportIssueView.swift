@@ -28,7 +28,7 @@ struct LiveReportIssueView: View {
           ).liveThemedEmptyState()
         }
       } else {
-        Section {
+        LiveSection {
           Picker("Category", selection: $viewModel.category) {
             Text("Player").tag("player")
             Text("Audio language").tag("audio_language")

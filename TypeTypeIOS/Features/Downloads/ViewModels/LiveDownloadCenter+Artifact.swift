@@ -1,86 +1,101 @@
 import Foundation
 
 extension LiveDownloadCenter {
-  func saveArtifact(for id: String) async {
-    guard var record = record(id: id),
-      record.scope == scopeProvider()
-    else {
+  // Throws only a transient failure, so the tracking loop counts it against its retry budget.
+  func saveArtifact(for id: String) async throws {
+    guard let saving = record(id: id), saving.scope == scopeProvider() else {
       return
     }
-    var savedURL: URL?
+    savingProgress[id] = nil
     let startedAt = DispatchTime.now().uptimeNanoseconds
+    let temporaryURL: URL
     do {
-      let temporaryURL = try await service.artifact(id: record.job.id)
-      let fetchedMs = Int(
-        Double(DispatchTime.now().uptimeNanoseconds - startedAt) / 1e6
+      temporaryURL = try await service.artifact(id: saving.job.id) { [weak self] fraction in
+        Task { @MainActor in self?.reportSaving(id: id, fraction: fraction) }
+      }
+    } catch {
+      savingProgress[id] = nil
+      if error is CancellationError { throw error }
+      AppLogger.network.error(
+        "download artifact failed after \(Self.elapsedMs(since: startedAt), privacy: .public)ms: \(Self.message(for: error), privacy: .public)"
       )
-      AppLogger.network.info(
-        "download artifact fetched in \(fetchedMs, privacy: .public)ms"
-      )
-      let fileName = localFileName(for: record)
-      let destination = artifactsURL.appendingPathComponent(fileName)
-      savedURL = destination
+      guard var record = record(id: id), record.state == .saving else { return }
+      let transient = Self.isTransientNetworkFailure(error)
+      record.state = transient ? .saving : .failed
+      record.failureMessage = transient
+        ? String(localized: "Waiting for the network to finish saving this download.")
+        : String(localized: "The media is ready on the server, but could not be saved on this device.")
+          + " " + Self.message(for: error)
+      record.updatedAt = Date()
+      replace(record)
+      if transient { throw error }
+      return
+    }
+    savingProgress[id] = nil
+    // A cancel or a delete that lands while the file is on its way wins: the transfer is dropped.
+    guard !Task.isCancelled, let record = record(id: id), record.state == .saving else {
+      try? fileManager.removeItem(at: temporaryURL)
+      return
+    }
+    AppLogger.network.info(
+      "download artifact fetched in \(Self.elapsedMs(since: startedAt), privacy: .public)ms"
+    )
+    await store(temporaryURL, for: record)
+  }
+
+  func reportSaving(id: String, fraction: Double) {
+    guard record(id: id)?.state == .saving else { return }
+    savingProgress[id] = fraction
+  }
+
+  private func store(_ temporaryURL: URL, for saving: LiveManagedDownload) async {
+    var record = saving
+    let fileName = localFileName(for: record)
+    let destination = artifactsURL.appendingPathComponent(fileName)
+    do {
       if fileManager.fileExists(atPath: destination.path) {
         try fileManager.removeItem(at: destination)
       }
-      try fileManager.moveItem(
-        at: temporaryURL,
-        to: destination
-      )
+      try fileManager.moveItem(at: temporaryURL, to: destination)
       try? fileManager.setAttributes(
-        [
-          .protectionKey:
-            FileProtectionType.completeUntilFirstUserAuthentication,
-        ],
+        [.protectionKey: FileProtectionType.completeUntilFirstUserAuthentication],
         ofItemAtPath: destination.path
       )
-      // Ready as soon as the file is in place; validation and checksum finish later and demote the record only if
-      // they fail.
-      record.localFileName = fileName
-      record.state = .ready
-      record.failureMessage = nil
+    } catch {
+      try? fileManager.removeItem(at: temporaryURL)
+      record.state = .failed
+      record.failureMessage =
+        String(localized: "The media is ready on the server, but could not be saved on this device.")
+        + " " + Self.message(for: error)
       record.updatedAt = Date()
       replace(record)
-      do {
-        try await mediaValidator.validate(
-          fileURL: destination,
-          mode: record.options.mode
-        )
-        record.artifactChecksum = try await Self.checksum(of: destination)
-        record.updatedAt = Date()
-        replace(record)
-        await refreshStorageUsage()
-      } catch {
-        try? fileManager.removeItem(at: savedURL ?? destination)
-        record.state = .failed
-        record.failureMessage =
-          "The download did not pass validation. " + Self.message(for: error)
-        record.updatedAt = Date()
-        replace(record)
-      }
+      return
+    }
+    // Ready as soon as the file is in place; validation and checksum finish later and demote the record only if
+    // they fail.
+    record.localFileName = fileName
+    record.state = .ready
+    record.failureMessage = nil
+    record.updatedAt = Date()
+    replace(record)
+    do {
+      try await mediaValidator.validate(fileURL: destination, mode: record.options.mode)
+      record.artifactChecksum = try await Self.checksum(of: destination)
+      record.updatedAt = Date()
+      replace(record)
+      await refreshStorageUsage()
     } catch {
-      let failedMs = Int(
-        Double(DispatchTime.now().uptimeNanoseconds - startedAt) / 1e6
-      )
-      AppLogger.network.error(
-        "download artifact failed after \(failedMs, privacy: .public)ms: \(Self.message(for: error), privacy: .public)"
-      )
-      if Self.isTransientNetworkFailure(error) {
-        record.state = .saving
-        record.failureMessage =
-          "Waiting for the network to finish saving this download."
-      } else {
-        if let savedURL {
-          try? fileManager.removeItem(at: savedURL)
-        }
-        record.state = .failed
-        record.failureMessage =
-          "The media is ready on the server, but could not be saved on this device. "
-          + Self.message(for: error)
-      }
+      try? fileManager.removeItem(at: destination)
+      record.state = .failed
+      record.failureMessage =
+        String(localized: "The download did not pass validation.") + " " + Self.message(for: error)
       record.updatedAt = Date()
       replace(record)
     }
+  }
+
+  private static func elapsedMs(since start: UInt64) -> Int {
+    Int(Double(DispatchTime.now().uptimeNanoseconds - start) / 1e6)
   }
 
   func state(

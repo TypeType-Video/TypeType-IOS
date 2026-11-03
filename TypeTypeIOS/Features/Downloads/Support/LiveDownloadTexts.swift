@@ -22,9 +22,20 @@ enum LiveDownloadTexts {
     return parts.joined(separator: " · ")
   }
 
-  static func transfer(_ record: LiveManagedDownload) -> String {
-    guard record.state == .downloading else { return record.state.title }
-    return transfer(record.job) ?? record.state.title
+  static func transfer(_ record: LiveManagedDownload, saved: Double? = nil) -> String {
+    switch record.state {
+    case .downloading:
+      return transfer(record.job) ?? record.state.title
+    case .saving:
+      guard let saved else { return record.state.title }
+      return record.state.title + " · " + percent(saved)
+    default:
+      return record.state.title
+    }
+  }
+
+  static func percent(_ fraction: Double) -> String {
+    fraction.formatted(.percent.precision(.fractionLength(0)))
   }
 
   static func transfer(_ job: LiveDownloadJob) -> String? {

@@ -106,12 +106,12 @@ struct LiveRssFeedsView: View {
   @ViewBuilder private var editor: some View {
     NavigationStack {
       Form {
-        Section {
+        LiveSection {
           TextField("Feed name", text: $viewModel.draftName)
           Toggle("Only selected channels", isOn: $viewModel.draftIncludesChannels).liveRowFill()
         } header: { Text("Feed").liveSectionHeader() }
         if viewModel.draftIncludesChannels {
-          Section {
+          LiveSection {
             ForEach(viewModel.subscriptions) { subscription in
               Button {
                 viewModel.toggleDraftChannel(subscription)
@@ -127,7 +127,7 @@ struct LiveRssFeedsView: View {
             }
           } header: { Text("Channels").liveSectionHeader() }
         }
-        Section {
+        LiveSection {
           Toggle("Shorts", isOn: $viewModel.draftIncludeShorts).liveRowFill()
           Toggle("Live", isOn: $viewModel.draftIncludeLive).liveRowFill()
           Toggle("Upcoming", isOn: $viewModel.draftIncludeUpcoming).liveRowFill()

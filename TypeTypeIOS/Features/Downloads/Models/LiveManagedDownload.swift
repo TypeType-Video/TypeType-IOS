@@ -55,12 +55,7 @@ enum LiveManagedDownloadState: String, Codable {
   }
 
   var canCancel: Bool {
-    switch self {
-    case .queued, .preparing, .downloading, .finalizing:
-      return true
-    case .saving, .ready, .failed, .cancelled:
-      return false
-    }
+    isActive
   }
 }
 
@@ -81,7 +76,7 @@ struct LiveManagedDownload: Codable, Equatable, Identifiable {
   var metadata: LiveOfflineVideoMetadata?
 
   var progress: Double? {
-    // The artifact fetch reports no percentage, and a full bar would read as stalled.
+    // The job reads 100 % while the file comes to the device; LiveDownloadCenter tracks that transfer.
     guard state != .saving else { return nil }
     guard let value = job.progressPercent else { return nil }
     return Double(min(max(value, 0), 100)) / 100

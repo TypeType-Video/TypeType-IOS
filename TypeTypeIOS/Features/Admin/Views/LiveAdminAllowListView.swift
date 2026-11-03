@@ -68,7 +68,7 @@ struct LiveAdminAllowListView: View {
 
   private var list: some View {
     List {
-      Section {
+      LiveSection {
         Toggle(
           "Restrict to allow list",
           isOn: Binding(
@@ -83,7 +83,7 @@ struct LiveAdminAllowListView: View {
 
       usersSection
 
-      Section {
+      LiveSection {
         ForEach(viewModel.channels) { item in
           LiveAdminAllowedChannelRow(item: item)
             .swipeActions {
@@ -97,7 +97,7 @@ struct LiveAdminAllowListView: View {
         }
       } header: { Text("Global channels").liveSectionHeader() }
 
-      Section {
+      LiveSection {
         ForEach(viewModel.playlists) { item in
           LiveAdminAllowedPlaylistRow(item: item)
             .swipeActions {

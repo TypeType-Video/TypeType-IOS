@@ -45,7 +45,7 @@ struct LiveSettingsGesturesPage: View {
           disabledReason: gestureReason
         )
       } header: {
-        Text("On the video").liveSettingsHeader()
+        Text("On the video").liveSectionHeader()
       }
     }
     .liveGroupedList()

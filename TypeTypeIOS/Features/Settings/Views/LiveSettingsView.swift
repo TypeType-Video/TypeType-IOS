@@ -73,7 +73,7 @@ struct LiveSettingsView: View {
   @ViewBuilder
   private func group(_ pages: [LiveSettingsPage], title: String?) -> some View {
     if let title {
-      LiveSection { rows(pages) } header: { Text(LocalizedStringKey(title)).liveSettingsHeader() }
+      LiveSection { rows(pages) } header: { Text(LocalizedStringKey(title)).liveSectionHeader() }
     } else {
       LiveSection { rows(pages) }
     }

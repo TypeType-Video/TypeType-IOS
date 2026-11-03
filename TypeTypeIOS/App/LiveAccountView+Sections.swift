@@ -2,7 +2,7 @@ import SwiftUI
 
 extension LiveAccountView {
   var accountSection: some View {
-    Section {
+    LiveSection {
       if let user = coordinator.currentUser, !user.id.hasPrefix("guest:") {
         NavigationLink {
           LiveProfileView(coordinator: coordinator, user: user)
@@ -34,11 +34,11 @@ extension LiveAccountView {
         LabeledContent("Role", value: "Guest")
       }
     } header: {
-      Text("Account")
+      Text("Account").liveSectionHeader()
     }
   }
   var instanceSection: some View {
-    Section {
+    LiveSection {
       LabeledContent(
         "Name",
         value: coordinator.instance?.name
@@ -56,11 +56,11 @@ extension LiveAccountView {
         LabeledContent("Version", value: version)
       }
     } header: {
-      Text("Instance")
+      Text("Instance").liveSectionHeader()
     }
   }
   var preferencesSection: some View {
-    Section {
+    LiveSection {
       LiveSettingsEntry(coordinator: coordinator) {
         LiveSettingsRowLabel(title: "Settings", icon: "gearshape.fill")
       }
@@ -79,7 +79,7 @@ extension LiveAccountView {
         }
       }
     } header: {
-      Text("Activity")
+      Text("Activity").liveSectionHeader()
     }
   }
   private var downloadsLink: some View {
@@ -97,7 +97,7 @@ extension LiveAccountView {
   @ViewBuilder var supportSection: some View {
     if let user = coordinator.currentUser,
       !user.id.hasPrefix("guest:") {
-      Section {
+      LiveSection {
         LiveSettingsLinkRow(
           title: "Report a problem",
           icon: "ladybug.fill"
@@ -118,14 +118,14 @@ extension LiveAccountView {
           }
         }
       } header: {
-        Text("Support")
+        Text("Support").liveSectionHeader()
       }
     }
   }
 
   @ViewBuilder var administrationSection: some View {
     if let user = coordinator.currentUser, user.role == .admin {
-      Section {
+      LiveSection {
         LiveSettingsLinkRow(
           title: "Admin console",
           icon: "person.3.fill"
@@ -136,13 +136,13 @@ extension LiveAccountView {
           )
         }
       } header: {
-        Text("Administration")
+        Text("Administration").liveSectionHeader()
       }
     }
   }
 
   var signOutSection: some View {
-    Section {
+    LiveSection {
       Button {
         confirmsSignOut = true
       } label: {

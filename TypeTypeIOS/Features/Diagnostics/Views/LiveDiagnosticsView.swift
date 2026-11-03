@@ -48,7 +48,7 @@ struct LiveDiagnosticsView: View {
               copiedRequestID: $copiedRequestID
             )
           }
-        } header: { Text("Recent requests").liveSettingsHeader() }
+        } header: { Text("Recent requests").liveSectionHeader() }
       }
     }
       .liveGroupedList()
