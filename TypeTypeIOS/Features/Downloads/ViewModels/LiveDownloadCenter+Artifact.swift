@@ -40,6 +40,7 @@ extension LiveDownloadCenter {
       if transient { throw error }
       return
     }
+    let lengthKnown = savingProgress[id]?.expectedBytes != nil
     savingProgress[id] = nil
     // A cancel or a delete that lands while the file is on its way wins: the transfer is dropped.
     guard !Task.isCancelled, let record = record(id: id), record.state == .saving else {
@@ -49,17 +50,26 @@ extension LiveDownloadCenter {
     AppLogger.network.info(
       "download artifact fetched in \(Self.elapsedMs(since: startedAt), privacy: .public)ms"
     )
-    await store(temporaryURL, for: record)
+    if await store(temporaryURL, for: record, lengthKnown: lengthKnown) {
+      throw NetworkError.transport
+    }
   }
 
   // Never backwards: a resumed transfer may count only the bytes it adds.
   func reportSaving(id: String, progress: DownloadProgress) {
-    guard record(id: id)?.state == .saving else { return }
+    guard var record = record(id: id), record.state == .saving else { return }
+    // Bytes arriving again mean the network is back: the waiting message must not outlive it.
+    if record.failureMessage != nil {
+      record.failureMessage = nil
+      record.updatedAt = Date()
+      replace(record)
+    }
     if let current = savingProgress[id], current.receivedBytes > progress.receivedBytes { return }
     savingProgress[id] = progress
   }
 
-  private func store(_ temporaryURL: URL, for saving: LiveManagedDownload) async {
+  // Returns true when the file must be fetched again.
+  private func store(_ temporaryURL: URL, for saving: LiveManagedDownload, lengthKnown: Bool) async -> Bool {
     var record = saving
     let fileName = localFileName(for: record)
     let destination = artifactsURL.appendingPathComponent(fileName)
@@ -80,7 +90,7 @@ extension LiveDownloadCenter {
         + " " + Self.message(for: error)
       record.updatedAt = Date()
       replace(record)
-      return
+      return false
     }
     // Ready as soon as the file is in place; validation and checksum finish later and demote the record only if
     // they fail.
@@ -94,14 +104,28 @@ extension LiveDownloadCenter {
       record.artifactChecksum = try await Self.checksum(of: destination)
       record.updatedAt = Date()
       replace(record)
+      incompleteRetries.remove(record.id)
       await refreshStorageUsage()
+      return false
     } catch {
       try? fileManager.removeItem(at: destination)
+      // Without a length, a connection cut mid-transfer looks like a finished one: the first unreadable file is
+      // most likely cut short, so it is fetched once more before being reported.
+      if !lengthKnown, incompleteRetries.insert(record.id).inserted {
+        record.state = .saving
+        record.localFileName = nil
+        record.failureMessage = String(localized: "Waiting for the network to finish saving this download.")
+        record.updatedAt = Date()
+        replace(record)
+        return true
+      }
+      incompleteRetries.remove(record.id)
       record.state = .failed
       record.failureMessage =
         String(localized: "The download did not pass validation.") + " " + Self.message(for: error)
       record.updatedAt = Date()
       replace(record)
+      return false
     }
   }
 
