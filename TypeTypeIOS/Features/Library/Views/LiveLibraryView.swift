@@ -14,10 +14,21 @@ enum LiveLibrarySection: String, CaseIterable, Identifiable {
     case .downloads: return "Downloads"
     }
   }
+
+  var systemImage: String {
+    switch self {
+    case .history: return "clock.arrow.circlepath"
+    case .favorites: return "heart"
+    case .watchLater: return "clock"
+    case .playlists: return "rectangle.stack"
+    case .downloads: return "arrow.down.circle"
+    }
+  }
 }
 
 struct LiveLibraryView: View {
   @Environment(\.themePalette) var palette
+  @Environment(\.horizontalSizeClass) private var sizeClass
   @ObservedObject var coordinator: RootCoordinator
   @Binding var section: LiveLibrarySection
   @StateObject var historyModel: LiveHistoryViewModel
@@ -75,6 +86,17 @@ struct LiveLibraryView: View {
   }
 
   var body: some View {
+    Group {
+      if sizeClass == .regular {
+        splitLayout
+      } else {
+        pagedLayout
+      }
+    }
+    .accessibilityIdentifier("live.library.screen")
+  }
+
+  private var pagedLayout: some View {
     NavigationStack {
       pager
     }
@@ -94,11 +116,10 @@ struct LiveLibraryView: View {
       .padding(.horizontal, 16)
       .background(palette.background)
     }
-    .accessibilityIdentifier("live.library.screen")
   }
 
   @ViewBuilder
-  private func sectionContent(
+  func sectionContent(
     _ section: LiveLibrarySection
   ) -> some View {
     switch section {
