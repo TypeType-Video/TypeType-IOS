@@ -48,6 +48,7 @@ struct LiveAuthenticatedAppView: View {
       .environment(\.livePrewarm) { video in
         coordinator.dependencies.playbackPrewarmer?.prewarm(video)
       }
+      .environment(\.liveSettledPrefetch, coordinator.dependencies.playbackPrewarmer?.settledCards)
       .task { await startSession() }
       .onDisappear { notificationCenter.stopPolling() }
       .task(id: coordinator.identityScopeID) { await downloadCenter.activate() }

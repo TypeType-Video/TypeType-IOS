@@ -66,6 +66,7 @@ struct LiveVideoCard: View {
     }
     .task { await deArrowStore.prepare(video) }
     .contentShape(Rectangle())
+    .liveSettledPrefetch(video)
   }
 
   private func openActions() {
