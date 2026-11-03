@@ -15,8 +15,14 @@ protocol APIClient {
   func download(_ endpoint: APIEndpoint) async throws -> URL
   func download(
     _ endpoint: APIEndpoint,
-    progress: @escaping @Sendable (Double) -> Void
+    resumeData: Data?,
+    progress: @escaping @Sendable (DownloadProgress) -> Void
   ) async throws -> URL
+}
+
+// A transfer cut short with enough state to continue it: handing `resumeData` back resumes where it stopped.
+struct DownloadInterruption: Error {
+  let resumeData: Data
 }
 
 extension APIClient {
@@ -42,7 +48,8 @@ extension APIClient {
 
   func download(
     _ endpoint: APIEndpoint,
-    progress: @escaping @Sendable (Double) -> Void
+    resumeData: Data?,
+    progress: @escaping @Sendable (DownloadProgress) -> Void
   ) async throws -> URL {
     try await download(endpoint)
   }

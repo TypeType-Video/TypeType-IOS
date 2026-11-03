@@ -6,21 +6,30 @@ extension LiveDownloadCenter {
     guard let saving = record(id: id), saving.scope == scopeProvider() else {
       return
     }
-    savingProgress[id] = nil
+    let resume = resumeData.removeValue(forKey: id)
+    if resume == nil { savingProgress[id] = nil }
     let startedAt = DispatchTime.now().uptimeNanoseconds
+    // Leaving the app suspends the transfer: the extra time lets a short one finish.
+    let background = LiveBackgroundActivity(name: "Saving a download")
+    defer { background.end() }
     let temporaryURL: URL
     do {
-      temporaryURL = try await service.artifact(id: saving.job.id) { [weak self] fraction in
-        Task { @MainActor in self?.reportSaving(id: id, fraction: fraction) }
+      temporaryURL = try await service.artifact(id: saving.job.id, resumeData: resume) { [weak self] progress in
+        Task { @MainActor in self?.reportSaving(id: id, progress: progress) }
       }
     } catch {
-      savingProgress[id] = nil
+      if let interruption = error as? DownloadInterruption {
+        resumeData[id] = interruption.resumeData
+      } else {
+        savingProgress[id] = nil
+      }
       if error is CancellationError { throw error }
       AppLogger.network.error(
-        "download artifact failed after \(Self.elapsedMs(since: startedAt), privacy: .public)ms: \(Self.message(for: error), privacy: .public)"
+        "download artifact failed after \(Self.elapsedMs(since: startedAt), privacy: .public)ms resumed=\(resume != nil, privacy: .public): \(Self.message(for: error), privacy: .public)"
       )
       guard var record = record(id: id), record.state == .saving else { return }
-      let transient = Self.isTransientNetworkFailure(error)
+      // A refused resume (an expired link, a changed file) is retried from the start, not reported as fatal.
+      let transient = Self.isTransientNetworkFailure(error) || resume != nil
       record.state = transient ? .saving : .failed
       record.failureMessage = transient
         ? String(localized: "Waiting for the network to finish saving this download.")
@@ -43,9 +52,11 @@ extension LiveDownloadCenter {
     await store(temporaryURL, for: record)
   }
 
-  func reportSaving(id: String, fraction: Double) {
+  // Never backwards: a resumed transfer may count only the bytes it adds.
+  func reportSaving(id: String, progress: DownloadProgress) {
     guard record(id: id)?.state == .saving else { return }
-    savingProgress[id] = fraction
+    if let current = savingProgress[id], current.receivedBytes > progress.receivedBytes { return }
+    savingProgress[id] = progress
   }
 
   private func store(_ temporaryURL: URL, for saving: LiveManagedDownload) async {

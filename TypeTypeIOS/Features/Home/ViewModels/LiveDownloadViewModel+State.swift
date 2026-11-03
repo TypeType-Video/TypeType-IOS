@@ -19,7 +19,7 @@ extension LiveDownloadViewModel {
     }
   }
 
-  var savingProgress: Double? {
+  var savingProgress: DownloadProgress? {
     recordID.flatMap { center.savingProgress[$0] }
   }
 

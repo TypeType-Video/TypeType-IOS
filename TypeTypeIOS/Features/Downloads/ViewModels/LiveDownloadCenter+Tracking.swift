@@ -81,6 +81,7 @@ extension LiveDownloadCenter {
   static func isTransientNetworkFailure(
     _ error: Error
   ) -> Bool {
+    if error is DownloadInterruption { return true }
     guard let networkError = error as? NetworkError else {
       return false
     }
