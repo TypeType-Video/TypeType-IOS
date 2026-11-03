@@ -6,7 +6,7 @@ struct LiveAdminSettingsForm: View {
 
   var body: some View {
     Form {
-      Section {
+      LiveSection {
         TextField("Instance name", text: $settings.name)
         TextField(
           "Tagline",
@@ -26,7 +26,7 @@ struct LiveAdminSettingsForm: View {
         .textInputAutocapitalization(.never)
       } header: { Text("Branding").liveSectionHeader() }
 
-      Section {
+      LiveSection {
         Toggle("Allow registration", isOn: $settings.allowRegistration).liveRowFill()
         Toggle("Allow guests", isOn: $settings.allowGuest).liveRowFill()
         Toggle(
@@ -37,7 +37,7 @@ struct LiveAdminSettingsForm: View {
         Toggle("OIDC auto redirect", isOn: $settings.oidcAutoRedirect).liveRowFill()
       } header: { Text("Authentication").liveSectionHeader() }
 
-      Section {
+      LiveSection {
         Toggle(
           "Active session visibility",
           isOn: $settings.activeSessionsEnabled
@@ -57,7 +57,7 @@ struct LiveAdminSettingsForm: View {
       } header: { Text("Services").liveSectionHeader() }
 
       if let message {
-        Section {
+        LiveSection {
           Label(message, systemImage: "checkmark.circle.fill")
             .foregroundStyle(.green)
         }

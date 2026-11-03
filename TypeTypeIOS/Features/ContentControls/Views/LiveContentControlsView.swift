@@ -78,7 +78,7 @@ struct LiveContentControlListView: View {
   private var content: some View {
     switch viewModel.state {
     case .idle, .loading:
-      TypeTypeSkeletonList(layout: .rows, count: 6)
+      TypeTypeSkeletonGroupedList(leading: skeletonLeading)
     case let .failed(message):
       ContentUnavailableView {
         Label("Content controls unavailable", systemImage: "hand.raised.slash")
@@ -113,6 +113,10 @@ struct LiveContentControlListView: View {
       .liveGroupedList()
       .refreshable { await viewModel.reload() }
     }
+  }
+
+  private var skeletonLeading: TypeTypeSkeletonRows.Leading {
+    kind == .blockedVideos ? .rectangle(width: 72, height: 44) : .circle(diameter: 44)
   }
 
   private func row(_ item: LiveContentControlItem) -> some View {

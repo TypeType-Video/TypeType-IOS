@@ -22,6 +22,7 @@ extension LiveHomeView {
             if let refusal = refusals.state(for: video) {
               // Drawn over an invisible copy of the card: the grid keeps its row heights and nothing jumps.
               LiveVideoCard(video: video, deArrowStore: coordinator.dependencies.deArrowStore, action: {})
+                .environment(\.liveSettledPrefetch, nil)
                 .hidden()
                 .accessibilityHidden(true)
                 .overlay {

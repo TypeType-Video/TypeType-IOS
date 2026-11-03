@@ -32,7 +32,7 @@ struct LiveSettingsPlaybackPage: View {
         )
         .disabled(viewModel.isOffline)
       } header: {
-        Text("Autoplay").liveSettingsHeader()
+        Text("Autoplay").liveSectionHeader()
       }
       LiveSection {
         Group {
@@ -62,7 +62,7 @@ struct LiveSettingsPlaybackPage: View {
           isOn: preferences.binding(\.playerAudioOnlyPlayback)
         )
       } header: {
-        Text("Video").liveSettingsHeader()
+        Text("Video").liveSectionHeader()
       }
       LiveSection {
         LiveSettingToggle(
@@ -77,7 +77,7 @@ struct LiveSettingsPlaybackPage: View {
           isOn: preferences.binding(\.playerPauseInBackground)
         )
       } header: {
-        Text("Sound and background").liveSettingsHeader()
+        Text("Sound and background").liveSectionHeader()
       }
     }
     .navigationTitle("Playback")

@@ -13,6 +13,10 @@ protocol APIClient {
     as type: T.Type
   ) async throws -> T
   func download(_ endpoint: APIEndpoint) async throws -> URL
+  func download(
+    _ endpoint: APIEndpoint,
+    progress: @escaping @Sendable (Double) -> Void
+  ) async throws -> URL
 }
 
 extension APIClient {
@@ -34,6 +38,13 @@ extension APIClient {
       ),
       as: type
     )
+  }
+
+  func download(
+    _ endpoint: APIEndpoint,
+    progress: @escaping @Sendable (Double) -> Void
+  ) async throws -> URL {
+    try await download(endpoint)
   }
 
   func download(_ endpoint: APIEndpoint) async throws -> URL {

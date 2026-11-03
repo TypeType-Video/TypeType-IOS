@@ -46,7 +46,7 @@ struct LiveSettingsSponsorBlockPage: View {
           disabledReason: offReason
         )
       } header: {
-        Text("Behavior").liveSettingsHeader()
+        Text("Behavior").liveSectionHeader()
       }
       LiveSection {
         ForEach(categories, id: \.0) { key, title in
@@ -58,7 +58,7 @@ struct LiveSettingsSponsorBlockPage: View {
           )
         }
       } header: {
-        Text("Segments").liveSettingsHeader()
+        Text("Segments").liveSectionHeader()
       } footer: {
         Text("Skip jumps over the segment, Mark only shows it on the progress bar, Hide ignores it.")
           .liveSettingsFooter()
@@ -89,7 +89,7 @@ struct LiveSettingsSponsorBlockPage: View {
           disabledReason: offReason
         )
       } header: {
-        Text("Display").liveSettingsHeader()
+        Text("Display").liveSectionHeader()
       }
     }
     .navigationTitle("SponsorBlock")

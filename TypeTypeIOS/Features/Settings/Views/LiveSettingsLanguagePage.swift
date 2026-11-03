@@ -25,7 +25,7 @@ struct LiveSettingsLanguagePage: View {
           LiveSettingText(title: "Caption appearance", detail: "Font, size and colors of subtitles.")
         }
       } header: {
-        Text("Subtitles").liveSettingsHeader()
+        Text("Subtitles").liveSectionHeader()
       }
       LiveSection {
         LiveSettingToggle(
@@ -44,7 +44,7 @@ struct LiveSettingsLanguagePage: View {
           opensList: true
         )
       } header: {
-        Text("Audio").liveSettingsHeader()
+        Text("Audio").liveSectionHeader()
       }
     }
     .navigationTitle("Language and captions")

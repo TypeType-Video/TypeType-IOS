@@ -28,7 +28,7 @@ struct LiveSettingsDiscoverySection: View {
         )
       }
     } header: {
-      Text("Opening").liveSettingsHeader()
+      Text("Opening").liveSectionHeader()
     }
     LiveSection {
       LiveSettingToggle(
@@ -62,7 +62,7 @@ struct LiveSettingsDiscoverySection: View {
         )
       }
     } header: {
-      Text("Hidden sections").liveSettingsHeader()
+      Text("Hidden sections").liveSectionHeader()
     }
     LiveSection {
       LiveSettingToggle(
@@ -97,7 +97,7 @@ struct LiveSettingsDiscoverySection: View {
         disabledReason: deArrowReason
       )
     } header: {
-      Text("DeArrow").liveSettingsHeader()
+      Text("DeArrow").liveSectionHeader()
     }
   }
 

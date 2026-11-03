@@ -17,7 +17,7 @@ struct LiveSettingsPrivacySection: View {
         Text(settings.accessMode == "allow_list" ? "Allow list" : "Unrestricted")
       }
     } header: {
-      Text("Privacy").liveSettingsHeader()
+      Text("Privacy").liveSectionHeader()
     } footer: {
       Text("Content access is managed by the instance administrator.").liveSettingsFooter()
     }
@@ -41,7 +41,7 @@ struct LiveSettingsSessionSection: View {
       }
       .liveRowFill()
     } header: {
-      Text("Active session").liveSettingsHeader()
+      Text("Active session").liveSectionHeader()
     } footer: {
       Text(
         "While you are signed in, this instance sees a random installation ID, this name and the video playing. No hardware ID, email or network details are sent, and a failed report never stops playback."

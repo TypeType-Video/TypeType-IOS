@@ -56,7 +56,7 @@ final class LiveDownloadCenterDuplicateTests: XCTestCase {
   }
 }
 
-private extension LiveDownloadCenterDuplicateTests {
+extension LiveDownloadCenterDuplicateTests {
   struct Context {
     let center: LiveDownloadCenter
     let service: DownloadServiceStub

@@ -3,17 +3,14 @@ import SwiftUI
 struct LiveCommentRow: View {
   @Environment(\.themePalette) var palette
   let comment: LiveCommentItem
-  let videoURL: String
-  let service: LiveCommentsServiceProtocol
+  @ObservedObject var threads: LiveCommentThreads
   let onChannel: (String) -> Void
   let onSeekTimestamp: (Double) -> Void
   let onOpenURL: (URL) -> Void
 
-  @State private var replies: [LiveCommentItem] = []
-  @State private var nextRepliesPage: String?
-  @State private var isLoadingReplies = false
-  @State private var repliesVisible = false
-  @State private var errorMessage: String?
+  private var thread: LiveCommentThreads.Thread {
+    threads.thread(for: comment)
+  }
 
   var body: some View {
     HStack(alignment: .top, spacing: 11) {
@@ -40,11 +37,11 @@ struct LiveCommentRow: View {
           repliesControl
         }
 
-        if repliesVisible {
+        if thread.isVisible {
           repliesList
         }
 
-        if let errorMessage {
+        if let errorMessage = thread.errorMessage {
           Text(errorMessage)
             .font(.caption)
             .foregroundStyle(.red)
@@ -56,20 +53,14 @@ struct LiveCommentRow: View {
 
   private var repliesControl: some View {
     Button {
-      if repliesVisible {
-        repliesVisible = false
-      } else if replies.isEmpty {
-        Task { await loadReplies(reset: true) }
-      } else {
-        repliesVisible = true
-      }
+      Task { await threads.toggle(comment) }
     } label: {
       HStack(spacing: 7) {
-        if isLoadingReplies {
+        if thread.isLoading {
           ProgressView()
             .controlSize(.small)
         }
-        if repliesVisible {
+        if thread.isVisible {
           Text("Hide replies")
         } else if comment.replyCount == 1 {
           Text("\(comment.replyCount) reply")
@@ -79,12 +70,12 @@ struct LiveCommentRow: View {
       }
       .font(.subheadline.weight(.semibold))
     }
-    .disabled(isLoadingReplies || comment.repliesPage?.isEmpty != false)
+    .disabled(thread.isLoading || comment.repliesPage?.isEmpty != false)
   }
 
   private var repliesList: some View {
     VStack(alignment: .leading, spacing: 14) {
-      ForEach(replies) { reply in
+      ForEach(thread.replies) { reply in
         LiveCommentReplyRow(
           comment: reply,
           onChannel: onChannel,
@@ -92,43 +83,14 @@ struct LiveCommentRow: View {
           onOpenURL: onOpenURL
         )
       }
-      if nextRepliesPage?.isEmpty == false {
+      if thread.nextPage?.isEmpty == false {
         Button("Load more replies") {
-          Task { await loadReplies(reset: false) }
+          Task { await threads.loadMore(comment) }
         }
-        .disabled(isLoadingReplies)
+        .disabled(thread.isLoading)
       }
     }
     .padding(.leading, 4)
     .padding(.top, 3)
-  }
-
-  @MainActor
-  private func loadReplies(reset: Bool) async {
-    guard !isLoadingReplies else { return }
-    let pageToken = reset ? comment.repliesPage : nextRepliesPage
-    guard let pageToken, !pageToken.isEmpty else { return }
-    isLoadingReplies = true
-    errorMessage = nil
-    defer { isLoadingReplies = false }
-    do {
-      let page = try await service.replies(
-        url: videoURL,
-        repliesPage: pageToken
-      )
-      if reset {
-        replies = page.comments
-      } else {
-        let existing = Set(replies.map(\.id))
-        replies.append(contentsOf: page.comments.filter {
-          !existing.contains($0.id)
-        })
-      }
-      nextRepliesPage = page.nextPage
-      repliesVisible = true
-    } catch {
-      errorMessage = (error as? LocalizedError)?.errorDescription
-        ?? String(localized: "Replies could not be loaded.")
-    }
   }
 }
