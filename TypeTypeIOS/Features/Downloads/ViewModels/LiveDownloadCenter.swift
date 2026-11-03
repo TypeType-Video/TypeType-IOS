@@ -9,6 +9,7 @@ final class LiveDownloadCenter: ObservableObject {
   @Published var storageUsage: Int64 = 0
   // Share of the file already on the device while saving, when the server sends its length. Not persisted.
   @Published var savingProgress: [String: Double] = [:]
+  var resumeData: [String: Data] = [:]
 
   let service: LiveDownloaderServiceProtocol
   let scopeProvider: ScopeProvider

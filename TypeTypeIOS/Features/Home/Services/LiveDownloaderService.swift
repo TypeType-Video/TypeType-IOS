@@ -10,6 +10,7 @@ protocol LiveDownloaderServiceProtocol {
   func delete(id: String) async throws
   func artifact(
     id: String,
+    resumeData: Data?,
     progress: @escaping @Sendable (Double) -> Void
   ) async throws -> URL
 }
@@ -66,6 +67,7 @@ final class LiveDownloaderService: LiveDownloaderServiceProtocol {
 
   func artifact(
     id: String,
+    resumeData: Data?,
     progress: @escaping @Sendable (Double) -> Void
   ) async throws -> URL {
     try await apiClient.download(
@@ -76,6 +78,7 @@ final class LiveDownloaderService: LiveDownloaderServiceProtocol {
         requiresAuth: true,
         timeoutInterval: 120
       ),
+      resumeData: resumeData,
       progress: progress
     )
   }

@@ -100,14 +100,17 @@ extension URLSessionAPIClient {
 
   func executeDownload(
     _ request: URLRequest,
+    resumeData: Data? = nil,
     progress: (@Sendable (Double) -> Void)? = nil
   ) async throws -> URL {
     let startedAt = DispatchTime.now().uptimeNanoseconds
+    let reporter = progress.map(DownloadProgressReporter.init)
     do {
-      let (fileURL, response) = try await downloadSession.download(
-        for: request,
-        delegate: progress.map(DownloadProgressReporter.init)
-      )
+      let (fileURL, response) = if let resumeData {
+        try await downloadSession.download(resumeFrom: resumeData, delegate: reporter)
+      } else {
+        try await downloadSession.download(for: request, delegate: reporter)
+      }
       guard let http = response as? HTTPURLResponse else {
         await recordDiagnostic(
           request,
@@ -144,6 +147,9 @@ extension URLSessionAPIClient {
         requestID: nil,
         startedAt: startedAt
       )
+      if let resumeData = (error as? URLError)?.downloadTaskResumeData {
+        throw DownloadInterruption(resumeData: resumeData)
+      }
       throw NetworkError.transport
     }
   }

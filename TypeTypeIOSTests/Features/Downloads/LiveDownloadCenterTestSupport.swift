@@ -12,6 +12,8 @@ final class DownloadServiceStub: LiveDownloaderServiceProtocol {
   private var requestedOptions: [LiveDownloadOptions] = []
   private let artifactDelay: Duration
   private let artifactProgress: Double?
+  private var interruptionsRemaining: Int
+  private var receivedResumeData: [Data?] = []
   private var jobFailuresRemaining: Int
   private var jobRequestCount = 0
   private let jobError: NetworkError
@@ -21,9 +23,11 @@ final class DownloadServiceStub: LiveDownloaderServiceProtocol {
     jobError: NetworkError = .statusCode(503, nil),
     artifactFailuresRemaining: Int = 0,
     artifactDelay: Duration = .zero,
-    artifactProgress: Double? = nil
+    artifactProgress: Double? = nil,
+    artifactInterruptions: Int = 0
   ) {
     self.artifactProgress = artifactProgress
+    interruptionsRemaining = artifactInterruptions
     self.jobFailuresRemaining = jobFailuresRemaining
     self.jobError = jobError
     failuresRemaining = artifactFailuresRemaining
@@ -36,6 +40,10 @@ final class DownloadServiceStub: LiveDownloaderServiceProtocol {
 
   var artifactAttempts: Int {
     lock.withLock { artifactRequestCount }
+  }
+
+  var artifactResumeData: [Data?] {
+    lock.withLock { receivedResumeData }
   }
 
   var createdOptions: [LiveDownloadOptions] {
@@ -73,8 +81,19 @@ final class DownloadServiceStub: LiveDownloaderServiceProtocol {
 
   func artifact(
     id: String,
+    resumeData: Data?,
     progress: @escaping @Sendable (Double) -> Void
   ) async throws -> URL {
+    let interrupted = lock.withLock {
+      receivedResumeData.append(resumeData)
+      guard interruptionsRemaining > 0 else { return false }
+      interruptionsRemaining -= 1
+      return true
+    }
+    if interrupted {
+      progress(0.07)
+      throw DownloadInterruption(resumeData: Data("partial".utf8))
+    }
     if let artifactProgress {
       progress(artifactProgress)
     }

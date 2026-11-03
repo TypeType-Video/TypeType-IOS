@@ -76,6 +76,35 @@ final class LiveDownloadCenterSavingTests: XCTestCase {
     XCTAssertNil(center.savingProgress[record.id])
   }
 
+  func testInterruptedSaveResumesWhereItStopped() async throws {
+    let service = DownloadServiceStub(artifactProgress: 0.05, artifactInterruptions: 1)
+    let center = makeCenter(service)
+    let record = try await center.start(
+      video: LiveDownloadCenterDuplicateTests.video,
+      options: LiveDownloadCenterDuplicateTests.videoOptions
+    )
+
+    try await waitUntil { center.record(id: record.id)?.state == .ready }
+
+    XCTAssertEqual(service.artifactResumeData, [nil, Data("partial".utf8)])
+    XCTAssertTrue(center.resumeData.isEmpty)
+  }
+
+  func testResumedProgressNeverGoesBackwards() async throws {
+    let service = DownloadServiceStub(artifactDelay: .milliseconds(300))
+    let center = makeCenter(service)
+    let record = try await center.start(
+      video: LiveDownloadCenterDuplicateTests.video,
+      options: LiveDownloadCenterDuplicateTests.videoOptions
+    )
+    try await waitUntil { center.record(id: record.id)?.state == .saving }
+
+    center.reportSaving(id: record.id, fraction: 0.07)
+    center.reportSaving(id: record.id, fraction: 0.05)
+
+    XCTAssertEqual(center.savingProgress[record.id], 0.07)
+  }
+
   private func makeCenter(_ service: DownloadServiceStub) -> LiveDownloadCenter {
     let scope = LiveDownloadScope(serverID: "https://example.test", accountID: "account-1")
     return LiveDownloadCenter(
