@@ -1,0 +1,162 @@
+name: iOS
+
+on:
+  pull_request:
+    branches:
+      - dev
+      - main
+  push:
+    branches:
+      - beta
+      - dev
+      - main
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ios-${{ github.ref }}
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
+
+env:
+  CI: true
+
+jobs:
+  verify:
+    if: ${{ !startsWith(github.ref, 'refs/tags/') }}
+    runs-on: macos-26
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Prepare tools
+        run: |
+          xcodebuild -version
+          brew list xcodegen >/dev/null 2>&1 || brew install xcodegen
+          xcodegen generate
+
+      - name: Create test simulator
+        run: .github/scripts/create-simulator.sh
+
+      - name: Run unit tests
+        run: |
+          xcodebuild test \
+            -quiet \
+            -project TypeTypeIOS.xcodeproj \
+            -scheme TypeTypeIOSUnit \
+            -destination "platform=iOS Simulator,id=$SIMULATOR_ID" \
+            -resultBundlePath build/TypeTypeIOSTests.xcresult
+
+      - name: Build unsigned app
+        run: |
+          xcodebuild build \
+            -quiet \
+            -project TypeTypeIOS.xcodeproj \
+            -scheme TypeTypeIOS \
+            -configuration Release \
+            -destination "generic/platform=iOS" \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO
+
+      - name: Upload test results
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ios-test-results
+          path: build/TypeTypeIOSTests.xcresult
+          if-no-files-found: ignore
+          retention-days: 14
+
+  # A pushed version tag builds the unsigned IPA and attaches it to the release of that tag. The app is not
+  # signed here: people sign it themselves when they sideload it.
+  release:
+    if: ${{ startsWith(github.ref, 'refs/tags/v') }}
+    runs-on: macos-26
+    timeout-minutes: 60
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Check the tag matches the app version
+        run: |
+          version="$(sed -nE 's/^[[:space:]]*MARKETING_VERSION:[[:space:]]*"?([^"]+)"?/\1/p' project.yml)"
+          build="$(sed -nE 's/^[[:space:]]*CURRENT_PROJECT_VERSION:[[:space:]]*"?([^"]+)"?/\1/p' project.yml)"
+          test -n "$version" && test -n "$build"
+          test "v$version" = "$GITHUB_REF_NAME" || {
+            echo "Tag $GITHUB_REF_NAME does not match MARKETING_VERSION $version" >&2
+            exit 1
+          }
+          {
+            echo "RELEASE_VERSION=$version"
+            echo "RELEASE_BUILD=$build"
+            echo "RELEASE_TAG=$GITHUB_REF_NAME"
+          } >> "$GITHUB_ENV"
+
+      - name: Prepare tools
+        run: |
+          xcodebuild -version
+          brew list xcodegen >/dev/null 2>&1 || brew install xcodegen
+          xcodegen generate
+
+      - name: Create test simulator
+        run: .github/scripts/create-simulator.sh
+
+      - name: Run unit tests
+        run: |
+          xcodebuild test \
+            -quiet \
+            -project TypeTypeIOS.xcodeproj \
+            -scheme TypeTypeIOSUnit \
+            -destination "platform=iOS Simulator,id=$SIMULATOR_ID"
+
+      - name: Archive unsigned app
+        run: |
+          xcodebuild archive \
+            -quiet \
+            -project TypeTypeIOS.xcodeproj \
+            -scheme TypeTypeIOS \
+            -configuration Release \
+            -archivePath build/TypeTypeIOS.xcarchive \
+            -destination "generic/platform=iOS" \
+            SKIP_INSTALL=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO
+
+      - name: Package IPA
+        run: |
+          app="build/TypeTypeIOS.xcarchive/Products/Applications/TypeTypeIOS.app"
+          test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$app/Info.plist")" = "$RELEASE_VERSION"
+          test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$app/Info.plist")" = "$RELEASE_BUILD"
+          asset="TypeTypeIOS-$RELEASE_TAG.ipa"
+          mkdir -p build/Payload artifacts
+          cp -R "$app" build/Payload/
+          (cd build && ditto -c -k --sequesterRsrc --keepParent Payload "../artifacts/$asset")
+          (cd artifacts && shasum -a 256 "$asset" > "$asset.sha256" && cat "$asset.sha256")
+
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: typetype-ios-${{ github.ref_name }}
+          path: artifacts/*
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Attach to the release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          asset="artifacts/TypeTypeIOS-$RELEASE_TAG.ipa"
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release upload "$RELEASE_TAG" "$asset" "$asset.sha256" --clobber
+          else
+            gh release create "$RELEASE_TAG" "$asset" "$asset.sha256" \
+              --verify-tag \
+              --title "$RELEASE_TAG" \
+              --notes "Unsigned IPA for sideloading. Version $RELEASE_VERSION, build $RELEASE_BUILD, source $GITHUB_SHA."
+          fi
