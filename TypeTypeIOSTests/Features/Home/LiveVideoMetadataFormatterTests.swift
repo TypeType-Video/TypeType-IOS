@@ -27,8 +27,18 @@ final class LiveVideoMetadataFormatterTests: XCTestCase {
   }
 }
 
+extension LiveVideoMetadataFormatterTests {
+  func testZeroPublishedAtShowsNoDateInsteadOf1970() throws {
+    let unknown = try LiveVideoItem.fixture(uploaded: 0, uploadDate: "", publishedAt: 0)
+    XCTAssertEqual(LiveVideoMetadataFormatter.publication(unknown), "")
+
+    let fallback = try LiveVideoItem.fixture(uploaded: 1_609_459_200_000, uploadDate: "", publishedAt: 0)
+    XCTAssertEqual(fallback.publicationDate, Date(timeIntervalSince1970: 1_609_459_200))
+  }
+}
+
 private extension LiveVideoItem {
-  static func fixture(uploaded: Int64, uploadDate: String) throws -> LiveVideoItem {
+  static func fixture(uploaded: Int64, uploadDate: String, publishedAt: Int64? = nil) throws -> LiveVideoItem {
     LiveVideoItem(
       id: "fixture",
       title: "Fixture",
@@ -44,6 +54,7 @@ private extension LiveVideoItem {
       streamType: "VIDEO_STREAM",
       isShortFormContent: false,
       uploaderVerified: false,
+      publishedAt: publishedAt,
       isLive: false,
       isPostLive: false,
       isLiveContent: false,
