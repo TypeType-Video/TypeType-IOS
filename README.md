@@ -32,21 +32,27 @@ sessions, recommendations, synchronization, and downloads.
 | --- | --- | --- | --- |
 | ![TypeType iOS subscriptions feed](assets/screenshots/iphone-subscriptions.png) | ![TypeType iOS search](assets/screenshots/iphone-search.png) | ![TypeType iOS watch page](assets/screenshots/iphone-player.png) | ![TypeType iOS library](assets/screenshots/iphone-playlists.png) |
 
-| iPad home | iPad watch |
+| iPad library | iPad watch |
 | --- | --- |
-| ![TypeType iOS home on iPad](assets/screenshots/ipad-home.png) | ![TypeType iOS watch page on iPad](assets/screenshots/ipad-player.png) |
+| ![TypeType iOS library with its sidebar on iPad](assets/screenshots/ipad-library.png) | ![TypeType iOS watch page on iPad](assets/screenshots/ipad-player.png) |
 
 ## Features
 
 - Browse and search videos, channels, playlists, and subscriptions.
+- Get recommendations from your instance, and mark the ones that are not for
+  you.
+- Start videos quickly: the videos in view are prepared when you stop
+  scrolling.
 - Resume videos, manage history, favorites, Watch Later, playlists, and
   notifications.
+- Use the Library with a sidebar on iPad and on large iPhones in landscape.
 - Play in the background, in Picture in Picture, or with the mini-player.
 - Swipe for volume, brightness and seeking, double tap to skip, hold for 2x,
   like the Android app.
 - Use chapters, SponsorBlock, DeArrow, comments, related videos, the queue,
   autoplay, and the sleep timer.
-- Download videos, audio or thumbnails and watch them offline.
+- Download videos, audio or thumbnails and watch them offline, with saving that
+  picks up again after leaving the app or losing the network.
 - Switch between several accounts, themes, and English or French.
 
 ## Install
@@ -83,6 +89,11 @@ Run the unit tests before opening a pull request against `dev`:
 xcodebuild -project TypeTypeIOS.xcodeproj -scheme TypeTypeIOSUnit \
   -destination "platform=iOS Simulator,name=iPhone 17" test
 ```
+
+GitHub Actions runs the same unit tests and an unsigned build on every push and
+pull request. A version tag builds the unsigned IPA and its SHA-256 and attaches
+them to the release. The IPA is never signed in CI: sign it when you sideload
+it.
 
 ## Help and feedback
 
