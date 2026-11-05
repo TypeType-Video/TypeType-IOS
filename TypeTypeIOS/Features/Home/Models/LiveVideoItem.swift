@@ -35,7 +35,8 @@ struct LiveVideoItem: Codable, Hashable, Identifiable {
   }
 
   var publicationDate: Date? {
-    guard let value = publishedAt ?? (uploaded > 0 ? uploaded : nil) else {
+    // Library items store an unknown date as 0, which would read as 1970.
+    guard let value = [publishedAt, uploaded].compactMap({ $0 }).first(where: { $0 > 0 }) else {
       return nil
     }
     let seconds = value > 10_000_000_000
