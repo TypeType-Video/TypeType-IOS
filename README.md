@@ -8,6 +8,8 @@
 
 You want to know the current position of TypeType about AI ? Go check [this](https://github.com/TypeType-Video/TypeType/blob/dev/AI_TRANSPARENCY.md).
 
+Thanks to Toasty ([Toastienergy](https://github.com/Toastienergy)) for building part of the app and, above all, for testing all of it end to end.
+
 <div align="center">
 
 [![MPL 2.0](https://img.shields.io/badge/license-MPL--2.0-orange.svg)](LICENSE)
