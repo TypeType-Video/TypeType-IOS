@@ -92,17 +92,9 @@ final class LivePlaylistsService: LivePlaylistsServiceProtocol {
   }
 
   func removeVideo(id: String, videoURL: String) async throws {
-    // One path segment: unencoded slashes split it and DELETE answers 404.
-    let encodedVideoURL = videoURL.addingPercentEncoding(
-      withAllowedCharacters: .urlPathAllowed
-        .subtracting(CharacterSet(charactersIn: "/"))
-    ) ?? videoURL
-    try await apiClient.request(
-      endpoint(
-        "/playlists/\(id)/videos/\(encodedVideoURL)",
-        .delete
-      )
-    )
+    // The server reads the video address from the rest of the path, slashes included, like the favorites routes.
+    // Escaping it here would be escaped again by the request builder and answer 404.
+    try await apiClient.request(endpoint("/playlists/\(id)/videos/\(videoURL)", .delete))
   }
 
   func reorder(id: String, videoURLs: [String]) async throws {

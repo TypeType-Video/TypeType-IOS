@@ -7,6 +7,7 @@ enum LiveVideoItemFixture {
     url: String = "https://www.youtube.com/watch?v=video-1",
     title: String = "A useful TypeType recommendation",
     isShort: Bool = false,
+    streamType: String = "VIDEO_STREAM",
     publishedAt: Int64? = 1_785_063_770_906
   ) -> LiveVideoItem {
     LiveVideoItem(
@@ -21,7 +22,7 @@ enum LiveVideoItemFixture {
       viewCount: 12_345,
       uploadDate: "2026-07-26",
       uploaded: -1,
-      streamType: "VIDEO_STREAM",
+      streamType: streamType,
       isShortFormContent: isShort,
       uploaderVerified: true,
       shortDescription: "A deterministic fixture.",

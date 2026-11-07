@@ -34,6 +34,9 @@ final class LiveSearchViewModel: ObservableObject {
   private let imagePipeline: TypeTypeImagePipeline
   let historyService: LiveSearchHistoryServiceProtocol
   private let serviceSelection: LiveServiceSelection
+  private let settingsService: LiveSettingsServiceProtocol?
+  // The account's "Hide shorts", read again with every search so a change elsewhere applies at once.
+  private(set) var hidesShorts = false
   private var cancellables = Set<AnyCancellable>()
   var requestID = UUID()
   var nextPage: String?
@@ -47,9 +50,11 @@ final class LiveSearchViewModel: ObservableObject {
     searchService: LiveSearchServiceProtocol,
     historyService: LiveSearchHistoryServiceProtocol,
     serviceSelection: LiveServiceSelection,
-    imagePipeline: TypeTypeImagePipeline = TypeTypeImagePipeline()
+    imagePipeline: TypeTypeImagePipeline = TypeTypeImagePipeline(),
+    settingsService: LiveSettingsServiceProtocol? = nil
   ) {
     self.imagePipeline = imagePipeline
+    self.settingsService = settingsService
     self.searchService = searchService
     self.historyService = historyService
     self.serviceSelection = serviceSelection
@@ -97,10 +102,13 @@ final class LiveSearchViewModel: ObservableObject {
     searchTask = task
     do {
       async let historyUpdate: Void = record(term)
+      async let settings = try? settingsService?.settings()
       let page = try await task.value
+      let hideShorts = await settings?.hideShorts
       guard requestID == currentRequest, !Task.isCancelled else {
         return
       }
+      if let hideShorts { hidesShorts = hideShorts }
       applyInitial(page)
       _ = await historyUpdate
     } catch is CancellationError {
@@ -191,7 +199,7 @@ final class LiveSearchViewModel: ObservableObject {
   }
 
   private func applyInitial(_ page: LiveSearchPage) {
-    results = LiveSearchResultMapper.uniqueVisibleResults(from: page)
+    results = LiveSearchResultMapper.uniqueVisibleResults(from: page, hidingShorts: hidesShorts)
     prefetchThumbnails()
     updatePageMetadata(page)
     state = results.isEmpty ? .empty : .loaded
@@ -199,7 +207,7 @@ final class LiveSearchViewModel: ObservableObject {
 
   private func append(_ page: LiveSearchPage) {
     results = LiveSearchResultMapper.unique(
-      results + LiveSearchResultMapper.results(from: page)
+      results + LiveSearchResultMapper.results(from: page, hidingShorts: hidesShorts)
     )
     prefetchThumbnails()
     updatePageMetadata(page)

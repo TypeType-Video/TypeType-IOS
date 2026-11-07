@@ -1016,3 +1016,5 @@
 "Waiting for the network. This download will resume automatically." = "Waiting for the network. This download will resume automatically.";
 "Download paused after %lld attempts. The network is unavailable; try again later." = "Download paused after %lld attempts. The network is unavailable; try again later.";
 "Download failed." = "Download failed.";
+"Hide shorts" = "Hide shorts";
+"Removes shorts from search results and related videos." = "Removes shorts from search results and related videos.";
