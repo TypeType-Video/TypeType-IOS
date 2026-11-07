@@ -47,6 +47,11 @@ struct LiveSettingsDiscoverySection: View {
         isOn: $settings.hideRelatedVideos
       )
       LiveSettingToggle(
+        "Hide shorts",
+        help: "Removes shorts from search results and related videos.",
+        isOn: $settings.hideShorts
+      )
+      LiveSettingToggle(
         "Hide comments and danmaku",
         help: "Stops loading comments and bullet comments.",
         isOn: $settings.hideComments

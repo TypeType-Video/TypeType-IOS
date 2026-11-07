@@ -1016,3 +1016,5 @@
 "Waiting for the network. This download will resume automatically." = "En attente du réseau. Ce téléchargement reprendra tout seul.";
 "Download paused after %lld attempts. The network is unavailable; try again later." = "Téléchargement en pause après %lld essais. Le réseau est indisponible, réessayez plus tard.";
 "Download failed." = "Échec du téléchargement.";
+"Hide shorts" = "Masquer les shorts";
+"Removes shorts from search results and related videos." = "Retire les shorts des résultats de recherche et des vidéos liées.";
