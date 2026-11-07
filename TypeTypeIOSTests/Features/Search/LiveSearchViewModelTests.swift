@@ -206,7 +206,10 @@ final class LiveSearchViewModelTests: XCTestCase {
     async let third: Void = viewModel.loadMoreHistory()
     _ = await (first, second, third)
 
-    XCTAssertEqual(history.requestedPages, [1, 2])
+    // A call made after page 2 arrived may rightly ask for page 3; no page is asked twice.
+    let pages = history.requestedPages
+    XCTAssertEqual(Array(pages.prefix(2)), [1, 2])
+    XCTAssertEqual(Set(pages).count, pages.count)
   }
 
   func testHiddenShortsLeaveTheSearchResults() async {
