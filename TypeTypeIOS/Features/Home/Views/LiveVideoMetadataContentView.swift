@@ -88,7 +88,7 @@ struct LiveVideoMetadataContentView: View {
           if relatedReady, let related = playerController.stream?.relatedStreams {
             LiveRelatedVideosSection(
               playerController: playerController,
-              videos: related,
+              videos: related.hidingShorts(playerController.settings.hideShorts),
               autoplayEnabled: playerController.autoplayEnabled,
               deArrowStore: deArrowStore,
               dependencies: dependencies,

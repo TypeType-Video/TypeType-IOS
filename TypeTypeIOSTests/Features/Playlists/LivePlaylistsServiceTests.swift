@@ -76,6 +76,8 @@ final class LivePlaylistsServiceTests: XCTestCase {
     )
 
     XCTAssertEqual(requests.map(\.httpMethod), ["POST", "PUT", "DELETE"])
+    let removal = try XCTUnwrap(requests[2].url.flatMap { URLComponents(url: $0, resolvingAgainstBaseURL: false) })
+    XCTAssertTrue(removal.percentEncodedPath.hasSuffix("/playlists/playlist-1/videos/https://video.test/1"))
     let reorderBody = try XCTUnwrap(
       URLProtocolStub.bodyData(from: requests[1])
     )
