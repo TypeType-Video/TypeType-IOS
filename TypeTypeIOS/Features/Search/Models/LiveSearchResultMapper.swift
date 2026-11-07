@@ -2,17 +2,19 @@ import Foundation
 
 enum LiveSearchResultMapper {
   static func uniqueVisibleResults(
-    from page: LiveSearchPage
+    from page: LiveSearchPage,
+    hidingShorts: Bool = false
   ) -> [LiveSearchResult] {
-    unique(results(from: page))
+    unique(results(from: page, hidingShorts: hidingShorts))
   }
 
   static func results(
-    from page: LiveSearchPage
+    from page: LiveSearchPage,
+    hidingShorts: Bool = false
   ) -> [LiveSearchResult] {
     page.channels.map(LiveSearchResult.channel)
       + page.playlists.map(LiveSearchResult.playlist)
-      + page.items
+      + page.items.hidingShorts(hidingShorts)
         .map(LiveSearchResult.video)
   }
 

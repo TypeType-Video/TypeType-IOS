@@ -209,15 +209,53 @@ final class LiveSearchViewModelTests: XCTestCase {
     XCTAssertEqual(history.requestedPages, [1, 2])
   }
 
+  func testHiddenShortsLeaveTheSearchResults() async {
+    let video = LiveVideoItemFixture.make(id: "video", url: "https://www.youtube.com/watch?v=video")
+    let short = LiveVideoItemFixture.make(id: "short", url: "https://www.youtube.com/shorts/short")
+    let search = SearchServiceStub(pages: [
+      LiveSearchPage(items: [video, short], nextPage: "page-2", searchSuggestion: nil, isCorrectedSearch: false,
+                     playlists: [Self.playlist], channels: [Self.channel]),
+      LiveSearchPage(items: [LiveVideoItemFixture.make(id: "flagged", url: "https://www.youtube.com/watch?v=flagged", isShort: true)],
+                     nextPage: nil, searchSuggestion: nil, isCorrectedSearch: false, playlists: [], channels: []),
+    ])
+    let viewModel = makeViewModel(search: search, history: SearchHistoryStub(items: []),
+                                  settings: SearchSettingsStub(hideShorts: true))
+
+    await viewModel.submit("Blender")
+    await viewModel.loadMore()
+
+    XCTAssertEqual(viewModel.results.map(\.id), [
+      "channel:https://youtube.test/channel",
+      "playlist:https://youtube.test/playlist",
+      "video:https://www.youtube.com/watch?v=video",
+    ])
+  }
+
+  func testAPageOfOnlyShortsEndsEmpty() async {
+    let search = SearchServiceStub(pages: [
+      LiveSearchPage(items: [LiveVideoItemFixture.make(isShort: true)], nextPage: "page-2", searchSuggestion: nil,
+                     isCorrectedSearch: false, playlists: [], channels: []),
+    ])
+    let viewModel = makeViewModel(search: search, history: SearchHistoryStub(items: []),
+                                  settings: SearchSettingsStub(hideShorts: true))
+
+    await viewModel.submit("Blender")
+
+    XCTAssertEqual(viewModel.state, .empty)
+    XCTAssertTrue(viewModel.results.isEmpty)
+  }
+
   private func makeViewModel(
     search: SearchServiceStub,
     history: SearchHistoryStub,
-    selection: LiveServiceSelection? = nil
+    selection: LiveServiceSelection? = nil,
+    settings: LiveSettingsServiceProtocol? = nil
   ) -> LiveSearchViewModel {
     LiveSearchViewModel(
       searchService: search,
       historyService: history,
-      serviceSelection: selection ?? makeSelection()
+      serviceSelection: selection ?? makeSelection(),
+      settingsService: settings
     )
   }
 
@@ -256,6 +294,10 @@ final class LiveSearchViewModelTests: XCTestCase {
 
 private final class SearchSettingsStub: LiveSettingsServiceProtocol {
   private var value = LiveSettings()
+
+  init(hideShorts: Bool = false) {
+    value.hideShorts = hideShorts
+  }
 
   func settings() async throws -> LiveSettings {
     value
