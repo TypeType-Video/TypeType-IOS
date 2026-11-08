@@ -68,6 +68,8 @@ struct LiveSettings: Codable, Equatable {
   var deArrowThumbnailMode = "dearrow_or_random"
   var deArrowTrustMode = "accepted"
   var accessMode = "unrestricted"
+  var seekbarIcon: String?
+  var seekbarIconUrl: String?
 }
 
 enum LiveSponsorBlockMode: String, CaseIterable, Identifiable {
