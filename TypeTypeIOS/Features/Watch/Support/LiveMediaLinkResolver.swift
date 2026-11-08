@@ -11,25 +11,21 @@ enum LiveMediaLinkResolver {
     for url: URL,
     serverURL: URL? = nil
   ) -> LiveMediaLinkDestination? {
-    if let destination = typeTypeDestination(
-      for: url,
-      serverURL: serverURL
-    ) {
-      return destination
+    let isOwnLink = url.scheme?.lowercased() == "typetype"
+      || serverURL.map { sameOrigin(url, $0) } == true
+    if isOwnLink {
+      return typeTypeDestination(for: url) ?? providerDestination(for: url)
     }
-    return providerDestination(for: url)
+    return providerDestination(for: url) ?? typeTypeDestination(for: url)
   }
 
+  // Any instance's link opens here: its v, list or url value names the provider media, not the instance.
   private static func typeTypeDestination(
-    for url: URL,
-    serverURL: URL?
+    for url: URL
   ) -> LiveMediaLinkDestination? {
     let scheme = url.scheme?.lowercased()
     let isCustomScheme = scheme == "typetype"
-    let isCurrentServer = serverURL.map {
-      sameOrigin(url, $0)
-    } ?? false
-    guard isCustomScheme || isCurrentServer else {
+    guard isCustomScheme || scheme == "http" || scheme == "https" else {
       return nil
     }
 
@@ -42,7 +38,7 @@ enum LiveMediaLinkResolver {
       route = host.lowercased()
     } else {
       route = url.pathComponents
-        .first(where: { $0 != "/" })?
+        .last(where: { $0 != "/" })?
         .lowercased() ?? ""
     }
     let query = components?.queryItems?.reduce(
