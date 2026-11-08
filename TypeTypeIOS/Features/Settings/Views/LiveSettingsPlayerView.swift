@@ -3,6 +3,8 @@ import SwiftUI
 struct LiveSettingsPlayerView: View {
   @ObservedObject var viewModel: LiveSettingsViewModel
   @ObservedObject var preferences: LiveAppPreferencesStore
+  let profileService: LiveProfileServiceProtocol
+  let canUploadIcon: Bool
 
   var body: some View {
     List {
@@ -25,6 +27,11 @@ struct LiveSettingsPlayerView: View {
         }
         LiveSettingsLinkRow(title: "Bullet comments", subtitle: "Comments that scroll over the video", icon: "text.bubble.fill") {
           LiveSettingsDanmakuPage(preferences: preferences)
+        }
+        if viewModel.draft.seekbarIcon != nil {
+          LiveSettingsLinkRow(title: "Seekbar icon", subtitle: "The icon that moves along the progress bar", icon: "tv.fill") {
+            LiveSettingsSeekbarIconPage(viewModel: viewModel, service: profileService, canUpload: canUploadIcon)
+          }
         }
       }
     }

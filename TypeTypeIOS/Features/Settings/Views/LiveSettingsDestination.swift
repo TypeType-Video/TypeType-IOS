@@ -14,7 +14,12 @@ struct LiveSettingsDestination: View {
     case .appearance:
       LiveSettingsAppearanceView(viewModel: viewModel, preferences: preferences)
     case .player:
-      LiveSettingsPlayerView(viewModel: viewModel, preferences: preferences)
+      LiveSettingsPlayerView(
+        viewModel: viewModel,
+        preferences: preferences,
+        profileService: dependencies.profileService,
+        canUploadIcon: coordinator.currentUser.map { !$0.id.hasPrefix("guest:") } ?? false
+      )
     case .notifications:
       LiveNotificationSettingsView(dependencies: dependencies)
     case .content:
