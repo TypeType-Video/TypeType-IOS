@@ -93,28 +93,23 @@ struct LiveNativePlayerControls: View {
   private var timeline: some View {
     HStack(spacing: 10) {
       Text(LivePlaybackChapterNavigator.clockText(seconds: Int(scrubPosition ?? controller.position)))
-      Slider(
-        value: Binding(
-          get: { scrubPosition ?? controller.position },
-          set: { scrubPosition = $0 }
-        ),
-        in: 0...max(controller.duration, 1)
-      ) { editing in
-        if editing {
-          controls.keepVisible()
-        } else if let target = scrubPosition {
+      LivePlayerTimelineBar(
+        position: scrubPosition ?? controller.position,
+        duration: controller.duration,
+        icon: LiveSeekbarIcon(settings: controller.settings),
+        isScrubbing: scrubPosition != nil,
+        onScrub: { target in
+          if scrubPosition == nil { controls.keepVisible() }
+          scrubPosition = target
+        },
+        onScrubEnded: { target in
           controller.seek(to: target)
           scrubPosition = nil
           controls.scheduleHide()
-        }
-      }
-      .tint(.white)
-      .accessibilityLabel("Playback position")
+        },
+        marks: { LivePlayerSponsorSegmentBands(controller: controller) }
+      )
       .accessibilityIdentifier("live.player.timeline")
-      // An overlay, not a GeometryReader in the row: that inflates the controls bar.
-      .overlay(alignment: .center) {
-        LivePlayerSponsorSegmentBands(controller: controller)
-      }
       .overlay {
         if let scrubPosition {
           LivePlayerTimelineScrubPreview(position: scrubPosition, controller: controller)

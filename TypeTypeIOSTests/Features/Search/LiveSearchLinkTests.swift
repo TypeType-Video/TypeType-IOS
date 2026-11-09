@@ -39,6 +39,21 @@ final class LiveSearchLinkTests: XCTestCase {
     }
   }
 
+  func testTypeTypeLinksFromAnyInstanceOpenTheVideo() {
+    let server = URL(string: "https://own.example")
+    for link in [
+      "https://watch.typetype.video/watch?v=NWANo9BRz6Y",
+      "watch.typetype.video/watch?v=NWANo9BRz6Y",
+      "https://own.example/watch?v=NWANo9BRz6Y",
+    ] {
+      for serverURL in [server, nil] {
+        guard case .video = LiveSearchLink.destination(for: link, serverURL: serverURL) else {
+          return XCTFail("\(link) should open a video")
+        }
+      }
+    }
+  }
+
   func testTextAndOtherLinksStaySearches() {
     let inputs = ["programming", "dQw4w9WgXcQ", "never gonna give you up", "node.js", "https://example.com/watch?v=1", "sm9"]
     for input in inputs {

@@ -174,19 +174,45 @@ final class MediaLinkResolverTests: XCTestCase {
     }
   }
 
-  func testAnotherTypeTypeOriginIsNotTrustedAsCurrentServer() throws {
-    let link = try XCTUnwrap(
-      URL(string: "https://other.example/watch?v=YE7VzlLtp-4")
+  func testAnotherInstanceLinkOpensTheVideoOnTheCurrentServer() throws {
+    let serverURL = try XCTUnwrap(URL(string: "https://own.example/api"))
+    for (value, expectedSource) in [
+      ("https://watch.typetype.video/watch?v=NWANo9BRz6Y", "https://www.youtube.com/watch?v=NWANo9BRz6Y"),
+      (
+        "https://other.example/watch?v=https%3A%2F%2Fwww.nicovideo.jp%2Fwatch%2Fsm9",
+        "https://www.nicovideo.jp/watch/sm9"
+      ),
+      ("https://other.example/shorts?v=BV1xx411c7mD", "https://www.bilibili.com/video/BV1xx411c7mD"),
+      ("https://own.example/typetype/watch?v=YE7VzlLtp-4", "https://www.youtube.com/watch?v=YE7VzlLtp-4"),
+      ("https://other.example/typetype/watch?v=YE7VzlLtp-4", "https://www.youtube.com/watch?v=YE7VzlLtp-4"),
+    ] {
+      let url = try XCTUnwrap(URL(string: value))
+      guard case let .video(video) = LiveMediaLinkResolver.destination(for: url, serverURL: serverURL) else {
+        return XCTFail("\(value) should open the video")
+      }
+      XCTAssertEqual(video.url, expectedSource)
+    }
+  }
+
+  func testAnotherInstanceChannelAndPlaylistLinksOpenTheirPages() throws {
+    let channel = try XCTUnwrap(
+      URL(string: "https://other.example/prefix/channel?url=https%3A%2F%2Fwww.youtube.com%2F%40mkbhd")
     )
-    let serverURL = try XCTUnwrap(
-      URL(string: "https://beta.typetype.video/api")
-    )
-    XCTAssertNil(
-      LiveMediaLinkResolver.destination(
-        for: link,
-        serverURL: serverURL
-      )
-    )
+    guard case let .channel(channelURL) = LiveMediaLinkResolver.destination(for: channel) else {
+      return XCTFail("channel link should open the channel")
+    }
+    XCTAssertEqual(channelURL, "https://www.youtube.com/@mkbhd")
+    let playlist = try XCTUnwrap(URL(string: "https://other.example/playlist?list=PL590L5WQmH8fJ54F369BLDSqIwcs-TCfs"))
+    guard case .playlist = LiveMediaLinkResolver.destination(for: playlist) else {
+      return XCTFail("playlist link should open the playlist")
+    }
+  }
+
+  func testAnotherInstanceLinkWithoutMediaStaysExternal() throws {
+    for value in ["https://other.example/watch?v=1", "https://other.example/watch", "https://other.example/search?q=a"] {
+      let url = try XCTUnwrap(URL(string: value))
+      XCTAssertNil(LiveMediaLinkResolver.destination(for: url), value)
+    }
   }
 
   func testRichTextCreatesSeekAndWebLinks() {

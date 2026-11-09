@@ -18,6 +18,8 @@ protocol LiveProfileServiceProtocol {
     mediaType: String
   ) async throws -> LiveCustomAvatar
   func clearAvatar() async throws
+  func uploadSeekbarIcon(data: Data, mediaType: String) async throws
+  func clearSeekbarIcon() async throws
 }
 
 final class LiveProfileService: LiveProfileServiceProtocol {
@@ -113,6 +115,22 @@ final class LiveProfileService: LiveProfileServiceProtocol {
     try await apiClient.request(
       endpoint("/profile/avatar", .delete)
     )
+  }
+
+  func uploadSeekbarIcon(data: Data, mediaType: String) async throws {
+    try await apiClient.request(
+      APIEndpoint(
+        path: "/profile/seekbar-icon",
+        method: .put,
+        headers: ["Content-Type": mediaType],
+        body: data,
+        requiresAuth: true
+      )
+    )
+  }
+
+  func clearSeekbarIcon() async throws {
+    try await apiClient.request(endpoint("/profile/seekbar-icon", .delete))
   }
 
   private func endpoint(
