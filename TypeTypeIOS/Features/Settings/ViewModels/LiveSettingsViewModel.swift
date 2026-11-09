@@ -68,6 +68,14 @@ final class LiveSettingsViewModel: ObservableObject {
     }
   }
 
+  func adoptServerSettings() async throws {
+    await saveTask?.value
+    let settings = try await service.settings()
+    saved = settings
+    draft = settings
+    onSaved(settings)
+  }
+
   func dismissError() {
     errorMessage = nil
   }
