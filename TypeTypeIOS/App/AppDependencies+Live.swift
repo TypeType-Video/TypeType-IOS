@@ -171,6 +171,7 @@ extension AppDependencies {
       youtubeSessionService: LiveYouTubeSessionService(apiClient: client),
       deviceLinkService: LiveDeviceLinkService(apiClient: client),
       liveChatService: LiveChatService(transport: URLSessionLiveChatTransport(client: client)),
+      linkedAccountsService: LiveLinkedAccountsService(apiClient: client),
       playbackService: LivePlaybackService(
         apiClient: client,
         serverURLProvider: {

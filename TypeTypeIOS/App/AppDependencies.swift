@@ -43,6 +43,7 @@ final class AppDependencies {
   let youtubeSessionService: LiveYouTubeSessionServiceProtocol?
   let deviceLinkService: LiveDeviceLinkServiceProtocol?
   let liveChatService: LiveChatService?
+  let linkedAccountsService: LiveLinkedAccountsServiceProtocol?
   let playbackService: LivePlaybackServiceProtocol?
   let watchProgress: LiveWatchProgressStore
   let imagePipeline: TypeTypeImagePipeline
@@ -152,6 +153,7 @@ final class AppDependencies {
     youtubeSessionService: LiveYouTubeSessionServiceProtocol? = nil,
     deviceLinkService: LiveDeviceLinkServiceProtocol? = nil,
     liveChatService: LiveChatService? = nil,
+    linkedAccountsService: LiveLinkedAccountsServiceProtocol? = nil,
     playbackService: LivePlaybackServiceProtocol? = nil,
     watchProgress: LiveWatchProgressStore = LiveWatchProgressStore(),
     imagePipeline: TypeTypeImagePipeline = TypeTypeImagePipeline(),
@@ -197,6 +199,7 @@ final class AppDependencies {
     self.youtubeSessionService = youtubeSessionService
     self.deviceLinkService = deviceLinkService
     self.liveChatService = liveChatService
+    self.linkedAccountsService = linkedAccountsService
     self.playbackService = playbackService
     self.watchProgress = watchProgress
     self.imagePipeline = imagePipeline
