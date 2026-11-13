@@ -18,4 +18,11 @@ extension LiveChannelView {
     .frame(maxWidth: .infinity, alignment: .leading)
     .accessibilityIdentifier("live.channel.about")
   }
+
+  var managesFamilyList: Bool {
+    guard let serverID = dependencies.serverStore.selectedServer()?.id,
+      let role = dependencies.sessionStore.session(forServerID: serverID)?.role
+    else { return false }
+    return role == "admin" || role == "moderator"
+  }
 }
