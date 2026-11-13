@@ -122,6 +122,21 @@ extension LivePlaybackService {
     )
   }
 
+  func releaseSABRPlayback(sessionID: String) async {
+    let endpoint = APIEndpoint(
+      path: "/sabr/playback/\(sessionID)",
+      method: .delete,
+      requiresAuth: true,
+      timeoutInterval: 10,
+      retriesTransientFailures: false
+    )
+    do {
+      _ = try await LivePlaybackDebugTrace.measure("sabr release") { try await apiClient.requestData(endpoint) }
+    } catch {
+      AppLogger.playback.notice("sabr release failed: \(String(describing: error), privacy: .public)")
+    }
+  }
+
   func authenticatedSABRResourceURL(
     for value: String
   ) throws -> URL {

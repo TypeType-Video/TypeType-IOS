@@ -15,6 +15,7 @@ actor LiveSABRPlaybackSession {
   var playbackRate: Float = 1
   var lastReportedPlayerTimeMS: Int64 = -5_000
   var recoveryCount = 0
+  var isReleased = false
   var attemptedVideoItags: Set<Int> = []
   var maintenanceTask: Task<Void, Never>?
   var maintenanceFailureCount = 0
@@ -91,11 +92,11 @@ actor LiveSABRPlaybackSession {
       control = sought
     } catch {
       guard isRecoverableControlFailure(error) else { throw error }
-      control = try await createControl(
+      adopt(try await createControl(
         videoItag: current.videoItag,
         audioItag: current.audioItag,
         audioTrackID: current.audioTrackID
-      )
+      ))
     }
     resetWindow()
     recoveryCount = 0
@@ -123,10 +124,12 @@ actor LiveSABRPlaybackSession {
       audioItag: audioItag,
       audioTrackID: audioTrackID
     )
+    guard !isReleased else { throw CancellationError() }
     let created = try await service.createSABRPlayback(
       videoID: preparation.stream.id,
       request: request
     )
+    try await discardIfReleased(created)
     try validateControl(
       created,
       videoItag: videoItag,

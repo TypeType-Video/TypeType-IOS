@@ -11,6 +11,8 @@ enum LiveImageURLResolver {
     // The server sometimes emits "httpss://".
     if reference.hasPrefix("httpss://") {
       reference = "https://" + reference.dropFirst("httpss://".count)
+    } else if reference.hasPrefix("//") {
+      reference = "https:" + reference
     }
     return resolve(URL(string: reference))
   }
@@ -18,7 +20,7 @@ enum LiveImageURLResolver {
   static func resolve(_ url: URL?) -> URL? {
     guard let url else { return nil }
     if url.scheme == "http" || url.scheme == "https" {
-      return url
+      return LiveBilibiliImageSize.sized(url)
     }
     guard let base = baseURLProvider() else { return url }
     let baseString = base.absoluteString.hasSuffix("/")
