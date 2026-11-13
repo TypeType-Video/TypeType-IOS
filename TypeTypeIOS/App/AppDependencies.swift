@@ -44,6 +44,7 @@ final class AppDependencies {
   let deviceLinkService: LiveDeviceLinkServiceProtocol?
   let liveChatService: LiveChatService?
   let linkedAccountsService: LiveLinkedAccountsServiceProtocol?
+  let allowedChannelsService: LiveAllowedChannelsServiceProtocol?
   let playbackService: LivePlaybackServiceProtocol?
   let watchProgress: LiveWatchProgressStore
   let imagePipeline: TypeTypeImagePipeline
@@ -154,6 +155,7 @@ final class AppDependencies {
     deviceLinkService: LiveDeviceLinkServiceProtocol? = nil,
     liveChatService: LiveChatService? = nil,
     linkedAccountsService: LiveLinkedAccountsServiceProtocol? = nil,
+    allowedChannelsService: LiveAllowedChannelsServiceProtocol? = nil,
     playbackService: LivePlaybackServiceProtocol? = nil,
     watchProgress: LiveWatchProgressStore = LiveWatchProgressStore(),
     imagePipeline: TypeTypeImagePipeline = TypeTypeImagePipeline(),
@@ -200,6 +202,7 @@ final class AppDependencies {
     self.deviceLinkService = deviceLinkService
     self.liveChatService = liveChatService
     self.linkedAccountsService = linkedAccountsService
+    self.allowedChannelsService = allowedChannelsService
     self.playbackService = playbackService
     self.watchProgress = watchProgress
     self.imagePipeline = imagePipeline
