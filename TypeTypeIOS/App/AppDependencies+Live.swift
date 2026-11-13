@@ -169,6 +169,7 @@ extension AppDependencies {
       portabilityService: LivePortabilityService(apiClient: client),
       versionService: LiveVersionService(apiClient: client),
       youtubeSessionService: LiveYouTubeSessionService(apiClient: client),
+      deviceLinkService: LiveDeviceLinkService(apiClient: client),
       playbackService: LivePlaybackService(
         apiClient: client,
         serverURLProvider: {
