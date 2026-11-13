@@ -46,6 +46,12 @@ final class LiveNativePlayback {
     Task { [session] in await session?.updatePlaybackRate(rate) }
   }
 
+  var switchesVideoInPlace: Bool { session == nil && !preparation.audioOnly }
+
+  func setVideoEnabled(_ enabled: Bool) {
+    player.setVideoEnabled(enabled)
+  }
+
   func stop() {
     if let foregroundObservation {
       NotificationCenter.default.removeObserver(foregroundObservation)

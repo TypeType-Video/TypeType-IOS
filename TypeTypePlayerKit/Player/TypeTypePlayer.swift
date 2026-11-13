@@ -68,6 +68,10 @@ public final class TypeTypePlayer {
     Task { [engine] in await engine.setRate(rate) }
   }
 
+  public func setVideoEnabled(_ enabled: Bool) {
+    Task { [engine] in await engine.setTrack(.video, enabled: enabled) }
+  }
+
   public func recoverDecoderIfNeeded() {
     Task { [engine] in await engine.recoverDecoderIfNeeded() }
   }

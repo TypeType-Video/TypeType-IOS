@@ -85,6 +85,10 @@ final class SampleBufferRenderer: @unchecked Sendable {
     audioRenderer.flush()
   }
 
+  func clearVideo() {
+    videoRenderer.flush(removingDisplayedImage: true, completionHandler: nil)
+  }
+
   func setRate(_ rate: Float, time: CMTime? = nil) {
     if let time {
       synchronizer.setRate(rate, time: time)
