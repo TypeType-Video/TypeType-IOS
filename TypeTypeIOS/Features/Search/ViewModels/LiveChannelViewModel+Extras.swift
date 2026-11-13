@@ -9,7 +9,8 @@ extension LiveChannelViewModel {
     do {
       let page = try await channelService.playlists(
         url: channelURL,
-        nextPage: nil
+        nextPage: nil,
+        tab: playlistTab
       )
       playlists = Self.uniquePlaylists(page.playlists)
       nextPage = page.nextPage
@@ -28,7 +29,8 @@ extension LiveChannelViewModel {
     do {
       let page = try await channelService.playlists(
         url: channelURL,
-        nextPage: nextPage
+        nextPage: nextPage,
+        tab: playlistTab
       )
       playlists = Self.uniquePlaylists(playlists + page.playlists)
       self.nextPage = page.nextPage
@@ -36,6 +38,10 @@ extension LiveChannelViewModel {
     } catch {
       canLoadMore = true
     }
+  }
+
+  private var playlistTab: String? {
+    selectedTab == .courses ? "courses" : nil
   }
 
   func loadPodcasts() async {

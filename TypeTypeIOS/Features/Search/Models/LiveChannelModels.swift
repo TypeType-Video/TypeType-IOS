@@ -24,7 +24,9 @@ enum LiveChannelSort: String, CaseIterable, Identifiable {
 enum LiveChannelTab: String, CaseIterable, Identifiable {
   case videos
   case live
+  case posts
   case playlists
+  case courses
   case about
 
   var id: String {
@@ -34,6 +36,8 @@ enum LiveChannelTab: String, CaseIterable, Identifiable {
   var title: String {
     rawValue.prefix(1).uppercased() + rawValue.dropFirst()
   }
+
+  var listsPlaylists: Bool { self == .playlists || self == .courses }
 }
 
 struct LiveChannelPage: Decodable, Equatable {
@@ -45,6 +49,7 @@ struct LiveChannelPage: Decodable, Equatable {
   let isVerified: Bool
   let videos: [LiveVideoItem]
   let nextPage: String?
+  var hasCourses: Bool?
 
   var avatar: URL? {
     URL(string: avatarURL)
@@ -63,6 +68,7 @@ struct LiveChannelPage: Decodable, Equatable {
     case isVerified
     case videos
     case nextPage = "nextpage"
+    case hasCourses
   }
 }
 

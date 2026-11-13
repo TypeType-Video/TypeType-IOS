@@ -105,7 +105,7 @@ final class LiveChannelViewModel: ObservableObject {
   }
 
   func loadMore() async {
-    if selectedTab == .playlists {
+    if selectedTab.listsPlaylists {
       await loadMorePlaylists()
       return
     }
@@ -151,9 +151,9 @@ final class LiveChannelViewModel: ObservableObject {
     selectedTab = tab
     query = ""
     submittedQuery = ""
-    if tab == .playlists {
+    if tab.listsPlaylists {
       await loadPlaylists()
-    } else if tab != .about {
+    } else if tab != .about, tab != .posts {
       await reloadChannel()
     }
   }
@@ -161,7 +161,7 @@ final class LiveChannelViewModel: ObservableObject {
   func selectSort(_ nextSort: LiveChannelSort) async {
     guard sort != nextSort else { return }
     sort = nextSort
-    guard selectedTab != .playlists else { return }
+    guard !selectedTab.listsPlaylists else { return }
     await reloadChannel()
   }
 
