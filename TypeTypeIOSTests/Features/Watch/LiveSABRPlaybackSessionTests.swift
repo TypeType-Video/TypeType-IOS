@@ -93,7 +93,7 @@ final class LiveSABRPlaybackSessionTests: XCTestCase {
     let service = RecoveryPlaybackService()
     let session = LiveSABRPlaybackSession(
       service: service,
-      preparation: preparation()
+      preparation: Self.preparation()
     )
 
     let snapshot = try await session.start()
@@ -117,7 +117,7 @@ final class LiveSABRPlaybackSessionTests: XCTestCase {
     )
     let session = LiveSABRPlaybackSession(
       service: service,
-      preparation: preparation()
+      preparation: Self.preparation()
     )
 
     let snapshot = try await session.start()
@@ -133,7 +133,7 @@ final class LiveSABRPlaybackSessionTests: XCTestCase {
     )
     let session = LiveSABRPlaybackSession(
       service: service,
-      preparation: preparation()
+      preparation: Self.preparation()
     )
 
     let starting = Task {
@@ -156,7 +156,7 @@ final class LiveSABRPlaybackSessionTests: XCTestCase {
     let service = RecoveryPlaybackService()
     let session = LiveSABRPlaybackSession(
       service: service,
-      preparation: preparation()
+      preparation: Self.preparation()
     )
     _ = try await session.start()
 
@@ -204,7 +204,7 @@ final class LiveSABRPlaybackSessionTests: XCTestCase {
     let service = RecoveryPlaybackService()
     let session = LiveSABRPlaybackSession(
       service: service,
-      preparation: preparation()
+      preparation: Self.preparation()
     )
     _ = try await session.start()
 
@@ -217,7 +217,7 @@ final class LiveSABRPlaybackSessionTests: XCTestCase {
     XCTAssertEqual(snapshot.video?.startMS, 300_000)
   }
 
-  private func preparation() -> LivePlaybackPreparation {
+  static func preparation() -> LivePlaybackPreparation {
     let high = video(itag: 136, height: 720)
     let low = video(itag: 133, height: 240)
     let audio = LivePlaybackAudioSource(
@@ -284,7 +284,7 @@ final class LiveSABRPlaybackSessionTests: XCTestCase {
     )
   }
 
-  private func video(
+  private static func video(
     itag: Int,
     height: Int
   ) -> LivePlaybackVideoSource {

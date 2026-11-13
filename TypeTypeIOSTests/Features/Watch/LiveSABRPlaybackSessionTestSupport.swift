@@ -7,6 +7,7 @@ final class RecoveryPlaybackService:
   private(set) var seekTimes: [Int64] = []
   private(set) var positionRates: [Float] = []
   private(set) var lifecycle: [String] = []
+  private(set) var releasedSessionIDs: [String] = []
   private let recoveryAction: String
   private let retryVideoItags: [Int]
   private let recoveredPrefetchDelayMS: Int64
@@ -221,6 +222,10 @@ final class RecoveryPlaybackService:
       retryAfterMS: 250,
       live: nil
     )
+  }
+
+  func releaseSABRPlayback(sessionID: String) async {
+    releasedSessionIDs.append(sessionID)
   }
 
   func authenticatedSABRResourceURL(

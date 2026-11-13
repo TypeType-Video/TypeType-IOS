@@ -41,6 +41,7 @@ protocol LivePlaybackServiceProtocol: AnyObject {
     videoID: String,
     sessionID: String
   ) async throws -> LiveSABRPlaybackIndex
+  func releaseSABRPlayback(sessionID: String) async
   func authenticatedSABRResourceURL(
     for value: String
   ) throws -> URL
@@ -66,6 +67,8 @@ extension LivePlaybackServiceProtocol {
   func preconnectMedia() {}
 
   func prewarmSABRPlayback(videoID: String, request: LiveSABRPlaybackRequest) async {}
+
+  func releaseSABRPlayback(sessionID: String) async {}
 }
 
 final class LivePlaybackService: LivePlaybackServiceProtocol {

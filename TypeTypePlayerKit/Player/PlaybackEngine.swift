@@ -23,6 +23,7 @@ actor PlaybackEngine {
   let emit: @Sendable (PlaybackEngineEvent) -> Void
 
   var tracks: [MP4TrackKind: TrackState] = [:]
+  var disabledKinds: Set<MP4TrackKind> = []
   var generation = 0
   var startTime: CMTime = .zero
   var wantsPlay = false
@@ -129,7 +130,8 @@ actor PlaybackEngine {
     for kind in tracks.keys {
       tracks[kind]?.bufferedEnd = .invalid
       tracks[kind]?.fetchedEnd = .invalid
-      tracks[kind]?.ended = false
+      tracks[kind]?.ended = disabledKinds.contains(kind)
+      guard !disabledKinds.contains(kind) else { continue }
       tracks[kind]?.task = Task { await self.runTrack(kind, generation: current) }
     }
   }

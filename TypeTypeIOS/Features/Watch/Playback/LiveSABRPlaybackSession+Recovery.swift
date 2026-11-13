@@ -25,11 +25,11 @@ extension LiveSABRPlaybackSession {
       throw LivePlaybackFailure.sabrSessionFailed
     }
     recoveryCount += 1
-    control = try await createControl(
+    adopt(try await createControl(
       videoItag: nextVideoItag,
       audioItag: current.audioItag,
       audioTrackID: current.audioTrackID
-    )
+    ))
     attemptedVideoItags.insert(nextVideoItag)
     resetWindow()
     return try await performWindowLoad()
