@@ -31,6 +31,15 @@ extension LiveChannelView {
           )
         }
 
+        if let channel = viewModel.channel, managesFamilyList, let service = dependencies.allowedChannelsService {
+          LiveChannelFamilyButton(
+            channelURL: viewModel.channelURL,
+            name: channel.name,
+            avatarURL: channel.avatarURL,
+            service: service
+          )
+        }
+
         if viewModel.selectedTab == .videos,
           viewModel.isLoadingPodcasts || !viewModel.podcasts.isEmpty {
           LiveChannelPodcastsView(

@@ -109,6 +109,18 @@ struct LiveSettingsAccountsView: View {
         }
       }
 
+      if coordinator.currentUser != nil,
+        let youtube = coordinator.dependencies.youtubeSessionService,
+        let linked = coordinator.dependencies.linkedAccountsService {
+        LiveSection {
+          NavigationLink {
+            LiveLinkedAccountsView(youtube: youtube, service: linked)
+          } label: {
+            LiveSettingText(title: "Linked accounts", detail: "Sign in to YouTube with a code and to BiliBili with a QR code.")
+          }
+        }
+      }
+
       if let user = coordinator.currentUser {
         LiveSection {
           LabeledContent("Username") {
