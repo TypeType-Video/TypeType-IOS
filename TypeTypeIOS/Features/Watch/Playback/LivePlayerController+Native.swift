@@ -85,9 +85,15 @@ extension LivePlayerController {
         }
       }
     )
-    let snapshot = try await session.start()
+    let snapshot: LiveSABRPlaybackSnapshot
+    do {
+      snapshot = try await session.start()
+    } catch {
+      await session.release()
+      throw error
+    }
     guard generation == loadGeneration, snapshot.isIndexedVOD else {
-      await session.stopMaintenance()
+      await session.release()
       throw generation == loadGeneration ? LivePlaybackFailure.invalidSABRContract : CancellationError()
     }
     let source = LiveSABRSegmentSource(session: session, service: service, audioOnly: preparation.audioOnly)

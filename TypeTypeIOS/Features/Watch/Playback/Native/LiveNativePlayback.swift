@@ -53,6 +53,6 @@ final class LiveNativePlayback {
     }
     nowPlaying.deactivate()
     player.stop()
-    Task { [session] in await session?.stopMaintenance() }
+    Task { [session] in await session?.release() }
   }
 }
