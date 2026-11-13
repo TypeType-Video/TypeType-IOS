@@ -1090,3 +1090,15 @@
 "The voice reply could not be played." = "La réponse vocale n'a pas pu être lue.";
 "Animate GIFs in comments" = "Animer les GIF des commentaires";
 "GIFs attached to comments stay still until you turn this on." = "Les GIF joints aux commentaires restent figés tant que ce réglage est désactivé.";
+"Posts" = "Posts";
+"Courses" = "Cours";
+"No courses" = "Aucun cours";
+"No posts" = "Aucun post";
+"This channel has not posted anything." = "Cette chaîne n'a rien publié.";
+"Posts unavailable" = "Posts indisponibles";
+"The posts could not be loaded." = "Les posts n'ont pas pu être chargés.";
+"Loading more posts" = "Chargement d'autres posts";
+"Image of the post" = "Image du post";
+"%lld images of the post" = "%lld images du post";
+"Poll" = "Sondage";
+"Play %@" = "Lire %@";

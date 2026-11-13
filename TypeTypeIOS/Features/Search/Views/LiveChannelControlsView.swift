@@ -47,7 +47,13 @@ struct LiveChannelControlsView: View {
   }
 
   private var tabs: [LiveChannelTab] {
-    LiveChannelTab.allCases.filter { isYouTube || $0 == .about }
+    LiveChannelTab.allCases.filter { tab in
+      switch tab {
+      case .about: true
+      case .courses: isYouTube && viewModel.channel?.hasCourses == true
+      default: isYouTube
+      }
+    }
   }
 
   private var isYouTube: Bool {
@@ -59,6 +65,8 @@ struct LiveChannelControlsView: View {
     case .videos: "play.rectangle"
     case .live: "dot.radiowaves.left.and.right"
     case .playlists: "rectangle.stack"
+    case .courses: "graduationcap"
+    case .posts: "text.bubble"
     case .about: "info.circle"
     }
   }

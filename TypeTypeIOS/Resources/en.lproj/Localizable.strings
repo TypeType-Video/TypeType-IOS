@@ -1090,3 +1090,15 @@
 "The voice reply could not be played." = "The voice reply could not be played.";
 "Animate GIFs in comments" = "Animate GIFs in comments";
 "GIFs attached to comments stay still until you turn this on." = "GIFs attached to comments stay still until you turn this on.";
+"Posts" = "Posts";
+"Courses" = "Courses";
+"No courses" = "No courses";
+"No posts" = "No posts";
+"This channel has not posted anything." = "This channel has not posted anything.";
+"Posts unavailable" = "Posts unavailable";
+"The posts could not be loaded." = "The posts could not be loaded.";
+"Loading more posts" = "Loading more posts";
+"Image of the post" = "Image of the post";
+"%lld images of the post" = "%lld images of the post";
+"Poll" = "Poll";
+"Play %@" = "Play %@";
