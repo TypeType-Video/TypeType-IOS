@@ -2,6 +2,8 @@ import SwiftUI
 
 struct LiveCommentReplyRow: View {
   let comment: LiveCommentItem
+  let voice: LiveCommentVoicePlayer
+  let animatesGIFs: Bool
   let onChannel: (String) -> Void
   let onSeekTimestamp: (Double) -> Void
   let onOpenURL: (URL) -> Void
@@ -38,6 +40,7 @@ struct LiveCommentReplyRow: View {
         )
           .foregroundStyle(.primary)
           .textSelection(.enabled)
+        LiveCommentAttachments(comment: comment, voice: voice, animatesGIFs: animatesGIFs)
       }
     }
   }

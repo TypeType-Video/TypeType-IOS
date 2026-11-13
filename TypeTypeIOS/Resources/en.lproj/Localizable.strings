@@ -1077,3 +1077,16 @@
 "This address is not valid." = "This address is not valid.";
 "The instance sent an answer this app does not understand." = "The instance sent an answer this app does not understand.";
 "The request failed (%lld)." = "The request failed (%lld).";
+"Search comments" = "Search comments";
+"Clear the comment search" = "Clear the comment search";
+"Searching the comments" = "Searching the comments";
+"No comment matches this search." = "No comment matches this search.";
+"The comments could not be searched." = "The comments could not be searched.";
+"GIF attached to the comment" = "GIF attached to the comment";
+"Image attached to the comment" = "Image attached to the comment";
+"Voice reply" = "Voice reply";
+"Pause voice reply" = "Pause voice reply";
+"Play voice reply" = "Play voice reply";
+"The voice reply could not be played." = "The voice reply could not be played.";
+"Animate GIFs in comments" = "Animate GIFs in comments";
+"GIFs attached to comments stay still until you turn this on." = "GIFs attached to comments stay still until you turn this on.";

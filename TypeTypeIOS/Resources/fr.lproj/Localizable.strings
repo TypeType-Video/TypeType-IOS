@@ -1077,3 +1077,16 @@
 "This address is not valid." = "Cette adresse n'est pas valide.";
 "The instance sent an answer this app does not understand." = "L'instance a envoyé une réponse que l'app ne comprend pas.";
 "The request failed (%lld)." = "La requête a échoué (%lld).";
+"Search comments" = "Rechercher dans les commentaires";
+"Clear the comment search" = "Effacer la recherche dans les commentaires";
+"Searching the comments" = "Recherche dans les commentaires";
+"No comment matches this search." = "Aucun commentaire ne correspond à cette recherche.";
+"The comments could not be searched." = "La recherche dans les commentaires a échoué.";
+"GIF attached to the comment" = "GIF joint au commentaire";
+"Image attached to the comment" = "Image jointe au commentaire";
+"Voice reply" = "Réponse vocale";
+"Pause voice reply" = "Mettre en pause la réponse vocale";
+"Play voice reply" = "Écouter la réponse vocale";
+"The voice reply could not be played." = "La réponse vocale n'a pas pu être lue.";
+"Animate GIFs in comments" = "Animer les GIF des commentaires";
+"GIFs attached to comments stay still until you turn this on." = "Les GIF joints aux commentaires restent figés tant que ce réglage est désactivé.";
