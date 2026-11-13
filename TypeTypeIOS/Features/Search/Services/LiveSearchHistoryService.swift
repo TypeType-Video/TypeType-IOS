@@ -71,7 +71,7 @@ extension LiveSearchHistoryService {
       try await apiClient.request(
         APIEndpoint(path: "/search-history/\(encoded)", method: .delete, requiresAuth: true)
       )
-    } catch NetworkError.statusCode(404, _) {
+    } catch NetworkError.statusCode(404, _, _) {
       return
     }
   }

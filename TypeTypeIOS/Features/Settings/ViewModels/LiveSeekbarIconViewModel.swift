@@ -48,9 +48,9 @@ final class LiveSeekbarIconViewModel: ObservableObject {
     do {
       try await work()
       try await settings.adoptServerSettings()
-    } catch NetworkError.statusCode(413, _) {
+    } catch NetworkError.statusCode(413, _, _) {
       failure = .tooLarge
-    } catch NetworkError.statusCode(415, _) {
+    } catch NetworkError.statusCode(415, _, _) {
       failure = .unsupported
     } catch {
       AppLogger.app.failure("Changing the seekbar icon", error)

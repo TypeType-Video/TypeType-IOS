@@ -123,7 +123,7 @@ final class LiveSubscriptionsViewModel: ObservableObject {
     } catch is CancellationError {
       return
     } catch let error as NetworkError {
-      if case .statusCode(409, _) = error {
+      if case .statusCode(409, _, _) = error {
         await reload()
         return
       }

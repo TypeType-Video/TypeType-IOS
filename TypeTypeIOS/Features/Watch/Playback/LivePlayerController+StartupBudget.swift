@@ -38,7 +38,8 @@ extension LivePlayerController {
       }
     }
     if let network = error as? NetworkError {
-      if case let .statusCode(code, _) = network { return code >= 500 || code == 408 || code == 429 }
+      if network.isProviderBlock { return false }
+      if case let .statusCode(code, _, _) = network { return code >= 500 || code == 408 || code == 429 }
       return true
     }
     return (error as NSError).domain == NSURLErrorDomain

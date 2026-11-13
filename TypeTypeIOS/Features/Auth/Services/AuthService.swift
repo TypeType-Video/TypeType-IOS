@@ -111,7 +111,7 @@ final class AuthService: AuthServiceProtocol {
         accessToken: accessToken
       )
     } catch let error as NetworkError {
-      guard case .statusCode(401, _) = error else { throw error }
+      guard case .statusCode(401, _, _) = error else { throw error }
       let refreshedToken = try await refresh()
       let currentUser = try await user(accessToken: refreshedToken)
       return AuthSessionResult(

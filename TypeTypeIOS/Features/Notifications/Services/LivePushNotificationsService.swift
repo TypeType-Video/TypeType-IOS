@@ -102,7 +102,7 @@ final class LivePushNotificationsService: LivePushNotificationsServiceProtocol {
   private static func isTransient(_ error: Error) -> Bool {
     switch error as? NetworkError {
     case .transport: true
-    case let .statusCode(code, _): code == 429 || (500...599).contains(code)
+    case let .statusCode(code, _, _): code == 429 || (500...599).contains(code)
     default: false
     }
   }

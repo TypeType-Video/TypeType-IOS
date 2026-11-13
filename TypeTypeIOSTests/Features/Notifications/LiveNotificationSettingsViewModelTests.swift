@@ -56,7 +56,7 @@ final class LiveNotificationSettingsViewModelTests: XCTestCase {
     await viewModel.setEnabled(true, for: original)
 
     XCTAssertFalse(viewModel.sortedPreferences[0].enabled)
-    XCTAssertEqual(viewModel.errorMessage, "Network transport failed.")
+    XCTAssertEqual(viewModel.errorMessage, LiveUserError.instanceUnreachable.message)
   }
 
   func testPermissionLoadsAndRequestUpdatesStatus() async throws {

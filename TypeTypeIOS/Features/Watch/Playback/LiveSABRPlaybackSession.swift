@@ -185,7 +185,7 @@ actor LiveSABRPlaybackSession {
   }
 
   private func isRecoverableControlFailure(_ error: Error) -> Bool {
-    guard case let NetworkError.statusCode(code, _) = error else {
+    guard case let NetworkError.statusCode(code, _, _) = error else {
       return false
     }
     return [404, 409, 410].contains(code)

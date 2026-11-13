@@ -5,7 +5,7 @@ enum NetworkError: Error {
   case invalidURL
   case missingAccessToken
   case invalidResponse
-  case statusCode(Int, String?)
+  case statusCode(Int, String?, code: String? = nil)
   case decoding
   case transport
 }
@@ -14,22 +14,34 @@ extension NetworkError: LocalizedError {
   var errorDescription: String? {
     switch self {
     case .missingServerURL:
-      return "Server URL is not configured."
+      return String(localized: "No instance is selected.")
     case .invalidURL:
-      return "Invalid request URL."
+      return String(localized: "This address is not valid.")
     case .missingAccessToken:
-      return "Session token is missing."
-    case .invalidResponse:
-      return "Invalid server response."
-    case let .statusCode(code, message):
-      if let message, !message.isEmpty {
-        return "Request failed (\(code)): \(message)"
-      }
-      return "Request failed with status \(code)."
-    case .decoding:
-      return "Failed to decode server payload."
+      return LiveUserError(self).message
+    case .invalidResponse, .decoding:
+      return String(localized: "The instance sent an answer this app does not understand.")
+    case let .statusCode(status, message, _):
+      if let known = LiveUserError(self).message { return known }
+      if let message, !message.isEmpty { return message }
+      return String(localized: "The request failed (\(status)).")
     case .transport:
-      return "Network transport failed."
+      return LiveUserError(self).message
+    }
+  }
+}
+
+extension NetworkError: CustomStringConvertible {
+  var description: String {
+    switch self {
+    case let .statusCode(status, message, code):
+      return "HTTP \(status) code=\(code ?? "-") \(message ?? "")"
+    case .missingServerURL: return "missingServerURL"
+    case .invalidURL: return "invalidURL"
+    case .missingAccessToken: return "missingAccessToken"
+    case .invalidResponse: return "invalidResponse"
+    case .decoding: return "decoding"
+    case .transport: return "transport"
     }
   }
 }

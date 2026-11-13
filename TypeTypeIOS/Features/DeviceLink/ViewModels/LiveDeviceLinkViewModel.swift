@@ -69,7 +69,7 @@ final class LiveDeviceLinkViewModel: ObservableObject {
   }
 
   static func message(for error: Error) -> String {
-    guard case let NetworkError.statusCode(status, _) = error else {
+    guard case let NetworkError.statusCode(status, _, _) = error else {
       return String(localized: "The instance could not be reached. Check your connection and try again.")
     }
     switch status {

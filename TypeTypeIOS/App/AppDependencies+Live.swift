@@ -70,7 +70,7 @@ extension AppDependencies {
       let token: String
       do {
         token = try await authService.refresh()
-      } catch let NetworkError.statusCode(code, message) where code == 401 {
+      } catch let NetworkError.statusCode(code, message, _) where code == 401 {
         if let serverID {
           NotificationCenter.default.post(
             name: .liveSessionExpired,

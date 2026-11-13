@@ -20,7 +20,7 @@ final class LiveAccountProfilesViewModel: ObservableObject {
       do {
         self.profiles = try await self.service.list()
         self.isUnavailable = false
-      } catch NetworkError.statusCode(let status, _) where status == 403 || status == 404 {
+      } catch NetworkError.statusCode(let status, _, _) where status == 403 || status == 404 {
         self.isUnavailable = true
       }
     }

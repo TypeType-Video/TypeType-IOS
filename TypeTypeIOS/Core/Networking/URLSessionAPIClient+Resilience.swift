@@ -39,9 +39,9 @@ extension URLSessionAPIClient {
     switch networkError {
     case .transport:
       return true
-    case let .statusCode(code, _):
-      return [408, 425, 429, 500, 502, 503, 504]
-        .contains(code)
+    case let .statusCode(code, _, _):
+      return !networkError.isProviderBlock
+        && [408, 425, 429, 500, 502, 503, 504].contains(code)
     default:
       return false
     }
