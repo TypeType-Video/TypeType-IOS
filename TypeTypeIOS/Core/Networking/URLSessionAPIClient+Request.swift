@@ -62,6 +62,11 @@ extension URLSessionAPIClient {
     return request
   }
 
+  func errorCode(from data: Data) -> String? {
+    let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
+    return (json?["code"] as? String).flatMap { $0.isEmpty ? nil : $0 }
+  }
+
   func errorMessage(from data: Data) -> String? {
     if let json = try? JSONSerialization.jsonObject(with: data)
       as? [String: Any] {

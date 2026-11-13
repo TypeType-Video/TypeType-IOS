@@ -31,6 +31,22 @@ struct LiveSettingsPlaybackPage: View {
           disabledReason: autoplayReason
         )
         .disabled(viewModel.isOffline)
+        if viewModel.draft.autoplayOnOpen != nil {
+          LiveSettingToggle(
+            "Autoplay on open",
+            help: "A video you open starts playing at once. Off, it waits for Play.",
+            isOn: flag(\.autoplayOnOpen, otherwise: true)
+          )
+          .disabled(viewModel.isOffline)
+        }
+        if viewModel.draft.hideUpcomingPlaylistVideos != nil {
+          LiveSettingToggle(
+            "Hide upcoming playlist videos",
+            help: "The playback queue hides the videos after the current one until you show them.",
+            isOn: flag(\.hideUpcomingPlaylistVideos, otherwise: false)
+          )
+          .disabled(viewModel.isOffline)
+        }
       } header: {
         Text("Autoplay").liveSectionHeader()
       }
@@ -86,6 +102,13 @@ struct LiveSettingsPlaybackPage: View {
 
   private var autoplayReason: LocalizedStringKey? {
     viewModel.draft.autoplay ? nil : "Turn on autoplay to use this."
+  }
+
+  private func flag(_ key: WritableKeyPath<LiveSettings, Bool?>, otherwise fallback: Bool) -> Binding<Bool> {
+    Binding(
+      get: { viewModel.draft[keyPath: key] ?? fallback },
+      set: { viewModel.draft[keyPath: key] = $0 }
+    )
   }
 
   private var codecBinding: Binding<String> {

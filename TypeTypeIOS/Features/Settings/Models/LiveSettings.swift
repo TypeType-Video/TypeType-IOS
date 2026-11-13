@@ -27,6 +27,9 @@ struct LiveSettings: Codable, Equatable {
   var defaultLandingPage = "home"
   var autoplay = true
   var skipPlaylistAutoplayScreen = false
+  var autoplayOnOpen: Bool?
+  var hideUpcomingPlaylistVideos: Bool?
+  var holdPlaybackSpeed: Double?
   var volume = 1.0
   var muted = false
   var subtitlesEnabled = false

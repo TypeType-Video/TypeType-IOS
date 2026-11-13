@@ -127,7 +127,7 @@ extension LiveImportViewModel {
       do {
         return try await service.youTubeReport(id: id)
       } catch let error as NetworkError {
-        guard case .statusCode(429, _) = error, attempt < 5 else {
+        guard case .statusCode(429, _, _) = error, attempt < 5 else {
           throw error
         }
         try await pacing.sleep(for: .milliseconds(1_200 * (attempt + 1)))

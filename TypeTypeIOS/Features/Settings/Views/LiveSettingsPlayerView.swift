@@ -13,7 +13,7 @@ struct LiveSettingsPlayerView: View {
           LiveSettingsPlaybackPage(viewModel: viewModel, preferences: preferences)
         }
         LiveSettingsLinkRow(title: "Gestures", subtitle: "Tap, swipe and hold on the video", icon: "hand.tap.fill") {
-          LiveSettingsGesturesPage(preferences: preferences)
+          LiveSettingsGesturesPage(preferences: preferences, viewModel: viewModel)
         }
         if viewModel.draft.defaultService == 0 {
           LiveSettingsLinkRow(title: "Language and captions", subtitle: "Subtitles and audio track", icon: "captions.bubble.fill") {

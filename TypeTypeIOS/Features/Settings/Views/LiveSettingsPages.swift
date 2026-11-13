@@ -88,6 +88,15 @@ struct LiveSettingsAccountsView: View {
 
       if coordinator.currentUser.map({ !$0.id.hasPrefix("guest:") }) == true {
         LiveSavedAccountsSection(coordinator: coordinator)
+        if let service = coordinator.dependencies.deviceLinkService {
+          LiveSection {
+            NavigationLink {
+              LiveDeviceLinkView(service: service)
+            } label: {
+              LiveSettingText(title: "Sign in another device", detail: "Enter the code shown on a TV or another device.")
+            }
+          }
+        }
         if coordinator.instance?.youtubeRemoteLoginEnabled == true,
           let service = coordinator.dependencies.youtubeSessionService {
           LiveSection {

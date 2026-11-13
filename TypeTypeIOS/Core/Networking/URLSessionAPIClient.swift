@@ -89,7 +89,7 @@ final class URLSessionAPIClient: APIClient {
         try await self.execute(request, media: media)
       }
     } catch let error as NetworkError {
-      guard case .statusCode(401, _) = error else { throw error }
+      guard case .statusCode(401, _, _) = error else { throw error }
       guard endpoint.requiresAuth else { throw error }
       guard let retryRequest = await makeRetryRequest(from: request) else {
         throw error
@@ -123,7 +123,7 @@ final class URLSessionAPIClient: APIClient {
         try await self.executeDownload(request, resumeData: resumeData, progress: progress)
       }
     } catch let error as NetworkError {
-      guard case .statusCode(401, _) = error else { throw error }
+      guard case .statusCode(401, _, _) = error else { throw error }
       guard endpoint.requiresAuth else { throw error }
       guard let retryRequest = await makeRetryRequest(from: request) else {
         throw error
@@ -143,7 +143,7 @@ final class URLSessionAPIClient: APIClient {
     do {
       return try await executeUpload(request, from: fileURL)
     } catch let error as NetworkError {
-      guard case .statusCode(401, _) = error else { throw error }
+      guard case .statusCode(401, _, _) = error else { throw error }
       guard endpoint.requiresAuth else { throw error }
       guard let retryRequest = await makeRetryRequest(from: request) else {
         throw error

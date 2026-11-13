@@ -27,7 +27,8 @@ extension URLSessionAPIClient {
       guard (200...299).contains(http.statusCode) else {
         throw NetworkError.statusCode(
           http.statusCode,
-          errorMessage(from: data)
+          errorMessage(from: data),
+          code: errorCode(from: data)
         )
       }
       return data
@@ -77,7 +78,8 @@ extension URLSessionAPIClient {
       guard (200...299).contains(http.statusCode) else {
         throw NetworkError.statusCode(
           http.statusCode,
-          errorMessage(from: data)
+          errorMessage(from: data),
+          code: errorCode(from: data)
         )
       }
       return data
@@ -130,7 +132,8 @@ extension URLSessionAPIClient {
         let data = (try? Data(contentsOf: fileURL)) ?? Data()
         throw NetworkError.statusCode(
           http.statusCode,
-          errorMessage(from: data)
+          errorMessage(from: data),
+          code: errorCode(from: data)
         )
       }
       return fileURL

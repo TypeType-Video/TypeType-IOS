@@ -38,6 +38,21 @@ final class LivePlaybackFastStartTests: XCTestCase {
     XCTAssertEqual(Array(client.transientRetries.dropFirst()), Array(repeating: false, count: 4))
   }
 
+  func testAYouTubeBlockFailsAtOnceWithItsOwnMessage() async throws {
+    let routes: Set<String> = ["/streams/youtube/sabr/bootstrap", "/streams/youtube/sabr"]
+    let client = RecordingStreamClient(stream: Self.stream(), failingPaths: routes, failureCode: "provider_access_blocked")
+    let service = Self.service(client)
+
+    do {
+      _ = try await service.stream(for: youtubeURL)
+      XCTFail("A blocked instance should not load the stream.")
+    } catch {
+      XCTAssertEqual(LiveUserError(error), .providerBlocked)
+    }
+
+    XCTAssertEqual(client.paths, ["/streams/youtube/sabr"])
+  }
+
   func testDiscardedRequestIsAskedAgain() async throws {
     let client = RecordingStreamClient(stream: Self.stream(), delay: .milliseconds(400))
     let service = Self.service(client)
@@ -173,14 +188,16 @@ final class RecordingStreamClient: APIClient, @unchecked Sendable {
   private var recordedRetries: [Bool] = []
   private let stream: LivePlaybackStream
   private let failingPaths: Set<String>
+  private let failureCode: String?
   private let delay: Duration?
 
   var paths: [String] { lock.withLock { recordedPaths } }
   var transientRetries: [Bool] { lock.withLock { recordedRetries } }
 
-  init(stream: LivePlaybackStream, failingPaths: Set<String> = [], delay: Duration? = nil) {
+  init(stream: LivePlaybackStream, failingPaths: Set<String> = [], failureCode: String? = nil, delay: Duration? = nil) {
     self.stream = stream
     self.failingPaths = failingPaths
+    self.failureCode = failureCode
     self.delay = delay
   }
 
@@ -190,7 +207,7 @@ final class RecordingStreamClient: APIClient, @unchecked Sendable {
       recordedRetries.append(endpoint.retriesTransientFailures)
     }
     if let delay { try await Task.sleep(for: delay) }
-    if failingPaths.contains(endpoint.path) { throw NetworkError.statusCode(503, nil) }
+    if failingPaths.contains(endpoint.path) { throw NetworkError.statusCode(503, nil, code: failureCode) }
     guard let value = stream as? T else { throw NetworkError.invalidResponse }
     return value
   }

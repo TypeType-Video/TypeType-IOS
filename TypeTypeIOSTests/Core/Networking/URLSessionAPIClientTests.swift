@@ -118,7 +118,7 @@ final class URLSessionAPIClientTests: XCTestCase {
       )
       XCTFail("Expected HTTP 401.")
     } catch let error as NetworkError {
-      guard case let .statusCode(status, message) = error else {
+      guard case let .statusCode(status, message, _) = error else {
         return XCTFail("Expected a status-code error.")
       }
       XCTAssertEqual(status, 401)

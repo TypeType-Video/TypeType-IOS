@@ -69,7 +69,7 @@ final class LiveRssFeedsViewModelTests: XCTestCase {
     await viewModel.setEnabled(false, for: feed)
 
     XCTAssertEqual(viewModel.feeds.first?.enabled, true)
-    XCTAssertEqual(viewModel.errorMessage, "Network transport failed.")
+    XCTAssertEqual(viewModel.errorMessage, LiveUserError.instanceUnreachable.message)
   }
 }
 

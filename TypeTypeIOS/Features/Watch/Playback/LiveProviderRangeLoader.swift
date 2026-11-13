@@ -140,7 +140,7 @@ struct LiveProviderRangeLoader {
   ) -> Bool {
     guard range.upperBound - range.lowerBound + 1
       > Self.minimumRetryByteCount,
-      case let NetworkError.statusCode(code, message) = error,
+      case let NetworkError.statusCode(code, message, _) = error,
       code == 422
     else {
       return false

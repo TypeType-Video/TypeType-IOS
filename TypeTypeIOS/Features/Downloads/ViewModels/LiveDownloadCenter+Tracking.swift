@@ -88,7 +88,7 @@ extension LiveDownloadCenter {
     switch networkError {
     case .transport:
       return true
-    case let .statusCode(code, _):
+    case let .statusCode(code, _, _):
       return [408, 425, 429, 500, 502, 503, 504]
         .contains(code)
     default:

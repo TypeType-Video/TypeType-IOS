@@ -32,6 +32,7 @@ extension LivePlayerController {
         videoURL: video.url
       )
       settings = (try? await settingsRequest) ?? LiveSettings()
+      let startsPlaying = initialAutoplay && (!followsAutoplayOnOpen || settings.startsWhenOpened)
       applyLoadedSettings()
       afterFirstFrame { [weak self] in self?.loadBulletCommentsIfNeeded() }
       let loadedStream = try await streamRequest
@@ -77,14 +78,14 @@ extension LivePlayerController {
       }
       resetProviderRecoveryState(
         for: preparation,
-        autoplay: initialAutoplay
+        autoplay: startsPlaying
       )
       await audioSession
       startupTrace.mark("audio")
       guard generation == loadGeneration else { return }
       try await installWithProviderFallback(
         preparation,
-        autoplay: initialAutoplay,
+        autoplay: startsPlaying,
         seekOverride: nil
       )
     } catch is CancellationError {

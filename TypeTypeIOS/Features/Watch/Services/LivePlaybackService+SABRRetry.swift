@@ -33,8 +33,8 @@ extension LivePlaybackService {
     switch networkError {
     case .transport:
       break
-    case let .statusCode(code, _):
-      guard [502, 503, 504].contains(code) else { return nil }
+    case let .statusCode(code, _, _):
+      guard [502, 503, 504].contains(code), !networkError.isProviderBlock else { return nil }
     default:
       return nil
     }

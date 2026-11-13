@@ -126,7 +126,7 @@ final class LiveHistoryService: LiveHistoryServiceProtocol {
       )
       return max(item.position, 0)
     } catch let error as NetworkError {
-      guard case .statusCode(404, _) = error else { throw error }
+      guard case .statusCode(404, _, _) = error else { throw error }
       return nil
     }
   }
@@ -141,7 +141,7 @@ final class LiveHistoryService: LiveHistoryServiceProtocol {
         )
       )
     } catch let error as NetworkError {
-      guard case .statusCode(404, _) = error else { throw error }
+      guard case .statusCode(404, _, _) = error else { throw error }
     }
   }
 

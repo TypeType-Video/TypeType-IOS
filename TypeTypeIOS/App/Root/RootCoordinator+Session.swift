@@ -213,7 +213,7 @@ extension RootCoordinator {
   private func shouldInvalidateCachedSession(
     after error: Error
   ) -> Bool {
-    guard case let NetworkError.statusCode(code, _) = error else {
+    guard case let NetworkError.statusCode(code, _, _) = error else {
       return false
     }
     return code == 401 || code == 403
