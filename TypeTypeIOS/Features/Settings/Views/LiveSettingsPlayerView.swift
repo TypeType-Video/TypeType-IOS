@@ -34,6 +34,13 @@ struct LiveSettingsPlayerView: View {
           }
         }
       }
+      LiveSection {
+        LiveSettingToggle(
+          "Animate GIFs in comments",
+          help: "GIFs attached to comments stay still until you turn this on.",
+          isOn: preferences.binding(\.commentsAnimateGIFs)
+        )
+      }
     }
     .liveGroupedList()
     .navigationTitle("Player")

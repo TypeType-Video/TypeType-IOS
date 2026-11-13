@@ -66,6 +66,16 @@ struct LiveSettingsDiscoverySection: View {
           )
         )
       }
+      if settings.hideEndScreens != nil {
+        LiveSettingToggle(
+          "Hide end screens",
+          help: "The cards YouTube creators place over the last seconds of a video.",
+          isOn: Binding(
+            get: { settings.hideEndScreens ?? false },
+            set: { settings.hideEndScreens = $0 }
+          )
+        )
+      }
     } header: {
       Text("Hidden sections").liveSectionHeader()
     }

@@ -52,10 +52,10 @@ final class LiveSeekbarIconTests: XCTestCase {
 
   func testAnimatedIconsKeepTheirFrames() throws {
     let gif = try Self.image(.gif, frames: 3)
-    let image = try XCTUnwrap(LiveSeekbarIconLoader.decode(gif))
+    let image = try XCTUnwrap(LiveAnimatedImageLoader.decode(gif))
     XCTAssertEqual(image.images?.count, 3)
     XCTAssertEqual(image.duration, 0.3, accuracy: 0.01)
-    XCTAssertNil(try XCTUnwrap(LiveSeekbarIconLoader.decode(Self.image(.png, frames: 1))).images)
+    XCTAssertNil(try XCTUnwrap(LiveAnimatedImageLoader.decode(Self.image(.png, frames: 1))).images)
   }
 
   private static func image(_ type: UTType, frames: Int, side: Int = 32) throws -> Data {

@@ -21,6 +21,7 @@ struct LiveAppPreferences: Codable, Equatable {
   var danmakuEnabled = false
   var danmakuSpeed = 1.0
   var danmakuSize = 1.0
+  var commentsAnimateGIFs = false
 
   var accent: Color {
     guard accentColor == .custom else { return accentColor.color }
@@ -38,6 +39,7 @@ struct LiveAppPreferences: Codable, Equatable {
     case playerAutoplayCountdownSeconds
     case playerAudioOnlyPlayback, playerPauseInBackground
     case danmakuEnabled, danmakuSpeed, danmakuSize
+    case commentsAnimateGIFs
   }
 
   init() {}
@@ -104,5 +106,8 @@ struct LiveAppPreferences: Codable, Equatable {
     danmakuSize = try values.decodeIfPresent(
       Double.self, forKey: .danmakuSize
     ) ?? 1
+    commentsAnimateGIFs = try values.decodeIfPresent(
+      Bool.self, forKey: .commentsAnimateGIFs
+    ) ?? false
   }
 }

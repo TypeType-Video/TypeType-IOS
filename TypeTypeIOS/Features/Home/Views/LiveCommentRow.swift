@@ -4,6 +4,8 @@ struct LiveCommentRow: View {
   @Environment(\.themePalette) var palette
   let comment: LiveCommentItem
   @ObservedObject var threads: LiveCommentThreads
+  let voice: LiveCommentVoicePlayer
+  let animatesGIFs: Bool
   let onChannel: (String) -> Void
   let onSeekTimestamp: (Double) -> Void
   let onOpenURL: (URL) -> Void
@@ -30,6 +32,8 @@ struct LiveCommentRow: View {
         )
           .foregroundStyle(.primary)
           .textSelection(.enabled)
+
+        LiveCommentAttachments(comment: comment, voice: voice, animatesGIFs: animatesGIFs)
 
         badges
 
@@ -78,6 +82,8 @@ struct LiveCommentRow: View {
       ForEach(thread.replies) { reply in
         LiveCommentReplyRow(
           comment: reply,
+          voice: voice,
+          animatesGIFs: animatesGIFs,
           onChannel: onChannel,
           onSeekTimestamp: onSeekTimestamp,
           onOpenURL: onOpenURL
