@@ -75,6 +75,7 @@ final class LivePlayerController: ObservableObject {
 
   let video: LiveVideoItem
   let initialAutoplay: Bool
+  var followsAutoplayOnOpen = false
   let pictureInPicture = LivePictureInPictureDriver()
   var isPlayerSurfaceFullyVisible = true
   // Set on stop or close: pending async work must never start playback afterwards.

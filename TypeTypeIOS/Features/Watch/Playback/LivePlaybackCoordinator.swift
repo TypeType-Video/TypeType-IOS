@@ -100,7 +100,7 @@ final class LivePlaybackCoordinator: ObservableObject {
     }
     clearQueue()
     presentation = .expanded
-    replacePlayback(with: video, autoplay: true)
+    replacePlayback(with: video, autoplay: true, opened: true)
   }
 
   // Downloads play in the same player as online videos: one controller, so the mini player, PiP and background audio
@@ -138,7 +138,7 @@ final class LivePlaybackCoordinator: ObservableObject {
     )
     persistQueue()
     presentation = .expanded
-    replacePlayback(with: first, autoplay: true)
+    replacePlayback(with: first, autoplay: true, opened: true)
     return first
   }
 

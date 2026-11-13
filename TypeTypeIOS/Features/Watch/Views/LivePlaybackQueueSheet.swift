@@ -3,13 +3,14 @@ import SwiftUI
 struct LivePlaybackQueueSheet: View {
   @ObservedObject var coordinator: LivePlaybackCoordinator
   @Environment(\.dismiss) private var dismiss
+  @State private var upcomingOverride: Bool?
 
   var body: some View {
     NavigationStack {
       List {
         Section {
           ForEach(
-            Array(coordinator.queue.videos.enumerated()),
+            Array(coordinator.queue.videos.enumerated().prefix(shownCount)),
             id: \.element.url
           ) { index, video in
             LivePlaybackQueueRow(
@@ -50,10 +51,32 @@ struct LivePlaybackQueueSheet: View {
           : coordinator.queue.title
       )
       .font(.headline)
-      Text("\(coordinator.queue.videos.count) videos")
-        .font(.caption)
+      HStack {
+        Text("\(coordinator.queue.videos.count) videos")
+          .font(.caption)
+        Spacer()
+        if hasUpcoming {
+          Button(upcomingHidden ? LocalizedStringKey("Show upcoming") : "Hide upcoming", systemImage: upcomingHidden ? "eye" : "eye.slash") {
+            upcomingOverride = !upcomingHidden
+          }
+          .font(.caption)
+          .accessibilityIdentifier("live.playback.queue.upcoming")
+        }
+      }
     }
     .textCase(nil)
+  }
+
+  private var hasUpcoming: Bool {
+    coordinator.queue.currentIndex + 1 < coordinator.queue.videos.count
+  }
+
+  private var upcomingHidden: Bool {
+    upcomingOverride ?? coordinator.controller?.settings.hidesUpcomingPlaylistVideos ?? false
+  }
+
+  private var shownCount: Int {
+    upcomingHidden ? coordinator.queue.currentIndex + 1 : coordinator.queue.videos.count
   }
 
   @ToolbarContentBuilder

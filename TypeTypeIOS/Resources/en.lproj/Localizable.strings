@@ -483,7 +483,6 @@
 "Double-tap the left or right side to go back or forward." = "Double-tap the left or right side to go back or forward.";
 "Drag sideways on the video to move through it." = "Drag sideways on the video to move through it.";
 "Drag up or down: brightness on the left, volume on the right." = "Drag up or down: brightness on the left, volume on the right.";
-"Hold to play at 2x, slide up or down to change the speed." = "Hold to play at 2x, slide up or down to change the speed.";
 "Off while accessible player controls are on." = "Off while accessible player controls are on.";
 "Turn on double-tap to seek to use this." = "Turn on double-tap to seek to use this.";
 "Subtitles show as soon as a video starts." = "Subtitles show as soon as a video starts.";
@@ -1050,3 +1049,13 @@
 "Too many attempts. Wait a moment, then try again." = "Too many attempts. Wait a moment, then try again.";
 "This instance does not allow signing in other devices with this account." = "This instance does not allow signing in other devices with this account.";
 "The device could not be signed in. Try again." = "The device could not be signed in. Try again.";
+"Autoplay on open" = "Autoplay on open";
+"A video you open starts playing at once. Off, it waits for Play." = "A video you open starts playing at once. Off, it waits for Play.";
+"Hide upcoming playlist videos" = "Hide upcoming playlist videos";
+"The playback queue hides the videos after the current one until you show them." = "The playback queue hides the videos after the current one until you show them.";
+"Hold speed" = "Hold speed";
+"The speed while you hold the video." = "The speed while you hold the video.";
+"Turn on long-press to speed up to use this." = "Turn on long-press to speed up to use this.";
+"Hold to play faster, slide up or down to change the speed." = "Hold to play faster, slide up or down to change the speed.";
+"Show upcoming" = "Show upcoming";
+"Hide upcoming" = "Hide upcoming";

@@ -2,6 +2,7 @@ import SwiftUI
 
 struct LiveSettingsGesturesPage: View {
   @ObservedObject var preferences: LiveAppPreferencesStore
+  @ObservedObject var viewModel: LiveSettingsViewModel
   @Environment(\.accessibilityVoiceOverEnabled) private var voiceOverEnabled
 
   var body: some View {
@@ -40,10 +41,20 @@ struct LiveSettingsGesturesPage: View {
         )
         LiveSettingToggle(
           "Long-press to speed up",
-          help: "Hold to play at 2x, slide up or down to change the speed.",
+          help: "Hold to play faster, slide up or down to change the speed.",
           isOn: preferences.binding(\.playerLongPressSpeedEnabled),
           disabledReason: gestureReason
         )
+        if viewModel.draft.holdPlaybackSpeed != nil {
+          LiveOptionMenu(
+            "Hold speed",
+            selection: holdSpeed,
+            options: LiveSettings.holdPlaybackSpeeds.map { ($0, "\($0.formatted())x") },
+            help: "The speed while you hold the video.",
+            disabledReason: gestureReason ?? holdReason
+          )
+          .disabled(viewModel.isOffline)
+        }
       } header: {
         Text("On the video").liveSectionHeader()
       }
@@ -51,6 +62,14 @@ struct LiveSettingsGesturesPage: View {
     .liveGroupedList()
     .navigationTitle("Gestures")
     .navigationBarTitleDisplayMode(.inline)
+  }
+
+  private var holdSpeed: Binding<Double> {
+    Binding(get: { viewModel.draft.holdSpeed }, set: { viewModel.draft.holdPlaybackSpeed = $0 })
+  }
+
+  private var holdReason: LocalizedStringKey? {
+    preferences.preferences.playerLongPressSpeedEnabled ? nil : "Turn on long-press to speed up to use this."
   }
 
   private var gestureReason: LocalizedStringKey? {
