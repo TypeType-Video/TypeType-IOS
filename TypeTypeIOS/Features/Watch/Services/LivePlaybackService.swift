@@ -120,6 +120,8 @@ final class LivePlaybackService: LivePlaybackServiceProtocol {
         )
       } catch is CancellationError {
         throw CancellationError()
+      } catch let error as NetworkError where error.isProviderBlock {
+        throw error
       } catch {
         return try await youtubeSABRStream(
           path: path,
@@ -189,7 +191,8 @@ final class LivePlaybackService: LivePlaybackServiceProtocol {
   private func isRetryableSABRBootstrap(_ error: Error) -> Bool {
     guard let networkError = error as? NetworkError else { return false }
     switch networkError {
-    case let .statusCode(code, message):
+    case let .statusCode(code, message, _):
+      if networkError.isProviderBlock { return false }
       if [502, 503, 504].contains(code) { return true }
       return code == 422
         && message?.localizedCaseInsensitiveContains(

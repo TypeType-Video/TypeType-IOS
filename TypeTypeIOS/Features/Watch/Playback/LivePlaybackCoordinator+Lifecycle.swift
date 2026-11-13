@@ -82,6 +82,7 @@ extension LivePlaybackCoordinator {
   func replacePlayback(
     with video: LiveVideoItem,
     autoplay: Bool,
+    opened: Bool = false,
     offline: LiveOfflinePlaybackItem? = nil
   ) {
     playbackGeneration += 1
@@ -90,6 +91,7 @@ extension LivePlaybackCoordinator {
     controller?.stop()
     prewarmNextQueueEntry()
     let next = playerFactory(video, autoplay)
+    next.followsAutoplayOnOpen = opened
     next.onPlaybackEnded = { [weak self, weak next] in
       guard let self, self.controller === next,
         self.playbackGeneration == generation

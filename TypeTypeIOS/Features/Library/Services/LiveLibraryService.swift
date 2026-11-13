@@ -31,7 +31,7 @@ final class LiveLibraryService: LiveLibraryServiceProtocol {
         as: LiveFavoriteItem.self
       )
     } catch let error as NetworkError {
-      guard case .statusCode(404, _) = error else { throw error }
+      guard case .statusCode(404, _, _) = error else { throw error }
       return nil
     }
   }
@@ -78,7 +78,7 @@ final class LiveLibraryService: LiveLibraryServiceProtocol {
     do {
       try await apiClient.request(endpoint(path, .delete))
     } catch let error as NetworkError {
-      guard case .statusCode(404, _) = error else { throw error }
+      guard case .statusCode(404, _, _) = error else { throw error }
     }
   }
 

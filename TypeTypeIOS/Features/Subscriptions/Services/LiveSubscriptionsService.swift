@@ -179,7 +179,7 @@ final class LiveSubscriptionsService:
         )
       )
     } catch let error as NetworkError {
-      guard case .statusCode(404, _) = error else { throw error }
+      guard case .statusCode(404, _, _) = error else { throw error }
     }
   }
 

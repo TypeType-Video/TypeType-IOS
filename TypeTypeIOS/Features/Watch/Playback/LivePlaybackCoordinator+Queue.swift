@@ -15,7 +15,7 @@ extension LivePlaybackCoordinator {
     queue.currentIndex = index
     touchAndPersist()
     presentation = .expanded
-    replacePlayback(with: queue.videos[index], autoplay: true)
+    replacePlayback(with: queue.videos[index], autoplay: true, opened: true)
   }
 
   func playNext(index: Int) {

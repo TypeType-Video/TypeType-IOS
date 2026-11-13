@@ -75,6 +75,7 @@ final class LivePlayerController: ObservableObject {
 
   let video: LiveVideoItem
   let initialAutoplay: Bool
+  var followsAutoplayOnOpen = false
   let pictureInPicture = LivePictureInPictureDriver()
   var isPlayerSurfaceFullyVisible = true
   // Set on stop or close: pending async work must never start playback afterwards.
@@ -212,12 +213,6 @@ final class LivePlayerController: ObservableObject {
   }
 
   static func message(for error: Error) -> String {
-    if case let NetworkError.statusCode(code, message)? = error as? NetworkError,
-      (400..<500).contains(code), code != 401,
-      let message = message?.trimmingCharacters(in: .whitespacesAndNewlines),
-      !message.isEmpty {
-      return message
-    }
     if let description = (error as? LocalizedError)?.errorDescription,
       !description.isEmpty {
       return description
@@ -231,7 +226,7 @@ final class LivePlayerController: ObservableObject {
   static func logPreparationFailure(_ error: Error) {
     let failure = error as NSError
     AppLogger.app.error(
-      "Playback preparation failed: \(failure.domain, privacy: .public) \(failure.code) \(failure.localizedDescription, privacy: .public)"
+      "Playback preparation failed: \(String(describing: error), privacy: .public) \(failure.localizedDescription, privacy: .public)"
     )
     if let underlying = failure.userInfo[
       NSUnderlyingErrorKey

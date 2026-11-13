@@ -147,7 +147,7 @@ extension LivePlaybackHTTPServer {
     guard case let .upstream(url) = route.target,
       url.scheme == LivePlaybackService.authenticatedScheme,
       url.path.contains("/sabr/playback/"),
-      case let NetworkError.statusCode(code, message) = error,
+      case let NetworkError.statusCode(code, message, _) = error,
       code == 409
     else {
       return false
