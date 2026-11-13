@@ -143,7 +143,8 @@ struct LiveVideoMetadataContentView: View {
         dependencies: dependencies,
         posterURL: posterURL,
         cinemaMode: $cinemaMode,
-        isScrolled: isScrolled
+        isScrolled: isScrolled,
+        onOpenLink: routeLink
       )
       .padding(.horizontal, playerInset)
     }

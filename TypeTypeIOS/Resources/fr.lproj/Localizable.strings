@@ -1102,3 +1102,9 @@
 "%lld images of the post" = "%lld images du post";
 "Poll" = "Sondage";
 "Play %@" = "Lire %@";
+"Hide end screens" = "Masquer les écrans de fin";
+"The cards YouTube creators place over the last seconds of a video." = "Les cartes que les créateurs YouTube placent sur les dernières secondes d'une vidéo.";
+"Plays this video." = "Lit cette vidéo.";
+"Opens this playlist." = "Ouvre cette playlist.";
+"Opens this channel." = "Ouvre cette chaîne.";
+"Opens this website after asking." = "Ouvre ce site après confirmation.";

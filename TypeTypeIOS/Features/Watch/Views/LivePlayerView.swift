@@ -15,15 +15,6 @@ struct LivePlayerView: View {
   @State var swipeAdjustment: PlayerSwipeAdjustmentState?
   @State var volumeButtonLevel: PlayerSwipeAdjustmentState?
   @State var speedBoostRate: Float?
-  nonisolated(unsafe) static var gestureLog: [String] = []
-
-  static func logGesture(_ text: String) {
-    #if DEBUG
-    gestureLog.insert(text, at: 0)
-    if gestureLog.count > 4 { gestureLog.removeLast() }
-    AppLogger.playback.info("gesture: \(text, privacy: .public)")
-    #endif
-  }
   @State var systemBrightnessBeforeSwipe: CGFloat?
   @State var longPressBaseRate: Float?
   @GestureState var isSpeedRamping = false
@@ -35,6 +26,7 @@ struct LivePlayerView: View {
   @Environment(\.verticalSizeClass) private var verticalSizeClass
   @Environment(\.accessibilityVoiceOverEnabled) var voiceOverEnabled
   var isScrolled = false
+  var onOpenLink: (URL) -> Void = { _ in }
 
   var accessibleControls: Bool {
     preferences.preferences.usesAccessiblePlayerControls(voiceOver: voiceOverEnabled)
@@ -53,6 +45,10 @@ struct LivePlayerView: View {
           .onChange(of: accessibleControls, initial: true) { _, value in
             nativeControls.staysVisible = value
           }
+
+        if controller.drawsOwnControls {
+          LiveEndScreenOverlay(controller: controller, onOpen: onOpenLink)
+        }
 
         if controller.audioOnly {
           LiveAudioOnlyPoster(
