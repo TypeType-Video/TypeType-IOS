@@ -65,6 +65,7 @@ struct LiveSettings: Codable, Equatable {
   var hideComments = false
   var hideShorts = false
   var hideSubscriptionLiveStreams: Bool?
+  var hideEndScreens: Bool?
   var disableWatchHistory = false
   var deArrowEnabled = false
   var deArrowTitleMode = "dearrow"

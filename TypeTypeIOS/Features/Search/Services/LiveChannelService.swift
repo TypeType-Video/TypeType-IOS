@@ -8,7 +8,8 @@ protocol LiveChannelServiceProtocol {
   ) async throws -> LiveChannelPage
   func playlists(
     url: String,
-    nextPage: String?
+    nextPage: String?,
+    tab: String?
   ) async throws -> LiveChannelPlaylistsPage
   func podcasts(
     url: String,
@@ -18,6 +19,13 @@ protocol LiveChannelServiceProtocol {
     url: String,
     nextPage: String?
   ) async throws -> LivePodcastEpisodesPage
+  func posts(url: String, nextPage: String?) async throws -> LiveCommunityPostsPage
+}
+
+extension LiveChannelServiceProtocol {
+  func posts(url: String, nextPage: String?) async throws -> LiveCommunityPostsPage {
+    throw NetworkError.statusCode(404, nil)
+  }
 }
 
 final class LiveChannelService: LiveChannelServiceProtocol {
@@ -52,13 +60,17 @@ final class LiveChannelService: LiveChannelServiceProtocol {
 
   func playlists(
     url: String,
-    nextPage: String? = nil
+    nextPage: String? = nil,
+    tab: String? = nil
   ) async throws -> LiveChannelPlaylistsPage {
     var queryItems = [URLQueryItem(name: "url", value: url)]
     if let nextPage, !nextPage.isEmpty {
       queryItems.append(
         URLQueryItem(name: "nextpage", value: nextPage)
       )
+    }
+    if let tab {
+      queryItems.append(URLQueryItem(name: "tab", value: tab))
     }
     return try await apiClient.request(
       APIEndpoint(
@@ -69,6 +81,17 @@ final class LiveChannelService: LiveChannelServiceProtocol {
         timeoutInterval: 90
       ),
       as: LiveChannelPlaylistsPage.self
+    )
+  }
+
+  func posts(url: String, nextPage: String?) async throws -> LiveCommunityPostsPage {
+    var queryItems = [URLQueryItem(name: "url", value: url)]
+    if let nextPage, !nextPage.isEmpty {
+      queryItems.append(URLQueryItem(name: "nextpage", value: nextPage))
+    }
+    return try await apiClient.request(
+      APIEndpoint(path: "/channel/posts", method: .get, queryItems: queryItems, requiresAuth: true, timeoutInterval: 90),
+      as: LiveCommunityPostsPage.self
     )
   }
 

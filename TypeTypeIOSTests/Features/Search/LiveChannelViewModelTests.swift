@@ -244,7 +244,8 @@ private final class ChannelServiceStub: LiveChannelServiceProtocol {
 
   func playlists(
     url: String,
-    nextPage: String?
+    nextPage: String?,
+    tab: String?
   ) async throws -> LiveChannelPlaylistsPage {
     try lock.withLock {
       recordedPlaylistCalls.append(Call(nextPage: nextPage))

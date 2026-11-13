@@ -1,37 +1,41 @@
 import ImageIO
 import UIKit
 
-actor LiveSeekbarIconLoader {
-  static let shared = LiveSeekbarIconLoader()
+actor LiveAnimatedImageLoader {
+  static let seekbarIcons = LiveAnimatedImageLoader(maxPixels: 160, maxFrames: 240, keeps: 8)
+  static let comments = LiveAnimatedImageLoader(maxPixels: 320, maxFrames: 90, keeps: 3)
 
-  private var images: [URL: UIImage] = [:]
+  private let images = NSCache<NSURL, UIImage>()
   private var running: [URL: Task<UIImage?, Never>] = [:]
   private let session: URLSession
-  private static let maxPixels: CGFloat = 160
-  private static let maxFrames = 240
+  private let maxPixels: CGFloat
+  private let maxFrames: Int
 
-  init(session: URLSession = .shared) {
+  init(maxPixels: CGFloat, maxFrames: Int, keeps: Int, session: URLSession = .shared) {
+    self.maxPixels = maxPixels
+    self.maxFrames = maxFrames
     self.session = session
+    images.countLimit = keeps
   }
 
   func image(for url: URL) async -> UIImage? {
-    if let image = images[url] { return image }
+    if let image = images.object(forKey: url as NSURL) { return image }
     if let task = running[url] { return await task.value }
-    let session = session
+    let (session, maxPixels, maxFrames) = (session, maxPixels, maxFrames)
     let task = Task.detached(priority: .utility) { () -> UIImage? in
       guard let (data, response) = try? await session.data(from: url),
         (response as? HTTPURLResponse).map({ (200..<300).contains($0.statusCode) }) ?? true
       else { return nil }
-      return Self.decode(data)
+      return Self.decode(data, maxPixels: maxPixels, maxFrames: maxFrames)
     }
     running[url] = task
     let image = await task.value
     running[url] = nil
-    if let image { images[url] = image }
+    if let image { images.setObject(image, forKey: url as NSURL) }
     return image
   }
 
-  nonisolated static func decode(_ data: Data, maxPixels: CGFloat = maxPixels) -> UIImage? {
+  nonisolated static func decode(_ data: Data, maxPixels: CGFloat = 160, maxFrames: Int = 240) -> UIImage? {
     guard let source = CGImageSourceCreateWithData(data as CFData, [kCGImageSourceShouldCache: false] as CFDictionary)
     else { return nil }
     let options = [

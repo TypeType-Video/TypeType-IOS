@@ -51,7 +51,7 @@ extension LiveChannelView {
     }
     .background(LiveThemeBackground().ignoresSafeArea())
     .refreshable {
-      if viewModel.selectedTab == .playlists {
+      if viewModel.selectedTab.listsPlaylists {
         await viewModel.loadPlaylists()
       } else {
         await viewModel.reloadChannel()
@@ -61,6 +61,15 @@ extension LiveChannelView {
 
   @ViewBuilder
   private var stateContent: some View {
+    if viewModel.selectedTab == .posts {
+      LiveChannelPostsView(channelURL: viewModel.channelURL, service: viewModel.channelService, onOpenURL: routeLink)
+    } else {
+      channelStateContent
+    }
+  }
+
+  @ViewBuilder
+  private var channelStateContent: some View {
     switch viewModel.state {
     case .idle, .loading:
       TypeTypeSkeletonList(layout: .cards, count: 3, scrolls: false)
@@ -72,7 +81,7 @@ extension LiveChannelView {
       } actions: {
         Button("Try again") {
           Task {
-            if viewModel.selectedTab == .playlists {
+            if viewModel.selectedTab.listsPlaylists {
               await viewModel.loadPlaylists()
             } else {
               await viewModel.reloadChannel()
@@ -96,24 +105,6 @@ extension LiveChannelView {
     }
   }
 
-  private var aboutContent: some View {
-    VStack(alignment: .leading, spacing: 12) {
-      Text("About")
-        .font(.headline)
-      if let channel = viewModel.channel, !channel.description.isEmpty {
-        InteractiveText(text: channel.description, font: .subheadline, lineLimit: nil, onOpenURL: routeLink)
-          .foregroundStyle(.secondary)
-          .textSelection(.enabled)
-      } else {
-        Text("This channel has no description.")
-          .font(.subheadline)
-          .foregroundStyle(.secondary)
-      }
-    }
-    .frame(maxWidth: .infinity, alignment: .leading)
-    .accessibilityIdentifier("live.channel.about")
-  }
-
   private var loadedContent: some View {
     LazyVGrid(
       columns: [
@@ -126,7 +117,7 @@ extension LiveChannelView {
       alignment: .leading,
       spacing: 24
     ) {
-      if viewModel.selectedTab == .playlists {
+      if viewModel.selectedTab.listsPlaylists {
         ForEach(viewModel.playlists) { playlist in
           LiveSearchPlaylistCard(playlist: playlist) {
             selectedPlaylist = playlist

@@ -2,13 +2,15 @@ import SwiftUI
 
 extension LiveChannelView {
   var emptyTitle: String {
-    viewModel.selectedTab == .playlists
-      ? "No playlists"
-      : "No videos"
+    switch viewModel.selectedTab {
+    case .playlists: "No playlists"
+    case .courses: "No courses"
+    default: "No videos"
+    }
   }
 
   var emptySystemImage: String {
-    viewModel.selectedTab == .playlists
+    viewModel.selectedTab.listsPlaylists
       ? "rectangle.stack"
       : "play.rectangle"
   }

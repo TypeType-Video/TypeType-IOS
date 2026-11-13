@@ -15,6 +15,8 @@ struct LiveCommentItem: Decodable, Equatable, Hashable, Identifiable {
   let uploaderVerified: Bool
   let replyCount: Int
   let repliesPage: String?
+  var image: LiveCommentImage?
+  var voiceReply: LiveCommentVoiceReply?
 
   var authorAvatar: URL? {
     URL(string: authorAvatarURL)
@@ -70,6 +72,7 @@ struct LiveCommentItem: Decodable, Equatable, Hashable, Identifiable {
     case authorAvatarURL = "authorAvatarUrl"
     case publishedAt, isHeartedByUploader, isPinned
     case uploaderVerified, replyCount, repliesPage
+    case image, voiceReply
   }
 }
 

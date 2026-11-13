@@ -8,8 +8,10 @@ struct LiveCommentsSectionView: View, Equatable {
   let onSeekTimestamp: (Double) -> Void
   let onOpenURL: (URL) -> Void
 
-  @StateObject private var viewModel: LiveCommentsViewModel
-  @StateObject private var threads: LiveCommentThreads
+  @StateObject var viewModel: LiveCommentsViewModel
+  @StateObject var threads: LiveCommentThreads
+  @StateObject var search: LiveCommentSearchViewModel
+  @StateObject var voice: LiveCommentVoicePlayer
 
   init(
     videoURL: String,
@@ -33,6 +35,8 @@ struct LiveCommentsSectionView: View, Equatable {
     _threads = StateObject(
       wrappedValue: LiveCommentThreads(videoURL: videoURL, service: dependencies.commentsService)
     )
+    _search = StateObject(wrappedValue: LiveCommentSearchViewModel(videoURL: videoURL, service: dependencies.commentsService))
+    _voice = StateObject(wrappedValue: LiveCommentVoicePlayer(service: dependencies.commentsService))
   }
 
   // The watch page redraws on every player tick; the comments only change with their own state, so a redraw of
@@ -49,6 +53,7 @@ struct LiveCommentsSectionView: View, Equatable {
       content
     }
     .task { await viewModel.prepare() }
+    .onDisappear { voice.stop() }
     .accessibilityIdentifier("live.comments.section")
   }
 
@@ -109,25 +114,12 @@ struct LiveCommentsSectionView: View, Equatable {
           systemImage: "bubble.left"
         )
       } else {
-        // A plain stack: a lazy one rebuilds rows of different heights on the way back up and the page jumps.
-        VStack(alignment: .leading, spacing: 18) {
-          ForEach(viewModel.comments) { comment in
-            LiveCommentRow(
-              comment: comment,
-              threads: threads,
-              onChannel: onChannel,
-              onSeekTimestamp: onSeekTimestamp,
-              onOpenURL: onOpenURL
-            )
-            Divider()
-          }
-          LiveIncrementalLoadingTrigger(
-            canLoadMore: viewModel.canLoadMore,
-            isLoading: viewModel.isLoadingMore,
-            label: "Loading more comments",
-            identifier: "live.comments.loading-more"
-          ) {
-            Task { await viewModel.loadMore() }
+        VStack(alignment: .leading, spacing: 14) {
+          searchField
+          if search.isActive {
+            searchResults
+          } else {
+            commentList
           }
         }
       }

@@ -65,7 +65,7 @@ struct LiveSeekbarRemoteIcon: View {
       }
     }
     .task(id: url) {
-      let image = await LiveSeekbarIconLoader.shared.image(for: url)
+      let image = await LiveAnimatedImageLoader.seekbarIcons.image(for: url)
       guard !Task.isCancelled else { return }
       loaded = (url, image)
     }

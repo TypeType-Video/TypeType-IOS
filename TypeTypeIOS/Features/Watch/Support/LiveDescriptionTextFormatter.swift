@@ -8,10 +8,13 @@ enum LiveDescriptionTextFormatter {
     let trimmed = rawValue.trimmingCharacters(
       in: .whitespacesAndNewlines
     )
-    guard isNicoNico(sourceURL), trimmed.contains("<") else {
-      return trimmed
-    }
+    guard isNicoNico(sourceURL) else { return trimmed }
+    return plainText(fromHTML: trimmed)
+  }
 
+  static func plainText(fromHTML rawValue: String) -> String {
+    let trimmed = rawValue.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard trimmed.contains("<") || trimmed.contains("&") else { return trimmed }
     var value = preservingAnchorDestinations(in: trimmed)
     value = value.replacingOccurrences(
       of: #"(?i)<br\s*/?>"#,
