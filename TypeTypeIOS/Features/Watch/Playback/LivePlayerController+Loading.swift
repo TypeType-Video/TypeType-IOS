@@ -104,7 +104,7 @@ extension LivePlayerController {
   func restartAtCurrentPosition(autoplay: Bool? = nil) {
     guard let service, let stream else { return }
     let restartTime = position
-    let wasPlaying = autoplay ?? (player.timeControlStatus == .playing)
+    let wasPlaying = autoplay ?? nativePlayback.map { $0.player.state == .playing } ?? (player.timeControlStatus == .playing)
     state = .loading
     loadGeneration += 1
     loadTask?.cancel()
