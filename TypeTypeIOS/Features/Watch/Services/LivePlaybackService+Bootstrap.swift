@@ -30,6 +30,8 @@ extension LivePlaybackService {
       return ready
     } catch is CancellationError {
       throw CancellationError()
+    } catch let error as NetworkError where error.isProviderBlock {
+      throw error
     } catch {
       return try await stream(for: videoURL)
     }
