@@ -24,7 +24,8 @@ struct LiveCommentAttachments: View {
           LiveRemoteImage(url: url, contentMode: .fit)
         }
       }
-      .frame(maxWidth: 240, maxHeight: 240, alignment: .leading)
+      .frame(width: 240, height: 180)
+      .background(.quaternary.opacity(0.4))
       .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
       .accessibilityLabel(image.animated ? "GIF attached to the comment" : "Image attached to the comment")
     } else if let text = image.unavailableText, !text.isEmpty {

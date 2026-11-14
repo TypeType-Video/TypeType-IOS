@@ -53,6 +53,20 @@ final class LivePlaybackFastStartTests: XCTestCase {
     XCTAssertEqual(client.paths, ["/streams/youtube/sabr"])
   }
 
+  func testABlockedBootstrapDoesNotTryTheFullExtraction() async throws {
+    let routes: Set<String> = ["/streams/youtube/sabr/bootstrap", "/streams/youtube/sabr"]
+    let client = RecordingStreamClient(stream: Self.stream(), failingPaths: routes, failureCode: "provider_access_blocked")
+
+    do {
+      _ = try await Self.service(client).playbackStream(for: youtubeURL)
+      XCTFail("A blocked instance should not load the stream.")
+    } catch {
+      XCTAssertEqual(LiveUserError(error), .providerBlocked)
+    }
+
+    XCTAssertEqual(client.paths, ["/streams/youtube/sabr/bootstrap"])
+  }
+
   func testDiscardedRequestIsAskedAgain() async throws {
     let client = RecordingStreamClient(stream: Self.stream(), delay: .milliseconds(400))
     let service = Self.service(client)
