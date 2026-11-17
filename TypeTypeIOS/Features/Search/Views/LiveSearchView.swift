@@ -8,6 +8,7 @@ struct LiveSearchView: View {
   @State var selectedVideoChannelURL: String?
   @State var selectedChannel: LiveChannelResult?
   @State var selectedPlaylist: LivePlaylistResult?
+  @State var selectedTwitchLink: LiveTwitchLink?
   @FocusState private var searchIsFocused: Bool
 
   init(coordinator: RootCoordinator) {
@@ -78,6 +79,9 @@ struct LiveSearchView: View {
           playlist: playlist,
           dependencies: coordinator.dependencies
         )
+      }
+      .navigationDestination(item: $selectedTwitchLink) { link in
+        LiveTwitchLinkView(link: link, dependencies: coordinator.dependencies)
       }
     }
     .task {

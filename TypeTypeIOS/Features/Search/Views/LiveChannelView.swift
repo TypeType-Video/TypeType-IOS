@@ -5,6 +5,7 @@ struct LiveChannelView: View {
   @StateObject var viewModel: LiveChannelViewModel
   @State var selectedVideo: LiveVideoItem?
   @State var selectedPlaylist: LivePlaylistResult?
+  @State var selectedTwitchLink: LiveTwitchLink?
   @State var selectedPodcast: LivePodcastItem?
   @State var linkedChannel: LiveChannelLink?
   @State var pendingExternalURL: URL?
@@ -45,6 +46,9 @@ struct LiveChannelView: View {
           dependencies: dependencies
         )
       }
+      .navigationDestination(item: $selectedTwitchLink) { link in
+        LiveTwitchLinkView(link: link, dependencies: dependencies)
+      }
       .navigationDestination(item: $selectedPodcast) { podcast in
         LivePodcastEpisodesView(
           podcast: podcast,
@@ -71,6 +75,7 @@ struct LiveChannelView: View {
     case let .video(video): selectedVideo = video
     case let .channel(channelURL): linkedChannel = LiveChannelLink(url: channelURL)
     case let .playlist(playlist): selectedPlaylist = playlist
+    case let .twitch(link): selectedTwitchLink = link
     case nil: pendingExternalURL = url
     }
   }

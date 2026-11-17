@@ -68,6 +68,8 @@ extension LiveVideoMetadataContentView {
       selectedChannelURL = channelURL
     case let .playlist(playlist):
       selectedPublicPlaylist = playlist
+    case let .twitch(link):
+      selectedTwitchLink = link
     case nil:
       pendingExternalURL = url
     }

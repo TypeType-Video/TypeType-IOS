@@ -4,6 +4,7 @@ enum LiveMediaLinkDestination {
   case video(LiveVideoItem)
   case channel(String)
   case playlist(LivePlaylistResult)
+  case twitch(LiveTwitchLink)
 }
 
 enum LiveMediaLinkResolver {
@@ -11,6 +12,7 @@ enum LiveMediaLinkResolver {
     for url: URL,
     serverURL: URL? = nil
   ) -> LiveMediaLinkDestination? {
+    if let twitch = twitchDestination(for: url) { return twitch }
     let isOwnLink = url.scheme?.lowercased() == "typetype"
       || serverURL.map { sameOrigin(url, $0) } == true
     if isOwnLink {
@@ -67,9 +69,15 @@ enum LiveMediaLinkResolver {
       else {
         return nil
       }
-      return providerDestination(for: nestedURL)
+      return twitchDestination(for: nestedURL) ?? providerDestination(for: nestedURL)
     default:
       return nil
     }
+  }
+
+  // Twitch pages that play something open once the player can show them; a channel opens its page.
+  private static func twitchDestination(for url: URL) -> LiveMediaLinkDestination? {
+    guard case let .channel(login)? = LiveTwitchLink.target(for: url) else { return nil }
+    return .twitch(.channel(login))
   }
 }
