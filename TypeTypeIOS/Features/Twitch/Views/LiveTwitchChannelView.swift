@@ -10,6 +10,7 @@ struct LiveTwitchChannelView: View {
   @StateObject private var videos: LiveTwitchPagedList<LiveTwitchVideo>
   @StateObject private var clips: LiveTwitchPagedList<LiveTwitchClip>
   @State private var section = Section.videos
+  @Environment(\.liveTwitchPlay) private var play
 
   init(login: String, service: LiveTwitchServiceProtocol) {
     self.login = login
@@ -65,7 +66,7 @@ struct LiveTwitchChannelView: View {
                 previewURL: video.previewURL,
                 duration: video.lengthSeconds,
                 detail: LiveTwitchFormat.videoDetail(views: video.views, created: video.createdAt),
-                action: nil
+                action: { play(LiveTwitchPlayback.item(video: video)) }
               )
             }
           }
@@ -80,7 +81,7 @@ struct LiveTwitchChannelView: View {
                 previewURL: clip.thumbnailURL,
                 duration: Int(clip.durationSeconds.rounded()),
                 detail: LiveTwitchFormat.videoDetail(views: clip.views, created: clip.createdAt),
-                action: nil
+                action: { play(LiveTwitchPlayback.item(clip: clip)) }
               )
             }
           }
@@ -131,10 +132,14 @@ struct LiveTwitchChannelHeader: View {
 
 struct LiveTwitchChannelLive: View {
   let stream: LiveTwitchStream
+  @Environment(\.liveTwitchPlay) private var play
 
   var body: some View {
     VStack(alignment: .leading, spacing: 10) {
-      LiveTwitchStreamCard(stream: stream)
+      Button { play(LiveTwitchPlayback.item(live: stream)) } label: {
+        LiveTwitchStreamCard(stream: stream)
+      }
+      .buttonStyle(.plain)
       if let started = LiveTwitchFormat.date(stream.startedAt) {
         Text("Live for \(started, style: .relative)")
           .font(.caption)
