@@ -41,6 +41,8 @@ sessions, recommendations, synchronization, and downloads.
 ## Features
 
 - Browse and search videos, channels, playlists, and subscriptions.
+- Browse Twitch lives, categories, tags, and channels in the Live tab when your
+  instance enables Twitch.
 - Get recommendations from your instance, and mark the ones that are not for
   you.
 - Start videos quickly: the videos in view are prepared when you stop

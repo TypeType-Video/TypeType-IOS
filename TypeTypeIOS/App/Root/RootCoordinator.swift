@@ -76,6 +76,7 @@ final class RootCoordinator: ObservableObject {
     dependencies.pushNotificationsEnabled =
       metadata.pushNotifications?.enabled == true
     dependencies.rssEnabled = metadata.rss?.enabled == true
+    dependencies.twitchEnabled = metadata.twitch?.enabled == true
     connectionError = nil
     state = .authentication
   }

@@ -37,6 +37,8 @@ struct LiveIncomingMediaLinkView: View {
         playlist: playlist,
         dependencies: dependencies
       )
+    case let .twitch(link):
+      LiveTwitchLinkView(link: link, dependencies: dependencies)
     }
   }
 }

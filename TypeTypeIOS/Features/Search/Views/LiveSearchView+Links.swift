@@ -15,6 +15,8 @@ extension LiveSearchView {
       selectedVideoChannelURL = channelURL
     case let .playlist(playlist):
       selectedPlaylist = playlist
+    case let .twitch(link):
+      selectedTwitchLink = link
     }
   }
 }
