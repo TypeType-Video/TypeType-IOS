@@ -5,6 +5,10 @@ extension LiveVideoMetadataContentView {
   var watchSections: some View {
     LivePlaybackQueueView(coordinator: playbackCoordinator)
 
+    if resolvedVideo.twitchLink != nil {
+      LiveTwitchWatchExtras(controller: playerController, onRewind: rewindTwitchLive)
+    }
+
     if playerController.stream?.isLive == true, LiveChatSupport.supports(videoURL: resolvedVideo.url) {
       LiveChatSectionView(videoURL: resolvedVideo.url, service: dependencies.liveChatService)
         .id(resolvedVideo.url)
@@ -15,7 +19,8 @@ extension LiveVideoMetadataContentView {
       playerController.stream?.relatedStreams.isEmpty ?? true
     )
     if !playerController.isOfflineContent,
-      !(playerController.settings.hideRelatedVideos) {
+      !(playerController.settings.hideRelatedVideos),
+      resolvedVideo.twitchLink == nil {
       if relatedReady, let related = playerController.stream?.relatedStreams {
         LiveRelatedVideosSection(
           playerController: playerController,
@@ -32,7 +37,8 @@ extension LiveVideoMetadataContentView {
     }
 
     if !playerController.isOfflineContent,
-      !playerController.supportsBulletComments {
+      !playerController.supportsBulletComments,
+      resolvedVideo.twitchLink == nil {
       if playerController.settings.hideRelatedVideos || relatedReady {
         LiveCommentsSectionView(
           videoURL: resolvedVideo.url,
@@ -45,6 +51,22 @@ extension LiveVideoMetadataContentView {
       } else {
         LiveWatchSectionPlaceholder(kind: .comments)
       }
+    }
+  }
+
+  // The recording resumes at the saved position: saving the chosen moment first opens it right there.
+  func rewindTwitchLive(_ archive: LiveTwitchArchive, to position: TimeInterval) {
+    let link = LiveTwitchLink.video(archive.id)
+    playerController.twitchLive.savesRecordingPosition = false
+    Task { [dependencies, playbackCoordinator] in
+      do {
+        try await dependencies.historyService.updateProgress(
+          videoURL: LiveTwitchPlayback.url(for: link), positionMS: Int64(position * 1_000)
+        )
+      } catch {
+        AppLogger.network.failure("Saving the Twitch rewind position", error)
+      }
+      playbackCoordinator.open(LiveTwitchPlayback.item(for: link))
     }
   }
 }

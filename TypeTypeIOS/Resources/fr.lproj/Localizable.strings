@@ -1157,3 +1157,10 @@
 "No results." = "Aucun résultat.";
 "Live, %@ followers" = "En direct, %@ abonnés";
 "Twitch is not enabled on this instance." = "Twitch n'est pas activé sur cette instance.";
+"Plays the live." = "Lance le live.";
+"This channel is offline or this video no longer exists." = "Cette chaîne est hors ligne ou cette vidéo n'existe plus.";
+"This content is restricted (subscribers only or not available in this region)." = "Ce contenu est restreint (réservé aux abonnés ou indisponible dans cette région).";
+"Go back in the live" = "Revenir en arrière dans le live";
+"%@ behind live" = "%@ derrière le direct";
+"Moving back by more than 30 seconds opens the recording of this live." = "Reculer de plus de 30 secondes ouvre l'enregistrement de ce live.";
+"Plays the sound without the picture." = "Lit le son sans l'image.";

@@ -141,9 +141,13 @@ final class LiveTwitchLinkTests: XCTestCase {
     XCTAssertNil(target("https://example.test/watch?c=blender_org"))
   }
 
-  func testOnlyAChannelLinkOpensWhileThePlayerCannotShowTwitch() {
+  func testAChannelLinkOpensItsPageAndABroadcastPlays() {
     if case .twitch(.channel("blender_org"))? = resolve("https://www.twitch.tv/blender_org") {} else { XCTFail("Expected the channel") }
-    XCTAssertNil(resolve("https://www.twitch.tv/videos/2931565552"))
+    if case let .video(video)? = resolve("https://www.twitch.tv/videos/2931565552") {
+      XCTAssertEqual(video.url, "https://www.twitch.tv/videos/2931565552")
+    } else {
+      XCTFail("Expected the broadcast to play")
+    }
     let shared = "typetype://open?url=" + ("https://www.twitch.tv/blender_org".addingPercentEncoding(withAllowedCharacters: .alphanumerics) ?? "")
     if case .twitch(.channel("blender_org"))? = resolve(shared) {} else { XCTFail("Expected the shared channel") }
   }
@@ -154,5 +158,78 @@ final class LiveTwitchLinkTests: XCTestCase {
 
   private func resolve(_ text: String) -> LiveMediaLinkDestination? {
     URL(string: text).flatMap { LiveMediaLinkResolver.destination(for: $0) }
+  }
+}
+
+@MainActor
+final class LiveTwitchLiveSessionTests: XCTestCase {
+  func testReloadsALiveThatStaysStalledAndStopsAfterTheLastAttempt() async throws {
+    let recovery = LiveTwitchLiveSession(firstDelay: 0.01, longestDelay: 0.01)
+    var reloads = 0
+    for _ in 0..<(LiveTwitchLiveSession.maximumAttempts + 2) {
+      recovery.stalled(stillStalled: { true }, reload: { reloads += 1 })
+      try await Task.sleep(for: .milliseconds(60))
+    }
+
+    XCTAssertEqual(reloads, LiveTwitchLiveSession.maximumAttempts)
+  }
+
+  func testAStallThatEndsByItselfReloadsNothingAndPlayingStartsOver() async throws {
+    let recovery = LiveTwitchLiveSession(firstDelay: 0.01, longestDelay: 0.01)
+    var reloads = 0
+    recovery.stalled(stillStalled: { false }, reload: { reloads += 1 })
+    try await Task.sleep(for: .milliseconds(60))
+    recovery.stalled(stillStalled: { true }, reload: { reloads += 1 })
+    try await Task.sleep(for: .milliseconds(60))
+    recovery.playing()
+
+    XCTAssertEqual(reloads, 1)
+    XCTAssertEqual(recovery.attempts, 0)
+  }
+}
+
+final class LiveTwitchPlaybackTests: XCTestCase {
+  func testBuildsABroadcastStreamAtTheRootOfTheInstance() throws {
+    let answer = try JSONDecoder().decode(LiveTwitchVideoPlayback.self, from: Data(#"""
+      {"video":{"id":"42","title":"Sculpting","owner":{"id":"9","login":"blender_org","displayName":"Blender"},
+      "lengthSeconds":3600,"views":10,"previewUrl":"","createdAt":"","type":"archive"},
+      "hlsUrl":"/live/hls/master.m3u8?c=42&s=x&t=vod","audioUrl":"/live/hls/master.m3u8?a=1&c=42&t=vod"}
+      """#.utf8))
+    let stream = try LiveTwitchPlayback.stream(
+      video: answer, chapters: [LiveTwitchChapter(start: 600, title: "Art")], origin: URL(string: "https://tv.example.test/api")
+    )
+
+    XCTAssertEqual(stream.twitchMedia?.url.absoluteString, "https://tv.example.test/live/hls/master.m3u8?c=42&s=x&t=vod")
+    XCTAssertEqual(stream.twitchMedia?.audioURL?.absoluteString, "https://tv.example.test/live/hls/master.m3u8?a=1&c=42&t=vod")
+    XCTAssertEqual(stream.duration, 3600)
+    XCTAssertFalse(stream.isLive)
+    XCTAssertEqual(stream.chapters.map(\.startTimeSeconds), [600])
+    XCTAssertEqual(stream.uploaderURL, "https://www.twitch.tv/blender_org")
+  }
+
+  func testAnOfflineChannelAndARestrictedVideoSayWhy() throws {
+    let offline = try JSONDecoder().decode(LiveTwitchLive.self, from: Data(#"""
+      {"channel":{"id":"9","login":"blender_org","displayName":"Blender"},"hlsUrl":"/live/hls/master.m3u8"}
+      """#.utf8))
+
+    XCTAssertThrowsError(try LiveTwitchPlayback.stream(live: offline, origin: nil)) { error in
+      XCTAssertEqual(error as? LiveTwitchPlaybackError, .offline)
+    }
+    XCTAssertEqual(LiveTwitchPlaybackError.translating(NetworkError.statusCode(403, nil)) as? LiveTwitchPlaybackError, .restricted)
+  }
+}
+
+final class LiveTwitchArchiveTimeTests: XCTestCase {
+  func testTheRecordingMomentSitsFifteenSecondsBeforeTheLive() throws {
+    let now = try XCTUnwrap(LiveTwitchFormat.date("2026-11-17T20:00:00Z"))
+    XCTAssertEqual(LiveTwitchArchiveTime.position(startedAt: "2026-11-17T19:00:00Z", now: now), 3_585)
+    XCTAssertEqual(LiveTwitchArchiveTime.position(startedAt: "2026-11-17T19:59:55Z", now: now), 0)
+    XCTAssertNil(LiveTwitchArchiveTime.position(startedAt: "", now: now))
+  }
+
+  func testARewindCloseToTheLiveEdgeStaysOnTheLive() {
+    XCTAssertNil(LiveTwitchArchiveTime.rewindTarget(3_580, range: 3_600))
+    XCTAssertEqual(LiveTwitchArchiveTime.rewindTarget(3_000.4, range: 3_600), 3_000)
+    XCTAssertNil(LiveTwitchArchiveTime.rewindTarget(10, range: 0))
   }
 }

@@ -33,7 +33,7 @@ extension LiveVideoMetadataContentView {
 
   func leavePage() {
     playerController.flushHistory()
-    guard selectedChannelURL == nil, selectedPublicPlaylist == nil else { return }
+    guard selectedChannelURL == nil, selectedPublicPlaylist == nil, selectedTwitchLink == nil else { return }
     let departingVideoURL = video.url
     Task { @MainActor in
       await Task.yield()
