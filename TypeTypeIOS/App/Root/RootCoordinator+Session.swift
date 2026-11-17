@@ -34,6 +34,7 @@ extension RootCoordinator {
       dependencies.pushNotificationsEnabled =
         metadata.pushNotifications?.enabled == true
       dependencies.rssEnabled = metadata.rss?.enabled == true
+      dependencies.twitchEnabled = metadata.twitch?.enabled == true
       completeAuthentication(result)
     } catch {
       if shouldInvalidateCachedSession(after: error) {
@@ -76,6 +77,7 @@ extension RootCoordinator {
       dependencies.pushNotificationsEnabled =
         instance?.pushNotifications?.enabled == true
       dependencies.rssEnabled = instance?.rss?.enabled == true
+      dependencies.twitchEnabled = instance?.twitch?.enabled == true
     } catch {
       if restoresSession, restoreOfflineSession(for: server) {
         connectionError =
