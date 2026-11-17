@@ -63,11 +63,15 @@ struct LiveVideoMetadataContentView: View {
         LiveVideoEngagementView(
           video: resolvedVideo,
           stream: playerController.stream,
-          allowsSubscription: hasPersistentAccount,
+          allowsSubscription: hasPersistentAccount && resolvedVideo.twitchLink == nil,
           service: dependencies.subscriptionsService,
           subscriberCount: subscriberCount,
           onChannel: {
-            selectedChannelURL = resolvedVideo.uploaderURL
+            if let link = URL(string: resolvedVideo.uploaderURL).flatMap(LiveTwitchLink.target(for:)) {
+              selectedTwitchLink = link
+            } else {
+              selectedChannelURL = resolvedVideo.uploaderURL
+            }
           }
         )
         .id(engagementIdentity)

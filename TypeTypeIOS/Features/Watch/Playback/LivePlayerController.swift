@@ -107,6 +107,7 @@ final class LivePlayerController: ObservableObject {
   var sabrStallRecoveryTask: Task<Void, Never>?
   var sabrRecoveryBudgetResetTask: Task<Void, Never>?
   var sabrStallRecoveryCount = 0
+  let twitchLive = LiveTwitchLiveSession()
   var bulletCommentsTask: Task<Void, Never>?
   var bulletCommentsLoadGeneration = 0
   var bulletCommentStateRevision = 0

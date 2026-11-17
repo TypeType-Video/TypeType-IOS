@@ -68,9 +68,11 @@ extension LivePlayerController {
             state = .loading
           }
           scheduleSABRStallRecovery(for: item)
+          handleTwitchLiveStall(for: item)
         case .playing:
           sabrStallRecoveryTask?.cancel()
           sabrStallRecoveryTask = nil
+          twitchLive.playing()
           if let total = startupTrace.finish(source: video.url) {
             lastStartupMilliseconds = total
             startupWatchdog?.cancel()

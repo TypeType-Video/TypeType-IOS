@@ -4,12 +4,13 @@ struct LiveTwitchStreamGrid: View {
   @ObservedObject var list: LiveTwitchPagedList<LiveTwitchStream>
   let empty: LocalizedStringKey
   let identifier: String
+  @Environment(\.liveTwitchPlay) private var play
 
   var body: some View {
     LiveTwitchPagedContent(list: list, empty: empty, identifier: identifier) { items in
       LazyVGrid(columns: [GridItem(.adaptive(minimum: 300), spacing: 16, alignment: .top)], spacing: 22) {
         ForEach(items) { stream in
-          NavigationLink(value: LiveTwitchRoute.channel(stream.user.login)) {
+          Button { play(LiveTwitchPlayback.item(live: stream)) } label: {
             LiveTwitchStreamCard(stream: stream)
           }
           .buttonStyle(.plain)

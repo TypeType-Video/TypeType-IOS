@@ -5,6 +5,10 @@ extension LiveVideoMetadataContentView {
   var watchSections: some View {
     LivePlaybackQueueView(coordinator: playbackCoordinator)
 
+    if resolvedVideo.twitchLink != nil {
+      LiveTwitchWatchExtras(controller: playerController, onRewind: rewindTwitchLive)
+    }
+
     if playerController.stream?.isLive == true, LiveChatSupport.supports(videoURL: resolvedVideo.url) {
       LiveChatSectionView(videoURL: resolvedVideo.url, service: dependencies.liveChatService)
         .id(resolvedVideo.url)
@@ -15,7 +19,8 @@ extension LiveVideoMetadataContentView {
       playerController.stream?.relatedStreams.isEmpty ?? true
     )
     if !playerController.isOfflineContent,
-      !(playerController.settings.hideRelatedVideos) {
+      !(playerController.settings.hideRelatedVideos),
+      resolvedVideo.twitchLink == nil {
       if relatedReady, let related = playerController.stream?.relatedStreams {
         LiveRelatedVideosSection(
           playerController: playerController,
@@ -32,7 +37,8 @@ extension LiveVideoMetadataContentView {
     }
 
     if !playerController.isOfflineContent,
-      !playerController.supportsBulletComments {
+      !playerController.supportsBulletComments,
+      resolvedVideo.twitchLink == nil {
       if playerController.settings.hideRelatedVideos || relatedReady {
         LiveCommentsSectionView(
           videoURL: resolvedVideo.url,
@@ -45,6 +51,12 @@ extension LiveVideoMetadataContentView {
       } else {
         LiveWatchSectionPlaceholder(kind: .comments)
       }
+    }
+  }
+
+  func rewindTwitchLive(_ archive: LiveTwitchArchive, to position: TimeInterval) {
+    Task { [playerController, playbackCoordinator] in
+      playbackCoordinator.open(await playerController.prepareTwitchRewind(archive, to: position))
     }
   }
 }

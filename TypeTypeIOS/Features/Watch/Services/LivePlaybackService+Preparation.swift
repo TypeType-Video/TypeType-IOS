@@ -1,6 +1,29 @@
 import Foundation
 
 extension LivePlaybackService {
+  func prepare(
+    stream: LivePlaybackStream,
+    sourceURL: String,
+    preferences: LivePlaybackPreferences
+  ) throws -> LivePlaybackPreparation {
+    if let media = stream.twitchMedia {
+      return prepareTwitch(stream: stream, media: media, preferences: preferences)
+    }
+    if isYouTubeURL(sourceURL), Self.playsAsLiveHLS(stream) {
+      return try prepareLiveHLS(stream: stream, preferences: preferences)
+    }
+    if isYouTubeURL(sourceURL) {
+      return try prepareYouTubeSABR(
+        stream: stream,
+        preferences: preferences
+      )
+    }
+    return try prepareProviderPlayback(
+      stream: stream,
+      preferences: preferences
+    )
+  }
+
   func prepareYouTubeSABR(
     stream: LivePlaybackStream,
     preferences: LivePlaybackPreferences

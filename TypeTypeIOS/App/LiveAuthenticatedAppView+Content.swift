@@ -79,6 +79,7 @@ extension LiveAuthenticatedAppView {
       if let twitchService {
         Tab("Live", systemImage: "dot.radiowaves.left.and.right", value: LiveAuthenticatedTab.twitch) {
           LiveTwitchView(service: twitchService)
+            .environment(\.liveTwitchPlay) { playbackCoordinator.open($0) }
         }
       }
       Tab("Library", systemImage: "rectangle.stack.badge.play", value: LiveAuthenticatedTab.library) {
@@ -101,6 +102,7 @@ extension LiveAuthenticatedAppView {
         .tag(LiveAuthenticatedTab.subscriptions)
       if let twitchService {
         LiveTwitchView(service: twitchService)
+          .environment(\.liveTwitchPlay) { playbackCoordinator.open($0) }
           .tabItem { Label("Live", systemImage: "dot.radiowaves.left.and.right") }
           .tag(LiveAuthenticatedTab.twitch)
       }

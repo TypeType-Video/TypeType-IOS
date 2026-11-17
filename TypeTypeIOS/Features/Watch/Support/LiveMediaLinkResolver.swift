@@ -75,9 +75,12 @@ enum LiveMediaLinkResolver {
     }
   }
 
-  // Twitch pages that play something open once the player can show them; a channel opens its page.
+  // A Twitch channel opens its page; a past broadcast or a clip plays like any video.
   private static func twitchDestination(for url: URL) -> LiveMediaLinkDestination? {
-    guard case let .channel(login)? = LiveTwitchLink.target(for: url) else { return nil }
-    return .twitch(.channel(login))
+    switch LiveTwitchLink.target(for: url) {
+    case let .channel(login)?: .twitch(.channel(login))
+    case let link?: .video(LiveTwitchPlayback.item(for: link))
+    case nil: nil
+    }
   }
 }

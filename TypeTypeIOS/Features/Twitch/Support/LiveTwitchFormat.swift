@@ -11,6 +11,10 @@ enum LiveTwitchFormat {
     Int64(value).formatted(.number.notation(.compactName))
   }
 
+  static func clock(_ seconds: TimeInterval) -> String {
+    LiveVideoMetadataFormatter.duration(Int64(max(seconds, 0).rounded()))
+  }
+
   static func date(_ iso: String) -> Date? {
     ISO8601DateFormatter().date(from: iso)
   }

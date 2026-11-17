@@ -11,6 +11,10 @@ protocol LiveTwitchServiceProtocol {
   func searchChannels(_ query: String, after: String?) async throws -> LiveTwitchPage<LiveTwitchChannel>
   func searchGames(_ query: String, after: String?) async throws -> LiveTwitchPage<LiveTwitchGame>
   func searchStreams(_ query: String, after: String?) async throws -> LiveTwitchPage<LiveTwitchStream>
+  func live(login: String) async throws -> LiveTwitchLive
+  func video(id: String) async throws -> LiveTwitchVideoPlayback
+  func videoChapters(id: String) async throws -> [LiveTwitchChapter]
+  func clip(slug: String) async throws -> LiveTwitchClipPlayback
 }
 
 struct LiveTwitchService: LiveTwitchServiceProtocol {
@@ -35,7 +39,7 @@ struct LiveTwitchService: LiveTwitchServiceProtocol {
   }
 
   func channel(login: String) async throws -> LiveTwitchChannel {
-    try await apiClient.request(APIEndpoint(path: "/twitch/channels/\(Self.segment(login))", method: .get), as: LiveTwitchChannel.self)
+    try await one("/twitch/channels/\(Self.segment(login))")
   }
 
   func channelVideos(login: String, after: String?) async throws -> LiveTwitchPage<LiveTwitchVideo> {
@@ -56,6 +60,26 @@ struct LiveTwitchService: LiveTwitchServiceProtocol {
 
   func searchStreams(_ query: String, after: String?) async throws -> LiveTwitchPage<LiveTwitchStream> {
     try await search(query, kind: .streams, after: after)
+  }
+
+  func live(login: String) async throws -> LiveTwitchLive {
+    try await one("/twitch/live/\(Self.segment(login))")
+  }
+
+  func video(id: String) async throws -> LiveTwitchVideoPlayback {
+    try await one("/twitch/videos/\(Self.segment(id))")
+  }
+
+  func videoChapters(id: String) async throws -> [LiveTwitchChapter] {
+    try await one("/twitch/videos/\(Self.segment(id))/chapters")
+  }
+
+  func clip(slug: String) async throws -> LiveTwitchClipPlayback {
+    try await one("/twitch/clips/\(Self.segment(slug))")
+  }
+
+  private func one<Value: Decodable>(_ path: String) async throws -> Value {
+    try await apiClient.request(APIEndpoint(path: path, method: .get), as: Value.self)
   }
 
   private func search<Item: Decodable>(
