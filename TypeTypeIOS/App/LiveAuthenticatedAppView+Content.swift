@@ -76,6 +76,11 @@ extension LiveAuthenticatedAppView {
       Tab("Subscriptions", systemImage: "play.square.stack", value: LiveAuthenticatedTab.subscriptions) {
         subscriptionsTab
       }
+      if let twitchService {
+        Tab("Live", systemImage: "dot.radiowaves.left.and.right", value: LiveAuthenticatedTab.twitch) {
+          LiveTwitchView(service: twitchService)
+        }
+      }
       Tab("Library", systemImage: "rectangle.stack.badge.play", value: LiveAuthenticatedTab.library) {
         libraryTab
       }
@@ -94,6 +99,11 @@ extension LiveAuthenticatedAppView {
       subscriptionsTab
         .tabItem { Label("Subscriptions", systemImage: "play.square.stack") }
         .tag(LiveAuthenticatedTab.subscriptions)
+      if let twitchService {
+        LiveTwitchView(service: twitchService)
+          .tabItem { Label("Live", systemImage: "dot.radiowaves.left.and.right") }
+          .tag(LiveAuthenticatedTab.twitch)
+      }
       libraryTab
         .tabItem { Label("Library", systemImage: "rectangle.stack.badge.play") }
         .badge(downloadCenter.activeCount)
@@ -102,6 +112,10 @@ extension LiveAuthenticatedAppView {
         .tabItem { Label("Search", systemImage: "magnifyingglass") }
         .tag(LiveAuthenticatedTab.search)
     }
+  }
+
+  private var twitchService: LiveTwitchServiceProtocol? {
+    coordinator.dependencies.twitchEnabled ? coordinator.dependencies.twitchService : nil
   }
 
   private var homeTab: some View {
