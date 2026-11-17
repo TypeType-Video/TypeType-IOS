@@ -13,6 +13,11 @@ enum LiveTwitchPlayback {
     item(link: link, title: "Twitch", owner: nil, thumbnail: "", duration: 0, views: 0, isLive: false)
   }
 
+  static func item(recordingOf stream: LiveTwitchStream, archive: LiveTwitchArchive) -> LiveVideoItem {
+    item(link: .video(archive.id), title: stream.title, owner: stream.user, thumbnail: stream.previewURL,
+         duration: 0, views: 0, isLive: false)
+  }
+
   static func item(live stream: LiveTwitchStream) -> LiveVideoItem {
     item(link: .channel(stream.user.login), title: stream.title, owner: stream.user, thumbnail: stream.previewURL,
          duration: 0, views: stream.viewers, isLive: true)

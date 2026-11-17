@@ -34,4 +34,17 @@ extension LivePlayerController {
       }
     }
   }
+
+  // The recording resumes at the saved position: saving the chosen moment first opens it right there.
+  func prepareTwitchRewind(_ archive: LiveTwitchArchive, to position: TimeInterval) async -> LiveVideoItem {
+    twitchLive.savesRecordingPosition = false
+    let link = LiveTwitchLink.video(archive.id)
+    do {
+      try await historyService.updateProgress(videoURL: LiveTwitchPlayback.url(for: link), positionMS: Int64(position * 1_000))
+    } catch {
+      AppLogger.network.failure("Saving the Twitch rewind position", error)
+    }
+    guard let live = stream?.twitchMedia?.live else { return LiveTwitchPlayback.item(for: link) }
+    return LiveTwitchPlayback.item(recordingOf: live, archive: archive)
+  }
 }

@@ -54,19 +54,9 @@ extension LiveVideoMetadataContentView {
     }
   }
 
-  // The recording resumes at the saved position: saving the chosen moment first opens it right there.
   func rewindTwitchLive(_ archive: LiveTwitchArchive, to position: TimeInterval) {
-    let link = LiveTwitchLink.video(archive.id)
-    playerController.twitchLive.savesRecordingPosition = false
-    Task { [dependencies, playbackCoordinator] in
-      do {
-        try await dependencies.historyService.updateProgress(
-          videoURL: LiveTwitchPlayback.url(for: link), positionMS: Int64(position * 1_000)
-        )
-      } catch {
-        AppLogger.network.failure("Saving the Twitch rewind position", error)
-      }
-      playbackCoordinator.open(LiveTwitchPlayback.item(for: link))
+    Task { [playerController, playbackCoordinator] in
+      playbackCoordinator.open(await playerController.prepareTwitchRewind(archive, to: position))
     }
   }
 }
