@@ -108,6 +108,9 @@ extension LivePlayerController {
   }
 
   func recordHistoryIfNeeded(force: Bool) {
+    if stream?.isLive == true, let archive = stream?.twitchMedia?.live?.archive {
+      return recordTwitchArchiveProgress(archive, force: force)
+    }
     guard !settings.disableWatchHistory,
       stream?.isLive != true,
       position > 0
