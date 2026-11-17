@@ -148,19 +148,3 @@ struct LiveTwitchAvatar: View {
       .accessibilityHidden(true)
   }
 }
-
-enum LiveTwitchFormat {
-  static func count(_ value: Int) -> String {
-    Int64(value).formatted(.number.notation(.compactName))
-  }
-
-  static func date(_ iso: String) -> Date? {
-    ISO8601DateFormatter().date(from: iso)
-  }
-
-  static func videoDetail(views: Int, created: String) -> String {
-    let watched = String(localized: "\(count(views)) views")
-    guard let date = date(created) else { return watched }
-    return watched + " · " + date.formatted(.relative(presentation: .named))
-  }
-}

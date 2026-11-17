@@ -1,11 +1,5 @@
 import SwiftUI
 
-enum LiveTwitchRoute: Hashable {
-  case channel(String)
-  case game(slug: String, name: String)
-  case tag(String)
-}
-
 struct LiveTwitchStreamGrid: View {
   @ObservedObject var list: LiveTwitchPagedList<LiveTwitchStream>
   let empty: LocalizedStringKey
