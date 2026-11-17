@@ -111,6 +111,9 @@ final class LivePlaybackService: LivePlaybackServiceProtocol {
   }
 
   private func loadStream(for videoURL: String) async throws -> LivePlaybackStream {
+    if let link = URL(string: videoURL).flatMap(LiveTwitchLink.target(for:)) {
+      return try await twitchStream(for: link)
+    }
     let path = streamPath(for: videoURL)
     if path == "/streams/youtube/sabr/bootstrap" {
       do {
@@ -203,25 +206,5 @@ final class LivePlaybackService: LivePlaybackServiceProtocol {
     default:
       return false
     }
-  }
-
-  func prepare(
-    stream: LivePlaybackStream,
-    sourceURL: String,
-    preferences: LivePlaybackPreferences
-  ) throws -> LivePlaybackPreparation {
-    if isYouTubeURL(sourceURL), Self.playsAsLiveHLS(stream) {
-      return try prepareLiveHLS(stream: stream, preferences: preferences)
-    }
-    if isYouTubeURL(sourceURL) {
-      return try prepareYouTubeSABR(
-        stream: stream,
-        preferences: preferences
-      )
-    }
-    return try prepareProviderPlayback(
-      stream: stream,
-      preferences: preferences
-    )
   }
 }
