@@ -172,6 +172,7 @@ extension AppDependencies {
       deviceLinkService: LiveDeviceLinkService(apiClient: client),
       liveChatService: LiveChatService(transport: URLSessionLiveChatTransport(client: client)),
       linkedAccountsService: LiveLinkedAccountsService(apiClient: client),
+      twitchService: LiveTwitchService(apiClient: client),
       allowedChannelsService: LiveAllowedChannelsService(apiClient: client),
       playbackService: LivePlaybackService(
         apiClient: client,

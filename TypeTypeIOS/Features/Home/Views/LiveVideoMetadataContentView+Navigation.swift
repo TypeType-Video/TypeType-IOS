@@ -51,7 +51,13 @@ extension View {
     .navigationDestination(item: page.$selectedPublicPlaylist) { playlist in
       LivePublicPlaylistView(playlist: playlist, dependencies: page.dependencies)
     }
+    .navigationDestination(item: page.$selectedTwitchLink) { link in
+      LiveTwitchLinkView(link: link, dependencies: page.dependencies)
+    }
     .externalLinkAlert(pendingURL: page.$pendingExternalURL)
+    .onChange(of: page.selectedTwitchLink) { old, new in
+      if old == nil, new != nil { page.handOffToPictureInPicture() }
+    }
     .onChange(of: page.selectedChannelURL) { old, new in
       if old == nil, new != nil { page.handOffToPictureInPicture() }
     }
@@ -66,6 +72,7 @@ extension View {
     .onChange(of: page.playbackCoordinator.pictureInPictureRestores) {
       page.selectedChannelURL = nil
       page.selectedPublicPlaylist = nil
+      page.selectedTwitchLink = nil
     }
   }
 }

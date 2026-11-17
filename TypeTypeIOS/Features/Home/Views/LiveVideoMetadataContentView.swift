@@ -11,6 +11,7 @@ struct LiveVideoMetadataContentView: View {
   @Environment(\.verticalSizeClass) private var verticalSizeClass
   @State var selectedChannelURL: String?
   @State var selectedPublicPlaylist: LivePlaylistResult?
+  @State var selectedTwitchLink: LiveTwitchLink?
   @State var pendingExternalURL: URL?
   @AppStorage("typetype.player.cinema-mode")
   private var cinemaMode = true
