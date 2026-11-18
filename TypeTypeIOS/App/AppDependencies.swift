@@ -225,6 +225,7 @@ final class AppDependencies {
     self.allowedChannelsService = allowedChannelsService
     self.playbackService = playbackService
     self.watchProgress = watchProgress
+    watchProgress.loader = { [historyService] urls in try await historyService.progress(videoURLs: urls) }
     self.imagePipeline = imagePipeline
     self.orientationLock = orientationLock
     self.crashReports = crashReports
@@ -252,5 +253,6 @@ extension AppDependencies {
     deArrowStore.invalidatePreferences()
     downloadCenter.cancelTracking()
     hiddenVideos.clear()
+    watchProgress.forget()
   }
 }

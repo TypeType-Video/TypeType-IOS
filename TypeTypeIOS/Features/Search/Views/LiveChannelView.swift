@@ -30,6 +30,7 @@ struct LiveChannelView: View {
 
   var body: some View {
     content
+      .loadsWatchProgress(viewModel.videos)
       .navigationTitle(viewModel.channel?.name ?? "Channel")
       .navigationBarTitleDisplayMode(.inline)
       .task {

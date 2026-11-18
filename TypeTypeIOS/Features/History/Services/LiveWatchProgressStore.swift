@@ -1,7 +1,29 @@
-import Foundation
+import SwiftUI
 
 final class LiveWatchProgressStore: ObservableObject {
   @Published private(set) var fractions: [String: Double] = [:]
+  var loader: (([String]) async throws -> [String: Int64])?
+  private var requested: Set<String> = []
+
+  @MainActor
+  func load(_ videos: [LiveVideoItem]) async {
+    guard let loader else { return }
+    let wanted = videos.filter { $0.duration > 0 && !$0.url.isEmpty && !$0.isLive && !requested.contains($0.url) }
+    guard !wanted.isEmpty else { return }
+    requested.formUnion(wanted.map(\.url))
+    guard let positions = try? await loader(wanted.map(\.url)) else {
+      requested.subtract(wanted.map(\.url))
+      return
+    }
+    for video in wanted {
+      guard let position = positions[video.url], position > 0, fractions[video.canonicalID] == nil else { continue }
+      fractions[video.canonicalID] = min(Double(position) / (Double(video.duration) * 1000), 1)
+    }
+  }
+
+  func forget() {
+    requested = []
+  }
 
   func fraction(forVideoID videoID: String) -> Double? {
     guard !videoID.isEmpty else { return nil }
@@ -39,5 +61,20 @@ final class LiveWatchProgressStore: ObservableObject {
       return
     }
     fractions[videoID] = fraction
+  }
+}
+
+struct LiveWatchProgressLoading: ViewModifier {
+  let videos: [LiveVideoItem]
+  @EnvironmentObject private var watchProgress: LiveWatchProgressStore
+
+  func body(content: Content) -> some View {
+    content.task(id: videos.map(\.url)) { await watchProgress.load(videos) }
+  }
+}
+
+extension View {
+  func loadsWatchProgress(_ videos: [LiveVideoItem]) -> some View {
+    modifier(LiveWatchProgressLoading(videos: videos))
   }
 }
