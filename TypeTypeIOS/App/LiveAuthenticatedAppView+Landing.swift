@@ -18,7 +18,7 @@ extension LiveAuthenticatedAppView {
     else {
       return
     }
-    coordinator.dependencies.hiddenVideos.hidesMembersOnly = settings.hideMembersOnlyContent ?? false
+    coordinator.dependencies.playbackCoordinator.applySettings(settings)
     switch settings.defaultLandingPage {
     case "subscriptions":
       selectedTab.wrappedValue = .subscriptions

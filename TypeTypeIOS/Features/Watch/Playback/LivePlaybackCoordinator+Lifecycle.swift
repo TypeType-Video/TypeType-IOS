@@ -72,6 +72,9 @@ extension LivePlaybackCoordinator {
 
   func applySettings(_ settings: LiveSettings) {
     hiddenVideos?.hidesMembersOnly = settings.hideMembersOnlyContent ?? false
+    if let seconds = settings.autoplayCountdownSeconds {
+      appPreferences.update { $0.playerAutoplayCountdownSeconds = min(max(seconds, 0), 60) }
+    }
     applyPersistencePolicy(enabled: !settings.disableWatchHistory)
     controller?.applySettings(settings)
   }

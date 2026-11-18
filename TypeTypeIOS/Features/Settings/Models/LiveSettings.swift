@@ -66,6 +66,7 @@ struct LiveSettings: Codable, Equatable {
   var hideShorts = false
   var hideSubscriptionLiveStreams: Bool?
   var hideMembersOnlyContent: Bool?
+  var autoplayCountdownSeconds: Int?
   var hideEndScreens: Bool?
   var disableWatchHistory = false
   var deArrowEnabled = false
