@@ -61,6 +61,8 @@ final class LiveSubscriptionsViewModel: ObservableObject {
       return "All subscriptions"
     case .ungrouped:
       return "Ungrouped"
+    case .shorts:
+      return "Shorts"
     case let .group(_, name):
       return name
     }
