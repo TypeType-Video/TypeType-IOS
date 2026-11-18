@@ -176,6 +176,7 @@ extension AppDependencies {
       twitchAccountService: LiveTwitchAccountService(apiClient: client),
       twitchChatService: LiveTwitchChatService(transport: URLSessionLiveChatTransport(client: client)),
       focusService: LiveFocusService(apiClient: client),
+      recommenderService: LiveRecommenderService(apiClient: client),
       allowedChannelsService: LiveAllowedChannelsService(apiClient: client),
       playbackService: LivePlaybackService(
         apiClient: client,

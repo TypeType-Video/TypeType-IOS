@@ -20,6 +20,7 @@ struct InstanceMetadata: Decodable, Equatable {
   let rss: InstanceRssCapability?
   let pushNotifications: InstancePushNotificationsCapability?
   let twitch: InstanceTwitchCapability?
+  let recommender: InstanceRecommenderCapability?
 
   private enum CodingKeys: String, CodingKey {
     case name
@@ -41,6 +42,7 @@ struct InstanceMetadata: Decodable, Equatable {
     case rss
     case pushNotifications
     case twitch
+    case recommender
   }
 }
 
@@ -57,5 +59,9 @@ struct InstancePushNotificationsCapability: Decodable, Equatable {
 }
 
 struct InstanceTwitchCapability: Decodable, Equatable {
+  let enabled: Bool
+}
+
+struct InstanceRecommenderCapability: Decodable, Equatable {
   let enabled: Bool
 }
