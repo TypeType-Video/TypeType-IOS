@@ -25,6 +25,10 @@ struct URLSessionLiveChatTransport: LiveChatTransport, @unchecked Sendable {
     // JSON too: the server writes its refusals as JSON, and a request that accepts only the stream gets every one of
     // them as 406, which hides a 429 or a 502 that waiting would solve.
     request.setValue("text/event-stream, application/json", forHTTPHeaderField: "Accept")
+    return try await stream(for: request)
+  }
+
+  func stream(for request: URLRequest) async throws -> AsyncThrowingStream<UInt8, Error> {
     let (bytes, response) = try await session.bytes(for: request)
     guard let http = response as? HTTPURLResponse else { throw NetworkError.invalidResponse }
     guard (200...299).contains(http.statusCode) else {
@@ -54,5 +58,21 @@ struct URLSessionLiveChatTransport: LiveChatTransport, @unchecked Sendable {
     configuration.timeoutIntervalForResource = 24 * 60 * 60
     configuration.waitsForConnectivity = false
     return URLSession(configuration: configuration)
+  }
+}
+
+extension URLSessionLiveChatTransport: LiveTwitchChatTransport {
+  func openTwitchChat(login: String) async throws -> AsyncThrowingStream<UInt8, Error> {
+    try DebugNetworkOutage.check()
+    var request = try client.makeURLRequest(
+      APIEndpoint(
+        path: "/twitch/chat/\(LiveTwitchService.segment(login))/events",
+        method: .get,
+        requiresAuth: client.accessTokenProvider() != nil,
+        timeoutInterval: Self.idleTimeout
+      )
+    )
+    request.setValue("text/event-stream, application/json", forHTTPHeaderField: "Accept")
+    return try await stream(for: request)
   }
 }
