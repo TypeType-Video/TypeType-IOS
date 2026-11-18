@@ -1340,3 +1340,17 @@
 "Hide members-only videos" = "Hide members-only videos";
 "Removes videos reserved for channel members." = "Removes videos reserved for channel members.";
 "SponsorBlock is not responding, segments are not loaded for this video" = "SponsorBlock is not responding, segments are not loaded for this video";
+"API" = "API";
+"Create and revoke keys for external apps." = "Create and revoke keys for external apps.";
+"Copy key" = "Copy key";
+"Key copied" = "Key copied";
+"Copy this key now. It will not be shown again." = "Copy this key now. It will not be shown again.";
+"Key name" = "Key name";
+"Create key" = "Create key";
+"Presence access" = "Presence access";
+"Create a revocable key that can only see whether something is playing now." = "Create a revocable key that can only see whether something is playing now.";
+"No API keys yet." = "No API keys yet.";
+"Revoke" = "Revoke";
+"Unable to load presence keys" = "Unable to load presence keys";
+"Unable to create presence key" = "Unable to create presence key";
+"Unable to revoke presence key" = "Unable to revoke presence key";

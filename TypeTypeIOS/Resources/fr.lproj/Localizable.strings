@@ -1340,3 +1340,17 @@
 "Hide members-only videos" = "Masquer les vidéos réservées aux membres";
 "Removes videos reserved for channel members." = "Retire les vidéos réservées aux membres des chaînes.";
 "SponsorBlock is not responding, segments are not loaded for this video" = "SponsorBlock ne répond pas, les segments ne sont pas chargés pour cette vidéo";
+"API" = "API";
+"Create and revoke keys for external apps." = "Créez et révoquez des clés pour les applications externes.";
+"Copy key" = "Copier la clé";
+"Key copied" = "Clé copiée";
+"Copy this key now. It will not be shown again." = "Copiez cette clé maintenant. Elle ne sera plus affichée.";
+"Key name" = "Nom de la clé";
+"Create key" = "Créer une clé";
+"Presence access" = "Accès de présence";
+"Create a revocable key that can only see whether something is playing now." = "Créez une clé révocable qui peut uniquement voir si une lecture est en cours.";
+"No API keys yet." = "Aucune clé API pour le moment.";
+"Revoke" = "Révoquer";
+"Unable to load presence keys" = "Impossible de charger les clés de présence";
+"Unable to create presence key" = "Impossible de créer la clé de présence";
+"Unable to revoke presence key" = "Impossible de révoquer la clé de présence";

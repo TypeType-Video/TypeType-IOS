@@ -13,6 +13,7 @@ enum LiveSettingsPage: String, Hashable, Identifiable {
   case data
   case privacy
   case blocked
+  case api
   case diagnostics
   case about
 
@@ -22,7 +23,7 @@ enum LiveSettingsPage: String, Hashable, Identifiable {
     [.appearance, .player, .notifications],
     [.content, .algorithm, .focus, .rss],
     [.downloads, .data, .privacy],
-    [.blocked, .diagnostics],
+    [.blocked, .api, .diagnostics],
     [.about],
   ]
 
@@ -42,6 +43,7 @@ enum LiveSettingsPage: String, Hashable, Identifiable {
     case .data: "Data and backups"
     case .privacy: "Privacy"
     case .blocked: "Blocked"
+    case .api: "API"
     case .diagnostics: "Diagnostics"
     case .about: "About"
     }
@@ -61,6 +63,7 @@ enum LiveSettingsPage: String, Hashable, Identifiable {
     case .data: "Import and export your data"
     case .privacy: "Watch history and stored activity"
     case .blocked: "Hidden channels, videos and keywords"
+    case .api: "Create and revoke keys for external apps."
     case .diagnostics: "Recent requests, for troubleshooting"
     case .about: "Versions and license"
     }
@@ -80,6 +83,7 @@ enum LiveSettingsPage: String, Hashable, Identifiable {
     case .data: "externaldrive.fill"
     case .privacy: "hand.raised.fill"
     case .blocked: "nosign"
+    case .api: "key.fill"
     case .diagnostics: "ladybug.fill"
     case .about: "info"
     }

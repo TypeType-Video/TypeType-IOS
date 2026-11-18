@@ -51,6 +51,8 @@ struct LiveSettingsDestination: View {
         canCreateGlobal: coordinator.currentUser?.role != .user,
         hiddenVideos: dependencies.hiddenVideos
       )
+    case .api:
+      if let presence = dependencies.presenceService { LivePresenceKeysView(service: presence) }
     case .diagnostics:
       LiveDiagnosticsView(
         store: dependencies.diagnosticsStore,
@@ -89,6 +91,7 @@ extension RootCoordinator {
         case .rss: dependencies.rssEnabled && dependencies.rssFeedService != nil
         case .focus: dependencies.focusService != nil && signedIn
         case .algorithm: dependencies.recommenderEnabled && dependencies.recommenderService != nil && signedIn
+        case .api: dependencies.presenceService != nil && signedIn
         default: true
         }
       }

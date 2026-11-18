@@ -178,6 +178,7 @@ extension AppDependencies {
       focusService: LiveFocusService(apiClient: client),
       recommenderService: LiveRecommenderService(apiClient: client),
       serverStatus: LiveServerStatusMonitor(service: LiveServerEventsService(transport: URLSessionLiveChatTransport(client: client))),
+      presenceService: LivePresenceService(apiClient: client),
       allowedChannelsService: LiveAllowedChannelsService(apiClient: client),
       playbackService: LivePlaybackService(
         apiClient: client,
