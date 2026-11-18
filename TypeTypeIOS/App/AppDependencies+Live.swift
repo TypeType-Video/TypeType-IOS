@@ -179,6 +179,7 @@ extension AppDependencies {
       recommenderService: LiveRecommenderService(apiClient: client),
       serverStatus: LiveServerStatusMonitor(service: LiveServerEventsService(transport: URLSessionLiveChatTransport(client: client))),
       presenceService: LivePresenceService(apiClient: client),
+      shortLinkService: LiveShortLinkService(apiClient: client),
       allowedChannelsService: LiveAllowedChannelsService(apiClient: client),
       playbackService: LivePlaybackService(
         apiClient: client,

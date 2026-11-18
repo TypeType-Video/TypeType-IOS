@@ -72,6 +72,14 @@ struct LiveChannelView: View {
   }
 
   func routeLink(_ url: URL) {
+    if LiveShortLinkService.code(of: url) != nil, let shortLinks = dependencies.shortLinkService {
+      Task { routeResolvedLink(await shortLinks.resolve(url)) }
+      return
+    }
+    routeResolvedLink(url)
+  }
+
+  func routeResolvedLink(_ url: URL) {
     switch LiveMediaLinkResolver.destination(for: url, serverURL: dependencies.serverStore.selectedServer()?.baseURL) {
     case let .video(video): selectedVideo = video
     case let .channel(channelURL): linkedChannel = LiveChannelLink(url: channelURL)

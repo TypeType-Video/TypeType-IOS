@@ -53,6 +53,7 @@ final class AppDependencies {
   let recommenderService: LiveRecommenderServiceProtocol?
   let serverStatus: LiveServerStatusMonitor?
   let presenceService: LivePresenceServiceProtocol?
+  let shortLinkService: LiveShortLinkServiceProtocol?
   let allowedChannelsService: LiveAllowedChannelsServiceProtocol?
   let playbackService: LivePlaybackServiceProtocol?
   let watchProgress: LiveWatchProgressStore
@@ -171,6 +172,7 @@ final class AppDependencies {
     recommenderService: LiveRecommenderServiceProtocol? = nil,
     serverStatus: LiveServerStatusMonitor? = nil,
     presenceService: LivePresenceServiceProtocol? = nil,
+    shortLinkService: LiveShortLinkServiceProtocol? = nil,
     allowedChannelsService: LiveAllowedChannelsServiceProtocol? = nil,
     playbackService: LivePlaybackServiceProtocol? = nil,
     watchProgress: LiveWatchProgressStore = LiveWatchProgressStore(),
@@ -225,6 +227,7 @@ final class AppDependencies {
     self.recommenderService = recommenderService
     self.serverStatus = serverStatus
     self.presenceService = presenceService
+    self.shortLinkService = shortLinkService
     self.allowedChannelsService = allowedChannelsService
     self.playbackService = playbackService
     self.watchProgress = watchProgress
