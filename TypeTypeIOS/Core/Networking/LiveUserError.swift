@@ -7,6 +7,7 @@ enum LiveUserError: Equatable {
   case providerBlocked
   case contentBlocked
   case membersOnly
+  case liveNotStarted
   case ageRestricted
   case privateContent
   case contentUnavailable
@@ -41,6 +42,7 @@ enum LiveUserError: Equatable {
     case "upstream_timeout", "sabr_upstream_timeout": .serverSlow
     case "content_blocked": .contentBlocked
     case "members_only": .membersOnly
+    case "live_not_started": .liveNotStarted
     case "age_restricted": .ageRestricted
     case "private_content": .privateContent
     case "content_unavailable": .contentUnavailable
@@ -80,6 +82,7 @@ enum LiveUserError: Equatable {
     case .providerBlocked: String(localized: "YouTube is refusing requests from this instance right now. Try again later.")
     case .contentBlocked: String(localized: "This is blocked for this account, or outside the family list.")
     case .membersOnly: String(localized: "This video is for channel members only.")
+    case .liveNotStarted: String(localized: "This live has not started yet. Come back when the channel goes live.")
     case .ageRestricted: String(localized: "This video is age-restricted.")
     case .privateContent: String(localized: "This video is private.")
     case .contentUnavailable: String(localized: "This content is no longer available.")

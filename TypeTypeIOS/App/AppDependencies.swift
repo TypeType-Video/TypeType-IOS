@@ -32,6 +32,7 @@ final class AppDependencies {
   var pushNotificationsEnabled = false
   var rssEnabled = false
   var twitchEnabled = false
+  var recommenderEnabled = false
   let sessionActivityService: LiveSessionActivityServiceProtocol
   let adminService: LiveAdminServiceProtocol
   let adminAccessService: LiveAdminAccessServiceProtocol
@@ -46,6 +47,14 @@ final class AppDependencies {
   let liveChatService: LiveChatService?
   let linkedAccountsService: LiveLinkedAccountsServiceProtocol?
   let twitchService: LiveTwitchServiceProtocol?
+  let twitchAccountService: LiveTwitchAccountServiceProtocol?
+  let twitchChatService: LiveTwitchChatService?
+  let focusService: LiveFocusServiceProtocol?
+  let recommenderService: LiveRecommenderServiceProtocol?
+  let serverStatus: LiveServerStatusMonitor?
+  let presenceService: LivePresenceServiceProtocol?
+  let shortLinkService: LiveShortLinkServiceProtocol?
+  let adminExtrasService: LiveAdminExtrasServiceProtocol?
   let allowedChannelsService: LiveAllowedChannelsServiceProtocol?
   let playbackService: LivePlaybackServiceProtocol?
   let watchProgress: LiveWatchProgressStore
@@ -158,6 +167,14 @@ final class AppDependencies {
     liveChatService: LiveChatService? = nil,
     linkedAccountsService: LiveLinkedAccountsServiceProtocol? = nil,
     twitchService: LiveTwitchServiceProtocol? = nil,
+    twitchAccountService: LiveTwitchAccountServiceProtocol? = nil,
+    twitchChatService: LiveTwitchChatService? = nil,
+    focusService: LiveFocusServiceProtocol? = nil,
+    recommenderService: LiveRecommenderServiceProtocol? = nil,
+    serverStatus: LiveServerStatusMonitor? = nil,
+    presenceService: LivePresenceServiceProtocol? = nil,
+    shortLinkService: LiveShortLinkServiceProtocol? = nil,
+    adminExtrasService: LiveAdminExtrasServiceProtocol? = nil,
     allowedChannelsService: LiveAllowedChannelsServiceProtocol? = nil,
     playbackService: LivePlaybackServiceProtocol? = nil,
     watchProgress: LiveWatchProgressStore = LiveWatchProgressStore(),
@@ -206,9 +223,18 @@ final class AppDependencies {
     self.liveChatService = liveChatService
     self.linkedAccountsService = linkedAccountsService
     self.twitchService = twitchService
+    self.twitchAccountService = twitchAccountService
+    self.twitchChatService = twitchChatService
+    self.focusService = focusService
+    self.recommenderService = recommenderService
+    self.serverStatus = serverStatus
+    self.presenceService = presenceService
+    self.shortLinkService = shortLinkService
+    self.adminExtrasService = adminExtrasService
     self.allowedChannelsService = allowedChannelsService
     self.playbackService = playbackService
     self.watchProgress = watchProgress
+    watchProgress.loader = { [historyService] urls in try await historyService.progress(videoURLs: urls) }
     self.imagePipeline = imagePipeline
     self.orientationLock = orientationLock
     self.crashReports = crashReports
@@ -236,5 +262,6 @@ extension AppDependencies {
     deArrowStore.invalidatePreferences()
     downloadCenter.cancelTracking()
     hiddenVideos.clear()
+    watchProgress.forget()
   }
 }

@@ -39,5 +39,6 @@ struct LiveSubscriptionGroup: Codable, Equatable, Hashable, Identifiable {
 enum LiveSubscriptionFilter: Equatable, Hashable {
   case all
   case ungrouped
+  case shorts
   case group(id: String, name: String)
 }

@@ -31,3 +31,8 @@ struct LiveSubscriptionGroupChannelsPayload: Encodable, Equatable {
     case channelURLs = "channelUrls"
   }
 }
+
+struct LiveSubscriptionMembershipPage: Decodable {
+  let items: [LiveSubscriptionGroupMembership]
+  let total: Int64
+}

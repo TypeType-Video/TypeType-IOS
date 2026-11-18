@@ -69,6 +69,15 @@ final class LiveRecommendationRefusalsTests: XCTestCase {
     XCTAssertTrue(try JSONDecoder().decode(HomeRecommendationsPage.self, from: recommended).comesFromRecommender)
   }
 
+  func testMembersOnlyVideosHideOnlyWhenTheSettingIsOn() {
+    let hidden = LiveHiddenVideos()
+    let open = LiveVideoItemFixture.make()
+    let members = LiveVideoItemFixture.make(id: "video-2", url: "https://www.youtube.com/watch?v=video-2", requiresMembership: true)
+    XCTAssertEqual(hidden.visible([open, members]).count, 2)
+    hidden.hidesMembersOnly = true
+    XCTAssertEqual(hidden.visible([open, members]).map(\.id), ["video-1"])
+  }
+
   func testHiddenVideosDropBlockedVideosAndChannelsUntilUnblocked() {
     let hidden = LiveHiddenVideos()
     let first = LiveVideoItemFixture.make()

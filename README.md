@@ -43,6 +43,10 @@ sessions, recommendations, synchronization, and downloads.
 - Browse and search videos, channels, playlists, and subscriptions.
 - Browse and watch Twitch lives, past broadcasts, and clips in the Live tab when
   your instance enables Twitch, go back in a live, or listen to it as sound only.
+- Follow the Twitch chat of a live or replay it on a past broadcast; link a
+  Twitch account with a code to chat, vote in polls, and follow channels.
+- Choose how the home page is built on instances with the algorithm, see the
+  data it uses, and fade distracting channels with Focus.
 - Get recommendations from your instance, and mark the ones that are not for
   you.
 - Start videos quickly: the videos in view are prepared when you stop
@@ -58,6 +62,7 @@ sessions, recommendations, synchronization, and downloads.
 - Download videos, audio or thumbnails and watch them offline, with saving that
   picks up again after leaving the app or losing the network.
 - Switch between several accounts, themes, and English or French.
+- See server restarts, updates, and outages as they happen.
 
 ## Install
 

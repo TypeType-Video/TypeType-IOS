@@ -2,12 +2,12 @@ import SwiftUI
 
 struct LiveSubscriptionsView: View {
   @ObservedObject var coordinator: RootCoordinator
-  @StateObject private var viewModel: LiveSubscriptionsViewModel
-  @State private var selectedVideo: LiveVideoItem?
-  @State private var selectedVideoChannelURL: String?
-  @State private var selectedChannel: LiveSubscription?
-  @State private var isShowingGroups = false
-  @State private var channelQuery = ""
+  @StateObject var viewModel: LiveSubscriptionsViewModel
+  @State var selectedVideo: LiveVideoItem?
+  @State var selectedVideoChannelURL: String?
+  @State var selectedChannel: LiveSubscription?
+  @State var isShowingGroups = false
+  @State var channelQuery = ""
 
   init(coordinator: RootCoordinator) {
     self.coordinator = coordinator
@@ -35,39 +35,8 @@ struct LiveSubscriptionsView: View {
             .accessibilityIdentifier("live.subscriptions.section")
           }
           ToolbarItem(placement: .topBarTrailing) {
-          Menu {
-            Button {
-              Task { await viewModel.selectFilter(.all) }
-            } label: {
-              Label("All subscriptions", systemImage: "square.grid.2x2")
-            }
-            Button {
-              Task { await viewModel.selectFilter(.ungrouped) }
-            } label: {
-              Label("Ungrouped", systemImage: "tray")
-            }
-            if !viewModel.groups.isEmpty {
-              Section {
-                ForEach(viewModel.groups) { group in
-                  Button(group.name) {
-                    Task {
-                      await viewModel.selectFilter(.group(
-                        id: group.id,
-                        name: group.name
-                      ))
-                    }
-                  }
-                }
-              } header: { Text("Groups") }
-            }
-          } label: {
-            Image(systemName: "folder.badge.gearshape")
+            LiveSubscriptionFilterMenu(viewModel: viewModel)
           }
-          .disabled(viewModel.state != .loaded)
-          .accessibilityLabel("Subscription filter")
-          .accessibilityValue(viewModel.filterLabel)
-          .accessibilityIdentifier("live.subscriptions.filter")
-        }
         ToolbarItem(placement: .topBarTrailing) {
           Button {
             isShowingGroups = true
@@ -186,50 +155,6 @@ struct LiveSubscriptionsView: View {
     .accessibilityIdentifier("live.subscriptions.videos")
   }
 
-  private var channelList: some View {
-    Group {
-      if viewModel.channels.isEmpty {
-        ContentUnavailableView(
-          "No subscriptions",
-          systemImage: "person.2.slash",
-          description: Text("Channels you subscribe to will appear here.")
-        ).liveThemedEmptyState()
-      } else {
-        List {
-          LiveSection {
-            ForEach(filteredChannels) { channel in
-              LiveSubscriptionChannelRow(
-                channel: channel,
-                groupNames: groupNames(for: channel),
-                onOpen: { selectedChannel = channel },
-                onUnsubscribe: { Task { await viewModel.unsubscribe(channel) } }
-              ) {
-                groupQuickActions(for: channel)
-              }
-            }
-          } header: {
-            Text("\(viewModel.channels.count) channels").liveSectionHeader()
-          }
-        }
-        .liveGroupedList()
-        .searchable(text: $channelQuery, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search channels")
-        .refreshable { await viewModel.reload() }
-      }
-    }
-    .accessibilityIdentifier("live.subscriptions.channels")
-  }
-
-  private var filteredChannels: [LiveSubscription] {
-    let query = channelQuery.trimmingCharacters(in: .whitespaces)
-    guard !query.isEmpty else { return viewModel.channels }
-    return viewModel.channels.filter { $0.name.localizedStandardContains(query) }
-  }
-
-  private func groupNames(for channel: LiveSubscription) -> [String] {
-    let ids = viewModel.groupIDs(for: channel.channelURL)
-    return viewModel.groups.filter { ids.contains($0.id) }.map(\.name)
-  }
-
   private var columns: [GridItem] {
     [
       GridItem(
@@ -238,38 +163,5 @@ struct LiveSubscriptionsView: View {
         alignment: .top
       ),
     ]
-  }
-
-  @ViewBuilder
-  private func groupQuickActions(
-    for channel: LiveSubscription
-  ) -> some View {
-    Section {
-      if viewModel.groups.isEmpty {
-        Text("No groups")
-      } else {
-        ForEach(viewModel.groups) { group in
-          let isMember = viewModel.groupIDs(for: channel.channelURL)
-            .contains(group.id)
-          Button {
-            Task {
-              await viewModel.toggleGroupMembership(channel, in: group)
-            }
-          } label: {
-            if isMember {
-              Label(
-                "Remove from \(group.name)",
-                systemImage: "minus.circle"
-              )
-            } else {
-              Label(
-                "Add to \(group.name)",
-                systemImage: "plus.circle"
-              )
-            }
-          }
-        }
-      }
-    } header: { Text("Groups") }
   }
 }

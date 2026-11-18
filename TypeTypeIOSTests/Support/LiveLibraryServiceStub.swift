@@ -15,8 +15,8 @@ final class LiveLibraryServiceStub: LiveLibraryServiceProtocol {
     return snapshot
   }
 
-  func favorite(videoURL: String) async throws -> LiveFavoriteItem? {
-    favoriteItems.first { $0.videoURL == videoURL }
+  func isFavorite(videoURL: String) async throws -> Bool {
+    favoriteItems.contains { $0.videoURL == videoURL }
   }
 
   func addFavorite(videoURL: String) async throws -> LiveFavoriteItem {

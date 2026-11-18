@@ -25,6 +25,7 @@ struct LiveRelatedVideosSection: View, Equatable {
     LiveHiddenVideosReader(dependencies.hiddenVideos) { hidden in
       list(hidden.visible(videos))
     }
+    .loadsWatchProgress(videos)
   }
 
   @ViewBuilder

@@ -13,6 +13,7 @@ protocol LiveHistoryServiceProtocol {
     progress: Int64
   ) async throws -> LiveHistoryItem
   func progress(videoURL: String) async throws -> Int64?
+  func progress(videoURLs: [String]) async throws -> [String: Int64]
   func updateProgress(
     videoURL: String,
     positionMS: Int64
@@ -24,6 +25,10 @@ protocol LiveHistoryServiceProtocol {
 extension LiveHistoryServiceProtocol {
   func progress(videoURL: String) async throws -> Int64? {
     nil
+  }
+
+  func progress(videoURLs: [String]) async throws -> [String: Int64] {
+    [:]
   }
 
   func updateProgress(
@@ -111,6 +116,25 @@ final class LiveHistoryService: LiveHistoryServiceProtocol {
     )
   }
 
+  // The server reads at most 200 addresses per call.
+  func progress(videoURLs: [String]) async throws -> [String: Int64] {
+    var positions: [String: Int64] = [:]
+    for start in stride(from: 0, to: videoURLs.count, by: 200) {
+      let batch = Array(videoURLs[start..<min(start + 200, videoURLs.count)])
+      let items = try await apiClient.request(
+        APIEndpoint(
+          path: "/progress/batch",
+          method: .post,
+          body: try APIEndpoint.jsonBody(LiveProgressBatchPayload(videoUrls: batch)),
+          requiresAuth: true
+        ),
+        as: [LiveProgressBatchItem].self
+      )
+      for item in items { positions[item.videoUrl] = max(item.position, 0) }
+    }
+    return positions
+  }
+
   func progress(videoURL: String) async throws -> Int64? {
     do {
       let item = try await apiClient.request(
@@ -162,6 +186,15 @@ private struct LiveProgressPayload: Encodable {
 
 private struct LiveProgressItem: Decodable {
   let position: Int64
+}
+
+private struct LiveProgressBatchItem: Decodable {
+  let videoUrl: String
+  let position: Int64
+}
+
+private struct LiveProgressBatchPayload: Encodable {
+  let videoUrls: [String]
 }
 
 private struct LiveHistoryPayload: Encodable {

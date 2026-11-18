@@ -56,6 +56,7 @@ struct LiveTwitchView: View {
 
   private var home: some View {
     VStack(alignment: .leading, spacing: 28) {
+      LiveTwitchFollowedSections()
       if !games.items.isEmpty {
         VStack(alignment: .leading, spacing: 12) {
           Text("Categories").liveSectionHeader()
@@ -83,6 +84,7 @@ struct LiveTwitchView: View {
 struct LiveTwitchDestination: View {
   let route: LiveTwitchRoute
   let service: LiveTwitchServiceProtocol
+  @Environment(\.liveTwitchAccount) private var account
 
   var body: some View {
     switch route {
@@ -96,6 +98,8 @@ struct LiveTwitchDestination: View {
       LiveTwitchStreamsView(title: Text("\(tag) lives"), identifier: "live.twitch.tag.more") {
         try await service.tagStreams(tag: tag, after: $0)
       }
+    case .linkAccount:
+      if let account { LiveTwitchLinkPage(service: account) }
     }
   }
 }

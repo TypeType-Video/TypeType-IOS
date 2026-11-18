@@ -83,13 +83,23 @@ extension LiveMediaLinkResolver {
     if path.hasPrefix("/watch/") {
       return videoDestination(for: url)
     }
+    if let list = nicoNicoList(path), let listURL = URL(string: "https://www.nicovideo.jp/\(list.kind)/\(list.id)") {
+      return playlistDestination(for: listURL)
+    }
     if path.hasPrefix("/user/") || path.hasPrefix("/channel/") {
       return .channel(url.absoluteString)
     }
-    if path.hasPrefix("/mylist/") {
-      return playlistDestination(for: url)
-    }
     return nil
+  }
+
+  // Mylists and series, also under a user page: /mylist/1, /series/2, /user/3/mylist/4.
+  static func nicoNicoList(_ path: String) -> (kind: String, id: String)? {
+    var parts = path.split(separator: "/").map(String.init)
+    if parts.count == 4, parts[0] == "user", parts[1].allSatisfy(\.isNumber) { parts.removeFirst(2) }
+    guard parts.count == 2, ["mylist", "series"].contains(parts[0]),
+      (1...12).contains(parts[1].count), parts[1].allSatisfy(\.isNumber)
+    else { return nil }
+    return (parts[0], parts[1])
   }
 
   private static func biliBiliDestination(
@@ -97,6 +107,13 @@ extension LiveMediaLinkResolver {
     host: String
   ) -> LiveMediaLinkDestination? {
     let path = url.path.lowercased()
+    let parts = path.split(separator: "/")
+    if host == "live.bilibili.com" {
+      return parts.count == 1 && (1...12).contains(parts[0].count) && parts[0].allSatisfy(\.isNumber) ? videoDestination(for: url) : nil
+    }
+    if let collection = biliBiliCollection(url) {
+      return playlistDestination(for: collection)
+    }
     if host == "space.bilibili.com" || path.hasPrefix("/space/") {
       return .channel(url.absoluteString)
     }

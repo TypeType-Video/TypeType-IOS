@@ -8,6 +8,21 @@ struct LiveSettingsPlaybackPage: View {
   private let qualities = ["auto", "144p", "240p", "360p", "480p", "720p", "1080p", "1440p", "2160p"]
   private let speeds: [Double] = [0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0]
 
+  // The account setting wins when the server keeps one, so every device waits the same time.
+  private var countdown: Binding<Int> {
+    guard viewModel.draft.autoplayCountdownSeconds != nil else { return preferences.binding(\.playerAutoplayCountdownSeconds) }
+    return Binding(
+      get: { viewModel.draft.autoplayCountdownSeconds ?? 10 },
+      set: { viewModel.draft.autoplayCountdownSeconds = $0 }
+    )
+  }
+
+  private var countdownChoices: [Int] {
+    let base = [3, 5, 10, 15, 20, 30, 60]
+    let current = countdown.wrappedValue
+    return current == 0 || base.contains(current) ? base : (base + [current]).sorted()
+  }
+
   var body: some View {
     LiveSettingsEditingPage(viewModel: viewModel, scope: .mixed) {
       LiveSection {
@@ -19,8 +34,8 @@ struct LiveSettingsPlaybackPage: View {
         .disabled(viewModel.isOffline)
         LiveOptionMenu(
           "Autoplay countdown",
-          selection: preferences.binding(\.playerAutoplayCountdownSeconds),
-          options: [(0, "Immediate")] + [3, 5, 10, 15, 20, 30].map { ($0, "\($0)s") },
+          selection: countdown,
+          options: [(0, "Immediate")] + countdownChoices.map { ($0, "\($0)s") },
           help: "Time before the next video starts.",
           disabledReason: autoplayReason
         )

@@ -11,6 +11,7 @@ struct LiveTwitchLinkView: View {
           LiveTwitchDestination(route: next, service: service)
         }
         .environment(\.liveTwitchPlay) { dependencies.playbackCoordinator.open($0) }
+        .environment(\.liveTwitchAccount, dependencies.twitchAccountService)
     } else {
       LiveTwitchMessage(text: Text("Twitch is not enabled on this instance."), systemImage: "dot.radiowaves.left.and.right", retry: nil)
     }

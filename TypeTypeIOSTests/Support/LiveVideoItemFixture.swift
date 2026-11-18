@@ -8,7 +8,8 @@ enum LiveVideoItemFixture {
     title: String = "A useful TypeType recommendation",
     isShort: Bool = false,
     streamType: String = "VIDEO_STREAM",
-    publishedAt: Int64? = 1_785_063_770_906
+    publishedAt: Int64? = 1_785_063_770_906,
+    requiresMembership: Bool = false
   ) -> LiveVideoItem {
     LiveVideoItem(
       id: id,
@@ -30,7 +31,7 @@ enum LiveVideoItemFixture {
       isLive: false,
       isPostLive: false,
       isLiveContent: false,
-      requiresMembership: false
+      requiresMembership: requiresMembership
     )
   }
 }

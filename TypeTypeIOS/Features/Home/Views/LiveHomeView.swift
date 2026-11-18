@@ -29,6 +29,7 @@ struct LiveHomeView: View {
   var body: some View {
     NavigationStack {
       content
+        .loadsWatchProgress(viewModel.videos)
         .navigationTitle("Home")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {

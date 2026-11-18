@@ -18,6 +18,7 @@ extension LiveAuthenticatedAppView {
     else {
       return
     }
+    coordinator.dependencies.playbackCoordinator.applySettings(settings)
     switch settings.defaultLandingPage {
     case "subscriptions":
       selectedTab.wrappedValue = .subscriptions

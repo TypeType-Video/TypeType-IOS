@@ -41,7 +41,7 @@ extension LivePlayerOptionsSheet {
               set: controller.selectVideoResolution
             )) {
               Text("Automatic").tag(Int?.none)
-              ForEach(LivePlaybackVideoCatalog.resolutionOptions(from: controller.availableVideoSources)) { source in
+              ForEach(LivePlaybackVideoCatalog.resolutionOptions(from: controller.availableVideoSources).reversed()) { source in
                 Text(LivePlaybackVideoCatalog.detailLabel(for: source))
                   .tag(Optional(source.height))
               }

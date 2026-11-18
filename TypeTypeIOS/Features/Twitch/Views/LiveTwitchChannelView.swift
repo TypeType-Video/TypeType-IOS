@@ -121,6 +121,7 @@ struct LiveTwitchChannelHeader: View {
           }
         }
       }
+      LiveTwitchFollowButton(login: channel.user.login)
       if !channel.description.isEmpty {
         Text(verbatim: channel.description)
           .font(.subheadline)
