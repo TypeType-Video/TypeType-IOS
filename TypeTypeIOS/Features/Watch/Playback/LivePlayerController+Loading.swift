@@ -104,7 +104,8 @@ extension LivePlayerController {
 
   func restartAtCurrentPosition(autoplay: Bool? = nil) {
     guard let service, let stream else { return }
-    let restartTime = position
+    // A Twitch live and its sound-only rendition do not share a timeline: the restart goes back to the live edge.
+    let restartTime: TimeInterval? = stream.isLive && stream.twitchMedia != nil ? nil : position
     let wasPlaying = autoplay ?? nativePlayback.map { $0.player.state == .playing } ?? (player.timeControlStatus == .playing)
     state = .loading
     loadGeneration += 1

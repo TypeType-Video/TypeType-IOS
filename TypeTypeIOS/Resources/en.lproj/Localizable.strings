@@ -1157,3 +1157,10 @@
 "No results." = "No results.";
 "Live, %@ followers" = "Live, %@ followers";
 "Twitch is not enabled on this instance." = "Twitch is not enabled on this instance.";
+"Plays the live." = "Plays the live.";
+"This channel is offline or this video no longer exists." = "This channel is offline or this video no longer exists.";
+"This content is restricted (subscribers only or not available in this region)." = "This content is restricted (subscribers only or not available in this region).";
+"Go back in the live" = "Go back in the live";
+"%@ behind live" = "%@ behind live";
+"Moving back by more than 30 seconds opens the recording of this live." = "Moving back by more than 30 seconds opens the recording of this live.";
+"Plays the sound without the picture." = "Plays the sound without the picture.";

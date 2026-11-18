@@ -33,7 +33,7 @@ struct LiveTwitchStreamCard: View {
     .accessibilityElement(children: .ignore)
     .accessibilityLabel(Text("\(stream.user.name) live: \(stream.title)"))
     .accessibilityValue(Text("\(LiveTwitchFormat.count(stream.viewers)) watching"))
-    .accessibilityHint(Text("Opens the channel."))
+    .accessibilityHint(Text("Plays the live."))
     .accessibilityIdentifier("live.twitch.stream.\(stream.user.login)")
   }
 }
