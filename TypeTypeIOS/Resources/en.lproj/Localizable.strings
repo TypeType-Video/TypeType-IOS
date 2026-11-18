@@ -1355,3 +1355,6 @@
 "Unable to create presence key" = "Unable to create presence key";
 "Unable to revoke presence key" = "Unable to revoke presence key";
 "Shorts" = "Shorts";
+"Jumped to %@" = "Jumped to %@";
+"Jump to %@" = "Jump to %@";
+"A viewer pointed to this moment in the comments." = "A viewer pointed to this moment in the comments.";

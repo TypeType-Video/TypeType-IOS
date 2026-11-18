@@ -62,6 +62,7 @@ struct LivePlayerView: View {
         speedBoostOverlay
         swipeAdjustmentOverlay
         statusOverlay
+        LiveDanmakuJumpPrompt(controller: controller)
         if controller.drawsOwnControls {
           LiveNativeSubtitleOverlay(controller: controller, subtitles: controller.nativeSubtitles)
           LiveNativePlayerControls(

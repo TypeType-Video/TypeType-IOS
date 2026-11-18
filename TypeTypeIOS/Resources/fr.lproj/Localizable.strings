@@ -1355,3 +1355,6 @@
 "Unable to create presence key" = "Impossible de créer la clé de présence";
 "Unable to revoke presence key" = "Impossible de révoquer la clé de présence";
 "Shorts" = "Shorts";
+"Jumped to %@" = "Déplacé à %@";
+"Jump to %@" = "Aller à %@";
+"A viewer pointed to this moment in the comments." = "Un spectateur a indiqué ce moment dans les commentaires.";
