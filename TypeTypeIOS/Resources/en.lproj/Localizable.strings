@@ -1332,3 +1332,8 @@
 "Nothing to do with me" = "Nothing to do with me";
 "Too many old videos" = "Too many old videos";
 "My channels are missing" = "My channels are missing";
+"Connection to the server lost. Reconnecting." = "Connection to the server lost. Reconnecting.";
+"The server is restarting. Everything resumes by itself." = "The server is restarting. Everything resumes by itself.";
+"A server update is coming. Playback will resume by itself." = "A server update is coming. Playback will resume by itself.";
+"Server maintenance in progress." = "Server maintenance in progress.";
+"The server is back." = "The server is back.";

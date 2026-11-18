@@ -51,6 +51,7 @@ final class AppDependencies {
   let twitchChatService: LiveTwitchChatService?
   let focusService: LiveFocusServiceProtocol?
   let recommenderService: LiveRecommenderServiceProtocol?
+  let serverStatus: LiveServerStatusMonitor?
   let allowedChannelsService: LiveAllowedChannelsServiceProtocol?
   let playbackService: LivePlaybackServiceProtocol?
   let watchProgress: LiveWatchProgressStore
@@ -167,6 +168,7 @@ final class AppDependencies {
     twitchChatService: LiveTwitchChatService? = nil,
     focusService: LiveFocusServiceProtocol? = nil,
     recommenderService: LiveRecommenderServiceProtocol? = nil,
+    serverStatus: LiveServerStatusMonitor? = nil,
     allowedChannelsService: LiveAllowedChannelsServiceProtocol? = nil,
     playbackService: LivePlaybackServiceProtocol? = nil,
     watchProgress: LiveWatchProgressStore = LiveWatchProgressStore(),
@@ -219,6 +221,7 @@ final class AppDependencies {
     self.twitchChatService = twitchChatService
     self.focusService = focusService
     self.recommenderService = recommenderService
+    self.serverStatus = serverStatus
     self.allowedChannelsService = allowedChannelsService
     self.playbackService = playbackService
     self.watchProgress = watchProgress
