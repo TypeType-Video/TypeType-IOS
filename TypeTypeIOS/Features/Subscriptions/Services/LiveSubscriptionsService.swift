@@ -67,7 +67,7 @@ extension LiveSubscriptionsServiceProtocol {
 
 final class LiveSubscriptionsService:
   LiveSubscriptionsServiceProtocol {
-  private let apiClient: APIClient
+  let apiClient: APIClient
   private let decoder = JSONDecoder()
 
   init(apiClient: APIClient) {
@@ -89,6 +89,7 @@ final class LiveSubscriptionsService:
     nextPage: String? = nil,
     filter: LiveSubscriptionFilter = .all
   ) async throws -> LiveSubscriptionFeedPage {
+    if filter == .shorts { return try await shorts(page: nextPage) }
     var queryItems = [
       URLQueryItem(name: "limit", value: "30"),
     ]
@@ -98,7 +99,7 @@ final class LiveSubscriptionsService:
       )
     }
     switch filter {
-    case .all:
+    case .all, .shorts:
       break
     case .ungrouped:
       queryItems.append(
@@ -144,6 +145,22 @@ final class LiveSubscriptionsService:
     throw NetworkError.transport
   }
 
+  // Pages are numbered here, where the video feed hands out cursors.
+  private func shorts(page: String?) async throws -> LiveSubscriptionFeedPage {
+    let endpoint = APIEndpoint(
+      path: "/subscriptions/shorts",
+      method: .get,
+      queryItems: [
+        URLQueryItem(name: "page", value: page.flatMap(Int.init).map(String.init) ?? "0"),
+        URLQueryItem(name: "limit", value: "30"),
+        URLQueryItem(name: "blended", value: "true"),
+      ],
+      requiresAuth: true,
+      timeoutInterval: 90
+    )
+    return try await apiClient.request(endpoint, as: LiveSubscriptionFeedPage.self)
+  }
+
   func subscribe(
     channelURL: String,
     name: String,
@@ -181,96 +198,5 @@ final class LiveSubscriptionsService:
     } catch let error as NetworkError {
       guard case .statusCode(404, _, _) = error else { throw error }
     }
-  }
-
-  func groups() async throws -> [LiveSubscriptionGroup] {
-    try await apiClient.request(
-      APIEndpoint(
-        path: "/subscriptions/groups",
-        method: .get,
-        requiresAuth: true
-      ),
-      as: [LiveSubscriptionGroup].self
-    )
-  }
-
-  func memberships() async throws -> [LiveSubscriptionGroupMembership] {
-    try await apiClient.request(
-      APIEndpoint(
-        path: "/subscriptions/group-memberships",
-        method: .get,
-        requiresAuth: true
-      ),
-      as: [LiveSubscriptionGroupMembership].self
-    )
-  }
-
-  func createGroup(name: String) async throws -> LiveSubscriptionGroup {
-    try await apiClient.request(
-      APIEndpoint(
-        path: "/subscriptions/groups",
-        method: .post,
-        body: try APIEndpoint.jsonBody(
-          LiveSubscriptionGroupNamePayload(name: name)
-        ),
-        requiresAuth: true
-      ),
-      as: LiveSubscriptionGroup.self
-    )
-  }
-
-  func renameGroup(id: String, name: String) async throws {
-    try await apiClient.request(
-      APIEndpoint(
-        path: "/subscriptions/groups/\(id)",
-        method: .put,
-        body: try APIEndpoint.jsonBody(
-          LiveSubscriptionGroupNamePayload(name: name)
-        ),
-        requiresAuth: true
-      )
-    )
-  }
-
-  func deleteGroup(id: String) async throws {
-    try await apiClient.request(
-      APIEndpoint(
-        path: "/subscriptions/groups/\(id)",
-        method: .delete,
-        requiresAuth: true
-      )
-    )
-  }
-
-  func addChannels(
-    _ channelURLs: [String],
-    toGroup id: String
-  ) async throws {
-    try await apiClient.request(
-      APIEndpoint(
-        path: "/subscriptions/groups/\(id)/channels",
-        method: .put,
-        body: try APIEndpoint.jsonBody(
-          LiveSubscriptionGroupChannelsPayload(channelURLs: channelURLs)
-        ),
-        requiresAuth: true
-      )
-    )
-  }
-
-  func removeChannel(
-    _ channelURL: String,
-    fromGroup id: String
-  ) async throws {
-    try await apiClient.request(
-      APIEndpoint(
-        path: "/subscriptions/groups/\(id)/channels",
-        method: .delete,
-        queryItems: [
-          URLQueryItem(name: "url", value: channelURL),
-        ],
-        requiresAuth: true
-      )
-    )
   }
 }
