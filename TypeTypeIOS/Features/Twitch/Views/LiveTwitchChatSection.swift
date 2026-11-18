@@ -81,6 +81,7 @@ struct LiveTwitchChatSection: View {
     if event.kind == .message, let text = event.text {
       LiveTwitchChatMessageRow(
         author: event.author,
+        login: event.login ?? event.author,
         color: event.color,
         badges: event.badges.compactMap { model.badges[$0] },
         parts: LiveTwitchChatParts.parts(text: text, native: event.emotes, emotes: model.emotes, selfLogin: model.account?.login ?? ""),

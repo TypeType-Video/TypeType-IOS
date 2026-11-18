@@ -62,32 +62,13 @@ struct LiveTwitchSubBadge: View {
   let subscription: LiveTwitchSubscription
 
   var body: some View {
-    Label { Text(verbatim: Self.label(subscription)) } icon: { Image(systemName: "star.fill") }
+    Label { Text(verbatim: LiveTwitchChatText.subscription(subscription)) } icon: { Image(systemName: "star.fill") }
       .font(.caption.weight(.semibold))
       .foregroundStyle(.purple)
       .padding(.horizontal, 10)
       .padding(.vertical, 5)
       .background(Color.purple.opacity(0.15), in: RoundedRectangle(cornerRadius: 8))
       .accessibilityElement(children: .ignore)
-      .accessibilityLabel(Text(verbatim: ([Self.label(subscription)] + Self.details(subscription)).joined(separator: ", ")))
-  }
-
-  static func label(_ subscription: LiveTwitchSubscription) -> String {
-    switch subscription.months {
-    case 2...: String(localized: "Subscribed · \(subscription.months) months")
-    case 1: String(localized: "Subscribed · 1 month")
-    default: String(localized: "Subscribed")
-    }
-  }
-
-  static func details(_ subscription: LiveTwitchSubscription) -> [String] {
-    var details: [String] = []
-    if subscription.streak > 1 { details.append(String(localized: "\(subscription.streak)-month streak")) }
-    if subscription.prime {
-      details.append("Prime")
-    } else if let tier = Int(subscription.tier), tier >= 1000, tier % 1000 == 0 {
-      details.append(String(localized: "Tier \(tier / 1000)"))
-    }
-    return details
+      .accessibilityLabel(Text(verbatim: ([LiveTwitchChatText.subscription(subscription)] + LiveTwitchChatText.subscriptionDetails(subscription)).joined(separator: ", ")))
   }
 }

@@ -35,10 +35,10 @@ final class LiveTwitchLinkViewModelTests: XCTestCase {
   func testSubscriptionLabelsMatchTheWeb() {
     let long = LiveTwitchSubscription(tier: "2000", prime: false, months: 14, streak: 3)
     let prime = LiveTwitchSubscription(tier: "1000", prime: true, months: 1, streak: 1)
-    XCTAssertEqual(LiveTwitchSubBadge.label(long), "Subscribed · 14 months")
-    XCTAssertEqual(LiveTwitchSubBadge.details(long), ["3-month streak", "Tier 2"])
-    XCTAssertEqual(LiveTwitchSubBadge.label(prime), "Subscribed · 1 month")
-    XCTAssertEqual(LiveTwitchSubBadge.details(prime), ["Prime"])
+    XCTAssertEqual(LiveTwitchChatText.subscription(long), "Subscribed · 14 months")
+    XCTAssertEqual(LiveTwitchChatText.subscriptionDetails(long), ["3-month streak", "Tier 2"])
+    XCTAssertEqual(LiveTwitchChatText.subscription(prime), "Subscribed · 1 month")
+    XCTAssertEqual(LiveTwitchChatText.subscriptionDetails(prime), ["Prime"])
   }
 }
 

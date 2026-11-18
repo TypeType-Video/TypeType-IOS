@@ -67,6 +67,20 @@ final class LiveTwitchChatPartsTests: XCTestCase {
     XCTAssertTrue(parts.contains(.link("twitch.tv/blender_org", try XCTUnwrap(URL(string: "https://twitch.tv/blender_org")))))
   }
 
+  func testNameColorsStayReadableLikeTheWeb() {
+    let black = LiveTwitchChatText.nameRGB("#000000", login: "a", dark: true)
+    XCTAssertEqual(black.0, 191)
+    XCTAssertEqual(black.1, 191)
+    let red = LiveTwitchChatText.nameRGB("#FF0000", login: "a", dark: true)
+    XCTAssertEqual(red.0, 255)
+    XCTAssertEqual(red.1, 0)
+    let white = LiveTwitchChatText.nameRGB("FFFFFF", login: "a", dark: false)
+    XCTAssertEqual(white.0, 102)
+    let fallback = LiveTwitchChatText.nameRGB(nil, login: "a", dark: true)
+    XCTAssertEqual(fallback.0, 46)
+    XCTAssertEqual(fallback.2, 87)
+  }
+
   func testOnlyKnownBareDomainsBecomeLinks() {
     XCTAssertNotNil(LiveTwitchChatParts.linkURL("example.com"))
     XCTAssertNil(LiveTwitchChatParts.linkURL("file.txt"))

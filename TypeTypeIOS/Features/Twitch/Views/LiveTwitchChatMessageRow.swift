@@ -2,12 +2,14 @@ import SwiftUI
 
 struct LiveTwitchChatMessageRow: View {
   let author: String
+  let login: String
   let color: String?
   let badges: [LiveTwitchChatBadge]
   let parts: [LiveTwitchChatPart]
   var deleted = false
   var isAction = false
   let onOpenURL: (URL) -> Void
+  @Environment(\.colorScheme) private var colorScheme
 
   var body: some View {
     LiveTwitchFlowLayout(spacing: 3, lineSpacing: 4) {
@@ -18,7 +20,7 @@ struct LiveTwitchChatMessageRow: View {
       }
       Text(verbatim: author + (isAction ? "" : ":"))
         .font(.subheadline.weight(.bold))
-        .foregroundStyle(LiveTwitchChatColor.color(color))
+        .foregroundStyle(LiveTwitchChatText.nameColor(color, login: login, dark: colorScheme == .dark))
       if deleted {
         Text("Message deleted by a moderator")
           .font(.subheadline.italic())
@@ -77,17 +79,6 @@ struct LiveTwitchChatMessageRow: View {
         .padding(.horizontal, isSelf ? 3 : 0)
         .background(isSelf ? Color.accentColor.opacity(0.25) : .clear, in: RoundedRectangle(cornerRadius: 4))
     }
-  }
-}
-
-enum LiveTwitchChatColor {
-  static func color(_ hex: String?) -> Color {
-    guard let hex, hex.hasPrefix("#"), hex.count == 7, let value = UInt32(hex.dropFirst(), radix: 16) else { return .accentColor }
-    return Color(
-      red: Double((value >> 16) & 0xFF) / 255,
-      green: Double((value >> 8) & 0xFF) / 255,
-      blue: Double(value & 0xFF) / 255
-    )
   }
 }
 

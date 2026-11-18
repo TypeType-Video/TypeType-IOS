@@ -55,7 +55,7 @@ struct LiveTwitchPollCard: View {
       }
       Text(verbatim: poll.title).font(.subheadline.weight(.semibold))
       ForEach(poll.choices) { choice in
-        let percent = Self.percent(choice, in: poll)
+        let percent = LiveTwitchChatText.percent(choice, in: poll)
         Button { onVote(choice) } label: {
           ZStack(alignment: .leading) {
             GeometryReader { proxy in
@@ -80,36 +80,17 @@ struct LiveTwitchPollCard: View {
     .padding(10)
     .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 10))
   }
-
-  static func percent(_ choice: LiveTwitchPollChoice, in poll: LiveTwitchPoll) -> Int {
-    let total = poll.choices.reduce(0) { $0 + $1.votes }
-    return total > 0 ? Int((Double(choice.votes) / Double(total) * 100).rounded()) : 0
-  }
 }
 
 struct LiveTwitchChatModes: View {
   let room: LiveTwitchRoomState
 
   var body: some View {
-    let modes = Self.labels(room)
+    let modes = LiveTwitchChatText.modes(room)
     if !modes.isEmpty {
       Text(verbatim: modes.joined(separator: " · "))
         .font(.caption2.weight(.semibold))
         .foregroundStyle(.secondary)
     }
-  }
-
-  static func labels(_ room: LiveTwitchRoomState) -> [String] {
-    var labels: [String] = []
-    if room.subsOnly { labels.append(String(localized: "Subscribers only")) }
-    if room.followersOnly == 0 {
-      labels.append(String(localized: "Followers only"))
-    } else if room.followersOnly > 0 {
-      labels.append(String(localized: "Followers for \(Duration.seconds(room.followersOnly * 60).formatted(.units(width: .narrow)))"))
-    }
-    if room.slow > 0 { labels.append(String(localized: "Slow mode \(room.slow) s")) }
-    if room.emoteOnly { labels.append(String(localized: "Emotes only")) }
-    if room.uniqueChat { labels.append(String(localized: "Unique messages")) }
-    return labels
   }
 }

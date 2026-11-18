@@ -27,6 +27,7 @@ struct LiveTwitchVodChatSection: View {
             ForEach(comments) { comment in
               LiveTwitchChatMessageRow(
                 author: comment.author,
+                login: comment.login ?? comment.author,
                 color: comment.color,
                 badges: (comment.badges ?? []).compactMap { model.badges[$0] },
                 parts: LiveTwitchChatParts.parts(text: comment.text, native: comment.emotes ?? [], emotes: model.emotes),
