@@ -66,6 +66,16 @@ struct LiveSettingsDiscoverySection: View {
           )
         )
       }
+      if settings.hideMembersOnlyContent != nil {
+        LiveSettingToggle(
+          "Hide members-only videos",
+          help: "Removes videos reserved for channel members.",
+          isOn: Binding(
+            get: { settings.hideMembersOnlyContent ?? false },
+            set: { settings.hideMembersOnlyContent = $0 }
+          )
+        )
+      }
       if settings.hideEndScreens != nil {
         LiveSettingToggle(
           "Hide end screens",

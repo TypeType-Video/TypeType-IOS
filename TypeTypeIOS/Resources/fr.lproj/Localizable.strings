@@ -1337,3 +1337,5 @@
 "A server update is coming. Playback will resume by itself." = "Une mise à jour du serveur arrive. La lecture reprendra toute seule.";
 "Server maintenance in progress." = "Maintenance du serveur en cours.";
 "The server is back." = "Le serveur est de retour.";
+"Hide members-only videos" = "Masquer les vidéos réservées aux membres";
+"Removes videos reserved for channel members." = "Retire les vidéos réservées aux membres des chaînes.";

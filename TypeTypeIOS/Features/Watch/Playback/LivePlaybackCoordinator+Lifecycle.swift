@@ -71,6 +71,7 @@ extension LivePlaybackCoordinator {
   }
 
   func applySettings(_ settings: LiveSettings) {
+    hiddenVideos?.hidesMembersOnly = settings.hideMembersOnlyContent ?? false
     applyPersistencePolicy(enabled: !settings.disableWatchHistory)
     controller?.applySettings(settings)
   }
