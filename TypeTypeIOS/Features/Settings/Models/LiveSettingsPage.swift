@@ -6,6 +6,7 @@ enum LiveSettingsPage: String, Hashable, Identifiable {
   case player
   case notifications
   case content
+  case focus
   case rss
   case downloads
   case data
@@ -18,7 +19,7 @@ enum LiveSettingsPage: String, Hashable, Identifiable {
 
   static let groups: [[LiveSettingsPage]] = [
     [.appearance, .player, .notifications],
-    [.content, .rss],
+    [.content, .focus, .rss],
     [.downloads, .data, .privacy],
     [.blocked, .diagnostics],
     [.about],
@@ -33,6 +34,7 @@ enum LiveSettingsPage: String, Hashable, Identifiable {
     case .player: "Player"
     case .notifications: "Push notifications"
     case .content: "Content"
+    case .focus: "Focus"
     case .rss: "Private RSS feeds"
     case .downloads: "Downloads"
     case .data: "Data and backups"
@@ -50,6 +52,7 @@ enum LiveSettingsPage: String, Hashable, Identifiable {
     case .player: "Playback, gestures, languages, SponsorBlock"
     case .notifications: "Channels that alert you"
     case .content: "Home page, DeArrow, hidden sections"
+    case .focus: "Fade the channels that distract you"
     case .rss: "Private links to your feeds"
     case .downloads: "Videos saved for offline viewing"
     case .data: "Import and export your data"
@@ -67,6 +70,7 @@ enum LiveSettingsPage: String, Hashable, Identifiable {
     case .player: "play.fill"
     case .notifications: "bell.fill"
     case .content: "rectangle.stack.fill"
+    case .focus: "scope"
     case .rss: "dot.radiowaves.up.forward"
     case .downloads: "arrow.down"
     case .data: "externaldrive.fill"
