@@ -27,7 +27,7 @@ final class LiveVideoLibraryActionsViewModel: ObservableObject {
   func prepare() async {
     guard isLoading else { return }
     do {
-      async let favoriteRequest = library.favorite(videoURL: video.url)
+      async let favoriteRequest = library.isFavorite(videoURL: video.url)
       async let watchLaterRequest = library.watchLater()
       async let playlistRequest = playlistService.playlists()
       let (favorite, watchLater, summaries) = try await (
@@ -35,7 +35,7 @@ final class LiveVideoLibraryActionsViewModel: ObservableObject {
         watchLaterRequest,
         playlistRequest
       )
-      isFavorite = favorite != nil
+      isFavorite = favorite
       isInWatchLater = watchLater.contains { $0.url == video.url }
       var details: [LivePlaylist] = []
       for summary in summaries {
