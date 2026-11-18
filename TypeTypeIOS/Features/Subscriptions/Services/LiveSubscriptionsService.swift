@@ -14,6 +14,7 @@ protocol LiveSubscriptionsServiceProtocol {
   func unsubscribe(channelURL: String) async throws
   func groups() async throws -> [LiveSubscriptionGroup]
   func memberships() async throws -> [LiveSubscriptionGroupMembership]
+  func memberships(channelURLs: [String]) async throws -> [LiveSubscriptionGroupMembership]
   func createGroup(name: String) async throws -> LiveSubscriptionGroup
   func renameGroup(id: String, name: String) async throws
   func deleteGroup(id: String) async throws
@@ -40,6 +41,10 @@ extension LiveSubscriptionsServiceProtocol {
   func memberships() async throws -> [
     LiveSubscriptionGroupMembership
   ] { [] }
+
+  func memberships(channelURLs: [String]) async throws -> [LiveSubscriptionGroupMembership] {
+    try await memberships().filter { channelURLs.contains($0.channelURL) }
+  }
 
   func createGroup(name: String) async throws -> LiveSubscriptionGroup {
     LiveSubscriptionGroup(

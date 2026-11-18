@@ -234,7 +234,7 @@ final class LiveSubscriptionsViewModel: ObservableObject {
           toGroup: group.id
         )
       }
-      try await self.refreshGroupData()
+      try await self.refreshMembership(of: channel.channelURL)
     }
   }
 
@@ -256,6 +256,17 @@ final class LiveSubscriptionsViewModel: ObservableObject {
     )
     groups = loadedGroups
     memberships = loadedMemberships
+  }
+
+  // Only the changed channel is read back; the group list comes along for its counts.
+  private func refreshMembership(of channelURL: String) async throws {
+    async let groupRequest = service.groups()
+    async let lookup = service.memberships(channelURLs: [channelURL])
+    let (loadedGroups, changed) = try await (groupRequest, lookup)
+    groups = loadedGroups
+    let normalized = normalizedChannelURL(channelURL)
+    memberships.removeAll { normalizedChannelURL($0.channelURL) == normalized }
+    memberships += changed
   }
 
   private func performGroupMutation(

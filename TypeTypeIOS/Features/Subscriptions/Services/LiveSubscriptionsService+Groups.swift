@@ -12,11 +12,32 @@ extension LiveSubscriptionsService {
     )
   }
 
+  // Read in pages of 100, the most the server serves at once.
   func memberships() async throws -> [LiveSubscriptionGroupMembership] {
+    var items: [LiveSubscriptionGroupMembership] = []
+    var page = 0
+    while true {
+      let answer = try await apiClient.request(
+        APIEndpoint(
+          path: "/subscriptions/group-memberships/page",
+          method: .get,
+          queryItems: [URLQueryItem(name: "page", value: String(page)), URLQueryItem(name: "limit", value: "100")],
+          requiresAuth: true
+        ),
+        as: LiveSubscriptionMembershipPage.self
+      )
+      items += answer.items
+      guard !answer.items.isEmpty, Int64(items.count) < answer.total, page < 1_000 else { return items }
+      page += 1
+    }
+  }
+
+  func memberships(channelURLs: [String]) async throws -> [LiveSubscriptionGroupMembership] {
     try await apiClient.request(
       APIEndpoint(
-        path: "/subscriptions/group-memberships",
-        method: .get,
+        path: "/subscriptions/group-memberships/lookup",
+        method: .post,
+        body: try APIEndpoint.jsonBody(LiveSubscriptionGroupChannelsPayload(channelURLs: channelURLs)),
         requiresAuth: true
       ),
       as: [LiveSubscriptionGroupMembership].self
