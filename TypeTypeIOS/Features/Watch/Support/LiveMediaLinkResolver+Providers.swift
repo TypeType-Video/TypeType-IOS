@@ -111,6 +111,9 @@ extension LiveMediaLinkResolver {
     if host == "live.bilibili.com" {
       return parts.count == 1 && (1...12).contains(parts[0].count) && parts[0].allSatisfy(\.isNumber) ? videoDestination(for: url) : nil
     }
+    if let collection = biliBiliCollection(url) {
+      return playlistDestination(for: collection)
+    }
     if host == "space.bilibili.com" || path.hasPrefix("/space/") {
       return .channel(url.absoluteString)
     }

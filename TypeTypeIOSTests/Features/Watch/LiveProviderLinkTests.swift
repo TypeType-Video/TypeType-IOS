@@ -20,6 +20,17 @@ final class LiveProviderLinkTests: XCTestCase {
     XCTAssertNil(try destination("https://live.bilibili.com/p/eden/area-tags"))
   }
 
+  func testBiliBiliSeriesAndCollectionsOpenAsPlaylists() throws {
+    for (link, expected) in [
+      ("https://space.bilibili.com/123/channel/seriesdetail?sid=456", "https://www.bilibili.com/medialist/play/123?business=space_series&business_id=456"),
+      ("https://space.bilibili.com/123/lists/789?type=season", "https://www.bilibili.com/medialist/play/123?business=space_collection&business_id=789"),
+    ] {
+      guard case let .playlist(playlist) = try destination(link) else { return XCTFail("Expected a playlist for \(link)") }
+      XCTAssertEqual(playlist.url, expected)
+    }
+    guard case .channel = try destination("https://space.bilibili.com/123") else { return XCTFail("Expected the channel") }
+  }
+
   func testALiveThatHasNotStartedSaysSo() {
     XCTAssertEqual(LiveUserError.classify(code: "live_not_started", status: 409), .liveNotStarted)
   }
