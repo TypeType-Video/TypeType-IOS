@@ -45,6 +45,7 @@ struct LiveSearchView: View {
         }
       }
       .background(LiveThemeBackground().ignoresSafeArea())
+      .loadsWatchProgress(viewModel.results.compactMap { if case let .video(video) = $0 { video } else { nil } })
       .navigationTitle("Search")
       .toolbar(.hidden, for: .navigationBar)
       .onChange(of: viewModel.query) {

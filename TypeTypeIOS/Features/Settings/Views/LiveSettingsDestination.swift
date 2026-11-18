@@ -24,6 +24,14 @@ struct LiveSettingsDestination: View {
       LiveNotificationSettingsView(dependencies: dependencies)
     case .content:
       LiveSettingsContentView(dependencies: dependencies, viewModel: viewModel)
+    case .algorithm:
+      if let recommender = dependencies.recommenderService {
+        LiveAlgorithmView(service: recommender, feedback: dependencies.recommenderFeedbackService)
+      }
+    case .focus:
+      if let focus = dependencies.focusService {
+        LiveFocusSettingsView(service: focus, subscriptions: dependencies.subscriptionsService)
+      }
     case .rss:
       if let feeds = dependencies.rssFeedService {
         LiveRssFeedsView(feedService: feeds, subscriptionsService: dependencies.subscriptionsService)
@@ -43,6 +51,8 @@ struct LiveSettingsDestination: View {
         canCreateGlobal: coordinator.currentUser?.role != .user,
         hiddenVideos: dependencies.hiddenVideos
       )
+    case .api:
+      if let presence = dependencies.presenceService { LivePresenceKeysView(service: presence) }
     case .diagnostics:
       LiveDiagnosticsView(
         store: dependencies.diagnosticsStore,
@@ -74,8 +84,17 @@ struct LiveSettingsPageLabel: View {
 
 extension RootCoordinator {
   var settingsGroups: [[LiveSettingsPage]] {
-    LiveSettingsPage.groups.map { group in
-      group.filter { $0 != .rss || (dependencies.rssEnabled && dependencies.rssFeedService != nil) }
+    let signedIn = currentUser.map { !$0.id.hasPrefix("guest:") } == true
+    return LiveSettingsPage.groups.map { group in
+      group.filter { page in
+        switch page {
+        case .rss: dependencies.rssEnabled && dependencies.rssFeedService != nil
+        case .focus: dependencies.focusService != nil && signedIn
+        case .algorithm: dependencies.recommenderEnabled && dependencies.recommenderService != nil && signedIn
+        case .api: dependencies.presenceService != nil && signedIn
+        default: true
+        }
+      }
     }
   }
 }

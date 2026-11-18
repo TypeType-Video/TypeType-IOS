@@ -13,6 +13,8 @@ struct LiveComponentVersions: Codable, Equatable {
   let server: LiveComponentVersion?
   let token: LiveComponentVersion?
   let downloader: LiveComponentVersion?
+  var live: LiveComponentVersion?
+  var recommender: LiveComponentVersion?
 }
 
 protocol LiveVersionServiceProtocol {
@@ -31,12 +33,16 @@ final class LiveVersionService: LiveVersionServiceProtocol {
     async let server = version("server")
     async let token = version("token")
     async let downloader = version("downloader")
+    async let live = version("live")
+    async let recommender = version("recommender")
 
     return LiveComponentVersions(
       frontend: try? await frontend,
       server: try? await server,
       token: try? await token,
-      downloader: try? await downloader
+      downloader: try? await downloader,
+      live: try? await live,
+      recommender: try? await recommender
     )
   }
 

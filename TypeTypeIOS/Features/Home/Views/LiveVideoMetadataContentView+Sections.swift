@@ -6,7 +6,10 @@ extension LiveVideoMetadataContentView {
     LivePlaybackQueueView(coordinator: playbackCoordinator)
 
     if resolvedVideo.twitchLink != nil {
-      LiveTwitchWatchExtras(controller: playerController, onRewind: rewindTwitchLive)
+      LiveTwitchWatchExtras(
+        controller: playerController, dependencies: dependencies, signedIn: hasPersistentAccount,
+        onRewind: rewindTwitchLive, onOpenURL: routeLink
+      )
     }
 
     if playerController.stream?.isLive == true, LiveChatSupport.supports(videoURL: resolvedVideo.url) {

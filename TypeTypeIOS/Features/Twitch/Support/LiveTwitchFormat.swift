@@ -4,6 +4,7 @@ enum LiveTwitchRoute: Hashable {
   case channel(String)
   case game(slug: String, name: String)
   case tag(String)
+  case linkAccount
 }
 
 enum LiveTwitchFormat {

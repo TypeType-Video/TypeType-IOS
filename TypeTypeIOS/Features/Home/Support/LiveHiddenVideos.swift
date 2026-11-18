@@ -5,14 +5,16 @@ import SwiftUI
 final class LiveHiddenVideos: ObservableObject {
   @Published private(set) var videoURLs: Set<String> = []
   @Published private(set) var channelURLs: Set<String> = []
+  @Published var hidesMembersOnly = false
 
   func hides(_ video: LiveVideoItem) -> Bool {
     videoURLs.contains(video.url)
       || (!video.uploaderURL.isEmpty && channelURLs.contains(video.uploaderURL))
+      || (hidesMembersOnly && video.requiresMembership)
   }
 
   func visible(_ videos: [LiveVideoItem]) -> [LiveVideoItem] {
-    guard !videoURLs.isEmpty || !channelURLs.isEmpty else { return videos }
+    guard !videoURLs.isEmpty || !channelURLs.isEmpty || hidesMembersOnly else { return videos }
     return videos.filter { !hides($0) }
   }
 

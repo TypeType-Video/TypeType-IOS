@@ -31,7 +31,7 @@ final class LiveVideoQuickActionsViewModel: ObservableObject {
   func prepare() async {
     guard !isPrepared else { return }
     do {
-      async let favoriteRequest = library.favorite(videoURL: video.url)
+      async let favoriteRequest = library.isFavorite(videoURL: video.url)
       async let watchLaterRequest = library.watchLater()
       async let playlistRequest = playlistsService.playlists()
       async let historyRequest = history.history(
@@ -47,7 +47,7 @@ final class LiveVideoQuickActionsViewModel: ObservableObject {
         playlistRequest,
         historyRequest
       )
-      isFavorite = result.0 != nil
+      isFavorite = result.0
       isInWatchLater = result.1.contains { $0.url == video.url }
       playlists = result.2
       historyItem = result.3.first { $0.url == video.url }

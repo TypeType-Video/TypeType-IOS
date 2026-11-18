@@ -713,8 +713,8 @@ private final class RootHistoryStub: LiveHistoryServiceProtocol {
 private final class RootLibraryStub: LiveLibraryServiceProtocol {
   func favorites() async throws -> [LiveFavoriteItem] { [] }
 
-  func favorite(videoURL: String) async throws -> LiveFavoriteItem? {
-    nil
+  func isFavorite(videoURL: String) async throws -> Bool {
+    false
   }
 
   func addFavorite(videoURL: String) async throws -> LiveFavoriteItem {

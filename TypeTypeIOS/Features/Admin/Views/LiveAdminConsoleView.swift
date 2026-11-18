@@ -17,6 +17,21 @@ struct LiveAdminConsoleView: View {
         } label: {
           Label("Active sessions", systemImage: "dot.radiowaves.left.and.right")
         }
+        if let extras = dependencies.adminExtrasService {
+          NavigationLink { LiveAdminNoticeView(service: extras) } label: {
+            Label("Server notice", systemImage: "megaphone")
+          }
+          if dependencies.recommenderEnabled {
+            NavigationLink { LiveAdminRecommenderView(service: extras) } label: {
+              Label("Algorithm", systemImage: "slider.horizontal.3")
+            }
+          }
+          if dependencies.rssEnabled {
+            NavigationLink { LiveAdminRssView(service: extras) } label: {
+              Label("RSS feeds", systemImage: "dot.radiowaves.up.forward")
+            }
+          }
+        }
       } header: { Text("Instance").liveSectionHeader() }
 
       LiveSection {
@@ -51,7 +66,7 @@ struct LiveAdminConsoleView: View {
         }
       } header: { Text("Support").liveSectionHeader() }
     }
-      .liveGroupedList()
+    .liveGroupedList()
     .navigationTitle("Administration")
     .navigationBarTitleDisplayMode(.inline)
     .accessibilityIdentifier("live.admin.screen")

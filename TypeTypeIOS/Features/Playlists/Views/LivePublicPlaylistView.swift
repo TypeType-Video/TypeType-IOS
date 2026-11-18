@@ -21,6 +21,7 @@ struct LivePublicPlaylistView: View {
 
   var body: some View {
     content
+      .loadsWatchProgress(viewModel.videos)
       .liveLibrarySectionSwipe()
       .navigationTitle("Playlist")
       .navigationBarTitleDisplayMode(.inline)

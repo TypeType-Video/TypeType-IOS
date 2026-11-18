@@ -145,8 +145,10 @@ final class LiveSubscriptionsServiceTests: XCTestCase {
           status: 201,
           body: Self.groupJSON
         )
-      case "/api/subscriptions/group-memberships":
-        return try Self.response(request, status: 200, body: "[]")
+      case "/api/subscriptions/group-memberships/page":
+        XCTAssertEqual(URLComponents(url: try XCTUnwrap(request.url), resolvingAgainstBaseURL: false)?
+          .queryItems?.first { $0.name == "limit" }?.value, "100")
+        return try Self.response(request, status: 200, body: #"{"items":[],"total":0,"totalSubscriptions":0,"ungroupedCount":0,"page":0,"limit":100}"#)
       case "/api/subscriptions/feed":
         let query = URLComponents(
           url: try XCTUnwrap(request.url),

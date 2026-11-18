@@ -95,6 +95,19 @@ extension LiveAuthenticatedAppView {
   }
 
   func presentPendingIncomingMediaLink() {
+    if let pending = coordinator.pendingIncomingURL, LiveShortLinkService.code(of: pending) != nil,
+      let shortLinks = coordinator.dependencies.shortLinkService {
+      coordinator.pendingIncomingURL = nil
+      Task {
+        let target = await shortLinks.resolve(pending)
+        if LiveShortLinkService.code(of: target) == nil {
+          coordinator.pendingIncomingURL = target
+        } else if case let .video(video) = LiveMediaLinkResolver.destination(for: pending, serverURL: coordinator.selectedServer?.baseURL) {
+          playbackCoordinator.open(video)
+        }
+      }
+      return
+    }
     guard incomingMediaLink == nil,
       let link = coordinator.consumeIncomingMediaLink()
     else {

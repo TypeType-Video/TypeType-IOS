@@ -62,6 +62,7 @@ struct LivePlayerView: View {
         speedBoostOverlay
         swipeAdjustmentOverlay
         statusOverlay
+        LiveDanmakuJumpPrompt(controller: controller)
         if controller.drawsOwnControls {
           LiveNativeSubtitleOverlay(controller: controller, subtitles: controller.nativeSubtitles)
           LiveNativePlayerControls(
@@ -139,7 +140,7 @@ struct LivePlayerView: View {
       restoreSystemBrightness()
       controller.fullscreen.isPageActive = false
     }
-
+    .modifier(LiveSponsorBlockUnavailableNotice(controller: controller))
     .sheet(isPresented: $showsChapters) {
       LivePlayerChaptersView(controller: controller) { showsChapters = false }
         .presentationDetents([.medium, .large])

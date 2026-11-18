@@ -2,7 +2,7 @@ import Foundation
 
 protocol LiveLibraryServiceProtocol {
   func favorites() async throws -> [LiveFavoriteItem]
-  func favorite(videoURL: String) async throws -> LiveFavoriteItem?
+  func isFavorite(videoURL: String) async throws -> Bool
   func addFavorite(videoURL: String) async throws -> LiveFavoriteItem
   func removeFavorite(videoURL: String) async throws
   func watchLater() async throws -> [LiveWatchLaterItem]
@@ -24,16 +24,14 @@ final class LiveLibraryService: LiveLibraryServiceProtocol {
     )
   }
 
-  func favorite(videoURL: String) async throws -> LiveFavoriteItem? {
-    do {
-      return try await apiClient.request(
-        endpoint("/favorites/\(videoURL)", .get),
-        as: LiveFavoriteItem.self
-      )
-    } catch let error as NetworkError {
-      guard case .statusCode(404, _, _) = error else { throw error }
-      return nil
-    }
+  func isFavorite(videoURL: String) async throws -> Bool {
+    try await apiClient.request(
+      APIEndpoint(
+        path: "/favorites/status", method: .get,
+        queryItems: [URLQueryItem(name: "videoUrl", value: videoURL)], requiresAuth: true
+      ),
+      as: LiveFavoriteStatus.self
+    ).isFavorite
   }
 
   func addFavorite(videoURL: String) async throws -> LiveFavoriteItem {
@@ -92,4 +90,8 @@ final class LiveLibraryService: LiveLibraryServiceProtocol {
       requiresAuth: true
     )
   }
+}
+
+private struct LiveFavoriteStatus: Decodable {
+  let isFavorite: Bool
 }

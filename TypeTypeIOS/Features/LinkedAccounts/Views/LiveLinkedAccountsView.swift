@@ -4,15 +4,18 @@ import SwiftUI
 struct LiveLinkedAccountsView: View {
   @StateObject private var viewModel: LiveLinkedAccountsViewModel
   @Environment(\.openURL) private var openURL
+  private let twitch: LiveTwitchAccountServiceProtocol?
 
-  init(youtube: LiveYouTubeSessionServiceProtocol, service: LiveLinkedAccountsServiceProtocol) {
+  init(youtube: LiveYouTubeSessionServiceProtocol, service: LiveLinkedAccountsServiceProtocol, twitch: LiveTwitchAccountServiceProtocol? = nil) {
     _viewModel = StateObject(wrappedValue: LiveLinkedAccountsViewModel(youtube: youtube, service: service))
+    self.twitch = twitch
   }
 
   var body: some View {
     List {
       youtubeSection
       biliBiliSection
+      if let twitch { LiveTwitchLinkSection(service: twitch) }
     }
     .liveGroupedList()
     .navigationTitle("Linked accounts")

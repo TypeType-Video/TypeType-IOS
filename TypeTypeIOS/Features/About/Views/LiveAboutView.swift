@@ -90,6 +90,8 @@ struct LiveAboutView: View {
         versionRow("Server", versions.server)
         versionRow("Token", versions.token)
         versionRow("Downloader", versions.downloader)
+        if let live = versions.live { versionRow("Live", live) }
+        if let recommender = versions.recommender { versionRow("Algorithm", recommender) }
       } else if isLoadingVersions {
         HStack {
           Text("Loading versions")

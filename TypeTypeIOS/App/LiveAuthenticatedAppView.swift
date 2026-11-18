@@ -43,6 +43,7 @@ struct LiveAuthenticatedAppView: View {
   var body: some View {
     shell
       .safeAreaInset(edge: .top, spacing: 0) { connectivityBanner }
+      .modifier(LiveServerStatusOverlay(monitor: coordinator.dependencies.serverStatus, active: scenePhase == .active))
       .animation(.snappy.delay(0.25), value: playbackCoordinator.showsMiniPlayer)
       .onChange(of: scenePhase) { _, phase in handlePictureInPicture(for: phase) }
       .environment(\.livePrewarm) { video in
