@@ -139,7 +139,7 @@ struct LivePlayerView: View {
       restoreSystemBrightness()
       controller.fullscreen.isPageActive = false
     }
-
+    .modifier(LiveSponsorBlockUnavailableNotice(controller: controller))
     .sheet(isPresented: $showsChapters) {
       LivePlayerChaptersView(controller: controller) { showsChapters = false }
         .presentationDetents([.medium, .large])

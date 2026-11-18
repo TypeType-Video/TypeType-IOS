@@ -1339,3 +1339,4 @@
 "The server is back." = "Le serveur est de retour.";
 "Hide members-only videos" = "Masquer les vidéos réservées aux membres";
 "Removes videos reserved for channel members." = "Retire les vidéos réservées aux membres des chaînes.";
+"SponsorBlock is not responding, segments are not loaded for this video" = "SponsorBlock ne répond pas, les segments ne sont pas chargés pour cette vidéo";

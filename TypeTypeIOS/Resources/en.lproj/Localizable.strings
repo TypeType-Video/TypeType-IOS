@@ -1339,3 +1339,4 @@
 "The server is back." = "The server is back.";
 "Hide members-only videos" = "Hide members-only videos";
 "Removes videos reserved for channel members." = "Removes videos reserved for channel members.";
+"SponsorBlock is not responding, segments are not loaded for this video" = "SponsorBlock is not responding, segments are not loaded for this video";

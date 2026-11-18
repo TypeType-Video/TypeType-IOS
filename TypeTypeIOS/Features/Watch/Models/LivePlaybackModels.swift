@@ -38,6 +38,7 @@ struct LivePlaybackStream: Decodable {
   var previewFrames: [LivePlaybackPreviewFrames]? = nil
   var endScreenElements: [LiveEndScreenElement]? = nil
   var twitchMedia: LiveTwitchMedia? = nil
+  var sponsorBlockUnavailable: Bool? = nil
 
   var allVideoSources: [LivePlaybackVideoSource] {
     var seen: Set<String> = []
@@ -63,6 +64,7 @@ struct LivePlaybackStream: Decodable {
     case preferredDefaultAudioTrackID = "preferredDefaultAudioTrackId"
     case previewFrames
     case endScreenElements
+    case sponsorBlockUnavailable
   }
 }
 
