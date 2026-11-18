@@ -76,3 +76,14 @@ extension URLSessionLiveChatTransport: LiveTwitchChatTransport {
     return try await stream(for: request)
   }
 }
+
+extension URLSessionLiveChatTransport: LiveServerEventsTransport {
+  func openServerEvents() async throws -> AsyncThrowingStream<UInt8, Error> {
+    try DebugNetworkOutage.check()
+    var request = try client.makeURLRequest(
+      APIEndpoint(path: "/server/events", method: .get, timeoutInterval: Self.idleTimeout)
+    )
+    request.setValue("text/event-stream", forHTTPHeaderField: "Accept")
+    return try await stream(for: request)
+  }
+}
