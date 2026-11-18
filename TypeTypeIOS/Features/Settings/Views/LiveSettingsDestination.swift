@@ -24,6 +24,10 @@ struct LiveSettingsDestination: View {
       LiveNotificationSettingsView(dependencies: dependencies)
     case .content:
       LiveSettingsContentView(dependencies: dependencies, viewModel: viewModel)
+    case .algorithm:
+      if let recommender = dependencies.recommenderService {
+        LiveAlgorithmView(service: recommender, feedback: dependencies.recommenderFeedbackService)
+      }
     case .focus:
       if let focus = dependencies.focusService {
         LiveFocusSettingsView(service: focus, subscriptions: dependencies.subscriptionsService)
@@ -78,11 +82,13 @@ struct LiveSettingsPageLabel: View {
 
 extension RootCoordinator {
   var settingsGroups: [[LiveSettingsPage]] {
-    LiveSettingsPage.groups.map { group in
+    let signedIn = currentUser.map { !$0.id.hasPrefix("guest:") } == true
+    return LiveSettingsPage.groups.map { group in
       group.filter { page in
         switch page {
         case .rss: dependencies.rssEnabled && dependencies.rssFeedService != nil
-        case .focus: dependencies.focusService != nil && currentUser.map { !$0.id.hasPrefix("guest:") } == true
+        case .focus: dependencies.focusService != nil && signedIn
+        case .algorithm: dependencies.recommenderEnabled && dependencies.recommenderService != nil && signedIn
         default: true
         }
       }
