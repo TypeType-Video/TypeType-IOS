@@ -36,13 +36,14 @@ final class LiveAlgorithmViewModelTests: XCTestCase {
     model.setValue(.number(6), for: parameter.id)
     model.toggleUse("history")
     XCTAssertEqual(model.value(parameter), .number(6))
-    try await Task.sleep(for: .milliseconds(300))
+    for _ in 0..<100 where service.saved.isEmpty { try await Task.sleep(for: .milliseconds(20)) }
+    try await Task.sleep(for: .milliseconds(100))
     XCTAssertEqual(service.saved.count, 1)
     XCTAssertEqual(service.saved.last?.parameters[parameter.id], .number(6))
     XCTAssertEqual(service.saved.last?.unusedData, ["history"])
 
     model.select("a")
-    try await Task.sleep(for: .milliseconds(30))
+    for _ in 0..<100 where service.saved.count < 2 { try await Task.sleep(for: .milliseconds(20)) }
     XCTAssertEqual(service.saved.last?.algorithmID, "a")
     XCTAssertEqual(service.saved.last?.parameters, [:])
   }
