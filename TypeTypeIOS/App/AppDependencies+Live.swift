@@ -180,6 +180,7 @@ extension AppDependencies {
       serverStatus: LiveServerStatusMonitor(service: LiveServerEventsService(transport: URLSessionLiveChatTransport(client: client))),
       presenceService: LivePresenceService(apiClient: client),
       shortLinkService: LiveShortLinkService(apiClient: client),
+      adminExtrasService: LiveAdminExtrasService(apiClient: client),
       allowedChannelsService: LiveAllowedChannelsService(apiClient: client),
       playbackService: LivePlaybackService(
         apiClient: client,
