@@ -2,6 +2,7 @@ import SwiftUI
 
 struct LiveTwitchFollowButton: View {
   let login: String
+  var onLink: (() -> Void)?
   @Environment(\.liveTwitchAccount) private var account
   @State private var linked: Bool?
   @State private var state: LiveTwitchFollowState?
@@ -12,7 +13,11 @@ struct LiveTwitchFollowButton: View {
     if let account {
       VStack(alignment: .leading, spacing: 6) {
         HStack(spacing: 8) {
-          if linked == false {
+          if linked == false, let onLink {
+            Button(action: onLink) { Label("Follow", systemImage: "heart") }
+              .buttonStyle(.borderedProminent)
+              .accessibilityHint(Text("Link a Twitch account to follow channels."))
+          } else if linked == false {
             NavigationLink(value: LiveTwitchRoute.linkAccount) {
               Label("Follow", systemImage: "heart")
             }

@@ -14,8 +14,7 @@ struct LiveTwitchVodChatSection: View {
 
   var body: some View {
     let comments = model.window.visibleComments(at: controller.position)
-    VStack(alignment: .leading, spacing: 10) {
-      Text("Chat replay").font(.headline)
+    VStack(alignment: .leading, spacing: 0) {
       ScrollViewReader { proxy in
         ScrollView {
           LazyVStack(alignment: .leading, spacing: 6) {
@@ -36,9 +35,11 @@ struct LiveTwitchVodChatSection: View {
             }
             Color.clear.frame(height: 1).id("bottom")
           }
+          .padding(.horizontal, 12)
           .padding(.vertical, 6)
         }
-        .frame(height: 320)
+        .defaultScrollAnchor(.bottom)
+        .frame(maxHeight: .infinity)
         .onChange(of: comments.last?.id) { proxy.scrollTo("bottom", anchor: .bottom) }
       }
     }
