@@ -29,12 +29,12 @@ struct LiveLibrarySectionStrip: View {
             }
           } label: {
             Text(section.title)
-              .font(.body.weight(.semibold))
+              .font(.subheadline.weight(.semibold))
               .foregroundStyle(
                 section == selection ? Color.primary : Color.secondary
               )
-              .padding(.horizontal, 18)
-              .frame(height: 40)
+              .padding(.horizontal, 14)
+              .frame(height: 36)
               .background(
                 section == selection
                   ? palette.surface
@@ -61,6 +61,12 @@ struct LiveLibrarySectionStrip: View {
       }
     }
     .onAppear { stripPosition = selection }
+    .mask(
+      LinearGradient(
+        stops: [.init(color: .black, location: 0), .init(color: .black, location: 0.9), .init(color: .clear, location: 1)],
+        startPoint: .leading, endPoint: .trailing
+      )
+    )
     .padding(.vertical, 4)
     .background(palette.background)
   }

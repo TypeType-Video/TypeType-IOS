@@ -16,7 +16,16 @@ extension LiveVideoCard {
   }
 
   var avatar: some View {
-    LiveRemoteImage(url: video.uploaderAvatar)
+    ZStack {
+      Text(verbatim: video.uploaderName.first.map { String($0).uppercased() } ?? "")
+        .font(.subheadline.weight(.bold))
+        .foregroundStyle(.secondary)
+        .frame(width: 36, height: 36)
+        .background(palette.groupedSurface, in: Circle())
+      if let avatar = video.uploaderAvatar {
+        LiveRemoteImage(url: avatar)
+      }
+    }
       .frame(width: 36, height: 36)
       .clipShape(Circle())
       .overlay {

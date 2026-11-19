@@ -63,9 +63,27 @@ struct LiveTwitchFollowedSections: View {
         }
       } else if status?.linked == false {
         NavigationLink(value: LiveTwitchRoute.linkAccount) {
-          Label("Link a Twitch account", systemImage: "person.crop.circle.badge.plus")
-            .font(.subheadline.weight(.semibold))
+          HStack(spacing: 14) {
+            Image(systemName: "person.crop.circle.badge.plus")
+              .font(.title2)
+              .foregroundStyle(.purple)
+              .frame(width: 44, height: 44)
+              .background(Color.purple.opacity(0.15), in: Circle())
+            VStack(alignment: .leading, spacing: 2) {
+              Text("Link a Twitch account").font(.subheadline.weight(.semibold))
+              Text("To chat, vote in polls and follow channels with your Twitch account.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.leading)
+            }
+            Spacer(minLength: 0)
+            Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(.tertiary)
+          }
+          .padding(14)
+          .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 16))
         }
+        .buttonStyle(.plain)
+        .accessibilityElement(children: .combine)
         .accessibilityIdentifier("live.twitch.link-account")
       }
     }
