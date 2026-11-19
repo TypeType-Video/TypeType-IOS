@@ -27,14 +27,14 @@ extension LivePlayerController {
         MainActor.assumeIsolated { self?.audioInterrupted(info) }
       },
       center.addObserver(forName: AVAudioSession.routeChangeNotification, object: nil, queue: .main) { [weak self] note in
-        let reason = (note.userInfo?[AVAudioSessionRouteChangeReasonKey] as? UInt).flatMap(AVAudioSession.RouteChangeReason.init)
-        guard reason == .oldDeviceUnavailable else { return }
+        guard LiveAudioInterruption.lostPersonalOutput(note.userInfo) else { return }
         MainActor.assumeIsolated { self?.headphonesRemoved() }
       },
     ]
   }
 
   private func audioInterrupted(_ interruption: LiveAudioInterruption) {
+    AppLogger.playback.notice("audio interruption \(String(describing: interruption), privacy: .public) state=\(String(describing: self.state), privacy: .public)")
     switch interruption {
     case .began:
       audioEvents.resumesAfterInterruption = state == .playing
@@ -49,9 +49,12 @@ extension LivePlayerController {
     }
   }
 
+  // AVPlayer pauses by itself when headphones go away; only the native renderer needs it.
   private func headphonesRemoved() {
     audioEvents.resumesAfterInterruption = false
-    if state == .playing { pause() }
+    guard nativePlayback != nil, state == .playing else { return }
+    AppLogger.playback.notice("headphones removed, pausing")
+    pause()
   }
 }
 
@@ -59,6 +62,18 @@ enum LiveAudioInterruption: Equatable {
   case began
   case ended(shouldResume: Bool)
   case unknown
+
+  static let personalOutputs: Set<AVAudioSession.Port> = [
+    .headphones, .bluetoothA2DP, .bluetoothHFP, .bluetoothLE, .lineOut, .usbAudio, .carAudio,
+  ]
+
+  static func lostPersonalOutput(_ userInfo: [AnyHashable: Any]?) -> Bool {
+    let reason = (userInfo?[AVAudioSessionRouteChangeReasonKey] as? UInt).flatMap(AVAudioSession.RouteChangeReason.init)
+    guard reason == .oldDeviceUnavailable,
+      let previous = userInfo?[AVAudioSessionRouteChangePreviousRouteKey] as? AVAudioSessionRouteDescription
+    else { return false }
+    return previous.outputs.contains { personalOutputs.contains($0.portType) }
+  }
 
   init(_ userInfo: [AnyHashable: Any]?) {
     guard let raw = userInfo?[AVAudioSessionInterruptionTypeKey] as? UInt,

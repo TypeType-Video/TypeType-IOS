@@ -9,7 +9,8 @@ extension LivePlayerController {
     guard preparation?.stream.twitchMedia != nil, preparation?.stream.isLive == true else { return }
     twitchLive.stalled { [weak self, weak item] in
       guard let self, let item else { return false }
-      return player.currentItem === item && player.timeControlStatus == .waitingToPlayAtSpecifiedRate
+      // AVPlayer can drop from waiting to paused on a live that ran dry: both count as stalled.
+      return player.currentItem === item && player.timeControlStatus != .playing && self.state == .loading
     } reload: { [weak self] in
       guard let self else { return }
       AppLogger.playback.notice("twitch live stalled, reloading attempt \(self.twitchLive.attempts, privacy: .public)")
