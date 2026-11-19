@@ -1386,3 +1386,5 @@
 "Section" = "Section";
 "Infos" = "Infos";
 "Opens the Twitch channel." = "Ouvre la chaîne Twitch.";
+"Search settings" = "Rechercher dans les réglages";
+"Opens %@" = "Ouvre %@";

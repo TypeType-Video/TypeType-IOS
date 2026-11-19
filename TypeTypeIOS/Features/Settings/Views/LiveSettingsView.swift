@@ -5,6 +5,7 @@ struct LiveSettingsView: View {
   @ObservedObject var coordinator: RootCoordinator
   @ObservedObject var preferences: LiveAppPreferencesStore
   @ObservedObject private var playbackCoordinator: LivePlaybackCoordinator
+  @State private var query = ""
 
   init(coordinator: RootCoordinator) {
     self.coordinator = coordinator
@@ -31,6 +32,7 @@ struct LiveSettingsView: View {
     content
       .navigationTitle("Settings")
       .navigationBarTitleDisplayMode(.inline)
+      .searchable(text: $query, placement: .navigationBarDrawer(displayMode: .always), prompt: Text("Search settings"))
       .task { await viewModel.prepare() }
       .accessibilityIdentifier("live.settings.screen")
   }
@@ -51,7 +53,14 @@ struct LiveSettingsView: View {
         }
       }
     case .loaded:
-      settingsList
+      if query.trimmingCharacters(in: .whitespaces).isEmpty {
+        settingsList
+      } else {
+        LiveSettingsSearchResults(
+          results: LiveSettingsSearchIndex.search(query, in: LiveSettingsSearchIndex.entries(pages: coordinator.settingsGroups.flatMap { $0 })),
+          coordinator: coordinator, viewModel: viewModel, preferences: preferences
+        )
+      }
     }
   }
 

@@ -1386,3 +1386,5 @@
 "Section" = "Section";
 "Infos" = "Infos";
 "Opens the Twitch channel." = "Opens the Twitch channel.";
+"Search settings" = "Search settings";
+"Opens %@" = "Opens %@";
