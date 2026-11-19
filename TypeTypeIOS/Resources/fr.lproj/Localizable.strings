@@ -1383,3 +1383,6 @@
 "Opinions" = "Avis";
 "No RSS feed on this instance." = "Aucun flux RSS sur cette instance.";
 "RSS allowed for this user" = "RSS autorisé pour cet utilisateur";
+"Section" = "Section";
+"Infos" = "Infos";
+"Opens the Twitch channel." = "Ouvre la chaîne Twitch.";
