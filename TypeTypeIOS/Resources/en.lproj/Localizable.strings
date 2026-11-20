@@ -359,7 +359,6 @@
 "Checking connection" = "Checking connection";
 "Opens instances and accounts" = "Opens instances and accounts";
 "Your data" = "Your data";
-"Advanced" = "Advanced";
 "Accessible player controls" = "Accessible player controls";
 "Audio language code" = "Audio language code";
 "Audio-only playback" = "Audio-only playback";
@@ -1393,3 +1392,7 @@
 "Twitch is turned off on this instance." = "Twitch is turned off on this instance.";
 "Link your Twitch account again" = "Link your Twitch account again";
 "Opens Linked accounts." = "Opens Linked accounts.";
+"Watching" = "Watching";
+"What you see" = "What you see";
+"Look and feel" = "Look and feel";
+"Help" = "Help";

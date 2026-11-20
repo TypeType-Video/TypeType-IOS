@@ -359,7 +359,6 @@
 "Checking connection" = "Vérification de la connexion";
 "Opens instances and accounts" = "Ouvre les instances et les comptes";
 "Your data" = "Vos données";
-"Advanced" = "Avancé";
 "Accessible player controls" = "Commandes du lecteur accessibles";
 "Audio language code" = "Code de langue audio";
 "Audio-only playback" = "Lecture audio seule";
@@ -1393,3 +1392,7 @@
 "Twitch is turned off on this instance." = "Twitch est désactivé sur cette instance.";
 "Link your Twitch account again" = "Reliez à nouveau votre compte Twitch";
 "Opens Linked accounts." = "Ouvre Comptes liés.";
+"Watching" = "Regarder";
+"What you see" = "Ce que vous voyez";
+"Look and feel" = "Apparence et style";
+"Help" = "Aide";
