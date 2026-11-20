@@ -12,7 +12,7 @@ struct LiveSearchSuggestionView: View {
       HStack(spacing: 10) {
         Image(systemName: "text.magnifyingglass")
         VStack(alignment: .leading, spacing: 2) {
-          Text(isCorrected ? "Showing corrected results" : "Did you mean?")
+          (isCorrected ? Text("Showing corrected results") : Text("Did you mean?"))
             .font(.caption)
             .foregroundStyle(.secondary)
           Text(suggestion)

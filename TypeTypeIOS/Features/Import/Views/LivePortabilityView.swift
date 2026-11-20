@@ -82,10 +82,7 @@ struct LivePortabilityView: View {
       VStack(alignment: .leading, spacing: 6) {
         Text("Data portability")
           .font(.headline)
-        Text(
-          "Move account data into TypeType or create a backup for "
-            + "another supported app."
-        )
+        Text("Move account data into TypeType or create a backup for another supported app.")
         .font(.subheadline)
         .foregroundStyle(.secondary)
       }

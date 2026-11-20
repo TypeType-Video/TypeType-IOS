@@ -73,7 +73,7 @@ struct LiveLinkedAccountsView: View {
               .background(.white, in: RoundedRectangle(cornerRadius: 12))
               .accessibilityLabel("BiliBili sign-in QR code")
           }
-          Text(viewModel.biliBiliScanned ? "Scanned. Confirm in the BiliBili app." : "Scan this code with the BiliBili app.")
+          (viewModel.biliBiliScanned ? Text("Scanned. Confirm in the BiliBili app.") : Text("Scan this code with the BiliBili app."))
             .font(.subheadline)
             .foregroundStyle(.secondary)
         }

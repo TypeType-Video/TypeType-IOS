@@ -42,7 +42,7 @@ struct LiveTwitchWatchPage: View {
           LiveTwitchWatchHeader(controller: controller, video: video, onChannel: onChannel, onLink: link)
           if hasChat {
             Picker("Section", selection: $pane) {
-              Text(isLive ? "Chat" : "Chat replay").tag(Pane.chat)
+              (isLive ? Text("Chat") : Text("Chat replay")).tag(Pane.chat)
               Text("Infos").tag(Pane.infos)
             }
             .pickerStyle(.segmented)

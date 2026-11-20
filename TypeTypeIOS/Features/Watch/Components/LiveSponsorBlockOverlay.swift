@@ -50,7 +50,7 @@ struct LiveSponsorBlockOverlay: View {
         .fill(LiveSponsorBlockPalette.color(for: notice.category))
         .frame(width: 8, height: 8)
       VStack(alignment: .leading, spacing: 1) {
-        Text(notice.muted ? "Muted automatically" : "Skipped automatically")
+        (notice.muted ? Text("Muted automatically") : Text("Skipped automatically"))
           .font(.subheadline.weight(.medium))
         Text(LiveSponsorBlockPolicy.title(for: notice.category))
           .font(.caption2)

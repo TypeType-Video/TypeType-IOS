@@ -8,7 +8,7 @@ struct LiveHistoryFilterBar: View {
 
   var body: some View {
     HStack(spacing: 12) {
-      Text("\(count) \(count == 1 ? "video" : "videos")")
+      (count == 1 ? Text("1 video") : Text("\(count) videos"))
         .font(.caption)
         .foregroundStyle(.secondary)
 
