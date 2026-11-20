@@ -13,6 +13,12 @@ final class LiveUserErrorTests: XCTestCase {
     XCTAssertEqual(kind(403, "age_restricted"), .ageRestricted)
   }
 
+  func testTwitchCodesPointToTheTwitchAccountNotTheSession() {
+    XCTAssertEqual(kind(401, "twitch_token_rejected"), .twitchRelink)
+    XCTAssertEqual(kind(409, "twitch_not_linked"), .twitchNotLinked)
+    XCTAssertEqual(kind(503, "twitch_disabled"), .twitchDisabled)
+  }
+
   func testStatusesWithoutACodeStillGetAMeaning() {
     XCTAssertEqual(kind(401, nil), .signInAgain)
     XCTAssertEqual(kind(404, nil), .contentUnavailable)

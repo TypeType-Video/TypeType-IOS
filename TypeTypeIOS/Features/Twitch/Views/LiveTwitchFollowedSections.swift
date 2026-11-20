@@ -7,10 +7,18 @@ struct LiveTwitchFollowedSections: View {
   @State private var live: [LiveTwitchStream] = []
   @State private var videos: [LiveTwitchVideo] = []
   @State private var channels: [LiveTwitchUser] = []
+  @State private var rejected = false
 
   var body: some View {
     VStack(alignment: .leading, spacing: 28) {
-      if status?.linked == true {
+      if rejected {
+        LiveTwitchLinkCard(
+          title: "Link your Twitch account again",
+          message: "Twitch no longer accepts the linked account. Link it again in Linked accounts.",
+          systemImage: "exclamationmark.triangle.fill", tint: .orange
+        )
+        .accessibilityIdentifier("live.twitch.relink")
+      } else if status?.linked == true {
         if !live.isEmpty {
           section("Live from channels you follow") {
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 300), spacing: 16, alignment: .top)], spacing: 22) {
@@ -62,28 +70,10 @@ struct LiveTwitchFollowedSections: View {
           }
         }
       } else if status?.linked == false {
-        NavigationLink(value: LiveTwitchRoute.linkAccount) {
-          HStack(spacing: 14) {
-            Image(systemName: "person.crop.circle.badge.plus")
-              .font(.title2)
-              .foregroundStyle(.purple)
-              .frame(width: 44, height: 44)
-              .background(Color.purple.opacity(0.15), in: Circle())
-            VStack(alignment: .leading, spacing: 2) {
-              Text("Link a Twitch account").font(.subheadline.weight(.semibold))
-              Text("To chat, vote in polls and follow channels with your Twitch account.")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.leading)
-            }
-            Spacer(minLength: 0)
-            Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(.tertiary)
-          }
-          .padding(14)
-          .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 16))
-        }
-        .buttonStyle(.plain)
-        .accessibilityElement(children: .combine)
+        LiveTwitchLinkCard(
+          title: "Link a Twitch account",
+          message: "To chat, vote in polls and follow channels with your Twitch account."
+        )
         .accessibilityIdentifier("live.twitch.link-account")
       }
     }
@@ -101,10 +91,14 @@ struct LiveTwitchFollowedSections: View {
     guard let account, let current = try? await account.account() else { return }
     status = current
     guard current.linked else { return }
-    async let followedLive = try? account.followedLive(after: nil)
+    do {
+      live = try await account.followedLive(after: nil).items
+    } catch {
+      rejected = LiveUserError(error) == .twitchRelink
+      guard !rejected else { return }
+    }
     async let followedVideos = try? account.followedVideos(after: nil)
     async let followedChannels = try? account.followedChannels(after: nil)
-    live = await followedLive?.items ?? []
     videos = await followedVideos?.items ?? []
     channels = await followedChannels?.items ?? []
   }

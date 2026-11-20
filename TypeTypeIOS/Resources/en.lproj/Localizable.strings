@@ -1388,3 +1388,8 @@
 "Opens the Twitch channel." = "Opens the Twitch channel.";
 "Search settings" = "Search settings";
 "Opens %@" = "Opens %@";
+"Twitch no longer accepts the linked account. Link it again in Linked accounts." = "Twitch no longer accepts the linked account. Link it again in Linked accounts.";
+"Link a Twitch account to do this." = "Link a Twitch account to do this.";
+"Twitch is turned off on this instance." = "Twitch is turned off on this instance.";
+"Link your Twitch account again" = "Link your Twitch account again";
+"Opens Linked accounts." = "Opens Linked accounts.";
