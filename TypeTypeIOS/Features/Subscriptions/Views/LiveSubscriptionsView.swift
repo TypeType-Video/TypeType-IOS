@@ -30,6 +30,8 @@ struct LiveSubscriptionsView: View {
             }
           }
           .pickerStyle(.segmented)
+          .frame(maxWidth: 480)
+          .frame(maxWidth: .infinity)
           .padding(.horizontal, 16)
           .padding(.vertical, 8)
           .background(.bar)
