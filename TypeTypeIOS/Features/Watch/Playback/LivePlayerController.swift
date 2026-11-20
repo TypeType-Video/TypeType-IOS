@@ -16,7 +16,10 @@ final class LivePlayerController: ObservableObject {
   let player = AVPlayer()
 
   @Published var state: State = .idle {
-    didSet { releaseExtrasIfStarted() }
+    didSet {
+      releaseExtrasIfStarted()
+      updateScreenAwake()
+    }
   }
   @Published var extrasReleased = false
   var firstFrameJobs: [() -> Void] = []
