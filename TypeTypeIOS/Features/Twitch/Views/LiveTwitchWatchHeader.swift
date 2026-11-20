@@ -42,6 +42,7 @@ struct LiveTwitchWatchHeader: View {
         }
         .buttonStyle(.plain)
         .accessibilityHint(Text("Opens the Twitch channel."))
+        .accessibilityIdentifier("live.twitch.watch.channel")
         Spacer(minLength: 8)
         if let login = video.twitchOwnerLogin ?? channelLogin {
           LiveTwitchFollowButton(login: login, onLink: onLink)
