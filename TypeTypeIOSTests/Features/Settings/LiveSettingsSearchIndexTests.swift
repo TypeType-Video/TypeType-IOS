@@ -16,4 +16,9 @@ final class LiveSettingsSearchIndexTests: XCTestCase {
     let entries = LiveSettingsSearchIndex.entries(pages: [.appearance])
     XCTAssertTrue(LiveSettingsSearchIndex.search("speed", in: entries).isEmpty)
   }
+
+  func testLinkedAccountsAreFoundByServiceName() {
+    let results = LiveSettingsSearchIndex.search("twitch", in: LiveSettingsSearchIndex.entries(pages: [.player]))
+    XCTAssertEqual(results.first?.target, .page(.accounts))
+  }
 }

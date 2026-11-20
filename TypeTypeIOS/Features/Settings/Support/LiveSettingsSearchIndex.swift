@@ -49,6 +49,9 @@ enum LiveSettingsSearchIndex {
     for page in pages {
       result.append(entry(page.title, place: String(localized: "Settings"), target: .page(page), extra: [page.subtitle]))
     }
+    let accounts = LiveSettingsPage.accounts
+    result.append(entry(accounts.title, place: String(localized: "Settings"), target: .page(accounts), extra: [accounts.subtitle]))
+    result.append(entry("Linked accounts", place: localized(accounts.title), target: .page(accounts), extra: ["Twitch", "YouTube", "BiliBili"]))
     for (page, titles) in onPages where pages.contains(page) {
       result += titles.map { entry($0, place: localized(page.title), target: .page(page)) }
     }
