@@ -144,6 +144,7 @@ final class LivePlayerController: ObservableObject {
     observeBulletCommentPreferences()
     observeAirPlayRoute()
     observeAudioSessionEvents()
+    observeBackgroundTransitions()
     player.automaticallyWaitsToMinimizeStalling = true
     installPeriodicObserver()
   }

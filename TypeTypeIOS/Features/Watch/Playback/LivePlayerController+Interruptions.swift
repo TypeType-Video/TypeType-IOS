@@ -4,6 +4,7 @@ import Foundation
 final class LiveAudioSessionEvents {
   var observations: [NSObjectProtocol] = []
   var resumesAfterInterruption = false
+  var bitRate = LiveBackgroundBitRate()
 
   deinit {
     observations.forEach { NotificationCenter.default.removeObserver($0) }
