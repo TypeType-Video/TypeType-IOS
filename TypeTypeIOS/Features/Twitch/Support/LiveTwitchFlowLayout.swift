@@ -14,7 +14,7 @@ struct LiveTwitchFlowLayout: Layout {
     for row in arrange(width: bounds.width, subviews: subviews) {
       var x = bounds.minX
       for index in row.indices {
-        let size = subviews[index].sizeThatFits(.unspecified)
+        let size = size(of: subviews[index], within: bounds.width)
         subviews[index].place(at: CGPoint(x: x, y: y + (row.height - size.height) / 2), proposal: ProposedViewSize(size))
         x += size.width + spacing
       }
@@ -28,10 +28,17 @@ struct LiveTwitchFlowLayout: Layout {
     var height: CGFloat = 0
   }
 
+  // A word wider than the column (a long run of letters, a pasted link) wraps inside it instead of spilling out.
+  private func size(of subview: LayoutSubview, within width: CGFloat) -> CGSize {
+    let natural = subview.sizeThatFits(.unspecified)
+    guard width.isFinite, natural.width > width else { return natural }
+    return subview.sizeThatFits(ProposedViewSize(width: width, height: nil))
+  }
+
   private func arrange(width: CGFloat, subviews: Subviews) -> [Row] {
     var rows = [Row()]
     for index in subviews.indices {
-      let size = subviews[index].sizeThatFits(.unspecified)
+      let size = size(of: subviews[index], within: width)
       let needed = rows[rows.count - 1].indices.isEmpty ? size.width : rows[rows.count - 1].width + spacing + size.width
       if needed > width, !rows[rows.count - 1].indices.isEmpty {
         rows.append(Row())
