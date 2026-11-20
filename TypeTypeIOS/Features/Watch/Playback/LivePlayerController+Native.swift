@@ -114,7 +114,10 @@ extension LivePlayerController {
         skip: { [weak self] seconds in
           guard let self else { return }
           seek(to: position + seconds)
-        }
+        },
+        next: queueNavigation.flatMap { $0.hasNext() ? $0.next : nil },
+        previous: queueNavigation.flatMap { $0.hasPrevious() ? $0.previous : nil },
+        isLive: stream?.isLive == true
       )
     )
     startupTrace.mark("ready")

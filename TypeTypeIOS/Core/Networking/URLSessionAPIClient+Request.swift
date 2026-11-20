@@ -65,8 +65,13 @@ extension URLSessionAPIClient {
   func errorCode(from data: Data) -> String? {
     let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
     // A refused Twitch chat message names why in `reason`, next to `"error": "chat_rejected"`.
-    let code = (json?["code"] as? String) ?? (json?["reason"] as? String)
-    return code.flatMap { $0.isEmpty ? nil : $0 }
+    let code = (json?["code"] as? String).flatMap { $0 == "error" ? nil : $0 } ?? (json?["reason"] as? String)
+    if let code, !code.isEmpty { return code }
+    // Twitch answers relayed as is carry their code in `error`, e.g. {"error":"twitch_token_rejected"}.
+    guard let relayed = json?["error"] as? String,
+      relayed.range(of: "^[a-z][a-z0-9_]*$", options: .regularExpression) != nil
+    else { return nil }
+    return relayed
   }
 
   func errorMessage(from data: Data) -> String? {

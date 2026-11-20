@@ -17,20 +17,13 @@ struct LiveTwitchLiveDetails: View {
     }
   }
 
+  @ViewBuilder
   private func meta(now: Date) -> some View {
-    VStack(alignment: .leading, spacing: 8) {
-      if let started = LiveTwitchFormat.date(stream.startedAt) {
-        Text("Live for \(Duration.seconds(now.timeIntervalSince(started)).formatted(.units(allowed: [.hours, .minutes], width: .narrow)))")
-          .font(.subheadline)
-          .foregroundStyle(.secondary)
-      }
-      let labels = [stream.game?.name].compactMap { $0 } + stream.tags
-      if !labels.isEmpty {
-        Text(verbatim: labels.joined(separator: " · "))
-          .font(.caption.weight(.semibold))
-          .foregroundStyle(.secondary)
-          .lineLimit(2)
-      }
+    if !stream.tags.isEmpty {
+      Text(verbatim: stream.tags.joined(separator: " · "))
+        .font(.caption.weight(.semibold))
+        .foregroundStyle(.secondary)
+        .lineLimit(2)
     }
   }
 

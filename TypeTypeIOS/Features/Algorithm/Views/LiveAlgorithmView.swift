@@ -36,7 +36,7 @@ struct LiveAlgorithmView: View {
         Text("Experimental").font(.caption2.weight(.semibold)).foregroundStyle(.tint)
       }
     } footer: {
-      Text(model.settings.enabled ? "On. Turn it off to get the standard home page back." : "Off. You keep the standard home page until you turn it on.")
+      (model.settings.enabled ? Text("On. Turn it off to get the standard home page back.") : Text("Off. You keep the standard home page until you turn it on."))
         .liveSettingsFooter()
     }
     if model.settings.enabled {

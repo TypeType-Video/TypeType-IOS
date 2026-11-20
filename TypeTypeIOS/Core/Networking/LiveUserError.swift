@@ -12,6 +12,9 @@ enum LiveUserError: Equatable {
   case privateContent
   case contentUnavailable
   case signInAgain
+  case twitchRelink
+  case twitchNotLinked
+  case twitchDisabled
   case permissionDenied
   case conflict
   case rateLimited
@@ -46,6 +49,9 @@ enum LiveUserError: Equatable {
     case "age_restricted": .ageRestricted
     case "private_content": .privateContent
     case "content_unavailable": .contentUnavailable
+    case "twitch_token_rejected": .twitchRelink
+    case "twitch_not_linked": .twitchNotLinked
+    case "twitch_disabled": .twitchDisabled
     case "authentication_required", "invalid_token", "unauthorized": .signInAgain
     default: classify(status: status)
     }
@@ -87,6 +93,9 @@ enum LiveUserError: Equatable {
     case .privateContent: String(localized: "This video is private.")
     case .contentUnavailable: String(localized: "This content is no longer available.")
     case .signInAgain: String(localized: "Sign in again to continue.")
+    case .twitchRelink: String(localized: "Twitch no longer accepts the linked account. Link it again in Linked accounts.")
+    case .twitchNotLinked: String(localized: "Link a Twitch account to do this.")
+    case .twitchDisabled: String(localized: "Twitch is turned off on this instance.")
     case .permissionDenied: String(localized: "Your account cannot do this.")
     case .conflict: String(localized: "This changed elsewhere. Refresh and try again.")
     case .rateLimited: String(localized: "Too many requests. Try again in a moment.")

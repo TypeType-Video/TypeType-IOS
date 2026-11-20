@@ -23,17 +23,21 @@ struct LiveSubscriptionsView: View {
       content
         .navigationTitle("Subscriptions")
         .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-          ToolbarItem(placement: .principal) {
-            Picker("Subscriptions", selection: $viewModel.section) {
-              ForEach(LiveSubscriptionsViewModel.Section.allCases) {
-                Text($0.title).tag($0)
-              }
+        .safeAreaInset(edge: .top, spacing: 0) {
+          Picker("Subscriptions", selection: $viewModel.section) {
+            ForEach(LiveSubscriptionsViewModel.Section.allCases) {
+              Text($0.title).tag($0)
             }
-            .pickerStyle(.segmented)
-            .frame(width: 220)
-            .accessibilityIdentifier("live.subscriptions.section")
           }
+          .pickerStyle(.segmented)
+          .frame(maxWidth: 480)
+          .frame(maxWidth: .infinity)
+          .padding(.horizontal, 16)
+          .padding(.vertical, 8)
+          .background(.bar)
+          .accessibilityIdentifier("live.subscriptions.section")
+        }
+        .toolbar {
           ToolbarItem(placement: .topBarTrailing) {
             LiveSubscriptionFilterMenu(viewModel: viewModel)
           }

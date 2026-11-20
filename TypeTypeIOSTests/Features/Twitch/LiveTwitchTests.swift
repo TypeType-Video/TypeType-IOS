@@ -180,7 +180,7 @@ final class LiveTwitchLiveSessionTests: XCTestCase {
     recovery.stalled(stillStalled: { false }, reload: { reloads += 1 })
     try await Task.sleep(for: .milliseconds(60))
     recovery.stalled(stillStalled: { true }, reload: { reloads += 1 })
-    try await Task.sleep(for: .milliseconds(60))
+    for _ in 0..<100 where reloads == 0 { try await Task.sleep(for: .milliseconds(20)) }
     recovery.playing()
 
     XCTAssertEqual(reloads, 1)

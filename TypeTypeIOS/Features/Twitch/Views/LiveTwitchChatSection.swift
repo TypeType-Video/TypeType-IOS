@@ -3,38 +3,45 @@ import SwiftUI
 struct LiveTwitchChatSection: View {
   @StateObject private var model: LiveTwitchChatViewModel
   let onOpenURL: (URL) -> Void
+  let onLink: () -> Void
   @State private var pendingURL: URL?
   @State private var paused = false
   @State private var showsEmotes = false
 
-  init(model: @autoclosure @escaping () -> LiveTwitchChatViewModel, onOpenURL: @escaping (URL) -> Void) {
+  init(model: @autoclosure @escaping () -> LiveTwitchChatViewModel, onOpenURL: @escaping (URL) -> Void, onLink: @escaping () -> Void) {
     _model = StateObject(wrappedValue: model())
     self.onOpenURL = onOpenURL
+    self.onLink = onLink
   }
 
   var body: some View {
-    VStack(alignment: .leading, spacing: 10) {
-      HStack {
-        Text("Chat").font(.headline)
-        Spacer()
+    VStack(spacing: 0) {
+      VStack(alignment: .leading, spacing: 8) {
         if model.status != .live {
-          Text(model.status == .reconnecting ? "Reconnecting to the chat…" : "Connecting to the chat…")
+          Label(model.status == .reconnecting ? "Reconnecting to the chat…" : "Connecting to the chat…", systemImage: "arrow.triangle.2.circlepath")
             .font(.caption).foregroundStyle(.secondary)
         }
+        if let pinned = model.visiblePinned {
+          LiveTwitchPinnedCard(pinned: pinned) { model.hide(pinned.id) }
+        }
+        if let poll = model.visiblePoll {
+          LiveTwitchPollCard(poll: poll, canVote: model.canWrite, voted: model.votedPollID == poll.id,
+                             onVote: { choice in Task { await model.vote(choice) } }, onHide: { model.hide(poll.id) })
+        }
+        if let room = model.chat.room { LiveTwitchChatModes(room: room) }
       }
-      if let pinned = model.visiblePinned {
-        LiveTwitchPinnedCard(pinned: pinned) { model.hide(pinned.id) }
-      }
-      if let poll = model.visiblePoll {
-        LiveTwitchPollCard(poll: poll, canVote: model.canWrite, voted: model.votedPollID == poll.id,
-                           onVote: { choice in Task { await model.vote(choice) } }, onHide: { model.hide(poll.id) })
-      }
-      if let room = model.chat.room { LiveTwitchChatModes(room: room) }
+      .padding(.horizontal, 12)
+      .padding(.top, 4)
       messages
-      composer
-      if let notice = model.notice {
-        Text(verbatim: notice).font(.caption).foregroundStyle(.orange)
+      VStack(alignment: .leading, spacing: 6) {
+        if let notice = model.notice {
+          Text(verbatim: notice).font(.caption).foregroundStyle(.orange)
+        }
+        composer
       }
+      .padding(.horizontal, 12)
+      .padding(.vertical, 8)
+      .background(.bar)
     }
     .task { await model.run() }
     .sheet(isPresented: $showsEmotes) {
@@ -55,9 +62,11 @@ struct LiveTwitchChatSection: View {
           ForEach(model.chat.messages) { event in row(event) }
           Color.clear.frame(height: 1).id("bottom")
         }
+        .padding(.horizontal, 12)
         .padding(.vertical, 6)
       }
-      .frame(height: 320)
+      .defaultScrollAnchor(.bottom)
+      .frame(maxHeight: .infinity)
       .simultaneousGesture(DragGesture(minimumDistance: 8).onChanged { _ in paused = true })
       .onChange(of: model.chat.messages.last?.id) {
         if !paused { proxy.scrollTo("bottom", anchor: .bottom) }
@@ -97,18 +106,28 @@ struct LiveTwitchChatSection: View {
   @ViewBuilder
   private var composer: some View {
     if model.canWrite {
-      HStack(spacing: 8) {
-        Button { showsEmotes = true } label: { Image(systemName: "face.smiling") }
+      HStack(spacing: 10) {
+        Button { showsEmotes = true } label: { Image(systemName: "face.smiling").font(.title3) }
           .accessibilityLabel(Text("Emotes"))
         TextField("Send a message", text: $model.draft)
-          .textFieldStyle(.roundedBorder)
           .submitLabel(.send)
           .onSubmit { Task { await model.send() } }
-        Button("Send") { Task { await model.send() } }
+          .padding(.horizontal, 14)
+          .padding(.vertical, 9)
+          .background(.quaternary, in: Capsule())
+        Button { Task { await model.send() } } label: { Image(systemName: "arrow.up.circle.fill").font(.title2) }
           .disabled(model.isSending || model.draft.trimmingCharacters(in: .whitespaces).isEmpty)
+          .accessibilityLabel(Text("Send"))
       }
     } else {
-      Text("Link a Twitch account to chat.").font(.footnote).foregroundStyle(.secondary)
+      Button(action: onLink) {
+        Label("Link a Twitch account to chat.", systemImage: "person.crop.circle.badge.plus")
+          .font(.subheadline.weight(.semibold))
+          .frame(maxWidth: .infinity)
+          .padding(.vertical, 10)
+          .background(.quaternary, in: Capsule())
+      }
+      .buttonStyle(.plain)
     }
   }
 }

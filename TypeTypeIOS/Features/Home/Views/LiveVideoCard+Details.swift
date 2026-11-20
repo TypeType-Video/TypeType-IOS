@@ -17,11 +17,22 @@ extension LiveVideoCard {
 
   var avatar: some View {
     LiveRemoteImage(url: video.uploaderAvatar)
+      .overlay {
+        if video.uploaderAvatar == nil {
+          Text(verbatim: uploaderInitial)
+            .font(.subheadline.weight(.bold))
+            .foregroundStyle(.secondary)
+        }
+      }
       .frame(width: 36, height: 36)
       .clipShape(Circle())
       .overlay {
         Circle().stroke(palette.separator.opacity(0.35))
       }
+  }
+
+  private var uploaderInitial: String {
+    video.uploaderName.first.map { String($0).uppercased() } ?? ""
   }
 
   var metadata: some View {

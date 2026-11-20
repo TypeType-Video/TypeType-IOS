@@ -10,13 +10,13 @@ enum LiveHistoryFilter: Equatable {
   var title: String {
     switch self {
     case .all:
-      return "All dates"
+      return String(localized: "All dates")
     case .today:
-      return "Today"
+      return String(localized: "Today")
     case .week:
-      return "This week"
+      return String(localized: "This week")
     case .month:
-      return "This month"
+      return String(localized: "This month")
     case let .date(date):
       return date.formatted(date: .abbreviated, time: .omitted)
     }

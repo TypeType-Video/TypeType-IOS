@@ -51,13 +51,14 @@ extension LivePlayerController {
             if sabrStallRecoveryTask == nil {
               scheduleSABRStallRecovery(for: item)
             }
+            handleTwitchLiveStall(for: item)
             return
           }
           sabrStallRecoveryTask?.cancel()
           sabrStallRecoveryTask = nil
           sabrRecoveryBudgetResetTask?.cancel()
           sabrRecoveryBudgetResetTask = nil
-          if state == .playing {
+          if state == .playing || state == .loading {
             state = .paused
             reportPlaybackSessionProgress()
           }

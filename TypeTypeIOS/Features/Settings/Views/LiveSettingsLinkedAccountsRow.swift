@@ -14,7 +14,12 @@ struct LiveSettingsLinkedAccountsRow: View {
             twitch: coordinator.dependencies.twitchEnabled ? coordinator.dependencies.twitchAccountService : nil
           )
         } label: {
-          LiveSettingText(title: "Linked accounts", detail: "Sign in to YouTube with a code and to BiliBili with a QR code.")
+          LiveSettingText(
+            title: "Linked accounts",
+            detail: coordinator.dependencies.twitchEnabled
+              ? "Sign in to YouTube and Twitch with a code and to BiliBili with a QR code."
+              : "Sign in to YouTube with a code and to BiliBili with a QR code."
+          )
         }
       }
     }

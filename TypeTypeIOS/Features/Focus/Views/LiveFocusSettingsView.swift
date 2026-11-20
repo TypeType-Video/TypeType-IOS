@@ -65,7 +65,7 @@ struct LiveFocusSettingsView: View {
     LiveSection {
       VStack(alignment: .leading, spacing: 4) {
         Text(verbatim: statusText(settings)).font(.body.weight(.semibold))
-        Text(model.isLocked ? "The settings can change once focus is off." : "Turning it off takes effect one day later, and you can change your mind until then.")
+        (model.isLocked ? Text("The settings can change once focus is off.") : Text("Turning it off takes effect one day later, and you can change your mind until then."))
           .font(.footnote).foregroundStyle(.secondary)
       }
       .accessibilityElement(children: .combine)

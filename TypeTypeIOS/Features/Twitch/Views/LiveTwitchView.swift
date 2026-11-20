@@ -30,6 +30,7 @@ struct LiveTwitchView: View {
       }
       .background(LiveThemeBackground().ignoresSafeArea())
       .navigationTitle("Live")
+      .navigationBarTitleDisplayMode(.inline)
       .searchable(text: $query, prompt: Text("Search Twitch"))
       .onSubmit(of: .search) {
         submittedQuery = String(query.trimmingCharacters(in: .whitespacesAndNewlines).prefix(100))
