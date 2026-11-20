@@ -8,6 +8,9 @@ final class LiveNowPlaying {
     let pause: () -> Void
     let seek: (TimeInterval) -> Void
     let skip: (TimeInterval) -> Void
+    var next: (() -> Void)?
+    var previous: (() -> Void)?
+    var isLive = false
   }
 
   private var targets: [(MPRemoteCommand, Any)] = []
@@ -21,6 +24,7 @@ final class LiveNowPlaying {
       MPMediaItemPropertyArtist: artist,
       MPMediaItemPropertyPlaybackDuration: duration,
       MPNowPlayingInfoPropertyMediaType: MPNowPlayingInfoMediaType.video.rawValue,
+      MPNowPlayingInfoPropertyIsLiveStream: commands.isLive,
     ]
     MPNowPlayingInfoCenter.default().nowPlayingInfo = info
     register(commands)
@@ -65,8 +69,20 @@ final class LiveNowPlaying {
     add(center.togglePlayPauseCommand) { [weak self] _ in
       (self?.info[MPNowPlayingInfoPropertyPlaybackRate] as? Float ?? 0) > 0 ? commands.pause() : commands.play()
     }
-    add(center.skipForwardCommand) { _ in commands.skip(10) }
-    add(center.skipBackwardCommand) { _ in commands.skip(-10) }
+    // The lock screen shows track buttons only while the skip commands are off: a queue gets tracks, a single video ±10 s.
+    let tracks = commands.next != nil || commands.previous != nil
+    center.skipForwardCommand.isEnabled = !tracks
+    center.skipBackwardCommand.isEnabled = !tracks
+    center.nextTrackCommand.isEnabled = commands.next != nil
+    center.previousTrackCommand.isEnabled = commands.previous != nil
+    if let next = commands.next { add(center.nextTrackCommand) { _ in next() } }
+    if let previous = commands.previous { add(center.previousTrackCommand) { _ in previous() } }
+    if !tracks {
+      add(center.skipForwardCommand) { _ in commands.skip(10) }
+      add(center.skipBackwardCommand) { _ in commands.skip(-10) }
+    }
+    center.changePlaybackPositionCommand.isEnabled = !commands.isLive
+    guard !commands.isLive else { return }
     add(center.changePlaybackPositionCommand) { event in
       guard let event = event as? MPChangePlaybackPositionCommandEvent else { return }
       commands.seek(event.positionTime)

@@ -89,8 +89,9 @@ final class URLSessionAPIClient: APIClient {
         try await self.execute(request, media: media)
       }
     } catch let error as NetworkError {
-      guard case .statusCode(401, _, _) = error else { throw error }
-      guard endpoint.requiresAuth else { throw error }
+      guard case let .statusCode(401, _, code) = error else { throw error }
+      // The linked Twitch account was refused, not the instance session: a new session token changes nothing.
+      guard endpoint.requiresAuth, code != "twitch_token_rejected" else { throw error }
       guard let retryRequest = await makeRetryRequest(from: request) else {
         throw error
       }

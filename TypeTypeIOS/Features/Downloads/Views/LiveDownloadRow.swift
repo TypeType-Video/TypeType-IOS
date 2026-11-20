@@ -33,7 +33,7 @@ struct LiveDownloadRow: View {
       .onTapGesture { if canPlay { onPlay() } }
       .accessibilityElement(children: .combine)
       .accessibilityAddTraits(canPlay ? .isButton : [])
-      .accessibilityHint(canPlay ? Text(isAudio ? "Plays the audio offline" : "Plays the video offline") : Text(""))
+      .accessibilityHint(canPlay ? (isAudio ? Text("Plays the audio offline") : Text("Plays the video offline")) : Text(""))
       .accessibilityAction(.default) { if canPlay { onPlay() } }
 
       actionsMenu

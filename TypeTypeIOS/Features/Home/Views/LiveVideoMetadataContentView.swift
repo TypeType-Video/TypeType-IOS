@@ -8,7 +8,8 @@ struct LiveVideoMetadataContentView: View {
   @ObservedObject var playbackCoordinator: LivePlaybackCoordinator
   @StateObject var channelMetadataViewModel:
     LiveVideoChannelMetadataViewModel
-  @Environment(\.verticalSizeClass) private var verticalSizeClass
+  @Environment(\.verticalSizeClass) var verticalSizeClass
+  @Environment(\.horizontalSizeClass) var horizontalSizeClass
   @State var selectedChannelURL: String?
   @State var selectedPublicPlaylist: LivePlaylistResult?
   @State var selectedTwitchLink: LiveTwitchLink?
@@ -45,6 +46,9 @@ struct LiveVideoMetadataContentView: View {
 
   var body: some View {
     ScrollViewReader { proxy in
+    if resolvedVideo.twitchLink != nil {
+      twitchPage
+    } else {
     VStack(spacing: 0) {
       Color.clear
         .aspectRatio(16 / 9, contentMode: .fit)
@@ -104,6 +108,7 @@ struct LiveVideoMetadataContentView: View {
     .watchNavigation(self)
     }
     }
+    }
     .overlay(alignment: .top) {
       LivePlayerView(
         controller: playerController,
@@ -115,6 +120,7 @@ struct LiveVideoMetadataContentView: View {
         onOpenLink: routeLink
       )
       .padding(.horizontal, playerInset)
+      .padding(.trailing, twitchChatInset)
     }
     .toolbar(showsFullscreenLayout ? .hidden : .automatic, for: .navigationBar)
     .statusBarHidden(showsFullscreenLayout)

@@ -117,11 +117,7 @@ extension LiveImportView {
       takeoutGuide
       archiveQueue
     } header: { Text("YouTube Takeout").liveSectionHeader() } footer: {
-      Text(
-        "Archives are uploaded one at a time. "
-          + "Subscriptions, playlists, favorites, Watch later, "
-          + "and history are synchronized with this TypeType account."
-      )
+      Text("Archives are uploaded one at a time. Subscriptions, playlists, favorites, Watch later, and history are synchronized with this TypeType account.")
     }
   }
 

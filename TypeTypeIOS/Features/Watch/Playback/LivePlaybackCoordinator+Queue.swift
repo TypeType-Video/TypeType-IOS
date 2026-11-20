@@ -18,6 +18,14 @@ extension LivePlaybackCoordinator {
     replacePlayback(with: queue.videos[index], autoplay: true, opened: true)
   }
 
+  // From the lock screen or headphones: the player keeps its current size.
+  func playFromRemote(index: Int) {
+    guard queue.isActive, queue.videos.indices.contains(index), index != queue.currentIndex else { return }
+    queue.currentIndex = index
+    touchAndPersist()
+    replacePlayback(with: queue.videos[index], autoplay: true, opened: true)
+  }
+
   func playNext(index: Int) {
     let previous = queue
     queue.moveNext(index: index)

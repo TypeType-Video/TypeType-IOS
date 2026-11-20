@@ -100,7 +100,7 @@ struct ServerSetupView: View {
             ProgressView()
               .controlSize(.small)
           }
-          Text(viewModel.isConnecting ? "Checking instance…" : "Connect")
+          (viewModel.isConnecting ? Text("Checking instance…") : Text("Connect"))
             .fontWeight(.semibold)
         }
         .frame(maxWidth: .infinity)

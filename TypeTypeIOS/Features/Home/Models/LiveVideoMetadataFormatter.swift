@@ -27,11 +27,11 @@ enum LiveVideoMetadataFormatter {
     let value = count.formatted(
       .number.notation(.compactName)
     )
-    return "\(value) views"
+    return String(localized: "\(value) views")
   }
 
   static func subscribers(_ count: Int64) -> String {
-    compactCount(count) + " subscribers"
+    String(localized: "\(compactCount(count)) subscribers")
   }
 
   static func compactCount(_ count: Int64) -> String {

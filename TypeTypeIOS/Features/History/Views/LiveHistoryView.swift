@@ -67,10 +67,10 @@ private extension View {
   func searchableWhenActive(
     _ active: Bool,
     text: Binding<String>,
-    prompt: String
+    prompt: LocalizedStringKey
   ) -> some View {
     if active {
-      searchable(text: text, prompt: prompt)
+      searchable(text: text, prompt: Text(prompt))
     } else {
       self
     }

@@ -97,6 +97,27 @@ final class URLSessionAPIClientTests: XCTestCase {
     )
   }
 
+  func testARefusedTwitchAccountKeepsTheSessionAndNamesTheCause() async {
+    let state = RequestState(token: "valid")
+    URLProtocolStub.register { request in
+      state.record(request.value(forHTTPHeaderField: "Authorization"))
+      return try Self.response(request: request, status: 401, body: #"{"error":"twitch_token_rejected"}"#)
+    }
+    let client = makeClient(token: state.readToken)
+    client.setTokenRefreshHandler { _ in
+      XCTFail("A refused Twitch account must not refresh the instance session.")
+      return nil
+    }
+
+    do {
+      try await client.request(APIEndpoint(path: "/twitch/me/live", method: .get, requiresAuth: true))
+      XCTFail("Expected HTTP 401.")
+    } catch {
+      XCTAssertEqual(LiveUserError(error), .twitchRelink)
+    }
+    XCTAssertEqual(state.authorizationHeaders, ["Bearer valid"])
+  }
+
   func testDoesNotRefreshPublicUnauthorizedRequest() async {
     let state = RequestState(token: "expired")
     URLProtocolStub.register { request in

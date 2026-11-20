@@ -120,6 +120,20 @@ extension LivePlaybackCoordinator {
       }
       self.acceptResolvedMetadata(resolved)
     }
+    if queue.isActive {
+      next.queueNavigation = LiveQueueNavigation(
+        hasNext: { [weak self] in self?.queue.nextIndex != nil },
+        hasPrevious: { [weak self] in (self?.queue.currentIndex ?? 0) > 0 },
+        next: { [weak self] in
+          guard let self, let index = self.queue.nextIndex else { return }
+          self.playFromRemote(index: index)
+        },
+        previous: { [weak self] in
+          guard let self, self.queue.currentIndex > 0 else { return }
+          self.playFromRemote(index: self.queue.currentIndex - 1)
+        }
+      )
+    }
     currentVideo = video
     controller = next
     if let offline {
