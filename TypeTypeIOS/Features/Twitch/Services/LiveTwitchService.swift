@@ -78,8 +78,10 @@ struct LiveTwitchService: LiveTwitchServiceProtocol {
     try await one("/twitch/clips/\(Self.segment(slug))")
   }
 
+  // Without the session, an instance closed to guests answers 401, and lives and broadcasts play without the
+  // linked Twitch account.
   private func one<Value: Decodable>(_ path: String) async throws -> Value {
-    try await apiClient.request(APIEndpoint(path: path, method: .get), as: Value.self)
+    try await apiClient.request(APIEndpoint(path: path, method: .get, requiresAuth: true), as: Value.self)
   }
 
   private func search<Item: Decodable>(
@@ -94,7 +96,8 @@ struct LiveTwitchService: LiveTwitchServiceProtocol {
   private func get<Value: Decodable>(_ path: String, after: String?, extra: [URLQueryItem] = []) async throws -> Value {
     var items = extra + [URLQueryItem(name: "first", value: String(Self.pageSize))]
     if let after, !after.isEmpty { items.append(URLQueryItem(name: "after", value: after)) }
-    return try await apiClient.request(APIEndpoint(path: path, method: .get, queryItems: items), as: Value.self)
+    let endpoint = APIEndpoint(path: path, method: .get, queryItems: items, requiresAuth: true)
+    return try await apiClient.request(endpoint, as: Value.self)
   }
 
   // URLSessionAPIClient sets URLComponents.path, which encodes spaces and accents itself; only a slash would split
