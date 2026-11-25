@@ -3,18 +3,23 @@ import SwiftUI
 extension LivePlayerOptionsSheet {
   var playbackSection: some View {
     LiveSection {
-      Picker(selection: binding(\.playbackRate, setter: controller.setPlaybackRate)) {
-        ForEach(Self.playbackRates, id: \.value) { rate in
-          Text(LocalizedStringKey(rate.title)).tag(rate.value)
+      // A live plays at its own pace and never ends: speed and loop have nothing to act on.
+      if !controller.isLiveStream {
+        Picker(selection: binding(\.playbackRate, setter: controller.setPlaybackRate)) {
+          ForEach(Self.playbackRates, id: \.value) { rate in
+            Text(LocalizedStringKey(rate.title)).tag(rate.value)
+          }
+        } label: {
+          LivePlayerOptionLabel("Speed", icon: "gauge.with.dots.needle.67percent")
         }
-      } label: {
-        LivePlayerOptionLabel("Speed", icon: "gauge.with.dots.needle.67percent")
       }
       Toggle(isOn: binding(\.audioOnly, setter: controller.setAudioOnly)) {
         LivePlayerOptionLabel("Audio only", icon: "headphones")
       }
-      Toggle(isOn: binding(\.loopsPlayback, setter: controller.setLooping)) {
-        LivePlayerOptionLabel("Loop video", icon: "repeat")
+      if !controller.isLiveStream {
+        Toggle(isOn: binding(\.loopsPlayback, setter: controller.setLooping)) {
+          LivePlayerOptionLabel("Loop video", icon: "repeat")
+        }
       }
       Toggle(isOn: binding(\.muted, setter: controller.setMuted)) {
         LivePlayerOptionLabel("Muted", icon: "speaker.slash")

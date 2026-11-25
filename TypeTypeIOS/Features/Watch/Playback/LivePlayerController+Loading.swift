@@ -272,7 +272,7 @@ extension LivePlayerController {
     observe(item, autoplay: autoplay)
     guard !isTornDown else { return }
     player.replaceCurrentItem(with: item)
-    player.defaultRate = playbackRate
+    player.defaultRate = avPlayerRate
   // Do not reconfigure the audio session here: on the main thread it trips the unresponsiveness warnings.
   }
 }
