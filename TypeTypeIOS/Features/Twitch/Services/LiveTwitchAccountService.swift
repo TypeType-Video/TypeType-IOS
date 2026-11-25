@@ -63,11 +63,13 @@ struct LiveTwitchAccountService: LiveTwitchAccountServiceProtocol {
 
   func chatAssets(login: String?) async throws -> LiveTwitchChatAssets {
     let path = login.map { "/twitch/chat/\(LiveTwitchService.segment($0))/assets" } ?? "/twitch/chat/assets"
-    return try await request(APIEndpoint(path: path, method: .get))
+    return try await request(APIEndpoint(path: path, method: .get, requiresAuth: apiClient.hasAccessToken))
   }
 
   func highlights(login: String) async throws -> LiveTwitchChatHighlights {
-    try await request(APIEndpoint(path: "/twitch/chat/\(LiveTwitchService.segment(login))/highlights", method: .get))
+    try await request(
+      APIEndpoint(path: "/twitch/chat/\(LiveTwitchService.segment(login))/highlights", method: .get, requiresAuth: apiClient.hasAccessToken)
+    )
   }
 
   func send(_ message: String, login: String) async -> LiveTwitchChatSendResult {
@@ -100,7 +102,8 @@ struct LiveTwitchAccountService: LiveTwitchAccountServiceProtocol {
     case let .offset(seconds): URLQueryItem(name: "offset", value: String(Int(seconds.rounded(.down))))
     case let .cursor(cursor): URLQueryItem(name: "cursor", value: cursor)
     }
-    return try await request(APIEndpoint(path: "/twitch/videos/\(LiveTwitchService.segment(id))/comments", method: .get, queryItems: [item]))
+    let path = "/twitch/videos/\(LiveTwitchService.segment(id))/comments"
+    return try await request(APIEndpoint(path: path, method: .get, queryItems: [item], requiresAuth: apiClient.hasAccessToken))
   }
 
   private func request<Value: Decodable>(_ endpoint: APIEndpoint) async throws -> Value {

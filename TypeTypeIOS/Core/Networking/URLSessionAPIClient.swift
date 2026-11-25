@@ -45,6 +45,8 @@ final class URLSessionAPIClient: APIClient {
     refreshCookieObserver = observer
   }
 
+  var hasAccessToken: Bool { accessTokenProvider() != nil }
+
   func request<T: Decodable>(
     _ endpoint: APIEndpoint,
     as type: T.Type
