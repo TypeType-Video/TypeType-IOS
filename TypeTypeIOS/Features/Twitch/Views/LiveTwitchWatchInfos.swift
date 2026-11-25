@@ -4,12 +4,14 @@ struct LiveTwitchWatchInfos: View {
   @ObservedObject var controller: LivePlayerController
   let video: LiveVideoItem
   let dependencies: AppDependencies
-  let onRewind: (LiveTwitchArchive, TimeInterval) -> Void
 
   var body: some View {
     VStack(alignment: .leading, spacing: 20) {
-      if controller.stream?.isLive == true, let live = controller.stream?.twitchMedia?.live {
-        LiveTwitchLiveDetails(stream: live, onRewind: onRewind)
+      if controller.stream?.isLive == true, let tags = controller.stream?.twitchMedia?.live?.tags, !tags.isEmpty {
+        Text(verbatim: tags.joined(separator: " · "))
+          .font(.caption.weight(.semibold))
+          .foregroundStyle(.secondary)
+          .lineLimit(2)
       }
       if controller.offersTwitchAudioOnly {
         Toggle(isOn: Binding(get: { controller.audioOnly }, set: { controller.setAudioOnly($0) })) {

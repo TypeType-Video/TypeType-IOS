@@ -1160,7 +1160,6 @@
 "This channel is offline or this video no longer exists." = "This channel is offline or this video no longer exists.";
 "This content is restricted (subscribers only or not available in this region)." = "This content is restricted (subscribers only or not available in this region).";
 "Go back in the live" = "Go back in the live";
-"%@ behind live" = "%@ behind live";
 "Moving back by more than 30 seconds opens the recording of this live." = "Moving back by more than 30 seconds opens the recording of this live.";
 "Plays the sound without the picture." = "Plays the sound without the picture.";
 "Message deleted by a moderator" = "Message deleted by a moderator";
@@ -1474,3 +1473,6 @@
 "Users" = "Users";
 "Users unavailable" = "Users unavailable";
 "YouTube remote login" = "YouTube remote login";
+"Go live" = "Go live";
+"Jumps to the latest moment of the live." = "Jumps to the latest moment of the live.";
+"Go back one minute" = "Go back one minute";

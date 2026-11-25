@@ -46,7 +46,11 @@ enum LiveTwitchPlayback {
     guard let url = absolute(answer.hlsURL, origin: origin) else { throw LivePlaybackFailure.noPlayableSource }
     var playback = base(item(video: answer.video), description: "", owner: answer.video.owner, isLive: false,
                         chapters: chapters.map { LivePlaybackChapter(title: $0.title, startTimeSeconds: $0.start, channelName: nil, url: nil, previewURL: nil) })
-    playback.twitchMedia = LiveTwitchMedia(url: url, audioURL: answer.audioURL.flatMap { absolute($0, origin: origin) })
+    playback.twitchMedia = LiveTwitchMedia(
+      url: url,
+      audioURL: answer.audioURL.flatMap { absolute($0, origin: origin) },
+      recordingOwner: answer.video.recording ? answer.video.owner.login : nil
+    )
     return playback
   }
 

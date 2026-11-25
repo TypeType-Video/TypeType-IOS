@@ -51,4 +51,10 @@ extension LivePlaybackPreparation {
     guard duration > 0, requested < duration - 5 else { return 0 }
     return max(requested, 0)
   }
+
+  // A recording still being made has no length yet: its saved position holds, where a live always starts at the edge.
+  static func startTime(requested: TimeInterval, duration: TimeInterval, isLive: Bool) -> TimeInterval {
+    if !isLive, duration <= 0 { return max(requested, 0) }
+    return startTime(requested: requested, duration: duration)
+  }
 }

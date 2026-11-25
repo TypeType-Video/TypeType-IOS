@@ -13,7 +13,6 @@ struct LiveTwitchWatchPage: View {
   let signedIn: Bool
   let wide: Bool
   let onChannel: () -> Void
-  let onRewind: (LiveTwitchArchive, TimeInterval) -> Void
   let onOpenURL: (URL) -> Void
   @State private var pane = Pane.chat
   @State private var linksAccount = false
@@ -27,7 +26,7 @@ struct LiveTwitchWatchPage: View {
             ScrollView {
               VStack(alignment: .leading, spacing: 0) {
                 LiveTwitchWatchHeader(controller: controller, video: video, onChannel: onChannel, onLink: link)
-                LiveTwitchWatchInfos(controller: controller, video: video, dependencies: dependencies, onRewind: onRewind)
+                LiveTwitchWatchInfos(controller: controller, video: video, dependencies: dependencies)
               }
             }
           }
@@ -54,7 +53,7 @@ struct LiveTwitchWatchPage: View {
             chat
           } else {
             ScrollView {
-              LiveTwitchWatchInfos(controller: controller, video: video, dependencies: dependencies, onRewind: onRewind)
+              LiveTwitchWatchInfos(controller: controller, video: video, dependencies: dependencies)
             }
           }
         }

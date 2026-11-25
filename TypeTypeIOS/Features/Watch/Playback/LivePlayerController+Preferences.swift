@@ -54,7 +54,7 @@ extension LivePlayerController {
       forKey: Self.loopPreferenceKey
     )
     playbackRate = Self.loadPlaybackRate()
-    player.defaultRate = playbackRate
+    player.defaultRate = avPlayerRate
   }
 
   func applySettings(_ settings: LiveSettings) {

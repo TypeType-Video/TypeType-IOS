@@ -60,6 +60,12 @@ extension LivePlayerView {
       }
   }
 
+  func rewindLive(_ archive: LiveTwitchArchive, to position: TimeInterval) {
+    Task { [controller, coordinator] in
+      coordinator.open(await controller.prepareTwitchRewind(archive, to: position))
+    }
+  }
+
   private var ownTapGestures: GestureMask {
     controller.drawsOwnControls ? .all : .subviews
   }

@@ -23,7 +23,12 @@ extension LivePlayerController {
   }
 
   func playIfActive() {
-    playIfActive(rate: playbackRate)
+    playIfActive(rate: avPlayerRate)
+  }
+
+  // A live runs at 1x whatever the saved speed: faster, it reaches the newest segment and stalls.
+  var avPlayerRate: Float {
+    isLiveStream ? 1 : playbackRate
   }
 
   func togglePlayback() {
@@ -272,9 +277,9 @@ extension LivePlayerController {
   func setPlaybackRate(_ rate: Float) {
     playbackRate = Self.normalizePlaybackRate(rate)
     Self.savePlaybackRate(playbackRate)
-    player.defaultRate = playbackRate
+    player.defaultRate = avPlayerRate
     if player.timeControlStatus == .playing {
-      playIfActive(rate: playbackRate)
+      playIfActive(rate: avPlayerRate)
     }
     playbackServer?.updatePlaybackRate(playbackRate)
     nativePlayback?.setRate(playbackRate)

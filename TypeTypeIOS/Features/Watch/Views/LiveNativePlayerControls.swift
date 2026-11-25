@@ -8,6 +8,8 @@ struct LiveNativePlayerControls: View {
   var onFullscreen: () -> Void
   var onOptions: () -> Void
   var onChapters: () -> Void
+  var onLiveRewind: (LiveTwitchArchive, TimeInterval) -> Void = { _, _ in }
+  var onGoLive: (String) -> Void = { _ in }
   @State private var scrubPosition: TimeInterval?
 
   var body: some View {
@@ -22,8 +24,15 @@ struct LiveNativePlayerControls: View {
         if controller.state != .loading {
           playPauseButton
         }
-        timeline
+        bottomBar
           .frame(maxHeight: .infinity, alignment: .bottom)
+        if let login = controller.stream?.twitchMedia?.recordingOwner {
+          LivePlayerLiveBadge(behind: true) { onGoLive(login) }
+            .dynamicTypeSize(...DynamicTypeSize.xxLarge)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            .padding(.horizontal, isFullscreen ? 26 : 10)
+            .padding(.top, 2)
+        }
         if !isFullscreen {
           Button {
             onOptions()
@@ -69,8 +78,9 @@ struct LiveNativePlayerControls: View {
     }
   }
 
+  // AVPlayer has no first-frame flag here: once it drives the page, a seek or a stall keeps the bar readable.
   private var hasStarted: Bool {
-    controller.nativePlayback?.hasStarted == true || controller.isOfflineContent
+    controller.nativePlayback?.hasStarted == true || controller.nativePlayback == nil
   }
 
   private var playPauseButton: some View {
@@ -88,6 +98,24 @@ struct LiveNativePlayerControls: View {
     .buttonStyle(.plain)
     .accessibilityLabel(controller.state == .playing ? "Pause" : "Play")
     .accessibilityIdentifier("live.player.play-pause")
+  }
+
+  private var bottomBar: some View {
+    HStack(spacing: 10) {
+      if controller.isLiveStream {
+        LivePlayerLiveTrack(controller: controller, controls: controls, onRewind: onLiveRewind)
+      } else {
+        timeline
+      }
+      trailingButtons
+    }
+    .font(.caption2)
+    .monospacedDigit()
+    .foregroundStyle(.white)
+    // Over a 16:9 picture the bar keeps room for its track: past this size the times alone would fill it.
+    .dynamicTypeSize(...DynamicTypeSize.xxLarge)
+    .padding(.horizontal, isFullscreen ? 26 : 12)
+    .padding(.bottom, isFullscreen ? 24 : 6)
   }
 
   private var timeline: some View {
@@ -116,42 +144,6 @@ struct LiveNativePlayerControls: View {
         }
       }
       Text(LivePlaybackChapterNavigator.clockText(seconds: Int(controller.duration)))
-      AirPlayRouteButton { controls.hold($0) }
-        .frame(width: 32, height: 32)
-        .contentShape(Rectangle())
-      if !controller.displayedChapters.isEmpty {
-        Button {
-          onChapters()
-        } label: {
-          Image(systemName: "list.bullet.rectangle")
-            .font(.system(size: 15, weight: .semibold))
-            .frame(width: 32, height: 32)
-            .padding(.horizontal, 4)
-            .padding(.vertical, 12)
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel("Chapters")
-        .accessibilityIdentifier("live.player.chapters.open")
-      }
-      Button {
-        onFullscreen()
-      } label: {
-        Image(systemName: isFullscreen ? "arrow.down.right.and.arrow.up.left" : "arrow.up.left.and.arrow.down.right")
-          .font(.system(size: 15, weight: .semibold))
-          .frame(width: 32, height: 32)
-          .padding(.horizontal, 8)
-          .padding(.vertical, 12)
-          .contentShape(Rectangle())
-      }
-      .buttonStyle(.plain)
-      .accessibilityLabel(isFullscreen ? "Exit full screen" : "Full screen")
-      .accessibilityIdentifier("live.player.fullscreen-toggle")
     }
-    .font(.caption2)
-    .monospacedDigit()
-    .foregroundStyle(.white)
-    .padding(.horizontal, isFullscreen ? 26 : 12)
-    .padding(.bottom, isFullscreen ? 24 : 6)
   }
 }

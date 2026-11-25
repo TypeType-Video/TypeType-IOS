@@ -64,6 +64,12 @@ final class LivePlaybackStartPlanTests: XCTestCase {
     XCTAssertEqual(LivePlaybackPreparation.startTime(requested: -3, duration: 120), 0)
   }
 
+  func testARecordingWithoutALengthYetResumesWhereALiveStartsAtTheEdge() {
+    XCTAssertEqual(LivePlaybackPreparation.startTime(requested: 2_900, duration: 0, isLive: false), 2_900)
+    XCTAssertEqual(LivePlaybackPreparation.startTime(requested: 2_900, duration: 0, isLive: true), 0)
+    XCTAssertEqual(LivePlaybackPreparation.startTime(requested: 116, duration: 120, isLive: false), 0)
+  }
+
   func testInitialPreferencesPickTheSettingsAudioLanguage() {
     var settings = LiveSettings()
     settings.defaultQuality = "720p"
