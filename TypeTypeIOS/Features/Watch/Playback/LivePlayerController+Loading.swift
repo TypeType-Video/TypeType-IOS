@@ -167,7 +167,8 @@ extension LivePlayerController {
     }
     let requestedTime = LivePlaybackPreparation.startTime(
       requested: seekOverride ?? preparation.resumeTime,
-      duration: duration
+      duration: duration,
+      isLive: preparation.stream.isLive
     )
     let installedPreparation = preparation.isSABR
       ? preparation.resuming(at: requestedTime)
@@ -271,7 +272,7 @@ extension LivePlayerController {
     observe(item, autoplay: autoplay)
     guard !isTornDown else { return }
     player.replaceCurrentItem(with: item)
-    player.defaultRate = playbackRate
+    player.defaultRate = avPlayerRate
   // Do not reconfigure the audio session here: on the main thread it trips the unresponsiveness warnings.
   }
 }

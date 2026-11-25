@@ -44,6 +44,8 @@ struct LiveTwitchMedia {
   let url: URL
   let audioURL: URL?
   var live: LiveTwitchStream? = nil
+  // The channel whose live this recording is still capturing: the player offers to go back to it.
+  var recordingOwner: String? = nil
 }
 
 enum LiveTwitchPlaybackError: LocalizedError, Equatable {

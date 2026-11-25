@@ -81,7 +81,9 @@ struct LivePlayerView: View {
               }
             },
             onOptions: { showsOptions = true },
-            onChapters: { showsChapters = true }
+            onChapters: { showsChapters = true },
+            onLiveRewind: rewindLive,
+            onGoLive: { coordinator.open(LiveTwitchPlayback.item(for: .channel($0))) }
           )
           .opacity(horizontalSeekPreview == nil ? 1 : 0)
           .allowsHitTesting(horizontalSeekPreview == nil)

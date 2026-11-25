@@ -1160,7 +1160,6 @@
 "This channel is offline or this video no longer exists." = "Cette chaîne est hors ligne ou cette vidéo n'existe plus.";
 "This content is restricted (subscribers only or not available in this region)." = "Ce contenu est restreint (réservé aux abonnés ou indisponible dans cette région).";
 "Go back in the live" = "Revenir en arrière dans le live";
-"%@ behind live" = "%@ derrière le direct";
 "Moving back by more than 30 seconds opens the recording of this live." = "Reculer de plus de 30 secondes ouvre l'enregistrement de ce live.";
 "Plays the sound without the picture." = "Lit le son sans l'image.";
 "Message deleted by a moderator" = "Message supprimé par un modérateur";
@@ -1474,3 +1473,6 @@
 "Users" = "Utilisateurs";
 "Users unavailable" = "Utilisateurs indisponibles";
 "YouTube remote login" = "Connexion YouTube à distance";
+"Go live" = "Au direct";
+"Jumps to the latest moment of the live." = "Revient au moment le plus récent du live.";
+"Go back one minute" = "Reculer d'une minute";
