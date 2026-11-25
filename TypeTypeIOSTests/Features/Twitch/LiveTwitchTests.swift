@@ -48,6 +48,20 @@ final class LiveTwitchServiceTests: XCTestCase {
     XCTAssertTrue(answer.streams.items.isEmpty)
   }
 
+  func testARecordingStillCapturingItsLiveOffersTheLive() throws {
+    func playback(recording: Bool) throws -> LivePlaybackStream {
+      let json = #"""
+        {"video":{"id":"7","title":"Keynote","owner":{"id":"9","login":"blender_org","displayName":"Blender","avatarUrl":""},
+        "lengthSeconds":0,"views":3,"recording":\#(recording)},"hlsUrl":"https://example.test/v.m3u8"}
+        """#
+      let answer = try JSONDecoder().decode(LiveTwitchVideoPlayback.self, from: Data(json.utf8))
+      return try LiveTwitchPlayback.stream(video: answer, chapters: [], origin: nil)
+    }
+
+    XCTAssertEqual(try playback(recording: true).twitchMedia?.recordingOwner, "blender_org")
+    XCTAssertNil(try playback(recording: false).twitchMedia?.recordingOwner)
+  }
+
   func testASlashCannotSplitAPathSegment() {
     XCTAssertEqual(LiveTwitchService.segment("a/b"), "a b")
   }

@@ -15,10 +15,10 @@ extension LivePlayerController {
       }
   }
 
-  // AVPlayer keeps the TypeType controls over an AirPlay route, as it does for downloads: AVKit's own would
-  // fight our gestures for every tap.
+  // AVPlayer keeps the TypeType controls over an AirPlay route, for downloads and for Twitch: AVKit's own would
+  // fight our gestures for every tap, and on a live its bar is empty.
   var drawsOwnControls: Bool {
-    nativePlayback != nil || isOfflineContent || airPlay.isActive
+    nativePlayback != nil || isOfflineContent || airPlay.isActive || video.twitchLink != nil
   }
 
   var playbackServerHost: String {
