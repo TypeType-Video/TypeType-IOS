@@ -13,6 +13,7 @@ final class LiveTwitchServiceTests: XCTestCase {
     XCTAssertEqual(page.cursor, "next")
     XCTAssertTrue(page.hasMore)
     XCTAssertEqual(client.endpoint?.path, "/twitch/streams")
+    XCTAssertEqual(client.endpoint?.requiresAuth, true)
     XCTAssertEqual(client.query["first"], "24")
     XCTAssertEqual(client.query["after"], "abc")
   }
@@ -32,6 +33,7 @@ final class LiveTwitchServiceTests: XCTestCase {
     let channel = try await LiveTwitchService(apiClient: client).channel(login: "blender_org")
 
     XCTAssertEqual(client.endpoint?.path, "/twitch/channels/blender_org")
+    XCTAssertEqual(client.endpoint?.requiresAuth, true)
     XCTAssertEqual(channel.user.name, "blender_org")
     XCTAssertEqual(channel.followers, 12_411)
     XCTAssertNil(channel.live)
