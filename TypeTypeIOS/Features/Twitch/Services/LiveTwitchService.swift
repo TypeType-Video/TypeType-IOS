@@ -78,10 +78,10 @@ struct LiveTwitchService: LiveTwitchServiceProtocol {
     try await one("/twitch/clips/\(Self.segment(slug))")
   }
 
-  // Signed in, the instance needs the session: without it a guest-free instance answers 401, and lives and broadcasts
-  // are played without the linked Twitch account.
+  // Without the session, an instance closed to guests answers 401, and lives and broadcasts play without the
+  // linked Twitch account.
   private func one<Value: Decodable>(_ path: String) async throws -> Value {
-    try await apiClient.request(APIEndpoint(path: path, method: .get, requiresAuth: apiClient.hasAccessToken), as: Value.self)
+    try await apiClient.request(APIEndpoint(path: path, method: .get, requiresAuth: true), as: Value.self)
   }
 
   private func search<Item: Decodable>(
@@ -96,7 +96,7 @@ struct LiveTwitchService: LiveTwitchServiceProtocol {
   private func get<Value: Decodable>(_ path: String, after: String?, extra: [URLQueryItem] = []) async throws -> Value {
     var items = extra + [URLQueryItem(name: "first", value: String(Self.pageSize))]
     if let after, !after.isEmpty { items.append(URLQueryItem(name: "after", value: after)) }
-    let endpoint = APIEndpoint(path: path, method: .get, queryItems: items, requiresAuth: apiClient.hasAccessToken)
+    let endpoint = APIEndpoint(path: path, method: .get, queryItems: items, requiresAuth: true)
     return try await apiClient.request(endpoint, as: Value.self)
   }
 

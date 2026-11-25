@@ -18,8 +18,6 @@ protocol APIClient {
     resumeData: Data?,
     progress: @escaping @Sendable (DownloadProgress) -> Void
   ) async throws -> URL
-  // A session is signed in: endpoints that guests may also call send its token when there is one.
-  var hasAccessToken: Bool { get }
 }
 
 // A transfer cut short with enough state to continue it: handing `resumeData` back resumes where it stopped.
@@ -28,8 +26,6 @@ struct DownloadInterruption: Error {
 }
 
 extension APIClient {
-  var hasAccessToken: Bool { false }
-
   func upload<T: Decodable>(
     _ endpoint: APIEndpoint,
     from fileURL: URL,
