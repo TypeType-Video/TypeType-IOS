@@ -167,7 +167,8 @@ extension LivePlayerController {
     }
     let requestedTime = LivePlaybackPreparation.startTime(
       requested: seekOverride ?? preparation.resumeTime,
-      duration: duration
+      duration: duration,
+      isLive: preparation.stream.isLive
     )
     let installedPreparation = preparation.isSABR
       ? preparation.resuming(at: requestedTime)
