@@ -1,14 +1,17 @@
 import SwiftUI
 
-// The title and its live figures, then the channel with the follow button. The button keeps its one-line label and
-// the channel name gives way; with large text the button moves under the channel instead.
+// The title and its live figures, then the channel with the follow button. The buttons keep their one-line labels and
+// the channel name gives way; at accessibility text sizes the buttons move under the channel instead.
 struct LiveTwitchWatchHeader: View {
   @ObservedObject var controller: LivePlayerController
   let video: LiveVideoItem
+  let dependencies: AppDependencies
+  var offersQueue = false
   let onChannel: () -> Void
   let onLink: (() -> Void)?
   @StateObject private var follow = LiveTwitchFollowModel()
   @Environment(\.liveTwitchAccount) private var account
+  @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
@@ -23,15 +26,16 @@ struct LiveTwitchWatchHeader: View {
       }
       // The chat below takes the remaining height; the header keeps its own instead of truncating to one line.
       .fixedSize(horizontal: false, vertical: true)
-      ViewThatFits(in: .horizontal) {
+      if dynamicTypeSize.isAccessibilitySize {
+        VStack(alignment: .leading, spacing: 10) {
+          channel
+          actions
+        }
+      } else {
         HStack(spacing: 12) {
           channel
           Spacer(minLength: 0)
-          followButton
-        }
-        VStack(alignment: .leading, spacing: 10) {
-          channel
-          followButton
+          actions
         }
       }
       if follow.failed {
@@ -55,7 +59,7 @@ struct LiveTwitchWatchHeader: View {
             .font(.subheadline.weight(.semibold))
             .lineLimit(1)
           if let subscription = follow.subscription {
-            Label { Text(verbatim: LiveTwitchChatText.subscription(subscription)) } icon: { Image(systemName: "star.fill") }
+            Label { Text(verbatim: LiveTwitchChatText.subscriptionLength(subscription)) } icon: { Image(systemName: "star.fill") }
               .font(.caption.weight(.semibold))
               .foregroundStyle(.purple)
               .lineLimit(1)
@@ -71,11 +75,16 @@ struct LiveTwitchWatchHeader: View {
     .accessibilityIdentifier("live.twitch.watch.channel")
   }
 
-  @ViewBuilder
-  private var followButton: some View {
-    if let login {
-      LiveTwitchFollowButton(model: follow, login: login, onLink: onLink)
+  private var actions: some View {
+    HStack(spacing: 8) {
+      if let login {
+        LiveTwitchFollowButton(model: follow, login: login, onLink: onLink)
+      }
+      LiveTwitchWatchMoreMenu(
+        video: video, dependencies: dependencies, isLive: controller.stream?.isLive == true, offersQueue: offersQueue
+      )
     }
+    .fixedSize()
   }
 
   private var login: String? {

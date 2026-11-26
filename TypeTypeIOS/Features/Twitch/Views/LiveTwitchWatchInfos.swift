@@ -13,15 +13,6 @@ struct LiveTwitchWatchInfos: View {
           .foregroundStyle(.secondary)
           .lineLimit(2)
       }
-      if controller.offersTwitchAudioOnly {
-        Toggle(isOn: Binding(get: { controller.audioOnly }, set: { controller.setAudioOnly($0) })) {
-          Label("Audio only", systemImage: "headphones")
-            .font(.subheadline.weight(.semibold))
-        }
-        .accessibilityHint(Text("Plays the sound without the picture."))
-        .accessibilityIdentifier("live.twitch.audio-only")
-      }
-      LiveVideoLibraryActionsView(video: video, dependencies: dependencies)
       if controller.stream?.isLive != true, let chapters = controller.stream?.chapters, !chapters.isEmpty {
         chaptersList(chapters)
       }

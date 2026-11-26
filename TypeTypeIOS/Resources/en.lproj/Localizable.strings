@@ -1161,7 +1161,6 @@
 "This content is restricted (subscribers only or not available in this region)." = "This content is restricted (subscribers only or not available in this region).";
 "Go back in the live" = "Go back in the live";
 "Moving back by more than 30 seconds opens the recording of this live." = "Moving back by more than 30 seconds opens the recording of this live.";
-"Plays the sound without the picture." = "Plays the sound without the picture.";
 "Message deleted by a moderator" = "Message deleted by a moderator";
 "External link: %@" = "External link: %@";
 "Pinned by %@" = "Pinned by %@";
@@ -1189,7 +1188,6 @@
 "Twitch" = "Twitch";
 "Channel" = "Channel";
 "Search an emote" = "Search an emote";
-"Chat replay" = "Chat replay";
 "The chat replay of this video is not available." = "The chat replay of this video is not available.";
 "No messages at this point of the video." = "No messages at this point of the video.";
 "This chat is for followers. Follow the channel to write." = "This chat is for followers. Follow the channel to write.";
@@ -1381,8 +1379,6 @@
 "Opinions" = "Opinions";
 "No RSS feed on this instance." = "No RSS feed on this instance.";
 "RSS allowed for this user" = "RSS allowed for this user";
-"Section" = "Section";
-"Infos" = "Infos";
 "Opens the Twitch channel." = "Opens the Twitch channel.";
 "Search settings" = "Search settings";
 "Opens %@" = "Opens %@";
@@ -1476,3 +1472,4 @@
 "Go live" = "Go live";
 "Jumps to the latest moment of the live." = "Jumps to the latest moment of the live.";
 "Go back one minute" = "Go back one minute";
+"1 month" = "1 month";

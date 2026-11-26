@@ -1161,7 +1161,6 @@
 "This content is restricted (subscribers only or not available in this region)." = "Ce contenu est restreint (réservé aux abonnés ou indisponible dans cette région).";
 "Go back in the live" = "Revenir en arrière dans le live";
 "Moving back by more than 30 seconds opens the recording of this live." = "Reculer de plus de 30 secondes ouvre l'enregistrement de ce live.";
-"Plays the sound without the picture." = "Lit le son sans l'image.";
 "Message deleted by a moderator" = "Message supprimé par un modérateur";
 "External link: %@" = "Lien externe : %@";
 "Pinned by %@" = "Épinglé par %@";
@@ -1189,7 +1188,6 @@
 "Twitch" = "Twitch";
 "Channel" = "Chaîne";
 "Search an emote" = "Rechercher une emote";
-"Chat replay" = "Rediffusion du chat";
 "The chat replay of this video is not available." = "La rediffusion du chat de cette vidéo n'est pas disponible.";
 "No messages at this point of the video." = "Aucun message à ce moment de la vidéo.";
 "This chat is for followers. Follow the channel to write." = "Ce chat est réservé aux followers. Suivez la chaîne pour écrire.";
@@ -1381,8 +1379,6 @@
 "Opinions" = "Avis";
 "No RSS feed on this instance." = "Aucun flux RSS sur cette instance.";
 "RSS allowed for this user" = "RSS autorisé pour cet utilisateur";
-"Section" = "Section";
-"Infos" = "Infos";
 "Opens the Twitch channel." = "Ouvre la chaîne Twitch.";
 "Search settings" = "Rechercher dans les réglages";
 "Opens %@" = "Ouvre %@";
@@ -1476,3 +1472,4 @@
 "Go live" = "Au direct";
 "Jumps to the latest moment of the live." = "Revient au moment le plus récent du live.";
 "Go back one minute" = "Reculer d'une minute";
+"1 month" = "1 mois";
