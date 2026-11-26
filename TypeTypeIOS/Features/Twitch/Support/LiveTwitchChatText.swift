@@ -28,6 +28,15 @@ enum LiveTwitchChatText {
     }
   }
 
+  // Next to a star the word "Subscribed" is implied: the watch header shows the length alone.
+  static func subscriptionLength(_ subscription: LiveTwitchSubscription) -> String {
+    switch subscription.months {
+    case 2...: String(localized: "\(subscription.months) months")
+    case 1: String(localized: "1 month")
+    default: String(localized: "Subscribed")
+    }
+  }
+
   static func subscriptionDetails(_ subscription: LiveTwitchSubscription) -> [String] {
     var details: [String] = []
     if subscription.streak > 1 { details.append(String(localized: "\(subscription.streak)-month streak")) }

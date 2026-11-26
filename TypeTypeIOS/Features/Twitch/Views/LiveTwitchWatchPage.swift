@@ -1,10 +1,6 @@
 import SwiftUI
 
 struct LiveTwitchWatchPage: View {
-  enum Pane: Hashable {
-    case chat, infos
-  }
-
   static let chatColumnWidth: CGFloat = 360
 
   @ObservedObject var controller: LivePlayerController
@@ -14,7 +10,6 @@ struct LiveTwitchWatchPage: View {
   let wide: Bool
   let onChannel: () -> Void
   let onOpenURL: (URL) -> Void
-  @State private var pane = Pane.chat
   @State private var linksAccount = false
 
   var body: some View {
@@ -25,7 +20,9 @@ struct LiveTwitchWatchPage: View {
             playerSpace
             ScrollView {
               VStack(alignment: .leading, spacing: 0) {
-                LiveTwitchWatchHeader(controller: controller, video: video, onChannel: onChannel, onLink: link)
+                LiveTwitchWatchHeader(
+                  controller: controller, video: video, dependencies: dependencies, onChannel: onChannel, onLink: link
+                )
                 LiveTwitchWatchInfos(controller: controller, video: video, dependencies: dependencies)
               }
             }
@@ -38,18 +35,12 @@ struct LiveTwitchWatchPage: View {
       } else {
         VStack(spacing: 0) {
           playerSpace
-          LiveTwitchWatchHeader(controller: controller, video: video, onChannel: onChannel, onLink: link)
+          LiveTwitchWatchHeader(
+            controller: controller, video: video, dependencies: dependencies, offersQueue: hasChat,
+            onChannel: onChannel, onLink: link
+          )
           if hasChat {
-            Picker("Section", selection: $pane) {
-              (isLive ? Text("Chat") : Text("Chat replay")).tag(Pane.chat)
-              Text("Infos").tag(Pane.infos)
-            }
-            .pickerStyle(.segmented)
-            .padding(.horizontal, 16)
-            .padding(.bottom, 8)
-            .accessibilityIdentifier("live.twitch.pane")
-          }
-          if hasChat, pane == .chat {
+            Divider()
             chat
           } else {
             ScrollView {
